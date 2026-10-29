@@ -1,26 +1,26 @@
 {
   "environment": "development",
-  "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-  "source_inventory_sha256": "a1bcc28c316859cfc23086fdbc6e5aa7cdbb30fc5884230ecec74fbc2c0fe13e",
+  "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+  "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
   "images": {
-    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5633697b3b6401a2264607398729c7f7469976aba094abf55810bcbbc983b4ba",
-    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:98ef2544913b3a1660a2ee66ce12fdc4935b1302c64075a70a8764f3f87f8636",
-    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
-    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c0b9fba4f8bb4b4a7dcff3765f9432d333b3be2d7008f6f11eae9512ffc8ae78"
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577"
   },
   "build_runs": {
-    "web": "cj1d2",
-    "api-next": "cj1d3",
-    "worker": "cj1d0",
-    "broker": "cj1d1"
+    "web": "cj1db",
+    "api-next": "cj1d8",
+    "worker": "cj1da",
+    "broker": "cj1d9"
   },
   "targets": [
     {
       "name": "sn-next-ui-dev",
       "kind": "containerApps",
       "role": "web",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:565e9de9e357df42170a413c184e2b8be8c5dc9e00a85cb9f93ecf07c0dddfb8",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5633697b3b6401a2264607398729c7f7469976aba094abf55810bcbbc983b4ba",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5633697b3b6401a2264607398729c7f7469976aba094abf55810bcbbc983b4ba",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
       "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
       "provisioning_state": "Succeeded"
     },
@@ -28,8 +28,8 @@
       "name": "sn-api-next-dev",
       "kind": "containerApps",
       "role": "api-next",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:614a01dd440419d45fdeb62ca72ec8fa2830a57e65c4edb811c9d3720e05e6a1",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:98ef2544913b3a1660a2ee66ce12fdc4935b1302c64075a70a8764f3f87f8636",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:98ef2544913b3a1660a2ee66ce12fdc4935b1302c64075a70a8764f3f87f8636",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
       "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
       "provisioning_state": "Succeeded"
     },
@@ -37,8 +37,8 @@
       "name": "trading-agent-build-dev",
       "kind": "jobs",
       "role": "worker",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:20124dbd9685e4adc4527f3015ab4f1f758b52ccac8e5ace39b38d2c6d8a05e2",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
       "provisioning_state": "Succeeded"
     },
@@ -46,8 +46,8 @@
       "name": "macro-fred-daily-dev",
       "kind": "jobs",
       "role": "worker",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:20124dbd9685e4adc4527f3015ab4f1f758b52ccac8e5ace39b38d2c6d8a05e2",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
       "provisioning_state": "Succeeded"
     },
@@ -55,8 +55,8 @@
       "name": "sn-research-run-dev",
       "kind": "jobs",
       "role": "worker",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:20124dbd9685e4adc4527f3015ab4f1f758b52ccac8e5ace39b38d2c6d8a05e2",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
       "provisioning_state": "Succeeded"
     },
@@ -64,8 +64,8 @@
       "name": "dataset-refresh-dev",
       "kind": "jobs",
       "role": "worker",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:20124dbd9685e4adc4527f3015ab4f1f758b52ccac8e5ace39b38d2c6d8a05e2",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
       "provisioning_state": "Succeeded"
     },
@@ -73,8 +73,8 @@
       "name": "attention-home-next-dev",
       "kind": "jobs",
       "role": "worker",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:20124dbd9685e4adc4527f3015ab4f1f758b52ccac8e5ace39b38d2c6d8a05e2",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "b307da9a8aeb66a26d800e66b5e602d5300542114a1f4af4275f416f083e023b",
       "provisioning_state": "Succeeded"
     },
@@ -82,8 +82,8 @@
       "name": "attention-ticker-next-dev",
       "kind": "jobs",
       "role": "worker",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:20124dbd9685e4adc4527f3015ab4f1f758b52ccac8e5ace39b38d2c6d8a05e2",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
       "provisioning_state": "Succeeded"
     },
@@ -91,8 +91,8 @@
       "name": "daily-datapoints-next-dev",
       "kind": "jobs",
       "role": "worker",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:20124dbd9685e4adc4527f3015ab4f1f758b52ccac8e5ace39b38d2c6d8a05e2",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
       "provisioning_state": "Succeeded"
     },
@@ -100,8 +100,8 @@
       "name": "technical-history-next-dev",
       "kind": "jobs",
       "role": "worker",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:20124dbd9685e4adc4527f3015ab4f1f758b52ccac8e5ace39b38d2c6d8a05e2",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
       "provisioning_state": "Succeeded"
     },
@@ -109,8 +109,8 @@
       "name": "equities-next-dev",
       "kind": "jobs",
       "role": "worker",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:20124dbd9685e4adc4527f3015ab4f1f758b52ccac8e5ace39b38d2c6d8a05e2",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
       "provisioning_state": "Succeeded"
     },
@@ -118,8 +118,8 @@
       "name": "system-recovery-dev",
       "kind": "jobs",
       "role": "worker",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:20124dbd9685e4adc4527f3015ab4f1f758b52ccac8e5ace39b38d2c6d8a05e2",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
       "provisioning_state": "Succeeded"
     },
@@ -127,8 +127,8 @@
       "name": "cleanup-trial-observer-dev",
       "kind": "jobs",
       "role": "worker",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:20124dbd9685e4adc4527f3015ab4f1f758b52ccac8e5ace39b38d2c6d8a05e2",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "a2c020dace093967fddc70cf28d1dfa7d823f94df764256a85e99cce486b3b09",
       "provisioning_state": "Succeeded"
     },
@@ -136,8 +136,8 @@
       "name": "zopedia-maintenance-dev",
       "kind": "jobs",
       "role": "worker",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:20124dbd9685e4adc4527f3015ab4f1f758b52ccac8e5ace39b38d2c6d8a05e2",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
       "provisioning_state": "Succeeded"
     },
@@ -145,12 +145,12 @@
       "name": "robinhood-main-sync-dev",
       "kind": "jobs",
       "role": "broker",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:7b0cbdc9f1030b87fa24b5df4cfd31a67a5f96d5c3fba089588e825236313109",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c0b9fba4f8bb4b4a7dcff3765f9432d333b3be2d7008f6f11eae9512ffc8ae78",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c0b9fba4f8bb4b4a7dcff3765f9432d333b3be2d7008f6f11eae9512ffc8ae78",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
       "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
       "provisioning_state": "Succeeded"
     }
   ],
-  "recorded_at": "2026-10-29T20:41:31.950640+00:00",
+  "recorded_at": "2026-10-29T21:09:03.968118+00:00",
   "job_executions_started": 0
 }

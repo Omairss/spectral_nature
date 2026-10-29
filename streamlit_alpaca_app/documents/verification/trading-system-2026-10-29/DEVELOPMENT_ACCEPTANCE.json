@@ -1,19 +1,19 @@
 {
   "status": "accepted",
-  "recorded_at": "2026-10-29T20:44:30.404532+00:00",
-  "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-  "source_inventory_sha256": "a1bcc28c316859cfc23086fdbc6e5aa7cdbb30fc5884230ecec74fbc2c0fe13e",
+  "recorded_at": "2026-10-29T21:09:31.007779+00:00",
+  "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+  "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
   "images": {
-    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5633697b3b6401a2264607398729c7f7469976aba094abf55810bcbbc983b4ba",
-    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:98ef2544913b3a1660a2ee66ce12fdc4935b1302c64075a70a8764f3f87f8636",
-    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
-    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c0b9fba4f8bb4b4a7dcff3765f9432d333b3be2d7008f6f11eae9512ffc8ae78"
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577"
   },
   "build_runs": {
-    "web": "cj1d2",
-    "api-next": "cj1d3",
-    "worker": "cj1d0",
-    "broker": "cj1d1"
+    "web": "cj1db",
+    "api-next": "cj1d8",
+    "worker": "cj1da",
+    "broker": "cj1d9"
   },
   "consumer_count": 36,
   "development_targets": 15,
@@ -34,12 +34,14 @@
       "owned full thesis detail GET",
       "positions and performance views",
       "policy settings in approval mode",
-      "actual broker refresh"
+      "actual broker refresh",
+      "existing production Economic outlook restored from accepted Git and personally verified on DEV"
     ],
     "intraday_cashflow_coverage": "Provider omission leaves investment return undefined; raw equity observations remain visible",
     "screenshots": [
-      "dev-overview.jpg",
-      "dev-activity.jpg"
+      "dev-final-trading.jpg",
+      "dev-activity.jpg",
+      "dev-preserved-outlook.jpg"
     ]
   },
   "local_checks": 212,
@@ -53,5 +55,16 @@
   "paid_qualification_inference": 0,
   "qualification_orders": 0,
   "owner_autopilot_enabled": false,
-  "job_executions_started": 0
+  "job_executions_started": 0,
+  "accepted_application_source": "ed5044be5eea4024a3a155ce214d04e33e682d11",
+  "package_acceptance": "PACKAGE_ACCEPTANCE.json",
+  "preservation_correction": {
+    "production_web_accepted_git": "b58c76568874fcddc84ea4b764ebcaf3ba4a5c1b",
+    "restored_files": 4,
+    "web_input_files": 94,
+    "compiled_web_files": 1724,
+    "python_runtime_files": 195,
+    "python_runtime_unchanged_since_previous_dev_acceptance": true,
+    "checks": "TypeScript, focused ESLint and all 16 Node operational contracts pass; final images qualified and all 36 configurations independently read back."
+  }
 }
