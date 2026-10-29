@@ -549,10 +549,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "attention-ticker-next-dev",
@@ -566,10 +565,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "cleanup-trial-observer-dev",
@@ -583,10 +581,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "daily-datapoints-next-dev",
@@ -600,10 +597,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "dataset-refresh-dev",
@@ -617,10 +613,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "equities-next-dev",
@@ -634,10 +629,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "macro-fred-daily-dev",
@@ -651,10 +645,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "sn-research-run-dev",
@@ -668,10 +661,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "system-recovery-dev",
@@ -685,10 +677,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "technical-history-next-dev",
@@ -702,10 +693,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "trading-agent-build-dev",
@@ -719,10 +709,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "zopedia-maintenance-dev",
@@ -736,10 +725,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         }
       ],
       "production_targets": [
@@ -755,10 +743,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/production-recovery-2026-10-27/packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "commodities-regime",
@@ -772,10 +759,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "company-baseline-prefetch",
@@ -789,10 +775,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "entity-taxonomy-refresh",
@@ -806,10 +791,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "equities-intraday-preload",
@@ -823,10 +807,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "evidence-index-dev",
@@ -838,7 +821,6 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "execution_binding": {
@@ -851,7 +833,7 @@
           },
           "role": "worker",
           "environment": "production",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "fundamentals-quarterly-refresh",
@@ -865,10 +847,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "macro-fred-daily",
@@ -882,10 +863,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "news-ingest-and-features",
@@ -899,10 +879,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/production-recovery-2026-10-27/packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "options-liquid-universe",
@@ -916,10 +895,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "sn-research-run",
@@ -933,10 +911,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "system-health",
@@ -950,10 +927,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "system-recovery",
@@ -967,7 +943,6 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/production-recovery-2026-10-27/packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "execution_binding": {
@@ -981,7 +956,7 @@
               "SYSTEM_RECOVERY_BUDGET_SECONDS": "60"
             }
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "trading-agent-build",
@@ -995,10 +970,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "universe-builder",
@@ -1012,10 +986,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "zopedia-learning",
@@ -1029,10 +1002,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/production-recovery-2026-10-27/packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         },
         {
           "name": "zopedia-maintenance",
@@ -1046,10 +1018,9 @@
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
             "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
             "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         }
       ],
       "accepted_images": {}
