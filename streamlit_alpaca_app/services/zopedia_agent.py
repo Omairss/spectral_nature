@@ -5,7 +5,9 @@ from presentation.visualization_artifacts import collect_research_visualizations
 from services.work_scope import WorkScope
 
 from contextvars import copy_context
-from .llm_execution import LLMContextWindowExceeded, research_run_context, research_spending_context, best_effort_required
+from .llm_execution import (LLMContextWindowExceeded, ResearchBudgetExceeded, research_run_context,
+                            research_spending_context, best_effort_required, funded_core_research,
+                            model_call_context, _CALL)
 
 from dataclasses import replace
 
@@ -1199,6 +1201,9 @@ def _run_evidence_model_step(
         "required": ["decision"],
     }
     feedback = capacity_feedback
+    from .inference_policy import is_core_task
+    protected_step = bool(_CALL.get().get("core_work_id")) and is_core_task(surface=surface, purpose=purpose)
+    answer_only = best_effort_required()
     catalog_only = False
     input_reference = ""
     query_in_context = bool(query)
@@ -1244,19 +1249,31 @@ def _run_evidence_model_step(
             "history_catalog": history_catalog, "supplied_sources": reader.supplied_evidence_manifest,
             "tools": read_tools, "context_feedback": feedback,
         })
+        active_schema = step_schema
+        if answer_only:
+            active_schema = {**step_schema, "properties": {"decision": step_schema["properties"]["decision"]["anyOf"][0]}}
         try:
-            step = generate_json_via_aql_zopedia_gateway(
-                llm_client=llm_client, surface=surface, purpose=purpose, call_type=call_type,
-                system_prompt=system_prompt + (
-                    "\nEvidence remains readable during this step. Put the selected action and its fields inside decision. "
-                    "Return action=answer with the requested result in answer, "
-                    "or action=read with an evidence tool and its JSON arguments. Use select_context to choose which "
-                    "tool results stay in working context. Read any omitted result through its history source_id."
-                ),
-                user_prompt=user_prompt, schema_name=schema_name + "_evidence_step", schema=step_schema,
-                deadline_monotonic=min(deadline_monotonic, time.monotonic() + model_timeout_seconds)
-                if model_timeout_seconds is not None else deadline_monotonic, metadata=metadata,
-            )
+            with model_call_context(discretionary_core_step=protected_step and not answer_only and funded_core_research()):
+                step = generate_json_via_aql_zopedia_gateway(
+                    llm_client=llm_client, surface=surface, purpose=purpose, call_type=call_type,
+                    system_prompt=system_prompt + (
+                        "\nOptional research is complete. Return the current answer from the evidence already available."
+                        if answer_only else
+                        "\nEvidence remains readable during this step. Put the selected action and its fields inside decision. "
+                        "Return action=answer with the requested result in answer, "
+                        "or action=read with an evidence tool and its JSON arguments. Use select_context to choose which "
+                        "tool results stay in working context. Read any omitted result through its history source_id."
+                    ),
+                    user_prompt=user_prompt, schema_name=schema_name + "_evidence_step", schema=active_schema,
+                    deadline_monotonic=min(deadline_monotonic, time.monotonic() + model_timeout_seconds)
+                    if model_timeout_seconds is not None else deadline_monotonic, metadata=metadata,
+                )
+        except ResearchBudgetExceeded as exc:
+            if answer_only or not protected_step:
+                raise
+            answer_only = True
+            feedback = str(exc)
+            continue
         except LLMContextWindowExceeded as exc:
             if input_reference:
                 if query_in_context:
@@ -1277,8 +1294,10 @@ def _run_evidence_model_step(
         # an unused tool-control envelope.
         if not list(Draft202012Validator(schema).iter_errors(public_step)):
             return step
-        errors = list(Draft202012Validator(step_schema).iter_errors(public_step))
+        errors = list(Draft202012Validator(active_schema).iter_errors(public_step))
         if errors:
+            if answer_only:
+                raise ValueError("Completion returned an invalid response: " + errors[0].message)
             feedback = "Invalid response: " + errors[0].message
             continue
         navigation = step["decision"]

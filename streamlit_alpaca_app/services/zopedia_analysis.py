@@ -1300,23 +1300,9 @@ def run_analysis_python(
             _persist_best_effort(payload, conn=conn)
         return payload
 
-    if not frames and (dataset_refs or inline_datasets):
-        payload = _base_result_payload(
-            status="failed",
-            run_id=run_id,
-            objective=objective_text,
-            code=clean_code,
-            input_refs=input_refs,
-            messages=messages,
-            started_at=started_at,
-            error="No analysis input datasets were available.",
-            failure_category="analysis_input_missing",
-        )
-        if persist:
-            _persist_best_effort(payload, conn=conn)
-        return payload
-
-    timeout = remaining_work_seconds(_normalize_numeric(timeout_seconds, default=DEFAULT_TIMEOUT_SECONDS, minimum=1, maximum=MAX_TIMEOUT_SECONDS))
+    timeout = _normalize_numeric(timeout_seconds, default=DEFAULT_TIMEOUT_SECONDS, minimum=1, maximum=MAX_TIMEOUT_SECONDS)
+    check_work()
+    deadline = time.monotonic() + remaining_work_seconds(timeout)
     ctx = mp.get_context("spawn")
     result_reader, result_writer = ctx.Pipe(duplex=False)
     process = ctx.Process(
@@ -1339,13 +1325,13 @@ def run_analysis_python(
     timed_out = False
     unregister = register_cancellation(stop_process)
     try:
-        check_work()
-        process.start()
+        with process_lock:
+            check_work()
+            process.start()
         # Only the child keeps a writer. Cancellation closes the actual writer
         # even during a large send, so the reader gets EOF instead of hanging
         # on a partial frame held open by the parent's own duplicate handle.
         result_writer.close()
-        deadline = time.monotonic() + timeout
         while worker_payload is None:
             check_work()
             remaining = deadline - time.monotonic()

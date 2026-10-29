@@ -66,7 +66,7 @@
     "pre-close-stage-2-output.json": "bc6da97c71f6f49f4c431ce6ec735685f6ef28815f26b182024b93ce63ee05c8"
   },
   "candidate_accepted": true,
-  "candidate_deployed": false,
+  "candidate_deployed": true,
   "qualification_correction": {
     "error": "Initial replay passed raw provider payload copies and an extra supplied source corpus to the final Home editor. Actual production projects semantic source fields and does not bind that extra corpus to the final writer.",
     "withdrawn": "Initial replay publication failure is withdrawn as evidence of a production defect. Its prose observations are retained as experimental output only.",
@@ -339,5 +339,6 @@
     "known_remaining_work": "Independent review findings remain recorded in quality-review.json. This incremental acceptance does not declare the feed flawless, qualify a quiet/heavy paired study, implement the proposed coherent redesign, or complete shared-account future-core funding. Continue those changes in DEV for owner evaluation.",
     "production_runtime": "Selected accepted Git source only. Context-table experiment remains reverted. Current production API/iPhone metrics and all DEV-only features are retained in their existing images.",
     "required_before_promotion": "Mandatory committed source checks; exact immutable image verified in DEV with real Azure SQL/Blob and no paid inference; full consumer/configuration preflight and post-promotion readback."
-  }
+  },
+  "production_evidence": "promotion-production.json"
 }

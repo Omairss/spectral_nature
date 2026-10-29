@@ -1465,7 +1465,7 @@ def decide_paper_call(
         cur.execute(
             f"""UPDATE {schema}.paper_trading_calls SET decision=%s,decided_at=%s
             WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s AND id=%s
-            AND decision IN ('pending',%s) RETURNING id""",
+            AND decision IN ('pending','draft',%s) RETURNING id""",
             (
                 decision,
                 _now_utc(),
@@ -1711,3 +1711,15 @@ def paper_control_lock(account_id: str):
             yield
 
     return locked()
+
+
+def paper_reviews(context: Any, *, environment: str, identities: list[str]) -> dict:
+    if not identities:
+        return {}
+    schema = auth_store.auth_store_schema_name()
+    with _paper_connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            f"SELECT id,payload_json AS payload FROM {schema}.paper_trading_events WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s AND kind='position_review' AND id=ANY(%s)",
+            (*_paper_scope(context, environment), identities),
+        )
+        return {row["id"]: row["payload"] for row in _paper_rows(cur)}

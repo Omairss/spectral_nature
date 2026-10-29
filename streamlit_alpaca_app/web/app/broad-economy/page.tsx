@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { DataPlot } from "@/components/visualizations/data-plot";
 import { DataTable, MetricStrip, WorkbookTabs } from "@/components/workbook";
 import { fetchDataset } from "@/lib/client/api";
-import { PageResearchSummary } from "@/components/page-research-summary";
 import { useAuthenticatedSession } from "@/lib/client/session";
 
 type MacroSummary = Record<string, unknown> & {
@@ -254,7 +253,6 @@ export default function BroadEconomyPage() {
       </header>
       {sessionError || error ? <p className="subtle-error" role="alert">{sessionError || error}</p> : null}
       {loading && !payload ? <p className="loading-label">Loading macro workbook…</p> : null}
-      <PageResearchSummary key="Broad Economy" surface="Broad Economy" label="Economic outlook" />
       {payload ? <>
         <MetricStrip items={[
           { label: "Indicators", value: payload.summary.length },

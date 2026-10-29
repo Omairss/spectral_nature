@@ -36,13 +36,40 @@ def test_news_batch_uses_remaining_window_for_current_best_effort(monkeypatch):
     monkeypatch.setattr(news, "_news_symbol_rows", lambda *args, **kwargs: [(pd.Series(), "FIRST"), (pd.Series(), "SECOND")])
     def resolve(*args, **kwargs):
         clock[0] += 100
-        return SimpleNamespace(status="ready", symbol=kwargs["symbol"], coherent_story_markdown="")
+        return SimpleNamespace(status="ready", symbol=kwargs["symbol"], coherent_story_markdown="", proposed_pages=[])
     monkeypatch.setattr(news, "resolve_news_business_event", resolve)
     deferred = []
     results = news.build_news_business_resolution_results(
         news_frame=pd.DataFrame(), research_deadline_monotonic=950, progress_callback=deferred.append)
     assert [result.symbol for result in results] == ["FIRST", "SECOND"]
     assert not deferred
+
+
+def test_company_batch_deadline_returns_articles_completed_before_its_last_article(monkeypatch):
+    import threading
+    from services.work_scope import register_cancellation, check_work
+    monkeypatch.setenv("ZOPEDIA_NEWS_BUSINESS_MAX_WORKERS", "1")
+    monkeypatch.setattr(news, "_news_symbol_rows", lambda *args, **kwargs:
+        [(pd.Series({"source_event_id":"one"}), "SAME"), (pd.Series({"source_event_id":"two"}), "SAME")])
+    calls = []
+    cancelled = threading.Event()
+    def resolve(*args, **kwargs):
+        calls.append(kwargs["symbol"])
+        if len(calls) == 1:
+            return SimpleNamespace(status="ready", symbol="SAME", coherent_story_markdown="", proposed_pages=[])
+        unregister = register_cancellation(cancelled.set)
+        try:
+            cancelled.wait(2)
+            check_work()
+            raise AssertionError("The incomplete article outlived the owning batch")
+        finally:
+            unregister()
+    monkeypatch.setattr(news, "resolve_news_business_event", resolve)
+    started = time.monotonic()
+    results = news.build_news_business_resolution_results(news_frame=pd.DataFrame(),
+        research_deadline_monotonic=started+.2)
+    assert len(results) == 1 and results[0].status == "ready"
+    assert cancelled.wait(1) and time.monotonic()-started < 1
 
 
 def test_browser_queue_expires_without_launching_a_process():

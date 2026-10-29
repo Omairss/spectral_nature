@@ -1351,14 +1351,41 @@ def build_news_business_resolution_results(
     )
     print(f"[info] news business resolution starting events={len(selected)} workers={workers}", flush=True)
 
+    def resolve(index: int, row: pd.Series, symbol: str, memory: pd.DataFrame) -> NewsBusinessResolutionResult | None:
+        from ..work_scope import WorkScope, WorkCancelled
+        from ..llm import LLMDeadlineExceeded
+        from ..llm_execution import model_call_context, complete_core_research
+        core_id = "news:" + _source_event_id(row, symbol) + ":" + symbol
+        budget = max(int(os.getenv("ZOPEDIA_NEWS_BUSINESS_TIMEOUT_SECONDS", "900")), 60)
+        short = research_deadline_monotonic is not None and research_deadline_monotonic - time.monotonic() < budget
+        print(f"[info] news business resolution started index={index} symbol={symbol}", flush=True)
+        work = WorkScope(min(time.monotonic() + budget, research_deadline_monotonic or float("inf")))
+        try:
+            with work.activate(), model_call_context(completion_only=short, core_work_id=core_id):
+                result = resolve_news_business_event(row, symbol=symbol, zopedia_pages_frame=memory, **kwargs)
+                if result.coherent_story_markdown:
+                    complete_core_research(core_id)
+        except (WorkCancelled, LLMDeadlineExceeded):
+            if progress_callback:
+                progress_callback({"stage": "news_interpretation_incomplete", "symbol": symbol})
+            return None
+        except Exception as exc:
+            logging.getLogger(__name__).exception("Current news interpretation failed: %s", symbol)
+            if progress_callback:
+                progress_callback({"stage": "news_interpretation_incomplete", "symbol": symbol,
+                                   "error_type": type(exc).__name__})
+            return None
+        finally:
+            work.cancel()  # Inherited contexts cannot keep buying work after return.
+        print(f"[info] news business resolution completed index={index} symbol={symbol} status={result.status}", flush=True)
+        return result
+
     grouped: dict[str, list[tuple[int, pd.Series]]] = {}
     for index, (row, symbol) in enumerate(selected):
         grouped.setdefault(symbol, []).append((index, row))
-
-    from ..work_scope import WorkScope, WorkCancelled
-    from ..llm import LLMDeadlineExceeded
-    from ..llm_execution import model_call_context, complete_core_research
-    batch = WorkScope(research_deadline_monotonic if research_deadline_monotonic is not None else float("inf"))
+    from threading import Lock
+    completed: dict[int, NewsBusinessResolutionResult] = {}
+    completed_lock = Lock()
 
     def resolve_company(symbol: str, events: list[tuple[int, pd.Series]]) -> list[tuple[int, NewsBusinessResolutionResult]]:
         # Each complete article builds on the previous draft. The publication
@@ -1367,30 +1394,9 @@ def build_news_business_resolution_results(
         base_versions = {str(row["page_id"]): row.get("version") for row in memory.to_dict("records")}
         results: list[tuple[int, NewsBusinessResolutionResult]] = []
         for index, row in events:
-            core_id = "news:" + _source_event_id(row, symbol) + ":" + symbol
-            budget = max(int(os.getenv("ZOPEDIA_NEWS_BUSINESS_TIMEOUT_SECONDS", "900")), 60)
-            short = batch.deadline - time.monotonic() < budget
-            work = WorkScope(min(time.monotonic() + budget, batch.deadline))
-            print(f"[info] news business resolution started index={index} symbol={symbol}", flush=True)
-            try:
-                with work.activate(), model_call_context(completion_only=short, core_work_id=core_id):
-                    result = resolve_news_business_event(row, symbol=symbol, zopedia_pages_frame=memory, **kwargs)
-                    if result.coherent_story_markdown:
-                        complete_core_research(core_id)
-            except (WorkCancelled, LLMDeadlineExceeded):
-                if progress_callback:
-                    progress_callback({"stage": "news_interpretation_incomplete", "symbol": symbol})
+            result = resolve(index, row, symbol, memory)
+            if result is None:
                 continue
-            except Exception as exc:
-                logging.getLogger(__name__).exception("Current news interpretation failed: %s", symbol)
-                if progress_callback:
-                    progress_callback({"stage": "news_interpretation_incomplete", "symbol": symbol,
-                                       "error_type": type(exc).__name__})
-                continue
-            finally:
-                work.cancel()
-            print(f"[info] news business resolution completed index={index} symbol={symbol} status={result.status}", flush=True)
-            results.append((index, result))
             drafts = business_memory_pages_from_results([result])
             if not drafts.empty:
                 records = {str(item["page_id"]): item for item in memory.to_dict("records")}
@@ -1407,22 +1413,37 @@ def build_news_business_resolution_results(
                     result.proposed_pages = [draft if str(page.get("page_id")) == page_id else page
                                              for page in result.proposed_pages]
                 memory = pd.DataFrame(records.values())
+            with completed_lock:
+                completed[index] = result
+            results.append((index, result))
         return results
 
+    from ..work_scope import WorkScope
+    batch = WorkScope(research_deadline_monotonic if research_deadline_monotonic is not None else float("inf"))
     pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="news-resolution")
     futures = []
     try:
+        if time.monotonic() >= batch.deadline:
+            if progress_callback:
+                for _, symbol in selected:
+                    progress_callback({"stage": "news_interpretation_incomplete", "symbol": symbol})
+            return []
         with batch.activate():
             futures = [pool.submit(copy_context().run, resolve_company, symbol, events)
                        for symbol, events in grouped.items()]
         timeout = max(0, batch.deadline - time.monotonic()) if research_deadline_monotonic is not None else None
         done, pending = wait(futures, timeout=timeout)
-        for future, (symbol, _events) in zip(futures, grouped.items()):
+        batch.cancel()
+        for future, symbol in zip(futures, grouped):
             if future in pending and progress_callback:
                 progress_callback({"stage": "news_interpretation_incomplete", "symbol": symbol})
-        resolved = [item for future in futures if future in done and not future.cancelled()
-                    for item in future.result()]
-        return [result for _, result in sorted(resolved, key=lambda item: item[0])]
+            if future in done and not future.cancelled() and future.exception() is not None:
+                logging.getLogger(__name__).error("Company research batch failed: %s: %s", symbol, future.exception())
+                if progress_callback:
+                    progress_callback({"stage": "news_interpretation_incomplete", "symbol": symbol,
+                                       "error_type": type(future.exception()).__name__})
+        with completed_lock:
+            return [result for _, result in sorted(completed.items())]
     finally:
         batch.cancel()
         for future in futures:

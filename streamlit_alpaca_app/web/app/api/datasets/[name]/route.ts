@@ -5,7 +5,6 @@ import { readJsonBody, forwardJson, noStoreJson } from "@/lib/server/http";
 
 const WORKBENCH_DATASETS = new Set([
   "fred_dashboard",
-  "page_agentic_summary",
   "market_opportunity_feed",
   "momentum_profiles",
   "option_chain",

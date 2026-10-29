@@ -63,6 +63,11 @@ def retain(context: Any, candidates: list[dict], *, proposed_at: Any = None) -> 
                 "parent_call_id": candidate.get("parent_call_id"),
                 "proposed_at": _date(proposed_at) or now,
                 "valid_until": end,
+                "decision": (
+                    "draft"
+                    if candidate.get("proposal_source") == "owner"
+                    else "pending"
+                ),
             }
         )
     store.retain_paper_calls(context, environment=environment_name(), calls=rows)
@@ -610,7 +615,9 @@ def reconcile(context: Any, link: dict, snapshot: dict) -> None:
     store.retain_paper_events(context, environment=env, events=marks)
 
 
-def run_portfolios(*, run_id: str, llm_client: Any) -> None:
+def run_portfolios(
+    *, run_id: str, llm_client: Any, review_positions: bool = True
+) -> None:
     """The existing Trading producer monitors owned calls and acts on opt-in policy.
 
     Research stays in AQL/Zopedia. Code checks identities, permissions, sizing and
@@ -662,63 +669,79 @@ def run_portfolios(*, run_id: str, llm_client: Any) -> None:
             workspace = view["workspace"]
             saved = workspace["policy"]
             active = [c for c in workspace["calls"] if c.get("status") == "open"]
-            if active and llm_client is not None:
-                originals = [
-                    store.paper_call(context, environment=env, identity=c["call_id"])
+            if active and review_positions:
+                review_ids = {
+                    c["call_id"]: "review:" + run_id + ":" + c["call_id"]
                     for c in active
-                ]
-                evidence = {
-                    "account": view["paper_portfolio"],
-                    "recent_activity": workspace["activity"],
-                    "open_calls": [
-                        {
-                            "call_id": c["id"],
-                            "original": c["candidate"],
-                            "performance": c["performance"],
-                        }
-                        for c in originals
-                        if c
-                    ],
                 }
-                result = run_aql_zopedia_structured_agent(
-                    query=json.dumps(to_jsonable(evidence)),
-                    schema_name="paper_position_review",
-                    schema=schema,
-                    instructions=(
-                        "Review each owned paper trading call against its original thesis, forecast dates, invalidation, "
-                        "actual fills and current portfolio. Research current developments through the shared tools when needed. "
-                        "Choose hold, reduce or close and explain the decisive business or portfolio reason in two sentences. "
-                        "A past forecast date is a reason to reassess, not an automatic liquidation rule. "
-                        "Use only supplied call_id values. quantity_fraction is the fraction of remaining allocated shares to close; "
-                        "use zero for hold and one for close. Consider hedges and shared exposures across calls. "
-                        "Account identifiers and private holdings are private context; do not publish them to shared knowledge."
-                    ),
-                    task="paper_position_review",
-                    surface="trading_agent.portfolio",
-                    llm_client=llm_client,
-                    reuse_scope=f"private:{env}:{context.user_id}:{context.portfolio_id}",
-                    max_tool_calls=4,
-                    persist_findings=False,
-                    write_policy="none",
+                retained = store.paper_reviews(
+                    context, environment=env, identities=list(review_ids.values())
                 )
-                if result.get("status") != "completed":
-                    raise RuntimeError("Position review did not complete.")
+                missing = [
+                    c["call_id"]
+                    for c in active
+                    if review_ids[c["call_id"]] not in retained
+                ]
+                reviews = [record for record in retained.values()]
+                if missing and llm_client is not None:
+                    originals = [
+                        store.paper_call(
+                            context, environment=env, identity=c["call_id"]
+                        )
+                        for c in active
+                    ]
+                    evidence = {
+                        "account": view["paper_portfolio"],
+                        "recent_activity": workspace["activity"],
+                        "review_call_ids": missing,
+                        "open_calls": [
+                            {
+                                "call_id": c["id"],
+                                "original": c["candidate"],
+                                "performance": c["performance"],
+                            }
+                            for c in originals
+                            if c
+                        ],
+                    }
+                    result = run_aql_zopedia_structured_agent(
+                        query=json.dumps(to_jsonable(evidence)),
+                        schema_name="paper_position_review",
+                        schema=schema,
+                        instructions=(
+                            "Review the owned calls in review_call_ids against their original thesis, forecast dates, "
+                            "invalidation, actual fills and current portfolio. The full open portfolio is context for hedges "
+                            "and shared exposures. Research current developments through the shared tools when needed. "
+                            "Choose hold, reduce or close and explain the decisive business or portfolio reason in two sentences. "
+                            "A past forecast date is a reason to reassess, not automatic liquidation. "
+                            "Use only supplied review_call_ids. quantity_fraction is the fraction of allocated shares to close; "
+                            "zero for hold and one for close. Shorts require whole shares. "
+                            "Account information is private context; do not publish it to shared knowledge."
+                        ),
+                        task="paper_position_review",
+                        surface="trading_agent.portfolio",
+                        llm_client=llm_client,
+                        reuse_scope=f"private:{env}:{context.user_id}:{context.portfolio_id}",
+                        max_tool_calls=4,
+                        persist_findings=False,
+                        write_policy="none",
+                    )
+                    if result.get("status") != "completed":
+                        raise RuntimeError("Position review did not complete.")
+                    reviews.extend(result["payload"]["reviews"])
+                elif missing:
+                    raise RuntimeError("Position research is unavailable.")
                 by_id = {c["call_id"]: c for c in active}
-                pending = {
-                    p.get("parent_call_id")
-                    for p in workspace["proposals"]
-                    if p["status"] == "pending"
-                }
                 seen = set()
-                for review in result["payload"]["reviews"]:
+                for review in reviews:
                     call = by_id.get(review["call_id"])
                     action = review["action"]
                     fraction = Decimal(str(review["quantity_fraction"]))
-                    if call is None or review["call_id"] in seen:
+                    if call is None or call["call_id"] in seen:
                         raise ValueError(
-                            "The position review referenced an unavailable or duplicate call."
+                            "The review referenced an unavailable or duplicate call."
                         )
-                    seen.add(review["call_id"])
+                    seen.add(call["call_id"])
                     if (
                         action == "hold"
                         and fraction != 0
@@ -728,59 +751,110 @@ def run_portfolios(*, run_id: str, llm_client: Any) -> None:
                         and not 0 < fraction < 1
                     ):
                         raise ValueError(
-                            "The position review returned an inconsistent quantity."
+                            "The review returned an inconsistent quantity."
                         )
-                    store.paper_event(
-                        context,
-                        environment=env,
-                        identity="review:" + run_id + ":" + call["call_id"],
-                        kind="position_review",
-                        occurred_at=datetime.now(timezone.utc),
-                        call_id=call["call_id"],
-                        payload={**review, "ticker": call["ticker"]},
+                    candidate_id = (
+                        "manage-"
+                        + hashlib.sha256(
+                            (run_id + call["call_id"]).encode()
+                        ).hexdigest()[:40]
                     )
-                    if action == "hold" or call["call_id"] in pending:
-                        continue
-                    original = store.paper_call(
-                        context, environment=env, identity=call["call_id"]
-                    )["candidate"]
-                    quantity = (Decimal(call["quantity"]) * fraction).quantize(
-                        Decimal("0.000001"), rounding=ROUND_DOWN
-                    )
-                    if quantity <= 0:
+                    link = alpaca_paper.connection(context)
+                    with store.paper_control_lock(link["server_info"]["account_id"]):
+                        alpaca_paper._admin(context)
+                        # A fresh assessment replaces earlier, unapproved agent
+                        # changes. An in-flight or owner-confirmed order survives.
+                        for previous in workspace["proposals"]:
+                            if (
+                                previous.get("parent_call_id") != call["call_id"]
+                                or previous["candidate_id"] == candidate_id
+                                or previous.get("proposal_source") != "agent"
+                            ):
+                                continue
+                            try:
+                                store.decide_paper_call(
+                                    context,
+                                    environment=env,
+                                    identity=previous["call_id"],
+                                    decision="superseded",
+                                )
+                            except ValueError:
+                                continue
+                            store.paper_event(
+                                context,
+                                environment=env,
+                                identity="superseded:" + previous["call_id"],
+                                kind="call_superseded",
+                                occurred_at=datetime.now(timezone.utc),
+                                call_id=call["call_id"],
+                                payload={"ticker": call["ticker"]},
+                            )
                         store.paper_event(
                             context,
                             environment=env,
-                            identity="quantity:" + run_id + ":" + call["call_id"],
-                            kind="action_needs_review",
-                            call_id=call["call_id"],
+                            identity=review_ids[call["call_id"]],
+                            kind="position_review",
                             occurred_at=datetime.now(timezone.utc),
-                            payload={
-                                "ticker": call["ticker"],
-                                "reason": "The proposed reduction is below the share increment.",
-                            },
+                            call_id=call["call_id"],
+                            payload={**review, "ticker": call["ticker"]},
                         )
-                        continue
-                    proposal = {
-                        **original,
-                        "candidate_id": "manage-"
-                        + hashlib.sha256(
-                            (run_id + call["call_id"]).encode()
-                        ).hexdigest()[:40],
-                        "intent": action,
-                        "proposal_source": "agent",
-                        "parent_call_id": call["call_id"],
-                        "quantity": str(quantity),
-                        "quantity_fraction": float(fraction),
-                        "reason": review["reason"],
-                    }
-                    retain(context, [proposal])
+                        if action == "hold":
+                            continue
+                        original = store.paper_call(
+                            context, environment=env, identity=call["call_id"]
+                        )["candidate"]
+                        quantum = (
+                            Decimal("1")
+                            if call["stance"] == "short"
+                            else Decimal("0.000001")
+                        )
+                        quantity = (Decimal(call["quantity"]) * fraction).quantize(
+                            quantum, rounding=ROUND_DOWN
+                        )
+                        if quantity <= 0:
+                            store.paper_event(
+                                context,
+                                environment=env,
+                                identity="quantity:" + run_id + ":" + call["call_id"],
+                                kind="action_needs_review",
+                                occurred_at=datetime.now(timezone.utc),
+                                call_id=call["call_id"],
+                                payload={
+                                    "ticker": call["ticker"],
+                                    "reason": "The proposed reduction is below the share increment.",
+                                },
+                            )
+                            continue
+                        retain(
+                            context,
+                            [
+                                {
+                                    **original,
+                                    "candidate_id": candidate_id,
+                                    "intent": action,
+                                    "proposal_source": "agent",
+                                    "parent_call_id": call["call_id"],
+                                    "quantity": str(quantity),
+                                    "quantity_fraction": float(fraction),
+                                    "reason": review["reason"],
+                                }
+                            ],
+                        )
             # Only proposals created after explicit opt-in qualify for automatic
             # execution. Older proposals stay available for the owner's review.
             if saved["mode"] == "autonomous":
                 latest = build_trading_agent_view(context)["workspace"]
                 enabled = _date(saved.get("updated_at"))
                 for proposal in latest["proposals"]:
+                    if proposal.get("intent", "entry") != "entry":
+                        current_id = (
+                            "manage-"
+                            + hashlib.sha256(
+                                (run_id + str(proposal.get("parent_call_id"))).encode()
+                            ).hexdigest()[:40]
+                        )
+                        if proposal["candidate_id"] != current_id:
+                            continue
                     if (
                         proposal.get(
                             "proposal_source",

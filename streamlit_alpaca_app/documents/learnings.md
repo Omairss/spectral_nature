@@ -6,6 +6,12 @@ Trace freshness across the saved publication, direct backend and public gateway.
 
 The shared loader now reads the existing materialized publication directly. Local captured-data checks above 4 MB and exact-image Node 22 checks above 3 MB pass. Production and DEV have different accepted Trading frontends, so the same loader change was applied to each accepted Git source and the exact production image qualified independently. Both production gateways now serve October 26; all other 34 images and all 36 configurations were preserved. The separate Highlights synthesis timeout remains open. [Production verification](verification/home-freshness-2026-10-26/PRODUCTION.json).
 
+## Paper portfolio authority and sizing — 2026-10-22
+
+The owner selected Alpaca paper trading for cash, quantities, fills and account performance. Reuse the broker ledger rather than reconstructing an allocated portfolio from research approvals. Keep the broker account separate from historical call observations and from the main Portfolio provider. Bind Key Vault references to the account owner/environment; never distribute credentials to either client.
+
+A directional thesis or confidence label is not a calibrated return distribution. A volatility-budget baseline can use measured covariance and explicit risk preferences without inventing Kelly inputs. Retain estimation inputs, policy, review and actual broker identity for later evaluation. Numerical/authorization checks protect execution; historical held-out risk comparisons assess the estimator and must disclose shock misses and asset-selection limitations.
+
 ## Client refresh and gateway checks — 2026-10-22
 
 Conditional refresh must cover independent ticker and Highlight publications as well as the narrative run. Keep a mounted renderer, stable item identities, foreground-only requests, last-good state on failures and audio continuity. Check SSR/browser formatting across time zones. Compare the production Node/ICU version with Chrome too: compact currency defaults differed between Node 22 and Node 25/Chrome. Set both minimum and maximum precision in shared formatters. Native API paths must match the exposed Next.js gateway; populated authenticated detail checks caught the paper-performance route mismatch that compilation missed.
@@ -1369,13 +1375,104 @@ Protect mandatory current interpretation first. Optional company refreshes reser
 
 A dated body can coexist with a misleading present-tense title. General timing guidance alone did not stop the final Home editor from retaining an old warning as its headline lead. Each published story now carries factual current-observation, background-event and report-date context through both writing and review. The common answer reviewer evaluates title/opening chronology independently and rewrites them around the current development. Original dates remain visible when an older event leads. This is structured source context and model judgment, not a date regex, phrase blacklist or fixed age cutoff.
 
-### Release shared fixes on the intended environment’s source — October 28
 
-A DEV-only feature branch need not be merged wholesale to deliver a shared fix. Review the production API contract against its existing worker source, carry only the accepted change and qualify the exact image in a manual DEV execution when replacing DEV’s different API would lose accepted work. Then verify real signed-in production gateway output and all consumer configurations. Native installation, installed-version readback and physical launch are separate facts; retain a locked-device launch as pending rather than inferring success from signing or installation. After unlock, verify the launched PID and executable against an independent running-process readback and the installation receipt.
+### Exact-image recovery acceptance — October 28
+
+The final worker image passed native Azure qualification: all189 packaged files matched Git;16 protected full-model calls across8 simulated transports used real SQL accounting; a late complete response was adopted without repurchase; ownership renewed while background admission was occupied; learning input survived a fresh connection; native retry kept the original run,10-dollar budget, balanced policy, clock and completed Blob publication. A separate30-second controller clock returned Warning with published data retained. These are operational contracts, separate from the personally reviewed real-model outputs. All29 workers now share the new publication behavior;7 API/broker/frontend images are preserved. Source/configuration readback covers all36 resources. ARM removed one empty observer storage field; explicitly reconciled that representation without weakening the guard or changing resources. Subsequent scheduled production observation exposed additional defects; see the October28 scheduled observation record. Local/DEV acceptance does not establish complete production success or90% savings.
+
+### Check application completion after scheduled production execution — October 28
+
+Azure reported successful container executions for news, Home and learning, while the application receipts correctly distinguished partial news and learning completion. News published13 datasets but four company checkpoints rejected PDF binary text containing NUL, and one EDGAR publication-state checkpoint reported RuntimeError. Semantic retrieval also logged148 budget-admission rejections for an unpriced embedding model. Home completed without degraded components. Learning preserved16 pending critiques and4 reviews before another full case could fit. Qualify the complete provider mix and real document formats alongside simulated recovery contracts, and read application receipts as well as platform exit status. Pending learning admission must be counted in the summary rather than reported as zero deferred.
 
 
-### October 29 · Trading implementation
+### Event allocation and quiet-run research — October 28
 
-Trading has two distinct accounting authorities: broker equity/fills for the paper portfolio and explicit order-to-call allocations for agent performance. Historical research approvals are observations, not filled positions. Keep unresolved proposals durable beyond a research batch, and revalidate every exact order under the account lock.
+Treat the selected production budget as a base allowance, with configurable marginal capacity for useful current investigations. Freeze base, margin and deadline per logical run; atomically count settled work, unknown/in-flight maximums and future core obligations. Extend only by the shortfall for an existing model-selected event, retain its evidence/reason on both extension and attempt, and do not turn refunded marginal money into permission for unrelated work. Optional expansion cannot compound the existing completion buffer. A quiet run has no quota. Full-model core work and explicit small completion variance remain distinct from discretionary expansion.
 
-A single sheet state owns native Trading order/call/settings navigation; sheet replacement handles call-to-order transitions without timing-based dismissal delays. One-day paper performance starts at the preceding daily close so the intraday chart includes overnight P/L.
+Read completed investigations independently of the last nomination: an empty quiet nomination must not erase prior work. Keep the original analysis date when reuse is appropriate. Expiry of the check interval triggers a current materiality/freshness assessment; it does not itself justify re-buying full research. Unclear current evidence requires refresh rather than indefinite reuse. These allocation semantics still require personal review of actual complete model decisions before release.
+
+### Acquisition formats and provider identity are accounting contracts — October 28
+
+Recognize PDF MIME/magic before text decoding. Share the uploaded/HTTP PDF extractor, retain original bytes, and expose partial extraction separately from valid narrative. Azure wire deployment names are not billing model IDs. Price actual embedding token arrays by their token count and use the verified regional SKU; character-priced speech is a separate unit. A recovered keyword path must remain visible as degraded semantic retrieval in application receipts/health.
+
+
+### Market coverage must reach final synthesis — October 28
+
+A current price snapshot does not imply a current information agenda. Home inherited twice-daily ticker-filtered news, its source nominator had no research tools, and its final editor standalone intake excluded acquired sources through an event-news ID filter. Focused investigations already had tools, and selected bundles could still carry some of those captures. The resulting summary recited the numeric market table while missing consequential policy and disclosure context. Broaden acquisition in the existing shared news producer; Home consumes its canonical news_articles snapshot. Keep current follow-up inside the existing shared AQL/Zopedia research flow, retain its substantive synthesis even with no focused nominations and pass complete captures through final editing. The attempted Home-local broad feed was rejected and removed; it is not the accepted design. Keep released, in-progress and upcoming information distinct. Shared writing guidance should use quantities where they change understanding, without numeric quotas or example-specific rules.
+
+Declare final Home synthesis/review at the producer boundary before optional research, then transfer that obligation into actual full-model calls. Run funding and account liquidity are different contracts. A fresh provider balance plus aggregate billing does not establish the individual costs or terminal state of lost responses; keep unknown liabilities visible until authoritative reconciliation. See [the coverage diagnosis](verification/event-adaptive-reliability-2026-10-28/coverage-diagnosis.json).
+
+
+### Current provider credit and uncertain historical cost are separate — October 28
+
+The owner rejected permanent account blocking after lost usage receipts. Keep the original run's full uncertain cost and the unresolved account record; those are financial reconciliation state. For later admission, use a successful current provider available-balance observation and subtract active requests and charges received after the probe began. Ended requests or elapsed local request deadlines may stop withholding current liquidity only after that later observation. This does not prove their actual charge or rule out a later debit. Failed balance reads do not release holds; genuinely empty accounts still refuse requests. Preserve atomic shared admission, the request's original clock, overlapping-probe holds and idempotent late settlement. This supersedes the earlier interpretation that every unknown maximum must reduce unrelated future provider credit indefinitely; original-run unknown cost reservation remains.
+
+
+### Correct coverage at its existing owner — October 28
+
+A missing topic in Home does not authorize another provider intake inside Home. The shared news producer owns market-wide feed acquisition and its existing datasets; preserve its original selected-company coverage in the same dataset, with company research selection separately bounded. A broad latest-news page can otherwise crowd out useful ticker reports. Retain successfully acquired scopes and record failed siblings in existing operational state; total acquisition failure must not publish fabricated success. Home reads that snapshot and uses the established shared research engine for follow-up. Keep the twice-daily producer and existing Home schedule explicit: independent cron times are not a completion dependency. A bounded latest-news page is not an exhaustive event archive. Qualify the actual shared source and complete outputs before release.
+
+
+### Audit instruction compliance against actual effects — October28
+
+Check instructions against persisted configuration, actual review metadata, product writes and completion statements. A replay namespace is not storage isolation; persist_findings=False does not override an inherited memory-write policy. A completed draft is not a completed review. A corrected component does not make already-delivered work unfinished, and an operational check does not establish feed quality. Preserve exact historical correction status instead of resetting the entire task to done or unmet. See the existing event-adaptive task plan instruction audit.
+
+
+### Reproduce consumer input assembly, not only the callee — October28
+
+Use the actual caller projections, source-reader binding and write policy when replaying a shared research function. Extra lookup context and duplicate raw provider payloads can change model behavior even when the function and model match production. Withdraw conclusions from a different input contract and reuse already-completed research through the existing handoff rather than regenerate it. Mechanical identity failures in an unrepresentative replay do not establish a production defect.
+
+Read the actual final display projection as well as the editor pool. A model-produced story can be retained internally and never reach the feed. Likewise, a full-capability writer cannot supply missing primary disclosure detail from a frozen headline-only corpus, and a completed reviewer can miss substantial agenda gaps. Distinguish a failed retained-source case from unproven live acquisition; keep the final quality decision separate from contract checks.
+
+### Research ownership includes the acquisition arguments — October28
+
+The shared researcher should choose the questions, queries and date window; a search adapter executes them and returns broad, traceable evidence. Do not insert the entire original task as an omitted query or pay another model to reinterpret an already explicit plan. Preserve dated economic observations into focused work, not just nomination and final writing. Source sufficiency means the requested explanatory depth, including evidence that could change the prevailing interpretation. An action protocol should require its active fields and preserve useful partial drafts without dummy values. Check transport schema constraints before claiming provider portability.
+
+### A preview limit is not a research coverage decision — October 28
+
+Execute the shared researcher's bounded focus requests within the original acquisition deadline. Keep acquired sources behind the compact preview so synthesis can inspect them. Result counts do not establish that selected subjects were understood. Diagnose coverage, interpretation, allocation and public rendering separately; the same full model can lose useful information at any of these handoffs.
+
+### Separate acquired information, editorial preservation and displayed priority — October 28
+
+A source can be acquired yet lose its decisive explanation during synthesis, and a generated story can exist yet disappear below the public display limit. Inspect all three handoffs. Pass the actual display capacity into semantic composition and review: the current public editor receives no section limits, while a later materializer slices its ranked output. Review the same selection that will be rendered. Measure actual writing/review token composition before adding more instructions. Source-preservation checks and lossless-format checks establish their own contracts; personal review of the actual displayed feed establishes quality. Keep rejected or unqualified experiments out of selected release source.
+
+
+### Owner acceptance can scope an incremental feed release — October 29
+
+The owner personally judged the unedited candidate substantially better than the saved production output and explicitly authorized promotion. Record that acceptance without erasing earlier reviewer findings or claiming the unfinished redesign is complete. Capture the current live baseline again: another accepted release can already contain the same credit repair and independent API/native features. Retain those exact images and behavior, verify the candidate in DEV, and continue the remaining coherent research/publication change separately.
+
+Broker decimal strings must become finite numeric values in the shared public account projection, while exact order quantities stay strings. Native review exposed absent metrics that browser coercion had masked. Serialize snapshot timestamps as ISO8601 with time and offset.
+
+## Shared completion funding and accepted DEV integration — 2026-10-29
+
+Future writing/review funding is a priority obligation, not a paid provider request. Project it atomically from the original run into its account, transfer it into actual requests without double reservation, and keep unknown usage separate. A finished execution releases only unspent priority; a native retry restores original remaining funding and deadline. Evidence-navigation calls are discretionary, so exhaustion hands the current evidence to the protected full-model answer instead of funding endless reads as core work.
+
+Preserving a separately accepted DEV API includes its Native repair, maintenance, complete company drafts and numerical worker cancellation. Reconcile these in Git before building; a shared-module hash alone does not show that the actual transport, embeddings or audio remain valid.
+
+
+### Completion timing and actual credit — October29
+
+An answer must exist before its advisory review can add value. Stop optional research early, then let writing and review use the original remaining run window; a separate writing cutoff can discard the first answer while reserved review time sits unused. The parent deadline still bounds every child. Current provider balance, active requests and unknown historical charges are different measurements: the October29 stale Home feed was real credit exhaustion ($0.26), with no old unknowns withholding current liquidity. A refill permits future inference but does not by itself publish a replacement feed; verify the public run identity advances.
+
+
+### Observation-backed event funding — October29
+
+A model may select an unexplained current market observation before an article exists. The financial adapter must carry that actual input, not require an article as its only evidence identity. Join only nominated subjects to supplied observations; retain the full original row and snapshot date in the marginal-funding audit. This authorizes investigation within the configured allowance; it does not establish a price cause.
+
+
+### Selection shares the evidence reader identity — October29
+
+A research source should have the same identity when read, selected and published. Redundant section/index/bundle identifiers require the model to translate storage details and exclude useful research that was not already public. Resolve the exact named source on the application side; preserve original bundle metadata and all supporting originals. Let the existing shared reader load source bodies as needed while substantive findings remain in working context.
+
+### Verify comparisons in the owner’s actual viewing context — October29
+
+A chat fragment is not a standalone HTML document. If the owner opens the file from the IDE, include its styles and interaction handlers and inspect that exact document in a browser. Show matched before/after stories together; separate genuinely added or omitted coverage from rewritten wording. Preserve the generated prose verbatim rather than making the preview look better than its source.
+
+### Exact cloud qualification and promotion — October29
+
+Qualify each role on its exact immutable image, including API identity/secret dependencies and broker imports without executing trades. Keep the deliberately failed retry and its successful native recovery as evidence. Read back the whole consumer inventory and non-image configuration after promotion. A scheduled job already in flight retains its starting image; template promotion applies to subsequent executions, and a healthy API is distinct from a newly published feed.
+
+
+### Trading is an owned portfolio lifecycle — October29
+
+Trading requires a real account timeline, persistent approval decisions and exact broker-fill allocation across entry, reduction and exit. Research outcomes stay separate from invested results. Autopilot consent belongs to the connected account and saved risk-policy revision. Native Trading uses one sheet state for call, order and policy navigation; one-day performance starts at the preceding daily close.

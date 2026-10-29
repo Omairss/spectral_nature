@@ -1,5 +1,5 @@
 {
-  "status": "owner_accepted_scoped_worker_release_operational_qualification_pending",
+  "status": "owner_accepted_worker_release_deployed_verified",
   "review_base_revision": "a1eefb18490e84b3c637b8e42a4f4954362fc3de",
   "files": {
     ".env.example": "Adds independent event-mode/margin controls. Blank mode preserves the fixed target. No credential or schedule changes. Shared news controls NEWS_MARKET_ARTICLE_LIMIT(default50) and NEWS_LOOKBACK_DAYS(default2) belong to the source producer, not Home. NEWS_TICKER_ARTICLE_LIMIT(default50) preserves selected-company intake independently.",
@@ -91,9 +91,8 @@
   "full_consumer_inventory": "consumers.before.json",
   "consumer_preservation": "Initial baseline covered36 consumers. Earlier worker-only candidate scope is superseded by the global provider-credit fix: all33 Python consumers (29 workers,2 APIs,2 broker jobs) require the shared new admission/settlement contract. Reconcile each API/broker accepted source behavior before a new build; three frontend images remain retained. No consumer has been mutated.",
   "remaining_acceptance": [
-    "Exact-image DEV operational qualification",
-    "Authorized production promotion and complete readback",
-    "Scheduled observation"
+    "Observe next scheduled run",
+    "Owner evaluation of the separately implemented DEV redesign"
   ],
   "qualitative_verification": {
     "status": "corrected_shared_source_under_fresh_verification",
@@ -120,5 +119,6 @@
     "Coherent shared research/publication design",
     "Future-core account funding and cross-consumer integration",
     "Fresh representative quality evaluation by owner"
-  ]
+  ],
+  "production_evidence": "promotion-production.json"
 }

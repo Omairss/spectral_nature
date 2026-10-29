@@ -1130,6 +1130,7 @@ class DeepSeekResponsesJSONClient(DeepSeekChatJSONClient):
                    "instructions": apply_narrative_style(system_prompt) + "\nReturn the structured result by calling " + output_function + ".",
                    "input": [{"role": "user", "content": [{"type": "input_text", "text": user_prompt}]}],
                    "stream": False, "reasoning": {"effort": "none"},
+                   "max_output_tokens": max(65536, int(os.getenv("LLM_CONTEXT_OUTPUT_RESERVE_TOKENS") or 0)),
                    "temperature": self.config.temperature,
                    "tools": [{"type": "function", "name": output_function,
                        "description": "Return the requested structured artifact as arguments. This serializes a result; it does not execute a research tool.",

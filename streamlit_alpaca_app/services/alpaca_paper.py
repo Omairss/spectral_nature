@@ -77,6 +77,7 @@ ORDER_FIELDS = (
     "filled_at",
     "canceled_at",
     "updated_at",
+    "position_intent",
 )
 RISK_FIELDS = (
     "method",
@@ -793,6 +794,9 @@ def _order_inputs(
         "symbol": symbol,
         "side": "buy" if candidate["stance"] == "long" else "sell",
         "qty": str(quantity),
+        "position_intent": (
+            "buy_to_open" if candidate["stance"] == "long" else "sell_to_open"
+        ),
         "type": "market",
         "time_in_force": "day",
         "client_order_id": client_id,
@@ -807,7 +811,7 @@ def _candidate(context: UserContext, candidate_id: str) -> dict:
         context, environment=environment_name(), identity=candidate_id
     )
     if retained:
-        if retained["decision"] != "pending":
+        if retained["decision"] not in {"pending", "draft"}:
             raise ValueError("This proposal was already decided.")
         candidate = dict(retained["candidate"])
         candidate["intent"] = retained["intent"]
@@ -956,6 +960,7 @@ def _management_inputs(
         "symbol": symbol,
         "side": "sell" if actual > 0 else "buy",
         "qty": str(quantity),
+        "position_intent": "sell_to_close" if actual > 0 else "buy_to_close",
         "type": "market",
         "time_in_force": "day",
         "client_order_id": client_id,
@@ -985,6 +990,12 @@ def _execution_policy(
             raise PaperAccountError(
                 "The paper connection changed. Review the order again."
             )
+    if candidate.get("candidate_id"):
+        current = store.paper_call(
+            context, environment=environment_name(), identity=candidate["candidate_id"]
+        )
+        if not current or current["decision"] not in {"pending", "draft"}:
+            raise ValueError("This proposal was already decided.")
     saved = policy(context)
     if expected_revision is not None and saved["revision"] != expected_revision:
         raise ValueError("Trading settings changed. Review this order again.")
@@ -1245,7 +1256,7 @@ def confirm_order(
                 current = store.paper_call(
                     context, environment=environment_name(), identity=action_id
                 )
-                if not current or current["decision"] != "pending":
+                if not current or current["decision"] not in {"pending", "draft"}:
                     raise ValueError("This proposal has already been decided.")
                 # Unresolved submissions reserve the account, even across environments.
                 schema = auth_store.auth_store_schema_name()

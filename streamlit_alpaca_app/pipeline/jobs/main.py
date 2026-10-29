@@ -2795,6 +2795,13 @@ def run_trading_call_tracking(ctx: JobContext, conn: Any | None = None, *, api: 
 
 def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
     _job_progress(ctx, conn, stage="starting", message="Starting Trading Agent materialization.", progress_pct=1.0)
+    llm_client = None
+    try:
+        llm_client = load_aql_zopedia_llm_client(surface="trading_agent")
+    except LLMAPIError as exc:
+        print(f"[warn] trading-agent LLM runtime unavailable: {exc}")
+    from services.trading_portfolio import run_portfolios
+    run_portfolios(run_id=ctx.run_id,llm_client=llm_client)
     input_versions = dataset_input_versions([
         "market_opportunity_feed", *RANKING_DATASET_NAMES, "page_agentic_summaries", "price_history",
     ])
@@ -2830,11 +2837,6 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
     ranking_frames.clear()
 
     page_summaries = load_dataset_frame(input_versions["page_agentic_summaries"])
-    llm_client = None
-    try:
-        llm_client = load_aql_zopedia_llm_client(surface="trading_agent")
-    except LLMAPIError as exc:
-        print(f"[warn] trading-agent LLM runtime unavailable: {exc}")
 
     candidate_limit = _parse_int_env("TRADING_AGENT_CANDIDATE_LIMIT", 4, minimum=1)
     generation_mode = str(os.getenv("TRADING_AGENT_GENERATION_MODE") or "shared_research_v2").strip().lower()
@@ -2916,8 +2918,7 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
     _persist_dataset("trading_agent_ranked_opportunities", opportunity_feed, ctx, conn)
     _persist_dataset("trading_agent_runs", runs, ctx, conn)
     _persist_dataset("trading_agent_candidates", candidates, ctx, conn)
-    from services.trading_portfolio import run_portfolios
-    run_portfolios(run_id=ctx.run_id,llm_client=llm_client)
+    run_portfolios(run_id=ctx.run_id,llm_client=llm_client,review_positions=False)
     research_package_count = len(research_packages)
     del research_packages, quarterly_fundamentals, page_summaries
 
@@ -3646,9 +3647,10 @@ def main() -> None:
             work_conn.close()
         spending = None
         if ctx.name in {"news-ingest-and-features", "attention-home-build", "zopedia-learning"}:
-            from services.llm_execution import research_spending_context
+            from services.llm_execution import research_spending_context, interrupt_core_research
             try:
                 with WorkScope(time.monotonic() + 10).activate():
+                    interrupt_core_research("Execution ended: " + status)
                     spending = {key: value for key, value in research_spending_context().items()
                                 if key not in {"prices", "tool_maximum_usd_per_request", "allocation"}}
             except Exception as exc:

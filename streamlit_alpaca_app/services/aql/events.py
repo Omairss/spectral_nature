@@ -38,8 +38,8 @@ from .evidence_pack import materialize_research_artifacts
 _P_EVENT_LIMIT = register_config_param(
     "Source event investigation limit",
     group="AQL / Zopedia Engine",
-    default=4,
-    description="Maximum independently nominated source events per Attention research run.",
+    default=-1,
+    description="-1 lets research usefulness, the run budget and original deadline set breadth; 0 disables source-event research; a positive value sets a base ceiling, with the configured event margin.",
 )
 _P_EVENT_TIMEOUT = register_config_param(
     "Source event run timeout seconds",
@@ -65,6 +65,12 @@ _P_EVENT_TOOLS = register_config_param(
     default=6,
     description="Tool budget for investigating each nominated source event.",
 )
+_P_EVENT_WORKERS = register_config_param(
+    "Source event maximum workers",
+    group="AQL / Zopedia Engine",
+    default=3,
+    description="Maximum concurrent focused investigations sharing the original run allowance and deadline.",
+)
 _P_PRIOR_EVENT_LIMIT = register_config_param(
     "Source event prior investigation context limit",
     group="AQL / Zopedia Engine",
@@ -84,9 +90,11 @@ _NOMINATION_PROMPT = register_narrative_prompt(
         "has moved much. Follow the actual information schedule: distinguish released information, an announcement "
         "still in progress, and an upcoming release. Acquire the current source before treating an expected "
         "announcement as completed. Older numerical observations cannot establish today's policy or news. "
-        "Write market_context_text as a substantive research synthesis of what matters now, why it matters and "
-        "the unresolved or upcoming developments that could change the interpretation. Preserve this research "
-        "even when no further focused investigation is needed. "
+        "First record research_agenda: the consequential current questions, including independent developments "
+        "and evidence that could challenge a shared explanation. Then record findings_markdown: substantive "
+        "findings organized around those questions, with dates, mechanisms, opposing evidence and useful open "
+        "questions. This is shared research, not the Home overview. Preserve it even when no further focused "
+        "investigation is needed. "
         "Group reports about the same underlying development. Do not merge separate developments just because they "
         "share a broad sector. Each investigation has one specific new disclosure or event as its center. "
         "Events may concern private companies, customers, "
@@ -97,7 +105,7 @@ _NOMINATION_PROMPT = register_narrative_prompt(
         "Choose investigations that explain the shared changes or reveal a consequential business development. "
         "A favorable headline does not make an important disclosure already understood. Investigate the drivers of "
         "strength as well as weakness, especially findings that could overturn the prevailing interpretation. "
-        "Treat market_context_text as a working interpretation to revisit after research, not a theme every event must fit. "
+        "Do not settle on a unifying theme before investigating the independent questions in the agenda. "
         "Avoid routine price recaps, duplicate stories and generic advice. Headlines alone are valid research leads. "
         "Each event needs a focused question and the source references that motivated it. In source_ids use a supplied "
         "source_id or an exact source URL returned by the tools for a newly discovered report. Plan useful follow-up questions "
@@ -106,8 +114,9 @@ _NOMINATION_PROMPT = register_narrative_prompt(
         "also do not establish event chronology. Compare current reports and observations with the dated completed "
         "investigations. Allocate fresh research to consequential new information, changed uncertainty or a still-useful "
         "unresolved question. A repeated article or the passage of time alone does not justify repeating acquisition. "
-        "Explain the incremental question in each rationale. Return events in order of research usefulness; the limit "
-        "is available capacity, not a quota. Select fewer or no new investigations on a quiet run. A current briefing "
+        "Explain the incremental question in each rationale. Return events in order of research usefulness. "
+        "Allocate breadth and depth using the available dollar allowance and original time window; any configured "
+        "event ceiling is capacity, not a quota. Select fewer or no new investigations on a quiet run. A current briefing "
         "will still be written from this run's observations and dated background."
     ),
 )
@@ -116,18 +125,8 @@ _EVENT_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
-        **{
-            key: {"type": "string"}
-            for key in (
-                "event_title",
-                "surface_summary_text",
-                "what_happened_text",
-                "why_happened_text",
-                "affected_assets_summary_text",
-                "business_context_text",
-                "watch_next_text",
-            )
-        },
+        "event_title": {"type": "string"},
+        "findings_markdown": {"type": "string", "description": "Substantive shared research: operating explanation, dated findings, alternatives, source references and unresolved questions."},
         "cause_status": {
             "type": "string",
             "enum": ["supported", "partial", "unresolved", "continuation"],
@@ -151,18 +150,7 @@ _EVENT_SCHEMA: dict[str, Any] = {
             },
         },
     },
-    "required": [
-        "event_title",
-        "surface_summary_text",
-        "what_happened_text",
-        "why_happened_text",
-        "affected_assets_summary_text",
-        "business_context_text",
-        "watch_next_text",
-        "cause_status",
-        "supporting_symbols",
-        "claims",
-    ],
+    "required": ["event_title", "findings_markdown", "cause_status", "supporting_symbols", "claims"],
 }
 
 
@@ -251,8 +239,10 @@ def research_source_events(
             **empty,
             "status": "unavailable" if llm_client is None else "no_sources",
         }
-    limit = event_investigation_capacity(max(int(get_config_param(_P_EVENT_LIMIT)), 0))
-    if not limit:
+    limit = event_investigation_capacity(int(get_config_param(_P_EVENT_LIMIT)))
+    if limit < -1:
+        raise ValueError("Source event investigation limit must be -1, zero, or positive.")
+    if limit == 0:
         return {**empty, "status": "disabled"}
     market = market_frame.copy()
     if (
@@ -298,10 +288,11 @@ def research_source_events(
         "type": "object",
         "additionalProperties": False,
         "properties": {
-            "market_context_text": {"type": "string"},
+            "research_agenda": {"type": "array", "items": {"type": "string"}},
+            "findings_markdown": {"type": "string"},
             "events": {
                 "type": "array",
-                "maxItems": limit,
+                **({"maxItems": limit} if limit > 0 else {}),
                 "items": {
                     "type": "object",
                     "additionalProperties": False,
@@ -333,7 +324,7 @@ def research_source_events(
                 },
             }
         },
-        "required": ["market_context_text", "events"],
+        "required": ["research_agenda", "findings_markdown", "events"],
     }
     previews = [
         {
@@ -411,7 +402,8 @@ def research_source_events(
     payload = nomination.get("payload")
     market_research = [{"run_id": run_id, "asof_time_utc": asof,
         "status": nomination.get("status"), "agent_run_id": discovery_agent.get("run_id", ""),
-        "market_context_text": payload.get("market_context_text", "") if isinstance(payload, dict) else "",
+        "market_context_text": payload.get("findings_markdown", "") if isinstance(payload, dict) else "",
+        "research_agenda_json": json.dumps(payload.get("research_agenda", []) if isinstance(payload, dict) else []),
         "error": nomination.get("error", ""),
         "acquired_document_count": len(discovery["documents"]),
         "result_json": json.dumps(to_jsonable(nomination), ensure_ascii=False)}]
@@ -440,6 +432,16 @@ def research_source_events(
         resolved = [by_id[ref]["source_id"] for ref in plan["source_refs"] if ref in by_id]
         plan["unresolved_source_refs"] = [ref for ref in plan["source_refs"] if ref not in by_id]
         plan["source_ids"] = list(dict.fromkeys(resolved))
+        # A nominated market observation is evidence for investigating an
+        # unexplained move; it is not evidence of the move's eventual cause.
+        # Preserve that existing input at the financial authorization boundary.
+        related = {_normalize_symbol(symbol) for symbol in plan["related_symbols"]}
+        plan["observation_refs"] = [
+            {"evidence_id": "observation::" + hashlib.sha256(
+                json.dumps({"asof": asof.isoformat(), "observation": row}, sort_keys=True).encode()
+            ).hexdigest()[:20], "asof_time_utc": asof.isoformat(), "observation": row}
+            for row in observations if _normalize_symbol(row.get("symbol")) in related
+        ]
         if plan["unresolved_source_refs"]:
             record_execution_issue("market_discovery_source_reference", ValueError("A nominated source reference was not acquired"))
 
@@ -463,11 +465,13 @@ def research_source_events(
             "the investigation plan. Provider symbol tags do not restrict the affected companies. Sources can concern "
             "private entities. Compare competing interpretations, and distinguish reported facts, established business "
             "relationships and plausible market effects. Do not claim a contemporaneous price move proves causation. "
-            "Produce one coherent story with specific connections, not a list of headlines or a price recap. "
+            "Record one substantive shared research answer in findings_markdown. Explain the operating or policy "
+            "mechanism, decisive detail, competing interpretations, original event dates and useful next observations. "
+            "Preserve information needed for later synthesis; this stage does not write a Home card. "
             "Use source_id/source_url on claims, and set evidence_role to reported_fact, established_context or hypothesis. "
             "Keep a useful partial story when a connection needs follow-up. Do not invent a public ticker for a private entity.\n"
-            "Public text fields contain concise business analysis. Keep tool/runtime limitations in the engine's internal "
-            "limitations. watch_next_text names the decisive business question, not an inventory of failed tools or missing datasets.\n"
+            "Keep tool/runtime limitations in the engine's internal limitations; findings explain the substantive "
+            "remaining uncertainty and the observation that would change the interpretation.\n"
         )
         prior_research = [
             artifact for symbol in sorted(set(plan["related_symbols"]))
@@ -497,7 +501,8 @@ def research_source_events(
                 }
             )
         with event_research_context({"work_id": "event:" + event_id,
-                "evidence_ids": plan["source_ids"], "reason": plan["rationale"],
+                "evidence_ids": [*plan["source_ids"], *[row["evidence_id"] for row in plan["observation_refs"]]],
+                "observations": plan["observation_refs"], "reason": plan["rationale"],
                 "asof_time_utc": asof.isoformat()}):
             result = run_aql_zopedia_structured_agent(
                 query=query,
@@ -657,7 +662,8 @@ def research_source_events(
     results: list[dict[str, Any]] = []
     bundles: list[dict[str, Any]] = []
     with ThreadPoolExecutor(
-        max_workers=min(len(plans), 3) or 1, thread_name_prefix="aql-source-events"
+        max_workers=min(len(plans), max(int(get_config_param(_P_EVENT_WORKERS)), 1)) or 1,
+        thread_name_prefix="aql-source-events"
     ) as pool:
         pending = {
             pool.submit(copy_context().run, investigate, plan, index): plan

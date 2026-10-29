@@ -8,6 +8,14 @@ The repair changes only the shared Home loader. After the owner’s explicit “
 
 Operator probes also needed case-insensitive HTTP header handling and restoration of Next’s generated `next-env.d.ts` path rewrite before packaging. Neither required another application change.
 
+## Aggregate accounting assumption corrected — 2026-10-22
+
+A repeated SQL-pattern patch initially matched a sibling function. Immediate source inspection caught it before execution; the correction uses function-scoped edits. Repeated SQL and mock-class structures need exact function anchors, not broad text matches.
+
+I built an equal-capital aggregate after the owner confirmed which calls to include, without establishing the portfolio's accounting authority. Membership did not authorize invented capital or cash. The owner directed reuse of Alpaca paper trading. The prototype remained local and undeployed; its synthetic accounting is superseded and its evidence remains historical. Check existing broker capabilities before designing a new trade ledger.
+
+The previous web release also dropped the conditional dev-maintenance Health section. Its accepted source is restored in the current work; this restoration has not been deployed. A local lint check additionally finds a pre-existing synchronous effect-state update outside those restored lines; do not describe this as a clean whole-file lint result.
+
 ## Client refresh acceptance — 2026-10-22
 
 Moving Home across the server/client boundary exposed host-dependent timestamp and compact-currency formatting. The first DEV browser load reported React hydration error 418. Explicit UTC time and count locale did not finish the repair: a complete server/browser text comparison found 139 compact-currency precision differences, such as $3.0B versus $3B. Node 25 local rendering matched Chrome and hid the Node 22 server default. Set precision and locale in the shared chart/ticker formatters and compare the production Node version with the actual browser. No production promotion occurred during this repair.
@@ -1297,13 +1305,99 @@ The first paid-response recovery draft replayed every exact response, including 
 
 The cheapest complete KNSA replay added a drug-royalty history that appears in neither the captured acquisition nor the retained company background. The full-model replay stayed with the sourced product outlook. Tightened the common evidence contract for named product ownership, commercial counterparties, licensing, regulatory status and financial figures: use same-entity sources, keep generated prior analysis as a lead, and distinguish economic inference from factual relationships. This changes every research caller; no ticker-specific exclusion or phrase test was added. Final retained-input comparison remains within the single cumulative15-dollar owner exception.
 
-### Reconcile production lineage before merging a different DEV API — October 28
 
-The first iPhone metric integration attempted a broad merge between DEV maintenance/Alpaca and current worker source, creating shared-service conflicts unrelated to the phone request. It was aborted without deployment. Selecting production’s own accepted source and reviewing the two metric files resolved the release while preserving DEV. Public probes of the intentionally internal API returned ingress404; production health must be checked through its internal route or authenticated gateway. During final inventory comparison, an initial script assumed raw resources where the saved baseline wrapped each under resource; the corrected complete36-consumer comparison passed before the release record was written.
+### Compare settled usage with the committed study bound — October 28
+
+One Flash request lost its connection with ChunkedEncodingError. The strict study guard retained its full legal maximum, and a later attempt completed the output. The first acceptance-record writer incorrectly required every attempt to have known usage and stopped. The source gate then refused the build; no image was built from an unaccepted record. Recorded the known token-price estimate and unknown maximum separately instead of treating the commitment as settled billing. The cumulative bound remains below the owner15-dollar cap, and the unknown obligation stays reserved.
+
+### Full scheduled workload exposed gaps beyond the DEV recovery probe — October 28
+
+The exact-image probe covered ownership, deadlines, publication and simulated DeepSeek transports, but did not cover the actual Azure embedding price contract or HTTP PDF extraction. The first scheduled news execution exposed148 rejected embedding requests and four completed company profiles whose checkpoint contained PDF binary text that PostgreSQL JSONB cannot represent. An EDGAR publication checkpoint separately reported RuntimeError without enough logged cause. These are still open findings; successful publication of sibling datasets does not mean the whole workload was repaired. The first learning run also retained16 critiques and4 reviews; its per-case admission path failed to increment the deferred counter. Preserve the earlier accepted evidence and record the scheduled outcome separately instead of declaring all requested work finished.
 
 
-### October 29 · Trading implementation
+### Automatic expiry can defeat event-adaptive costs — October 28
 
-Implementation requests must produce product changes. A design-only preview did not fulfill the Trading request. During source reconciliation, a greedy conflict-marker regex briefly truncated local files; restored original merge conflicts from Git and resolved with bounded marker matching before any build. Review full functions after mechanical resolution.
+The existing24-hour company-cache expiry bypassed semantic reuse and bought a full investigation even with unchanged useful evidence. Moving budget holds after cache lookup alone would not fix recurring quiet-day spending. The candidate now assesses current materiality and freshness after expiry, with original/current as-of dates separate; only a completed reuse decision advances the check time. Failed/uncertain assessment still refreshes. Complete-output qualification is pending; software checks cannot establish the decision quality.
 
-Use absolute application paths for scripted edits in a worktree. Several local commands ran from the repository root or web subdirectory and failed before changing their intended files; the misplaced owned verification file was moved into documents/ and empty directories removed. The complete live-consumer preflight also caught a production API entry omitted by a mechanical acceptance-record merge; restore its exact prior package proof and preserve its live image.
+The feed-quality investigation also confirmed Pro remained the main Home writer/reviewer. Do not attribute an overall regression to Flash without reading provider routes and complete research-to-publication handoffs. Current evidence shows lost substantive findings during synthesis, rejected semantic retrieval and some cheaper optional profiles as separate issues.
+
+
+### Writing guidance alone did not fix broad coverage — October 28
+
+The owner's concrete summary exposed upstream intake and handoff failures beyond the earlier substantive-synthesis guidance. The main writer was already Pro. Its starting snapshot was ticker-filtered, the nominator had no tools and the standalone final intake excluded acquired sources that were not carried through selected bundles. Focused investigations already had tools. The first candidate attempted to repair coverage through Home-local acquisition; the owner rejected that architecture change. Removed that bypass and corrected the existing producer instead. Early final Home completion protection and complete shared-source handoff remain. The later after-close execution had current earnings headlines, but both focused investigations and final writing were denied shared provider credit; do not describe that as only a final-editor failure or as successful publication. Complete new-model output acceptance and provider-liability reconciliation remain open.
+
+The new source-reference adapter initially mutated the retained model payload; same-run replay verification exposed the mutation. Adapt copied plan dictionaries and keep the discovery input list separate from subsequently acquired documents. Mechanical handoff checks now pass; they do not establish prose quality.
+
+
+### Permanent cost uncertainty blocked unrelated current briefings — October 28
+
+The provider-credit guard retained every lost request's maximum as a permanent account deduction even after new provider balance observations. Old request deadlines eventually blocked fresh research and Home writing. Retaining unknown costs was necessary; making every future briefing wait for exact per-request invoices was the wrong admission policy. The source now separates current liquidity from unresolved original-run costs, with a fresh balance required before an ended or expired-local-request hold stops withholding credit. Late charge risk remains explicit and no usage is invented. Local financial checks cover concurrency, active/crashed requests, overlapping probes, failed refresh, actual empty credit and late receipts.
+
+The first new concurrency fixture gave simulated active holds a deadline shorter than the contended verification window, so a second valid refresh occurred after their expiry. Kept the simulated requests live for that scenario and separately tested expiry. Also moved the admission clock before the first state read and checked it inside atomic admission; an older deadline fixture needed a valid provider payload after quoting moved earlier.
+
+
+### Home-local acquisition violated producer ownership — October 28
+
+Added a direct broad Alpaca fetch, Home-specific controls and shadow intake/status datasets to repair missing market coverage. That bypassed the shared producer despite the explicit upstream-fix instruction. It was committed but never built or deployed. Removed the consumer-local path and broadened acquisition inside the existing twice-daily news producer, using its canonical datasets. Preserved the original selected-company intake alongside broad reports, bounded company research, existing shared follow-up and final source handoff. Partial source failure retains successful sibling data with explicit degradation; total acquisition failure remains a failure. Ownership checks do not establish output quality; complete-output acceptance remains pending.
+
+
+### Instruction audit must distinguish actions, claims and later findings — October28
+
+Audited the cost/reliability rollout after the rejected Home acquisition bypass. Confirmed the activation-date failure, sticky fallback, current-news deferral, qualification writes into shared knowledge, overstated plain-text review acceptance, completed routing described as unfinished and recurring-cost priorities addressed out of order. Native rollback receipts confirm all7 qualification page mutations were rolled back and the proposal rejected. Do not collapse these into the Home issue or call every new production defect proof of an earlier instruction violation. Keep corrected historical behavior separate from current undeployed repairs and genuinely unfinished shared-account core funding. The existing task plan now links the concrete evidence for each finding.
+
+
+### Qualification must match the actual adapter before diagnosing production — October28
+
+The first fresh feed replay passed duplicate provider payloads and an extra frozen lookup corpus into final Home editing. The production caller projects semantic source fields and does not bind that corpus to its final editor. Withdrew the resulting candidate-omission finding as production evidence and reverted the unqualified identity-catalog source edit. Corrected the actual projections and service binding; retained the paid responses and stopped the nonrepresentative replay only after every in-flight paid response was saved, with zero unknown outcomes. The real nomination timeout mismatch remains independently confirmed. A qualifying replay must preserve both input data and the actual consumer assembly.
+
+The corrected after-close output was personally rejected after applying the actual five-event/two-unresolved public projection. Lower-ranked repeated cohort drafts were inspected but are not evidence of visible feed duplication. Full Pro writing/review improved agenda coverage yet retained shallow earnings, missing inflation context, overstrong conclusions and public acquisition language. The fresh10USD exception closed with26 usage receipts, zero unknown requests and a conservative7.435391USD estimate. See the completed quality-review.json; this is a verification result, not release acceptance.
+
+### Execute the shared research plan once — October28
+
+A live qualification exposed two shared control defects: valid tool requests could be regenerated for an unused draft field, and queries-only searches inherited the entire structured research request as another query before a redundant model planning call. Removed the extra search planner and restored explicit argument ownership to the shared researcher. Tagged action payloads keep only the relevant fields while preserving optional useful working drafts, tool permissions and strict-provider format support. The first flat conditional-schema revision was rejected during compatibility review before commit. Focused investigations also now receive the dated economic observations already supplied to nomination; that context must survive the handoff, not only reach final prose.
+
+The initial live fixture used an empty local retained store, causing a qualification-only missing-table error. Its results are not evidence of a production schema failure. Subsequent retained reads use enforced read-only production connections; run ledgers remain local. Private serialization can exhaust stage clocks, so it does not qualify production throughput. Fresh complete-output acceptance remains separate from these source corrections.
+
+### Do not infer research coverage from search-result counts — October 28
+
+The shared live-evidence adapter treated three broad results as sufficient coverage and cancelled explicitly selected company searches. It also discarded acquired captures after the preview limit. This could preserve several reports about one company while omitting another selected subject. Removed those shortcuts inside the existing bounded acquisition tool. The execution contract passes; narrative quality and actual selection require separate full-output review. A private study also lacked production asset metadata; do not attribute its missing-name behavior or serialized-provider timing to production.
+
+### Measure the complete model input before further prompt revisions — October 28
+
+Repeated prose guidance did not repair the complete feed. Measured final writing/review inputs were391449/400742tokens, including large numerical records and repeated draft/source context. A lossless column-format experiment reduced serialized evidence by37%, but fresh provider admission refused its comparison before inference. It is retained separately and reverted from the selected source. Do not call input compression a quality fix without reading complete fresh output. The independent reviewer fixed a date while missing the larger operating omissions and excessive numbers; its verdict is not acceptance. Source inspection also confirms that public section limits were not part of the editor task and were applied after review; Microsoft existed in the reviewed candidate but fell outside the displayed feed. Correct the publication contract rather than raising a familiar ticker's priority or adding another prose instruction.
+
+
+### Reconcile every release image identity — October 29
+
+During the owner-approved feed release, the first refreshed manifest updated `previous_image` for released workers but left their parallel `image` fields stale; the retained API had the inverse mismatch. Source and live-consumer checks stopped preparation before any template mutation. Reconciled both fields to the captured live definition. A root-relative Git diff was also initially run from the application directory and returned no paths; the explicit nonempty review check caught it before acceptance. Use the repository root for review inventories and reconcile all recorded image identities together.
+
+Native paper review initially passed parsing but failed full compilation on optional JSON dictionaries and a shadowed error field. The fix validates response objects before replacing retained state and qualifies the view error field. Parsing is not type checking.
+
+## DEV integration must preserve each transport contract — 2026-10-29
+
+Combining accepted Native Responses telemetry with the newer financial module initially treated embedding input arrays as messages and audio text as a response-format object. Local contract checks caught both before any build or deployment. Measurement now receives the actual operation, normalizes genuine Native usage, retains missing usage as unknown, and keeps audio character accounting. Existing structural fixtures were updated for the new shared research schema and accepted transport repair boundary.
+
+
+### Retained completion qualification adapter — October29
+
+The isolated continuation assumed every structured agent result contains a run_id. The direct structured route returns a valid paid artifact without that field, so the local adapter stopped after saving the completed answer. Resume reused that exact saved answer, made run identity optional in the qualification record and kept all charges/unknowns in the same ledger; no answer was repurchased. The full agent route, writer/review and direct serializer need distinct evidence claims. Source merge review found two equivalent usage-normalizer definitions; the shadowed duplicate was removed in352e292e, preserving the active implementation.
+
+
+### One source identity through reading and publication — October29
+
+The recovered-run comparison completed paid writing/review but failed materialization: the model copied its reader identity into the separate candidate bundle/index contract. Removed the redundant candidate/source-event identity forms. Selection now uses the exact named reader sources, including retained bundles outside the previous public feed; unknown identities still fail visibly. Originals remain available through the existing reader rather than all being injected up front. No prefix repair, semantic fallback or prose filtering.
+
+A progress update inferred that zero acquisition-tool budget disables source reading. Inspection of the inner writer/reviewer loop showed it retains evidence navigation independently. Corrected the update immediately; check the complete call path before reporting a missing capability. A notes update again used application-relative paths from the repository root; corrected its paths and separated preparation from Git mutation so a failed write cannot be followed by a misleading commit.
+
+### Comparison controls must work in the delivered file — October29
+
+The feed comparison was delivered as a chat fragment but opened as a local HTML file. Its tabs depended on the chat host, leaving Production hidden and both buttons showing the candidate. Static parsing did not catch that interaction failure. Replaced the delivered file with a self-contained side-by-side comparison, matched stories by retained source identity, and verified actual Chrome clicks, full text preservation and mobile layout. Feed text and production were unchanged; no inference was used.
+
+### Qualification transport and ephemeral logs — October29
+
+The first isolated API probe blocked Azure identity/Key Vault traffic needed for normal auth setup. Corrected only the probe allowlist, kept paid and broker calls blocked, and qualified the same immutable image successfully. Azure job console output can wrap quoted JSON incorrectly and completed replicas may disappear; preserve logs promptly and use retained Log Analytics records, filtering by the parsed role rather than a shared word. No runtime changes or duplicate paid work were needed.
+
+
+### Implement the requested Trading experience — October29
+
+A design preview did not fulfill the owner’s request to implement Trading. Replaced the actual shared backend, web and native experience. Work in an isolated Git checkout to preserve concurrent changes, reconcile the current accepted shared runtime before packaging, and verify full consumer inventory. During local merge work an overbroad conflict-cleanup expression truncated files; restored complete accepted Git inputs and repeated validation before any build or deployment. Use absolute application paths for scripted worktree edits.

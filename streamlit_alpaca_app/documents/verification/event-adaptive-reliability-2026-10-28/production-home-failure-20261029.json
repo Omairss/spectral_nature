@@ -1,0 +1,91 @@
+{
+  "status": "public_feed_restored_execution_finished_with_visible_degradation",
+  "owner_priority": "Restore current production feed before continuing isolated DEV verification.",
+  "last_served_feed": {
+    "asof_time_utc": "2026-10-28T18:50:37.585543Z",
+    "published_at_utc": "2026-10-28T19:31:37.164790Z",
+    "run_id": "7e7084f7-2fc4-47de-8d0c-e75a4798a924",
+    "endpoint_returned_same_run": true
+  },
+  "failed_builds": [
+    {
+      "execution": "attention-home-build-29887010",
+      "asof_utc": "2026-10-28T20:50:48Z",
+      "reason": "Full-model public-surface call could not be admitted against $0.21 unreserved credit."
+    },
+    {
+      "execution": "attention-home-build-29888090",
+      "run_id": "df52bed8-4640-48de-a5eb-74c88294fff4",
+      "started_utc": "2026-10-29T14:50:42Z",
+      "failed_utc": "2026-10-29T15:13:30Z",
+      "reason": "Full-model public-surface call could not be admitted against $0.29 unreserved credit. Research artifacts retained; no replacement public Home publication."
+    }
+  ],
+  "read_only_confirmation": {
+    "provider_balance_usd": 0.26,
+    "provider_available": true,
+    "genuine_active_or_unreconciled_liquidity_holds": 0,
+    "historical_unknown_attempts_retained": 41,
+    "unknown_bounds_were_not_withheld": true,
+    "public_endpoint_status": 200,
+    "public_endpoint_cache_control": "no-cache"
+  },
+  "today_production_known_token_price_estimates_usd": {
+    "news_deepseek": 2.341532258,
+    "home_deepseek": 0.205008152,
+    "measurement": "Published-rate conservative estimates from successful recorded transport receipts. These are not invoice reconciliations; failed/unknown charges remain recorded separately. Synthetic exact-image probes are excluded from real production spending."
+  },
+  "refill": {
+    "owner_instruction": "Okay, refilled the account. Resume the run and then continue whatever you were working on",
+    "provider_balance_confirmed_usd": 50.26,
+    "native_execution": "attention-home-build-29888210",
+    "started_utc": "2026-10-29T16:50:00Z",
+    "manual_duplicate_started": false,
+    "status": "Azure Succeeded; application Warning; main feed and supplementary summaries published"
+  },
+  "separate_development_study": {
+    "status": "resumed_after_refill",
+    "approved_continuation_cap_usd": 15,
+    "prior_81_attempts_and_original_unknown_preserved": true,
+    "production_writes": false
+  },
+  "evidence_private_directory": "operations/event-adaptive-reliability-2026-10-28/production-home-failure-20261029",
+  "remaining": "Stale-feed recovery is complete. The observed funding-evidence correction belongs to the new DEV release; no new coherent-design production promotion is authorized.",
+  "public_recovery": {
+    "verified_at_utc": "2026-10-29T17:48:01.872786Z",
+    "public_endpoint_status": 200,
+    "asof_time_utc": "2026-10-29T16:50:42.374634Z",
+    "run_id": "f25b336b-0bbc-4cb4-b2a8-17a261bbf632",
+    "published_at_utc": "2026-10-29T17:44:30.8092046Z",
+    "stories": 6,
+    "current_story_topics": [
+      "Alphabet Search monetization",
+      "Caterpillar margins versus demand",
+      "ServiceNow outlook",
+      "Current GDP and inflation",
+      "Microsoft bond financing",
+      "Dated PURR buyback context"
+    ],
+    "manual_duplicate_started": false
+  },
+  "recovery_application_receipt": {
+    "status": "Warning",
+    "started_utc": "2026-10-29T16:50:43.850651Z",
+    "finished_utc": "2026-10-29T17:49:05.971392Z",
+    "elapsed_seconds": 3502.12,
+    "supplementary_page_summaries_published": 5,
+    "degradations": {
+      "event_budget_validation": "One model-selected article-free market observation lost its evidence at the financial adapter. Corrected in separate DEV source; see observation-funding.json.",
+      "semantic_retrieval": "Two deadline failures; completed lexical/source research and final current publication survived."
+    },
+    "successful_deepseek_usage_price_estimate_usd": 6.049374988,
+    "successful_azure_embedding_price_estimate_usd": 0.001284316,
+    "separate_audio_receipt_unpriced": true,
+    "provider_transport_status_counts": {
+      "success": 264,
+      "not_sent": 11,
+      "failure": 4
+    },
+    "estimate_limitation": "Not an invoice reconciliation. Failed/missing usage remains unknown rather than zero."
+  }
+}
