@@ -1,5 +1,5 @@
 {
-  "status": "source_reviewed_qualitative_rejected_release_held",
+  "status": "owner_accepted_scoped_worker_release_operational_qualification_pending",
   "review_base_revision": "a1eefb18490e84b3c637b8e42a4f4954362fc3de",
   "files": {
     ".env.example": "Adds independent event-mode/margin controls. Blank mode preserves the fixed target. No credential or schedule changes. Shared news controls NEWS_MARKET_ARTICLE_LIMIT(default50) and NEWS_LOOKBACK_DAYS(default2) belong to the source producer, not Home. NEWS_TICKER_ARTICLE_LIMIT(default50) preserves selected-company intake independently.",
@@ -91,13 +91,9 @@
   "full_consumer_inventory": "consumers.before.json",
   "consumer_preservation": "Initial baseline covered36 consumers. Earlier worker-only candidate scope is superseded by the global provider-credit fix: all33 Python consumers (29 workers,2 APIs,2 broker jobs) require the shared new admission/settlement contract. Reconcile each API/broker accepted source behavior before a new build; three frontend images remain retained. No consumer has been mutated.",
   "remaining_acceptance": [
-    "Preserve unresolved billing independently of current admission; finish explicit future-core account funding",
-    "Reconcile prior accepted API/broker source and include all33 Python consumers under the shared provider-credit release contract",
-    "Correct rejected public-output quality and qualify complete fresh representative outputs; frozen after-close replay is rejected, not accepted",
-    "Committed accepted source inventory",
     "Exact-image DEV operational qualification",
-    "Authorized production promotion and fresh readback",
-    "Scheduled application-level observation"
+    "Authorized production promotion and complete readback",
+    "Scheduled observation"
   ],
   "qualitative_verification": {
     "status": "corrected_shared_source_under_fresh_verification",
@@ -115,5 +111,14 @@
     },
     "continuation": "See quality-review.json continuation: complete public output rejected. Acquired-source preservation passed its component replay; this does not establish overall allocation or feed quality.",
     "context_format_experiment": "32526a2c is retained on experiment/shared-context-tables-20261028 and reverted from this source by5fa36e82. Lossless representation review passes; no fresh qualitative output exists because admission stopped before inference. Not accepted release behavior."
-  }
+  },
+  "previous_review_status": "source_reviewed_qualitative_rejected_release_held",
+  "promotion_scope": "29 workers change images; 2 API, 2 broker and 3 frontend images retained. No old application is copied into new images. Full live definitions retained privately using ARM2025-07-01.",
+  "owner_acceptance": "owner-acceptance.json",
+  "selected_review_base_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+  "development_follow_up": [
+    "Coherent shared research/publication design",
+    "Future-core account funding and cross-consumer integration",
+    "Fresh representative quality evaluation by owner"
+  ]
 }

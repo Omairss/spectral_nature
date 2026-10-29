@@ -1,5 +1,5 @@
 {
-  "status": "quality_verification_completed_candidate_rejected",
+  "status": "owner_accepted_incremental_feed_promotion_in_progress",
   "owner_goal": "Reliable current reporting with predictable event-adaptive costs. The previous 90% reduction target is retired.",
   "requirements": {
     "configured_base_budget": "Retain user-defined per-logical-run budgets and protected full-model interpretation, synthesis and review.",
@@ -55,7 +55,7 @@
     {
       "id": "feed_quality",
       "task": "Personally compare complete current feed and retained paired model outputs, correct source or routing causes, and preserve substantive full-model core work.",
-      "status": "verification_completed_candidate_rejected",
+      "status": "owner_accepted_incremental_improvement_remaining_design_in_dev",
       "evidence_or_remaining": "Complete live-acquisition and independent-review continuation remains rejected after personal review of all displayed stories. Writer/reviewer are Pro/high. Acquired operating explanations are lost, Microsoft ranks outside the displayed feed, inflation remains thin and public process commentary survives. Source execution defects are corrected; broader allocation and synthesis quality remain open. See quality-review.json continuation.",
       "proposed_design_reference": "quality_fix_design"
     },
@@ -75,7 +75,7 @@
     {
       "id": "verification_and_release",
       "task": "Verify operational contracts, qualitative behavior and exact-image DEV; reconcile all consumers and deploy the accepted release under existing owner authorization.",
-      "status": "held_after_qualitative_rejection",
+      "status": "preparing_owner_authorized_scoped_worker_release",
       "evidence_or_remaining": "198 operational contracts pass locally; full output inspection rejects the current feed and candidate. Source correction is checkpointed for review, not acceptance. No image built or deployed. Source-depth and final-editor failures must be corrected and requalified; shared-account future completion funding and API/broker source reconciliation remain open."
     },
     {
@@ -85,7 +85,7 @@
       "evidence_or_remaining": "Capture application receipt, actual margin decisions/cost obligations, recovered acquisition outcomes and learning progress after promotion; Azure exit status alone is insufficient."
     }
   ],
-  "spending_policy": "Owner explicitly approved “Approve DeepSeek verification up to $10” for fresh feed verification on Pacific October28. This is a new scoped exception; the earlier $15 study remains closed at11.257873USD committed bound. One strict10USD cap covers both cases, retries and unknown outcomes. Full configured models are retained; storage is isolated and production is read-only.",
+  "spending_policy": "Owner explicitly approved \u201cApprove DeepSeek verification up to $10\u201d for fresh feed verification on Pacific October28. This is a new scoped exception; the earlier $15 study remains closed at11.257873USD committed bound. One strict10USD cap covers both cases, retries and unknown outcomes. Full configured models are retained; storage is isolated and production is read-only.",
   "latest_local_contracts": {
     "passed": 198,
     "log": "private contracts-20261029T025246Z.log",
@@ -97,7 +97,7 @@
     "development_deployed": false,
     "production_deployed": false,
     "production_remains_previous_accepted_image": true,
-    "required_next_step": "Implement the proposed quality_fix_design inside the existing shared flow, finish the separately tracked account-level core funding and consumer integration, and qualify complete outputs before exact-image DEV or production promotion."
+    "required_next_step": "Exact-image DEV qualification and owner-authorized scoped worker promotion; then continue proposed coherent change in DEV."
   },
   "instruction_audit": {
     "scope": "This cost/reliability rollout and its qualification records. Confirmed actions and inaccurate completion statements; not a claim that every later-discovered defect proves an earlier instruction was ignored.",
@@ -106,13 +106,13 @@
         "instruction": "Activate today after the owner explicitly corrected tomorrow.",
         "failure": "The earlier rollout retained the October28 activation gate after the October27 request.",
         "correction": "Activation corrected in the earlier deployed combined release.",
-        "evidence": "documents/mistakes.md: Production completion and timing corrections — October27"
+        "evidence": "documents/mistakes.md: Production completion and timing corrections \u2014 October27"
       },
       {
         "instruction": "Retry a failed attempt using the earlier configuration; later remove fallback.",
         "failure": "Initial whole-run fallback persisted baseline settings into later scheduled runs, disabling cheaper routing and reuse.",
         "correction": "Whole-run fallback and sticky state subsequently removed in the deployed follow-up.",
-        "evidence": "documents/mistakes.md: Whole-run baseline fallback removed at the owner instruction — October27"
+        "evidence": "documents/mistakes.md: Whole-run baseline fallback removed at the owner instruction \u2014 October27"
       },
       {
         "instruction": "Current best-effort reporting instead of next-run deferral.",
@@ -124,25 +124,25 @@
         "instruction": "Qualify changes without unintended shared product writes.",
         "failure": "A qualification replay inherited safe_auto memory writes and created7 shared knowledge pages plus1 proposal despite persist_findings=False.",
         "correction": "All7 page writes were audited and rolled back; proposal rejected. Explicit write_policy=none applied. Private native rollback receipt checked in this audit.",
-        "evidence": "documents/mistakes.md: Follow-up acceptance exposed unreviewed composition and qualification writes — October27"
+        "evidence": "documents/mistakes.md: Follow-up acceptance exposed unreviewed composition and qualification writes \u2014 October27"
       },
       {
         "instruction": "Verify actual full-model writing and review before claiming preserved quality behavior.",
         "failure": "An earlier acceptance said Home retained Pro writing/review, but actual12-item replay showed review not_run because plain-text composition lacked a response schema.",
         "correction": "Shared review condition corrected; later complete-output acceptance is recorded separately. New coverage changes still need fresh output acceptance.",
-        "evidence": "documents/mistakes.md: Follow-up acceptance exposed unreviewed composition and qualification writes — October27"
+        "evidence": "documents/mistakes.md: Follow-up acceptance exposed unreviewed composition and qualification writes \u2014 October27"
       },
       {
         "instruction": "Keep completed and unfinished work accurately tracked.",
         "failure": "Already-delivered task-based model routing was described again as unfinished allocation work.",
         "correction": "Routing completion is preserved separately from genuinely unfinished allocation/qualification work.",
-        "evidence": "documents/mistakes.md: Completed routing was folded into an unfinished allocation description — October27"
+        "evidence": "documents/mistakes.md: Completed routing was folded into an unfinished allocation description \u2014 October27"
       },
       {
         "instruction": "Prioritize recurring monthly cost options, including schedule frequency and cheaper models.",
         "failure": "Moved into a24-hour company reuse implementation before presenting the requested recurring-cost alternatives.",
         "correction": "Scheduling/model options and implementation were addressed later; original priority was not followed.",
-        "evidence": "documents/mistakes.md: Cost optimization scope — October27"
+        "evidence": "documents/mistakes.md: Cost optimization scope \u2014 October27"
       }
     ],
     "additional_known_violation": "Rejected Home-local news acquisition, removed in e541ecc0; no candidate image built or deployed.",
@@ -366,5 +366,6 @@
       "deployment": false,
       "purpose": "Source-grounded design only. Existing rejected-candidate status and unfinished operational/release work remain accurately tracked."
     }
-  }
+  },
+  "owner_acceptance": "owner-acceptance.json"
 }

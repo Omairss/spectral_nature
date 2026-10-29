@@ -1,5 +1,5 @@
 {
-  "status": "completed_candidate_rejected",
+  "status": "owner_accepted_incremental_improvement_with_remaining_research_work",
   "method": "Personal reading of the complete production summary and all ten public cards, every returned candidate public-text field, final five-event/two-unresolved Home projection, retained research and primary timing references. Actual full Pro/high writer/reviewer routes checked. No phrase grader or numerical prose threshold.",
   "production": {
     "asof_utc": "2026-10-28T18:50:37.585543Z",
@@ -65,7 +65,7 @@
     "after-close-candidate.json": "3466d2d8ae8be880072c1ab7f9fb6681636362915c3e86e8e2241adc6bba3f9e",
     "pre-close-stage-2-output.json": "bc6da97c71f6f49f4c431ce6ec735685f6ef28815f26b182024b93ce63ee05c8"
   },
-  "candidate_accepted": false,
+  "candidate_accepted": true,
   "candidate_deployed": false,
   "qualification_correction": {
     "error": "Initial replay passed raw provider payload copies and an extra supplied source corpus to the final Home editor. Actual production projects semantic source fields and does not bind that extra corpus to the final writer.",
@@ -127,7 +127,7 @@
       },
       {
         "issue": "Public text includes internal acquisition/research language",
-        "evidence": "F5: “no supplied company event yet”; Lumentum: “The retained draft cites” and “not in the supplied source intake.”",
+        "evidence": "F5: \u201cno supplied company event yet\u201d; Lumentum: \u201cThe retained draft cites\u201d and \u201cnot in the supplied source intake.\u201d",
         "meaning": "These are public explanations of internal evidence handling rather than useful investor reporting. The final editor has not consistently kept operational limitations in its internal fields."
       },
       {
@@ -327,5 +327,17 @@
       "baseline_checkout_removed_after_verified_archive": true,
       "retention_days": 30
     }
+  },
+  "owner_acceptance": {
+    "status": "accepted_by_owner_for_incremental_production_promotion",
+    "date_pacific": "2026-10-29",
+    "owner_instruction": "After is MUCH better. Promote to prod. Then continue the rest of the work",
+    "comparison": "Unedited saved production overview and latest complete current-independent-final public feed; later after-close inputs differ. Owner personally accepted the candidate improvement after seeing both complete overview passages and having every public story available.",
+    "candidate_public_output_sha256": "86cc5b13ebc4c6809289521a3ecabfb921588fb4ec5d17e59181209a597de775",
+    "source_revision": "251d037a6163d8d4da4f4897eaa6cee700d06aba",
+    "source_review": "source-review.json",
+    "known_remaining_work": "Independent review findings remain recorded in quality-review.json. This incremental acceptance does not declare the feed flawless, qualify a quiet/heavy paired study, implement the proposed coherent redesign, or complete shared-account future-core funding. Continue those changes in DEV for owner evaluation.",
+    "production_runtime": "Selected accepted Git source only. Context-table experiment remains reverted. Current production API/iPhone metrics and all DEV-only features are retained in their existing images.",
+    "required_before_promotion": "Mandatory committed source checks; exact immutable image verified in DEV with real Azure SQL/Blob and no paid inference; full consumer/configuration preflight and post-promotion readback."
   }
 }

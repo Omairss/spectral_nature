@@ -1,0 +1,19 @@
+{
+  "status": "accepted_by_owner_for_incremental_production_promotion",
+  "date_pacific": "2026-10-29",
+  "owner_instruction": "After is MUCH better. Promote to prod. Then continue the rest of the work",
+  "comparison": "Unedited saved production overview and latest complete current-independent-final public feed; later after-close inputs differ. Owner personally accepted the candidate improvement after seeing both complete overview passages and having every public story available.",
+  "candidate_public_output_sha256": "86cc5b13ebc4c6809289521a3ecabfb921588fb4ec5d17e59181209a597de775",
+  "source_revision": "251d037a6163d8d4da4f4897eaa6cee700d06aba",
+  "source_review": "source-review.json",
+  "known_remaining_work": "Independent review findings remain recorded in quality-review.json. This incremental acceptance does not declare the feed flawless, qualify a quiet/heavy paired study, implement the proposed coherent redesign, or complete shared-account future-core funding. Continue those changes in DEV for owner evaluation.",
+  "production_runtime": "Selected accepted Git source only. Context-table experiment remains reverted. Current production API/iPhone metrics and all DEV-only features are retained in their existing images.",
+  "required_before_promotion": "Mandatory committed source checks; exact immutable image verified in DEV with real Azure SQL/Blob and no paid inference; full consumer/configuration preflight and post-promotion readback.",
+  "mechanical_verification": {
+    "passed": 198,
+    "log": "private contracts-20261029T071815Z.log",
+    "isolated_postgresql_stopped": true,
+    "paid_inference_calls": 0,
+    "scope": "Financial, ownership, publication, source acquisition/extraction, unchanged schedules/routing and release contracts; no generated prose grading."
+  }
+}
