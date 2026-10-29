@@ -1,5 +1,5 @@
 {
-  "status": "prepared_not_applied",
+  "status": "applied_verified",
   "owner_goal": "Reliability and predictable event-adaptive costs",
   "changes": [
     {
@@ -37,5 +37,6 @@
     }
   ],
   "scope": "Only matching recurring news/Home producers; learning and interactive research budgets remain separate. No schedule, worker count, core model or existing allowance changes.",
-  "apply_order": "Exact-image DEV acceptance, authorized image promotion, guarded environment-only PATCH, full configuration readback. Do not mutate running logical-run contracts."
+  "apply_order": "Exact-image DEV acceptance, authorized image promotion, guarded environment-only PATCH, full configuration readback. Do not mutate running logical-run contracts.",
+  "evidence": "promotion-configuration.json"
 }

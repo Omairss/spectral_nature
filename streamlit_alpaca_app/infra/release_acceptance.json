@@ -866,7 +866,7 @@
           "role": "worker",
           "environment": "development",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
+          "configuration_sha256": "b307da9a8aeb66a26d800e66b5e602d5300542114a1f4af4275f416f083e023b",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
           "preservation_review": {
             "status": "accepted",
@@ -1060,7 +1060,7 @@
           "role": "worker",
           "environment": "production",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "b585ac573f93aaf4ae211fdce648ced3b895ebe27656993a14a23f1c9357be4c",
+          "configuration_sha256": "006190f074b4aa15d79421f21124812374cbb938194b54628eff41b675bbf513",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
           "preservation_review": {
             "status": "accepted",
@@ -1196,7 +1196,7 @@
           "role": "worker",
           "environment": "production",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "6fae0bea21fe3952d91164646cde40c115e6ed304314aaebd9cc847dcaae4372",
+          "configuration_sha256": "08d16a9ed58ad153576b6278c68e4cdc5d3a228aa035c569c36beeb70d15ff74",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
           "preservation_review": {
             "status": "accepted",
@@ -1697,5 +1697,13 @@
     "not_before_pacific": "2026-10-27",
     "configuration_evidence": "documents/verification/production-recovery-2026-10-27/follow-up-configuration.json",
     "development_evidence": "documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json"
+  },
+  "event_adaptive_activation": {
+    "environment": {
+      "RESEARCH_BUDGET_MODE": "event",
+      "RESEARCH_EVENT_MARGIN_FRACTION": "0.5"
+    },
+    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-configuration.json",
+    "base_budgets_and_schedules_preserved": true
   }
 }

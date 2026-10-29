@@ -1,5 +1,5 @@
 {
-  "status": "owner_accepted_incremental_feed_promotion_in_progress",
+  "status": "incremental_feed_promoted_remaining_work_in_development",
   "owner_goal": "Reliable current reporting with predictable event-adaptive costs. The previous 90% reduction target is retired.",
   "requirements": {
     "configured_base_budget": "Retain user-defined per-logical-run budgets and protected full-model interpretation, synthesis and review.",
@@ -75,13 +75,13 @@
     {
       "id": "verification_and_release",
       "task": "Verify operational contracts, qualitative behavior and exact-image DEV; reconcile all consumers and deploy the accepted release under existing owner authorization.",
-      "status": "preparing_owner_authorized_scoped_worker_release",
+      "status": "owner_accepted_incremental_release_deployed_verified",
       "evidence_or_remaining": "198 operational contracts pass locally; full output inspection rejects the current feed and candidate. Source correction is checkpointed for review, not acceptance. No image built or deployed. Source-depth and final-editor failures must be corrected and requalified; shared-account future completion funding and API/broker source reconciliation remain open."
     },
     {
       "id": "scheduled_observation",
       "task": "Check application-level scheduled outcomes, not only process exit; report actual cost allocation, unfinished work and quality findings.",
-      "status": "pending_new_release",
+      "status": "pending_next_scheduled_run_on_promoted_image",
       "evidence_or_remaining": "Capture application receipt, actual margin decisions/cost obligations, recovered acquisition outcomes and learning progress after promotion; Azure exit status alone is insufficient."
     }
   ],
@@ -95,13 +95,15 @@
   "release_state": {
     "candidate_build_started": true,
     "development_deployed": true,
-    "production_deployed": false,
-    "production_remains_previous_accepted_image": true,
-    "required_next_step": "Exact-image DEV qualification and owner-authorized scoped worker promotion; then continue proposed coherent change in DEV.",
+    "production_deployed": true,
+    "production_remains_previous_accepted_image": false,
+    "required_next_step": "Implement coherent shared research/publication handoff in DEV, complete account-level future-core funding and cross-client preservation, then present complete outputs for owner evaluation.",
     "build_run": "cj1cc",
     "candidate_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
     "development_probe_execution": "macro-fred-daily-dev-6rk3yu1",
-    "development_accepted": true
+    "development_accepted": true,
+    "production_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+    "production_evidence": "promotion-production.json"
   },
   "instruction_audit": {
     "scope": "This cost/reliability rollout and its qualification records. Confirmed actions and inaccurate completion statements; not a claim that every later-discovered defect proves an earlier instruction was ignored.",
@@ -371,5 +373,27 @@
       "purpose": "Source-grounded design only. Existing rejected-candidate status and unfinished operational/release work remain accurately tracked."
     }
   },
-  "owner_acceptance": "owner-acceptance.json"
+  "owner_acceptance": "owner-acceptance.json",
+  "development_work_order": [
+    {
+      "id": "shared_research_publication",
+      "status": "next",
+      "work": "Question agenda and substantive shared findings; navigable retained originals; model selects exactly the visible feed before writing/review; preserve clients and current producer ownership."
+    },
+    {
+      "id": "future_core_account_funding",
+      "status": "pending",
+      "work": "Protect future full-model completion at shared account level before optional concurrent work, with atomic transfer, expiry and actual-client source preservation."
+    },
+    {
+      "id": "variable_research_effort",
+      "status": "pending",
+      "work": "Use remaining usefulness and configured allowance for research depth; quiet days may stop early and justified heavy days may use the configurable50% margin."
+    },
+    {
+      "id": "complete_output_owner_evaluation",
+      "status": "pending",
+      "work": "Compare full final public outputs, keep study allowance/unknowns intact and let the owner evaluate the new DEV design before promotion."
+    }
+  ]
 }
