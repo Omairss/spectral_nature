@@ -1410,3 +1410,10 @@ A missing topic in Home does not authorize another provider intake inside Home. 
 ### Audit instruction compliance against actual effects — October28
 
 Check instructions against persisted configuration, actual review metadata, product writes and completion statements. A replay namespace is not storage isolation; persist_findings=False does not override an inherited memory-write policy. A completed draft is not a completed review. A corrected component does not make already-delivered work unfinished, and an operational check does not establish feed quality. Preserve exact historical correction status instead of resetting the entire task to done or unmet. See the existing event-adaptive task plan instruction audit.
+
+
+### Reproduce consumer input assembly, not only the callee — October28
+
+Use the actual caller projections, source-reader binding and write policy when replaying a shared research function. Extra lookup context and duplicate raw provider payloads can change model behavior even when the function and model match production. Withdraw conclusions from a different input contract and reuse already-completed research through the existing handoff rather than regenerate it. Mechanical identity failures in an unrepresentative replay do not establish a production defect.
+
+Read the actual final display projection as well as the editor pool. A model-produced story can be retained internally and never reach the feed. Likewise, a full-capability writer cannot supply missing primary disclosure detail from a frozen headline-only corpus, and a completed reviewer can miss substantial agenda gaps. Distinguish a failed retained-source case from unproven live acquisition; keep the final quality decision separate from contract checks.

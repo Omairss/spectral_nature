@@ -1,5 +1,5 @@
 {
-  "status": "home_local_acquisition_removed_shared_producer_corrected_qualification_pending",
+  "status": "shared_producer_repair_implemented_quality_verification_rejected",
   "owner_example": {
     "market_observation_utc": "2026-10-28T18:35:00Z",
     "publication_run_id": "7e7084f7-2fc4-47de-8d0c-e75a4798a924",
@@ -26,6 +26,10 @@
     {
       "cause": "After-close research and final writing were refused by shared provider-credit admission.",
       "effect": "Fresh Microsoft and Alphabet headlines were present, but no new public Home report was produced. The earlier report remained the latest publication."
+    },
+    {
+      "cause": "The source nominator inherited90-second model steps inside its600-second stage budget.",
+      "effect": "A paid completed response arrived after the shorter step clock and was rejected. Explicit propagation of the existing stage allowance is corrected and the new nomination completed; the whole-run clock is not extended."
     }
   ],
   "timing_evidence": [
@@ -95,11 +99,24 @@
   ],
   "validation": {
     "operational_contracts_passed": 198,
-    "complete_new_model_output_review": "pending",
-    "inference_started": false,
+    "complete_new_model_output_review": "Completed personal review: corrected after-close candidate rejected; current production rejected.",
+    "inference_started": true,
     "candidate_image_built": false,
     "development_deployed": false,
-    "production_deployed": false
+    "production_deployed": false,
+    "fresh_api_exception_cap_usd": 10,
+    "verification_closed": true,
+    "spending": {
+      "owner_authorization": "Approve DeepSeek verification up to $10",
+      "cap_usd": 10,
+      "paid_attempts": 26,
+      "usage_receipts": 26,
+      "unknown_or_pending_attempts": 0,
+      "published_price_estimate_min_usd": 3.7176887,
+      "conservative_estimated_total_usd": 7.435391,
+      "invoice_reconciled": false,
+      "explanation": "Every response has usage. Conservative total uses the published high rate bound and rounds each request up to one microUSD; it is an estimate, not an invoice. All initial mistaken replays and retries are included. Remaining cap cannot cover another full-capability maximum, so no further paid requests were started."
+    }
   },
   "qualitative_cases_required": [
     "Pre-close current agenda: distinguish released policy reporting and upcoming earnings/inflation releases.",
@@ -161,5 +178,6 @@
     ],
     "finding": "Actual producer-time queries retain the broad source response. The morning latest50 spans only minutes of a high-volume feed; the afternoon page contains Fed reporting and current Microsoft/Alphabet earnings headlines. A bounded broad page alone is not exhaustive and must not replace selected-company intake. The producer retains both scopes; current follow-up remains in the existing shared engine.",
     "quality_acceptance": "Source acquisition evidence only; no new generated output has been accepted."
-  }
+  },
+  "quality_review": "quality-review.json"
 }

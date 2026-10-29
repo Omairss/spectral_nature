@@ -228,6 +228,12 @@ def research_source_events(
             }
         )
     documents = list({doc["document_id"]: doc for doc in documents}.values())
+    # Keep original provider captures in the returned documents, while each
+    # model receives source text once alongside its identity and provenance.
+    model_source_fields = (
+        "source_id", "document_id", "title", "url", "published_at", "text",
+        "source_kind", "raw_text_origin", "source_provider", "provider_symbols", "source_trace",
+    )
     empty = {
         "bundles": [],
         "plans": [],
@@ -370,7 +376,7 @@ def research_source_events(
             ),
             ensure_ascii=False,
         ),
-        initial_evidence=list(documents),
+        initial_evidence=[{key: doc.get(key) for key in model_source_fields} for doc in documents],
         schema_name="source_event_nominations",
         schema=nomination_schema,
         task="source_event_nomination",
@@ -378,6 +384,7 @@ def research_source_events(
         llm_client=llm_client,
         max_tool_calls=max(int(get_config_param(_P_DISCOVERY_TOOLS)), 0),
         run_timeout_seconds=max(int(get_config_param(_P_NOMINATION_TIMEOUT)), 1),
+        llm_step_timeout_seconds=max(int(get_config_param(_P_NOMINATION_TIMEOUT)), 1),
         persist_findings=False,
         write_policy="none",
         call_type="research_grade",
@@ -504,7 +511,7 @@ def research_source_events(
                 tool_call_timeout_seconds=45,
                 persist_findings=False,
                 write_policy="none",
-                initial_evidence=selected,
+                initial_evidence=[{key: doc.get(key) for key in model_source_fields} for doc in selected],
                 progress_callback=progress_callback,
             )
         agent = dict(result.get("agent_result") or {})
