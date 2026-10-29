@@ -1,0 +1,57 @@
+{
+  "status": "accepted_in_development",
+  "source_revision": "0d012421b3159e3c5b01c6862d762a0eddb4dddb",
+  "source_inventory_sha256": "cbb88c641ff65c8e0784aec3064041500def567ca3401733d68abbe4aacb8e2e",
+  "images": {
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:8de7511eee522b45bfb9d1c105684bb6f5cf6e0b06166080172b43104c996d78"
+  },
+  "execution": "macro-fred-daily-dev-mq25cf8",
+  "probes": [
+    {
+      "probe": "package",
+      "files": 189,
+      "runtime_inventory_sha256": "58a3ad9a87ff9c0c3821a4442a634030de00e4ac6b5dc853567c5c45f610ee04"
+    },
+    {
+      "probe": "api_contract",
+      "operations": 53,
+      "all_paths_and_schemas_preserved": true
+    },
+    {
+      "probe": "anonymous_authorization",
+      "protected_paths": 3,
+      "status": 401
+    },
+    {
+      "probe": "owned_call_detail",
+      "ticker": "SMR",
+      "path_points": 5,
+      "roi_pct": 4.098360655737698,
+      "performance": {
+        "return_pct": 4.098360655737698,
+        "sharpe_ratio": 4.015890422572338,
+        "volatility_pct": 68.43496500928998,
+        "max_drawdown_pct": -4.007285974499098,
+        "daily_observations": 4,
+        "risk_free_rate_pct": 2.0,
+        "start_date": "2026-10-21",
+        "end_date": "2026-10-27"
+      },
+      "original_path_and_roi_preserved": true
+    },
+    {
+      "probe": "owner_isolation",
+      "nonowner_status": 404,
+      "anonymous_status": 401
+    },
+    {
+      "status": "passed",
+      "actual_inference_requests": 0,
+      "product_data_writes": 0,
+      "auth_note": "Principal substitution is confined to this in-process DEV verification; application source and real server auth remain unchanged."
+    }
+  ],
+  "deployment_method": "Exact production API image qualified inside existing manual DEV job, preserving the separate DEV-only maintenance/Alpaca API.",
+  "production_authorized": "Push to prod",
+  "manual_production_research_runs": 0
+}

@@ -1,0 +1,31 @@
+{
+  "status": "deployed_verified",
+  "owner_instruction": "Push to prod",
+  "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+  "production_workers_updated": [
+    "universe-builder",
+    "equities-intraday-preload",
+    "macro-fred-daily",
+    "commodities-regime",
+    "options-liquid-universe",
+    "news-ingest-and-features",
+    "entity-taxonomy-refresh",
+    "attention-home-build",
+    "fundamentals-quarterly-refresh",
+    "company-baseline-prefetch",
+    "trading-agent-build",
+    "zopedia-maintenance",
+    "zopedia-learning",
+    "system-health",
+    "sn-research-run",
+    "evidence-index-dev",
+    "system-recovery"
+  ],
+  "all_29_workers_match_verified_credit_source": true,
+  "other_19_images_preserved": true,
+  "consumer_count": 36,
+  "production_research_executions_manually_started": 0,
+  "exact_image_development_evidence": "CREDIT_DEV.json",
+  "scope": "Only shared provider liquidity reservation and settlement; same prices, model routes, producer budgets and schedules."
+}
