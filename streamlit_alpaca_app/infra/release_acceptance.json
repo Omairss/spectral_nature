@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Persistent paper Trading system across the shared backend, Next.js and native iOS. Development delivery only; all production images and complete configurations retained.",
-  "source_revision": "309d290a422da35e5f21b2ea1964360b279002ef",
+  "source_revision": "c54febef0eabed43d29d29eaa939a31ea736bcd3",
   "review_base_revision": "a307fb77a59c8077a0d227f970034d439d2294af",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -215,7 +215,7 @@
     "services/trading_agent.py": "b1c19df36fa21a92750f487e26885fc75aa8030a5f187cb24602fa49013441fb",
     "services/trading_agent_view.py": "419885f15057eb0d05089947ce24387bdf68ba3fa0cf50dfa71f5ec2fe47a016",
     "services/trading_call_tracking.py": "f321cf36bcbc7a0857021d2240ea18ce69fd12d64a6d0102e99c1567d9256c46",
-    "services/trading_portfolio.py": "e07e9778cef78e4f5793dc295f647ecfe181b8219b239416febfcf5beaec0cb1",
+    "services/trading_portfolio.py": "02ef8b0a266c6ef58e79e35ec8bda45a38d813438f7afa30baa7936d3bc9dec6",
     "services/treasury_yields.py": "4ca3daf57b5a50b5028d1d71378428d0e017288293b7cb1132c7a342bfc34e20",
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "158ad038e144fb5e37c87f53af6f6dfb551c7231d2b542e48a89a555d968e9ee",
@@ -505,7 +505,7 @@
     "services/trading_agent.py": "b1c19df36fa21a92750f487e26885fc75aa8030a5f187cb24602fa49013441fb",
     "services/trading_agent_view.py": "419885f15057eb0d05089947ce24387bdf68ba3fa0cf50dfa71f5ec2fe47a016",
     "services/trading_call_tracking.py": "f321cf36bcbc7a0857021d2240ea18ce69fd12d64a6d0102e99c1567d9256c46",
-    "services/trading_portfolio.py": "e07e9778cef78e4f5793dc295f647ecfe181b8219b239416febfcf5beaec0cb1",
+    "services/trading_portfolio.py": "02ef8b0a266c6ef58e79e35ec8bda45a38d813438f7afa30baa7936d3bc9dec6",
     "services/treasury_yields.py": "4ca3daf57b5a50b5028d1d71378428d0e017288293b7cb1132c7a342bfc34e20",
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "158ad038e144fb5e37c87f53af6f6dfb551c7231d2b542e48a89a555d968e9ee",
