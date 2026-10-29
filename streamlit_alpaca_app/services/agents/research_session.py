@@ -88,12 +88,11 @@ def research_request_context(
 
 @dataclass(frozen=True)
 class ResearchBudget:
-    """One run clock, with time reserved for returning and reviewing evidence."""
+    """Stop research early; writing and review share the original remaining clock."""
 
     started: float
     deadline: float | None
     research_deadline: float | None
-    synthesis_deadline: float | None
 
     @classmethod
     def start(
@@ -105,14 +104,11 @@ class ResearchBudget:
         if timeout_seconds is not None and float(timeout_seconds) > 0:
             timeout_seconds = remaining_work_seconds(max(float(timeout_seconds), 0.001))
         if timeout_seconds is None:
-            return cls(started, None, None, None)
+            return cls(started, None, None)
         total = max(float(timeout_seconds), 0.0)
         end = started + total
         if not research_required:
-            # Preserve the accepted editor allocation: the artifact writer
-            # needs more time than review. A downstream-owned review gives
-            # its entire clock to this synthesis.
-            return cls(started, end, started, started + total * 0.65 if review_required else end)
+            return cls(started, end, started)
         # Reserve a model step for each required completion phase before
         # admitting more research. Short runs share their clock across the
         # declared phases instead of leaving synthesis/review a small tail.
@@ -120,10 +116,12 @@ class ResearchBudget:
         step = min(max(float(step_seconds), 0.0), total / phases)
         review = step if review_required else 0.0
         research_end = end - review - step if research_required else started
-        return cls(started, end, research_end, end - review)
+        return cls(started, end, research_end)
 
     def remaining(self, phase: str = "research", maximum: float | None = None) -> float:
-        end = self.research_deadline if phase == "research" else self.synthesis_deadline if phase == "synthesis" else self.deadline
+        # Review needs an answer. An advisory review reservation must not
+        # discard an unfinished answer while the owning run still has time.
+        end = self.research_deadline if phase == "research" else self.deadline
         remaining = max(end - time.monotonic(), 0.0) if end is not None else float("inf")
         return min(remaining, float(maximum)) if maximum is not None else remaining
 
