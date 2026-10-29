@@ -1,0 +1,63 @@
+{
+  "status": "deployed_verified",
+  "recorded_at": "2026-10-29T06:32:29.016137+00:00",
+  "owner_instruction": "Push to prod",
+  "environment": "production",
+  "source_revision": "0d012421b3159e3c5b01c6862d762a0eddb4dddb",
+  "source_inventory_sha256": "cbb88c641ff65c8e0784aec3064041500def567ca3401733d68abbe4aacb8e2e",
+  "runtime_inventory_sha256": "58a3ad9a87ff9c0c3821a4442a634030de00e4ac6b5dc853567c5c45f610ee04",
+  "images": {
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:8de7511eee522b45bfb9d1c105684bb6f5cf6e0b06166080172b43104c996d78"
+  },
+  "targets": [
+    {
+      "name": "sn-api-next",
+      "kind": "containerApps",
+      "role": "api-next",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:8de7511eee522b45bfb9d1c105684bb6f5cf6e0b06166080172b43104c996d78",
+      "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "job_executions_started": 0,
+  "development_evidence": "API_DEV.json",
+  "source_review": "API_SOURCE_REVIEW.md",
+  "revision": {
+    "name": "sn-api-next--0000024",
+    "healthState": "Healthy",
+    "runningState": "RunningAtMaxScale",
+    "trafficWeight": 100,
+    "replicas": 1
+  },
+  "signed_in_gateway": {
+    "method": "GET",
+    "origin": "https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io",
+    "path": "/api/trading-agent/approved-calls/15724db7-4964-56ed-9c64-59849188d5a7",
+    "authentication": "Existing signed-in Chrome app session; ordinary gateway request. No session credentials extracted.",
+    "result": {
+      "ticker": "SMR",
+      "path_points": 5,
+      "return_pct": 4.098360655737698,
+      "performance": {
+        "return_pct": 4.098360655737698,
+        "sharpe_ratio": 4.015890422572338,
+        "volatility_pct": 68.43496500928998,
+        "max_drawdown_pct": -4.007285974499098,
+        "daily_observations": 4,
+        "risk_free_rate_pct": 2,
+        "start_date": "2026-10-21",
+        "end_date": "2026-10-27"
+      }
+    }
+  },
+  "consumer_preservation": {
+    "reviewed_consumers": 36,
+    "all_nonimage_configurations_unchanged": true,
+    "only_api_image_changed_after_credit_promotion": true,
+    "development_api_and_both_production_frontends_unchanged": true
+  },
+  "manual_production_research_runs": 0,
+  "inference_requests_for_verification": 0,
+  "scope": "Shared historical-call metrics plus already accepted production worker/shared credit source; no DEV-only Alpaca or maintenance source."
+}

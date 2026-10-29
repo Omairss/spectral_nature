@@ -1,0 +1,135 @@
+{
+  "status": "production_deployed_phone_installed_launch_pending_unlock",
+  "recorded_at": "2026-10-29T06:37:24.060496+00:00",
+  "owner_instruction": "Push to prod",
+  "credit": "CREDIT_PRODUCTION.json",
+  "api": "API_PRODUCTION.json",
+  "native": "NATIVE_INSTALLATION.json",
+  "source_branches": {
+    "worker": "fix/chat-credit-20261028",
+    "api": "release/iphone-feedback-production-20261028",
+    "native": "fix/iphone-feedback-20261028"
+  },
+  "release_checks": {
+    "complete_consumers": 36,
+    "changed_images": [
+      {
+        "name": "sn-api-next",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:8de7511eee522b45bfb9d1c105684bb6f5cf6e0b06166080172b43104c996d78",
+        "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732"
+      },
+      {
+        "name": "universe-builder",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed"
+      },
+      {
+        "name": "equities-intraday-preload",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662"
+      },
+      {
+        "name": "macro-fred-daily",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95"
+      },
+      {
+        "name": "commodities-regime",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d"
+      },
+      {
+        "name": "options-liquid-universe",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1"
+      },
+      {
+        "name": "news-ingest-and-features",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "6fae0bea21fe3952d91164646cde40c115e6ed304314aaebd9cc847dcaae4372"
+      },
+      {
+        "name": "entity-taxonomy-refresh",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda"
+      },
+      {
+        "name": "attention-home-build",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "b585ac573f93aaf4ae211fdce648ced3b895ebe27656993a14a23f1c9357be4c"
+      },
+      {
+        "name": "fundamentals-quarterly-refresh",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083"
+      },
+      {
+        "name": "company-baseline-prefetch",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5"
+      },
+      {
+        "name": "trading-agent-build",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645"
+      },
+      {
+        "name": "zopedia-maintenance",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6"
+      },
+      {
+        "name": "zopedia-learning",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "fab966688263776cc208a6d0de8341d6f0bde52cb332c52dcba9383f515df9d0"
+      },
+      {
+        "name": "system-health",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a"
+      },
+      {
+        "name": "sn-research-run",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a"
+      },
+      {
+        "name": "evidence-index-dev",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e"
+      },
+      {
+        "name": "system-recovery",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e"
+      }
+    ],
+    "unchanged_images": 18,
+    "all_36_nonimage_configurations_preserved": true,
+    "all_29_workers_use_qualified_credit_image": true,
+    "api_revision_healthy_full_traffic": true,
+    "production_app_gateway_metrics_verified": true
+  },
+  "inference_requests_for_verification": 0,
+  "production_research_runs_manually_started": 0,
+  "product_data_writes_for_verification": 0,
+  "remaining_delivery": "Omair phone installed build16; launch requires unlock. Other two phones directly queried and unavailable."
+}

@@ -27,5 +27,6 @@
   "consumer_count": 36,
   "production_research_executions_manually_started": 0,
   "exact_image_development_evidence": "CREDIT_DEV.json",
-  "scope": "Only shared provider liquidity reservation and settlement; same prices, model routes, producer budgets and schedules."
+  "scope": "Only shared provider liquidity reservation and settlement; same prices, model routes, producer budgets and schedules.",
+  "verification_stage": "Credit-only promotion, before the subsequent production API image update; final complete inventory is in PRODUCTION.json."
 }

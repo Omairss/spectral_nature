@@ -1368,3 +1368,7 @@ Protect mandatory current interpretation first. Optional company refreshes reser
 ### Title chronology needs its own evidence contract — October 28
 
 A dated body can coexist with a misleading present-tense title. General timing guidance alone did not stop the final Home editor from retaining an old warning as its headline lead. Each published story now carries factual current-observation, background-event and report-date context through both writing and review. The common answer reviewer evaluates title/opening chronology independently and rewrites them around the current development. Original dates remain visible when an older event leads. This is structured source context and model judgment, not a date regex, phrase blacklist or fixed age cutoff.
+
+### Release shared fixes on the intended environment’s source — October 28
+
+A DEV-only feature branch need not be merged wholesale to deliver a shared fix. Review the production API contract against its existing worker source, carry only the accepted change and qualify the exact image in a manual DEV execution when replacing DEV’s different API would lose accepted work. Then verify real signed-in production gateway output and all consumer configurations. Native installation, installed-version readback and physical launch are separate facts; retain a locked-device launch as pending rather than inferring success from signing or installation.

@@ -1,0 +1,51 @@
+{
+  "status": "installed_launch_check_requires_unlock",
+  "recorded_at": "2026-10-29T06:37:24.060496+00:00",
+  "owner_instruction": "Push to prod",
+  "signing": {
+    "build": "16",
+    "version": "1.0.0",
+    "bundle": "com.torrescapital.spectralnature",
+    "signature_verified": true,
+    "team": [
+      "44J3R74SJ9"
+    ],
+    "profile_expires_utc": "2026-10-31 05:50:23",
+    "device_count": 3,
+    "executable_sha256": "f2fa4b066a5979b9595c2fcd99ce0265132a7591ddd7e6000e4da2d6ce4a5cfa",
+    "source_revision": "8fc44de9f16e455fdfb690a191420514f55d35e5"
+  },
+  "source_acceptance": "LOCAL.json",
+  "production_gateway": "https://spectral-nature.com",
+  "devices": [
+    {
+      "owner": "Omair",
+      "model": "iPhone 13 Pro",
+      "transport": "localNetwork",
+      "installation": "succeeded_in_place",
+      "installed_version": "1.0.0",
+      "installed_build": "16",
+      "independent_installed_version_readback": true,
+      "launch": "blocked_by_locked_device",
+      "process_readback": "not_available",
+      "lock_state": true
+    },
+    {
+      "owner": "Zohair",
+      "model": "iPhone 16 Pro",
+      "connection": "unavailable",
+      "direct_device_query": true,
+      "installation": "not_attempted",
+      "last_verified_build": "14"
+    },
+    {
+      "owner": "Fay",
+      "model": "iPhone 15 Plus",
+      "connection": "unavailable",
+      "direct_device_query": true,
+      "installation": "not_attempted",
+      "last_verified_build": "14"
+    }
+  ],
+  "notes": "Signed Release build from unchanged accepted native input inventory. Existing bundle/team preserve installation identity. Simulator visuals accepted in LOCAL.json. No claim of successful physical launch while iOS reports Locked."
+}
