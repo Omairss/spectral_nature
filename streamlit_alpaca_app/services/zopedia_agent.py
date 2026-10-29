@@ -131,14 +131,38 @@ _STEP_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
-        "action": {"type": "string", "enum": ["tool_call", "final"]},
         "reasoning": {"type": "string"},
-        "tool_name": {"type": "string"},
-        "tool_arguments": {
-            "type": "string",
-            "description": "A JSON-encoded object matching the chosen tool input schema. Use {} for no arguments.",
+        "next": {
+            "anyOf": [
+                {
+                    "type": "object", "additionalProperties": False,
+                    "properties": {
+                        "action": {"type": "string", "enum": ["tool_call"]},
+                        "tool_name": {"type": "string"},
+                        "tool_arguments": {"type": "string", "description": "JSON-encoded object matching the chosen tool's input schema."},
+                    },
+                    "required": ["action", "tool_name", "tool_arguments"],
+                },
+                {
+                    "type": "object", "additionalProperties": False,
+                    "properties": {
+                        "action": {"type": "string", "enum": ["tool_call"]},
+                        "tool_name": {"type": "string"},
+                        "tool_arguments": {"type": "string", "description": "JSON-encoded object matching the chosen tool's input schema."},
+                        "answer_markdown": {"type": "string", "description": "Useful working draft to retain while acquiring more evidence."},
+                    },
+                    "required": ["action", "tool_name", "tool_arguments", "answer_markdown"],
+                },
+                {
+                    "type": "object", "additionalProperties": False,
+                    "properties": {
+                        "action": {"type": "string", "enum": ["final"]},
+                        "answer_markdown": {"type": "string"},
+                    },
+                    "required": ["action", "answer_markdown"],
+                },
+            ],
         },
-        "answer_markdown": {"type": "string"},
         "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
         "needs_more_tools": {"type": "boolean"},
         "public_update": {
@@ -178,11 +202,8 @@ _STEP_SCHEMA: dict[str, Any] = {
         "request_review": {"type": "boolean"},
     },
     "required": [
-        "action",
         "reasoning",
-        "tool_name",
-        "tool_arguments",
-        "answer_markdown",
+        "next",
         "confidence",
         "needs_more_tools",
         "public_update",
@@ -1143,14 +1164,22 @@ def _run_evidence_model_step(
     step_schema = {
         "type": "object", "additionalProperties": False,
         "properties": {
-            "action": {"type": "string", "enum": ["answer", "read", "select_context"]},
-            "tool_name": {"type": "string"},
-            "tool_arguments": {"type": "string", "description": "JSON object for the evidence tool; {} otherwise."},
-            "keep_tool_call_ids": {"type": ["array", "null"], "items": {"type": "string"},
-                                   "description": "Results to keep in working context; null keeps the current selection. All originals remain readable."},
-            "answer": {"anyOf": [schema, {"type": "null"}]},
+            "decision": {"anyOf": [
+                {"type": "object", "additionalProperties": False,
+                 "properties": {"action": {"type": "string", "enum": ["answer"]}, "answer": schema},
+                 "required": ["action", "answer"]},
+                {"type": "object", "additionalProperties": False,
+                 "properties": {"action": {"type": "string", "enum": ["read"]}, "tool_name": {"type": "string"},
+                                "tool_arguments": {"type": "string", "description": "JSON-encoded evidence tool arguments."}},
+                 "required": ["action", "tool_name", "tool_arguments"]},
+                {"type": "object", "additionalProperties": False,
+                 "properties": {"action": {"type": "string", "enum": ["select_context"]},
+                                "keep_tool_call_ids": {"type": "array", "items": {"type": "string"},
+                                                       "description": "Results to keep in working context; all originals remain readable."}},
+                 "required": ["action", "keep_tool_call_ids"]},
+            ]},
         },
-        "required": ["action", "tool_name", "tool_arguments", "keep_tool_call_ids", "answer"],
+        "required": ["decision"],
     }
     feedback = capacity_feedback
     catalog_only = False
@@ -1202,7 +1231,8 @@ def _run_evidence_model_step(
             step = generate_json_via_aql_zopedia_gateway(
                 llm_client=llm_client, surface=surface, purpose=purpose, call_type=call_type,
                 system_prompt=system_prompt + (
-                    "\nEvidence remains readable during this step. Return action=answer with the requested result in answer, "
+                    "\nEvidence remains readable during this step. Put the selected action and its fields inside decision. "
+                    "Return action=answer with the requested result in answer, "
                     "or action=read with an evidence tool and its JSON arguments. Use select_context to choose which "
                     "tool results stay in working context. Read any omitted result through its history source_id."
                 ),
@@ -1234,22 +1264,23 @@ def _run_evidence_model_step(
         if errors:
             feedback = "Invalid response: " + errors[0].message
             continue
-        keep = step.get("keep_tool_call_ids")
+        navigation = step["decision"]
+        keep = navigation.get("keep_tool_call_ids")
         if keep is not None:
             known = {call["tool_call_id"] for call in tool_calls}
             if not set(keep) <= known:
                 feedback = "Unknown tool_call_id in working-context selection. Use the history catalog."
                 continue
             context_state["tool_call_ids"] = keep
-        action = step["action"]
-        if action == "answer" and isinstance(step.get("answer"), dict):
-            return {**step["answer"], **{key: value for key, value in step.items() if key.startswith("__")}}
+        action = navigation["action"]
+        if action == "answer":
+            return {**navigation["answer"], **{key: value for key, value in step.items() if key.startswith("__")}}
         if action == "select_context":
             catalog_only = False
             feedback = ""
             continue
-        arguments, error = _coerce_tool_arguments(step.get("tool_arguments"))
-        tool_name = step.get("tool_name")
+        arguments, error = _coerce_tool_arguments(navigation.get("tool_arguments"))
+        tool_name = navigation.get("tool_name")
         entry = next((tool for tool in read_tools if tool["name"] == tool_name), None)
         if not entry or error:
             feedback = error or "Choose an advertised evidence reader or return the answer."
@@ -1557,6 +1588,10 @@ _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
         "Answer explanations, transformations and conversation follow-ups directly when the supplied context and established "
         "knowledge are sufficient. Do not search a corpus merely because a search tool is available. A retrieved match "
         "must help answer this request; ignore unrelated domain material instead of adding an analogy to use it. "
+        "Judge sufficiency against the explanation the reader needs, not whether you can repeat the reported headlines. "
+        "For a consequential disclosure, prefer reading the underlying release over collecting more recaps when it can "
+        "resolve the important question. Reuse rich current evidence already available. Acquire decisive missing detail "
+        "now when its information value justifies the cost; do not substitute a list of things to look up later. "
         "Explore useful indirect relationships, private entities, related concepts and competing explanations. "
         "Use calculation or analysis tools when arithmetic and unit conversions materially affect the answer. "
         "Organize the work around the question; don't narrow research "
@@ -1586,6 +1621,8 @@ _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
         "queries together: vary concepts, entities and alternative explanations instead of repeating the whole question or "
         "requiring every search word. Interpret its broad candidate catalog yourself, giving original reports priority over old generated answers. "
         "For dated requests, inspect the broad reporting catalog too; important developments can use unexpected vocabulary. "
+        "Choose ISO start_date/end_date search arguments from the request's as-of time and timezone when a reporting "
+        "period matters. The search tool executes your queries and dates; it does not plan the research again. "
         "Use research.read_evidence or zopedia.read_page for "
         "full retained text; open a web page if permitted and richer content helps. Headlines and snippets are useful leads. "
         "Cite chunk_record_id, source_id, document_id or tool_call_id from the evidence. A context_id or context_ref "
@@ -1608,9 +1645,10 @@ _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
         "Be clear about an inference without drowning it in caveats. Match the user's requested format and the active global "
         "writing style. Use short paragraphs and useful source links. Explain practical meaning and cause and effect in familiar "
         "words. Keep tool IDs, research bookkeeping, confidence labels and execution failures out of the answer. "
-        "Tools are optional. Answer directly for explanations, transformations and reasoning over supplied input when external "
-        "information would not improve the requested answer. Encode tool_arguments as one JSON object inside a string; "
-        "its values must match the chosen tool's input schema. answer_markdown is a concise working draft for the final writer; "
+        "Tools are optional when external information would not improve the requested answer. "
+        "Put the selected action and its fields inside next. For tool_call, supply tool_name and JSON-encoded "
+        "tool_arguments matching that tool's input schema; include answer_markdown when you have a useful working draft to retain. "
+        "For final, supply answer_markdown as a concise working draft for the final writer; "
         "do not write a full report during planning. Use exactly an available tool name. Return the required JSON schema."
     ),
 )
@@ -3494,6 +3532,7 @@ def _execute_zopedia_agent_loop(
                     limitations.append(f"Planning stopped: {type(exc).__name__}")
                     break
                 raise
+            decision = {**{key: value for key, value in decision.items() if key != "next"}, **decision["next"]}
             if isinstance(decision.get("research_state"), dict):
                 research_state = decision["research_state"]
             update = decision.get("public_update") or {}

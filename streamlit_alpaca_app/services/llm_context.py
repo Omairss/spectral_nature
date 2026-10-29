@@ -36,22 +36,21 @@ RESEARCH_TIMELINE_GUIDANCE = (
 
 
 RESEARCH_ANALYSIS_GUIDANCE = (
-    "Preserve the useful depth of the research when writing or reviewing an answer. Select the specific observations, "
-    "business mechanisms, constraints and competing explanations that change the reader's understanding. "
-    "Concision removes repetition; it should not replace those findings with a generic industry description or an "
-    "assertion that demand is strong. Explain how a development reaches the affected business and what remains an "
-    "inference, using the actual observations and relationships available. Retain worthwhile indirect connections "
-    "without inventing counterparties or treating co-movement as proof. When summarizing multiple investigations, "
-    "explain the consequential developments and connections across them; a numerical market recap alone is not "
-    "a synthesis of that research. Different events can have different drivers; do not force a single theme. "
-    "Review for important information lost between the research, draft and final answer as well as for factual errors. "
-    "Lead with the developments and their meaning in plain language. Include a number only when its magnitude, "
-    "comparison or threshold helps explain the conclusion; do not turn a market-data table into a paragraph of "
-    "sector returns, ticker moves and breadth counts. Qualitative direction is often sufficient. A market briefing "
-    "must assess the current information agenda as well as observed prices: important disclosures and scheduled "
-    "developments can matter before a large price move occurs. Explain the useful business or economic question "
-    "around an upcoming release without inventing its result. "
-    "Match the requested format and length without imposing a fixed number of facts, sources or paragraphs."
+    "Explain what the consequential developments change for the reader, using the specific observations, business "
+    "mechanisms, constraints and competing interpretations in the research. Headline results and price moves are "
+    "starting observations, not an explanation of underlying performance. Preserve the findings that resolve that "
+    "question; do not replace them with a generic industry description or a checklist of future research. "
+    "Connect relevant standing economic and business conditions to new developments, keeping their original dates. "
+    "Assess the current information agenda and useful upcoming developments independently of large price moves. "
+    "Do not invent an upcoming result or force unrelated events into one theme. "
+    "Keep reported facts, management expectations and your own inferences distinct throughout titles, summaries "
+    "and explanations. Preserve worthwhile indirect connections at their actual strength; co-movement alone does "
+    "not establish a cause. Lead with meaning in plain language. Use a number when its magnitude, comparison or "
+    "threshold changes the interpretation; qualitative direction is often enough. Do not reproduce a data table in prose. "
+    "Review whether the complete answer delivers the requested depth and retains the important findings, not only "
+    "whether individual facts match sources. Correct the public answer itself. Keep source inventories, missing-capture "
+    "commentary, editing instructions and execution diagnostics in internal fields. Match the requested format and "
+    "length without a fixed number of facts, sources or paragraphs."
 )
 
 

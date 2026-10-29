@@ -1,5 +1,5 @@
 {
-  "status": "feed_quality_verified_candidate_rejected_release_held",
+  "status": "quality_correction_live_acquisition_verification",
   "owner_goal": "Reliable current reporting with predictable event-adaptive costs. The previous 90% reduction target is retired.",
   "requirements": {
     "configured_base_budget": "Retain user-defined per-logical-run budgets and protected full-model interpretation, synthesis and review.",
@@ -176,5 +176,49 @@
       "explanation": "Every response has usage. Conservative total uses the published high rate bound and rounds each request up to one microUSD; it is an estimate, not an invoice. All initial mistaken replays and retries are included. Remaining cap cannot cover another full-capability maximum, so no further paid requests were started."
     },
     "review": "quality-review.json"
+  },
+  "quality_continuation": {
+    "authorization": {
+      "status": "approved",
+      "authorization": "Authorized for another $10 if needed",
+      "maximum_total_usd": 10,
+      "pacific_day": "2026-10-28",
+      "approved_for": "Continue shared feed-quality corrections and fresh full-capability DeepSeek verification, including bounded existing acquisition; isolated storage and no production writes.",
+      "prior_studies_closed_bound_usd": 18.693264,
+      "cumulative_authorized_bound_usd": 28.693264,
+      "recorded_at_utc": "2026-10-29T03:39:44.108287+00:00"
+    },
+    "sequence": [
+      "Inspect actual source/tool/planning behavior before changing architecture.",
+      "Correct demonstrated shared-source or research/synthesis causes with minimal coherent changes.",
+      "Personally review complete public output and representative cases.",
+      "Close spending and cleanup; qualify release only if requested behavior is met."
+    ],
+    "completed": [
+      "Previous complete-output rejection and retained evidence.",
+      "Current production acquisition price limits confirmed present; no missing-price defect asserted."
+    ],
+    "current": "Fresh live case is retaining acquired sources after partial investigations. Final tagged-action protocol has offline actual-response and official schema-compatibility review; fresh tagged execution and complete public-output review remain required.",
+    "source_design": {
+      "ownership": "Existing shared researcher chooses queries, dates and follow-ups; existing retained/web readers execute them. Home consumes shared outputs. No new retrieval engine, dataset or schedule.",
+      "changes": [
+        "One tagged action payload per shared control step, with only the active fields. Useful partial drafts remain possible. Nested union schemas retain strict-provider compatibility; registry and argument permissions remain enforced.",
+        "Remove redundant retained-search query planner and its model route; preserve broad dated reporting, unrestricted semantic/context recall and source reading.",
+        "Do not substitute the full original research record as an omitted search query.",
+        "Use shared source-sufficiency and explanatory-depth guidance across planning, synthesis and review; no topic/ticker rules or prose rewriting code."
+      ],
+      "consequences": [
+        "Do not require new acquisition when rich current evidence already answers the question. Quiet runs can still stop early.",
+        "The shared researcher must supply reporting dates when relevant; dates are no longer silently reinterpreted by a second planner.",
+        "Incomplete research retains useful findings; no new factual-certification publication gate.",
+        "Existing full-model core funding, original deadlines, transport retries and write policies remain in force."
+      ],
+      "verification": [
+        "Real retained paid action replay confirms no regeneration for unused fields.",
+        "Actual explicit queries pass unchanged without the entire research request or extra inference.",
+        "Legacy agent/tool tests fail identically on the committed baseline and candidate; their obsolete prose/retired-helper expectations are not quality acceptance.",
+        "Fresh full public output must be personally read before acceptance."
+      ]
+    }
   }
 }

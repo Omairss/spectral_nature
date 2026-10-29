@@ -476,7 +476,8 @@ def research_source_events(
             subject="event:" + event_id, task="source_event_research") if access else None
         if prior_event:
             prior_research.insert(0, prior_event)
-        research_request = to_jsonable({"asof": asof, "investigation": plan, "market_observations": observations})
+        research_request = to_jsonable({"asof": asof, "investigation": plan, "market_observations": observations,
+                                       "economic_observations": macro_context or {}})
         research_instructions = (instructions + " Reuse completed investigations before repeating acquisition. They are dated, "
                 "fallible model analysis: compare the new source event against them and use their source references for "
                 "focused follow-up, without counting earlier model interpretations as independent confirmations.")

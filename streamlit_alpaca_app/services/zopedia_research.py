@@ -84,32 +84,6 @@ _P_SUMMARY_TRIM_LIMIT = register_config_param(
     description="Max chars for summary text in research results",
 )
 
-_RETAINED_SEARCH_PLAN_PROMPT = register_narrative_prompt(
-    "Retained Evidence Search Plan",
-    "services/zopedia_research.py",
-    "Plan high-recall retrieval for the actual research request. Return varied short semantic search queries, "
-    "including indirect relationships and competing explanations where useful. The caller's query is a search focus; "
-    "use the original request and application time context to understand it. Do not require exact tickers or guess a "
-    "single cause before discovery. Set reporting_start and reporting_end when dated developments matter to the question. "
-    "Interpret relative dates in the supplied timezone, anchored to asof_time_utc, never your training date. "
-    "Use ISO dates or timezone-aware timestamps. For a current session, cover that local calendar day through the as-of time. "
-    "Caller dates are search hints. Derive the primary reporting window from the original request rather than copying "
-    "a caller's broader lookback. Use null for both boundaries when the request is timeless. This window adds broad reporting from that period; "
-    "historical and business-context searches remain available across the whole corpus. Return the requested JSON.",
-    group="Zopedia",
-)
-_RETAINED_SEARCH_PLAN_SCHEMA = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "queries": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 5},
-        "reporting_start": {"type": ["string", "null"]},
-        "reporting_end": {"type": ["string", "null"]},
-    },
-    "required": ["queries", "reporting_start", "reporting_end"],
-}
-
-
 _QUERY_INTENT_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
@@ -871,9 +845,8 @@ def search_evidence(
     asof_time_utc: str | None = None,
     timezone: str = "UTC",
     strict_tickers: bool = False,
-    original_query: str = "",
 ) -> dict[str, Any]:
-    """Interpret retrieval intent, then acquire broad semantic and dated candidates."""
+    """Execute the shared researcher's queries and reporting window."""
     remaining_request_timeout(0)
     from concurrent.futures import ThreadPoolExecutor
     from contextvars import copy_context
@@ -883,60 +856,10 @@ def search_evidence(
 
     normalized_query = str(query or "").strip()
     safe_limit = _safe_int(max_results, 10, minimum=1, maximum=30)
-    supplied_searches = list(
-        dict.fromkeys([normalized_query, *[str(item).strip() for item in queries or [] if str(item).strip()]])
-    )[:5]
-    plan = {}
     warnings = []
-    if normalized_query or queries:
-        try:
-            llm = load_aql_zopedia_llm_client(surface="research.search_evidence")
-            from .aql_zopedia_engine import run_aql_zopedia_structured_agent
-
-            engine_operation = run_aql_zopedia_structured_agent(
-                query=json.dumps(
-                    {
-                        "original_query": original_query or normalized_query,
-                        "search_focus": normalized_query,
-                        "query_hints": supplied_searches,
-                        "asof_time_utc": asof_time_utc,
-                        "timezone": timezone,
-                        "explicit_start": start_date,
-                        "explicit_end": end_date,
-                    },
-                    ensure_ascii=False,
-                ),
-                instructions=get_prompt(_RETAINED_SEARCH_PLAN_PROMPT),
-                schema_name="retained_evidence_search_plan",
-                schema=_RETAINED_SEARCH_PLAN_SCHEMA,
-                task="retrieval.plan",
-                surface="research.search_evidence",
-                llm_client=llm,
-                max_tool_calls=0,
-                persist_findings=False,
-                write_policy="none",
-                call_type="research_grade",
-                operation_metadata=None,
-                run_timeout_seconds=max(
-                    time.monotonic() + remaining_request_timeout(20) - time.monotonic(),
-                    0,
-                ),
-            )
-            if engine_operation.get("status") != "completed":
-                raise RuntimeError(
-                    engine_operation.get("error") or "Shared AI operation failed"
-                )
-            plan = engine_operation["payload"]
-        except Exception as exc:
-            remaining_request_timeout(0)
-            warnings.append(
-                f"Search interpretation unavailable: {type(exc).__name__}; using supplied queries."
-            )
-    searches = list(dict.fromkeys([normalized_query, *plan.get("queries", []), *supplied_searches]))[:5] or [
-        ""
-    ]
-    start_date = plan.get("reporting_start") or start_date
-    end_date = plan.get("reporting_end") or end_date
+    searches = list(dict.fromkeys(
+        text for value in [normalized_query, *(queries or [])] if (text := str(value).strip())
+    ))[:5] or [""]
 
     def date_boundary(value, *, end=False):
         if not value:
