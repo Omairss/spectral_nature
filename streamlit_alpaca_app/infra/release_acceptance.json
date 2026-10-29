@@ -1671,8 +1671,12 @@
     "evidence": "documents/verification/research-charts-2026-10-23/development.json"
   },
   "development_acceptance": {
-    "status": "pending",
-    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/owner-acceptance.json"
+    "status": "accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95"
+    },
+    "source_inventory_sha256": "131e728aa8b37ca29f9232f8aa48669dbc1d0fe39dfa4e6236b4bc8322652ae5",
+    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-development.json"
   },
   "production_embedding_activation": {
     "owner_instruction": "Enable the existing Azure semantic search",
