@@ -56,8 +56,6 @@ from services.page_agentic_summary import (
 )
 from services.pipeline_store import load_latest_dataset_frame, load_recent_dataset_frames
 from services.daily_market_datapoints import build_daily_datapoint_catalog, select_daily_market_datapoints
-from services.alpaca_api import AlpacaAPI, AlpacaAPIError
-from services.config import load_config
 from services.llm_execution import complete_core_research, model_call_context, protect_core_research
 
 
@@ -2981,36 +2979,6 @@ def run_attention_home_build(
         raise
 
     news_frame = load_materialized_frame_fn("news_articles")
-    intake_status = {
-        "run_id": ctx.run_id, "asof_time_utc": ctx.asof,
-        "scope": "market_wide", "status": "completed", "error": "",
-    }
-    live_news = pd.DataFrame()
-    try:
-        config = load_config()
-        if config is None:
-            raise AlpacaAPIError("Market-wide news credentials are unavailable")
-        live_news = AlpacaAPI(config).get_news(
-            symbols=None, end=ctx.asof,
-            start=ctx.asof - pd.Timedelta(days=_env_positive_int("ATTENTION_HOME_NEWS_LOOKBACK_DAYS", 2)),
-            limit=_env_positive_int("ATTENTION_HOME_NEWS_LIMIT", 50),
-        )
-        intake_status["current_report_count"] = len(live_news)
-        news_frame = _merge_news_frames(live_news, news_frame)
-    except Exception as exc:
-        from services.work_scope import WorkCancelled
-        if isinstance(exc, WorkCancelled):
-            raise
-        from services.llm_execution import record_execution_issue
-        record_execution_issue("current_market_news", exc)
-        intake_status.update(status="unavailable", error=type(exc).__name__)
-        print(f"[warn] current market-wide news acquisition unavailable: {type(exc).__name__}", flush=True)
-    # Retain acquisition before expensive inference. Native publication owns its
-    # failure/retry semantics; a persistence failure is not a news-provider error.
-    if not live_news.empty:
-        persist_dataset_fn("attention_news_intake", live_news.assign(
-            acquired_at_utc=pd.Timestamp.now(tz="UTC"), briefing_asof_time_utc=ctx.asof), ctx, conn)
-    persist_dataset_fn("attention_news_intake_status", pd.DataFrame([intake_status]), ctx, conn)
 
     if getattr(llm_client, "config", None) is not None:
         # Declare the final briefing before optional discovery spends the run's

@@ -2567,8 +2567,7 @@ def run_news(ctx: JobContext, conn: Any | None = None) -> None:
     _job_progress(ctx, conn, stage="starting", message="Starting news and attention preload.", progress_pct=1.0)
     cfg = _alpaca_config()
     if cfg is None:
-        print("[warn] APCA credentials missing; skipping news preload")
-        return
+        raise AlpacaAPIError("APCA credentials missing; shared news acquisition did not run")
     api = AlpacaAPI(cfg)
     symbols = _symbols_from_env() or _symbols_from_latest_universe(50)
     if not symbols:
@@ -2585,16 +2584,32 @@ def run_news(ctx: JobContext, conn: Any | None = None) -> None:
             print(f"[warn] news preload could not resolve dynamic symbols: {type(exc).__name__}: {exc}")
             symbols = []
     try:
-        _job_progress(ctx, conn, stage="news_ingest", message=f"Fetching news for symbols={len(symbols)}.", progress_pct=10.0)
-        news = api.get_news(symbols=symbols, limit=50)
+        # The shared feed covers the market. Company research selection below
+        # remains independently bounded; it must not filter source acquisition.
+        news_limit = _parse_int_env("NEWS_MARKET_ARTICLE_LIMIT", 50, minimum=1)
+        news_start = ctx.asof - timedelta(days=_parse_int_env("NEWS_LOOKBACK_DAYS", 2, minimum=1))
+        _job_progress(ctx, conn, stage="news_ingest", message=f"Fetching market-wide and selected-company news, market limit={news_limit}.", progress_pct=10.0)
+        scopes = [("market", None, news_start, news_limit)]
+        if symbols:
+            scopes.append(("companies", symbols, None, _parse_int_env("NEWS_TICKER_ARTICLE_LIMIT", 50, minimum=1)))
+        acquired = []
+        acquisition_errors = []
+        for scope, selected_symbols, start, limit in scopes:
+            try:
+                acquired.append(api.get_news(symbols=selected_symbols, start=start, end=ctx.asof, limit=limit))
+            except AlpacaAPIError as exc:
+                acquisition_errors.append(exc)
+                from services.llm_execution import record_execution_issue
+                record_execution_issue("news_acquisition:" + scope, exc)
+                ctx.degraded_components["news_acquisition:" + scope] = type(exc).__name__
+                print(f"[warn] shared {scope} news acquisition failed: {type(exc).__name__}: {exc}", flush=True)
+        if not acquired:
+            raise acquisition_errors[-1]
+        news = pd.concat(acquired, ignore_index=True, sort=False)
         if not news.empty:
-            if "symbols" in news.columns:
-                mapped = news[[col for col in ["headline", "published_at", "source", "url", "symbols"] if col in news.columns]].copy()
-                mapped["symbols"] = mapped["symbols"].apply(lambda x: ",".join(x) if isinstance(x, list) else str(x))
-            else:
-                mapped = news.copy()
-        else:
-            mapped = pd.DataFrame()
+            news = news.sort_values("published_at", ascending=False, na_position="last").drop_duplicates(
+                subset=["headline", "url"], keep="first").reset_index(drop=True)
+        mapped = _news_symbol_map_from_frame(news)
 
         _persist_dataset("news_articles", news, ctx, conn)
 

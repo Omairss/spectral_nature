@@ -1,5 +1,5 @@
 {
-  "status": "liquidity_admission_repaired_locally_qualitative_acceptance_pending",
+  "status": "shared_news_ownership_corrected_locally_qualification_pending",
   "owner_goal": "Reliable current reporting with predictable event-adaptive costs. The previous 90% reduction target is retired.",
   "requirements": {
     "configured_base_budget": "Retain user-defined per-logical-run budgets and protected full-model interpretation, synthesis and review.",
@@ -10,7 +10,7 @@
     "transparency": "Failures and degraded sources remain visible in operational receipts; do not disguise incomplete work as success.",
     "freshness": "Publish current completed work; do not present past events or unfinished prior investigations as new.",
     "model_quality": "Determine actual model use and inspect complete feed output before attributing regression to cheaper models.",
-    "coverage": "Each Home briefing independently surveys the current market agenda, beyond ticker movers and twice-daily filtered news. Dated upcoming developments and completed disclosures remain distinct.",
+    "coverage": "The existing twice-daily news producer owns the shared market-wide news snapshot. Home consumes news_articles; current follow-up acquisition stays inside the existing shared AQL/Zopedia research flow. No Home-specific provider feed, shadow intake datasets or added schedule.",
     "writing": "Explain relevant developments and their implications in plain language. Use numbers only when magnitude, comparison or a threshold changes the interpretation.",
     "provider_admission": "Old missing usage receipts must not indefinitely block unrelated current briefings. Separate original-run cost uncertainty from current provider credit admission; keep genuine active reservations and unresolved costs visible."
   },
@@ -54,8 +54,14 @@
     {
       "id": "feed_quality",
       "task": "Personally compare complete current feed and retained paired model outputs, correct source or routing causes, and preserve substantive full-model core work.",
-      "status": "source_repairs_verified_qualitative_acceptance_pending",
-      "evidence_or_remaining": "The owner example exposed a ticker-filtered/stale intake, no independent broad discovery and a prefix-filtered standalone final source intake (selected bundles could still carry some acquired evidence). Each Home update now fetches broad news and the shared nominator can discover current sources; complete captures and market research reach the full-model writer. General numerical-selectivity guidance replaces table recitation. Producer declares final Home completion funding before optional work. New complete-output review is still required; see coverage-diagnosis.json."
+      "status": "source_ownership_corrected_qualitative_acceptance_pending",
+      "evidence_or_remaining": "Removed the rejected Home-local Alpaca fetch, intake/status datasets and Home-specific controls. Existing run_news now acquires market-wide reports into news_articles/news_symbol_map before its bounded company research. The default latest-50 snapshot within two days is bounded, not exhaustive; source-owned limits are configurable and existing provider pagination honors larger totals. Shared AQL follow-up and complete editor handoff remain. The nominator previously lacked tools; focused investigations already had them. Complete new-output review is pending. The producer preserves its original selected-company news alongside the broad snapshot in the same deduplicated datasets, so broader acquisition does not crowd out prior ticker coverage. Failed scopes remain explicit in existing operational state; successful sibling acquisition is retained."
+    },
+    {
+      "id": "shared_news_ownership",
+      "task": "Remove Home-local provider acquisition and repair coverage in the existing shared producer without adding jobs or schedules.",
+      "status": "implemented_verified_locally",
+      "evidence_or_remaining": "Home now loads the exact shared news_articles frame. Only the existing news producer fetches the broad Alpaca snapshot and publishes the canonical shared datasets. Company research selection remains separately bounded. Missing credentials fail acquisition explicitly. No new retrieval service, orchestration or datasets. Retains selected-company acquisition as well as broad coverage; successful scopes publish with a visible degraded outcome, while total acquisition failure publishes nothing."
     },
     {
       "id": "provider_credit_reconciliation",
@@ -67,7 +73,7 @@
       "id": "verification_and_release",
       "task": "Verify operational contracts, qualitative behavior and exact-image DEV; reconcile all consumers and deploy the accepted release under existing owner authorization.",
       "status": "in_progress",
-      "evidence_or_remaining": "192 operational contracts pass locally with isolated PostgreSQL and no inference, including the new account-liquidity behavior. No candidate image built. Current coverage changes still require complete-output personal review, committed acceptance and exact-image DEV; no prod promotion is claimed. The global account guard affects all Python roles: the new release contract requires workers, APIs and brokers to share admission/settlement behavior. Reconcile prior API/broker accepted source before packaging; retain the three frontend images."
+      "evidence_or_remaining": "198 operational contracts pass locally with isolated PostgreSQL and no inference, including the new account-liquidity behavior. No candidate image built. Current coverage changes still require complete-output personal review, committed acceptance and exact-image DEV; no prod promotion is claimed. The global account guard affects all Python roles: the new release contract requires workers, APIs and brokers to share admission/settlement behavior. Reconcile prior API/broker accepted source before packaging; retain the three frontend images."
     },
     {
       "id": "scheduled_observation",
@@ -78,10 +84,10 @@
   ],
   "spending_policy": "No new paid offline API study is authorized by this task. Earlier $15 comparison is closed. Production reads and personally reviewing retained output do not start inference. Any new qualification must obey current AGENTS.md or obtain a new explicit exception.",
   "latest_local_contracts": {
-    "passed": 192,
-    "log": "private contracts-20261029T011914Z.log",
-    "scope": "Financial/ownership/publication/document/cache contracts plus current provider credit versus unresolved costs, crash deadlines, failed balance probes, actual zero credit, concurrent admission, overlapping balance observations and idempotent late settlement. No generated prose was graded.",
-    "live_source_check": "Two historical-asof unfiltered Alpaca queries returned actual full-content news, including pre-close Fed reporting. No inference or production publication was started."
+    "passed": 198,
+    "log": "private contracts-20261029T020017Z.log",
+    "scope": "Financial/ownership/publication/document/cache contracts plus current provider credit versus unresolved costs, crash deadlines, failed balance probes, actual zero credit, concurrent admission, overlapping balance observations and idempotent late settlement. No generated prose was graded. Shared news ownership, preserved selected-company coverage, canonical deduplication, separate research selection, provider pagination, partial acquisition degradation and total acquisition failure are covered.",
+    "live_source_check": "Read-only historical-asof queries at both actual news-producer slots returned shared broad snapshots; no inference or publication. Latest-page coverage is bounded, so selected-company intake remains alongside it and current follow-up stays in shared research."
   },
   "release_state": {
     "candidate_build_started": false,

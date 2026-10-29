@@ -31,6 +31,18 @@
     "confirmed": "Current Home core writing and review use Pro. Existing budget admission blocks Azure semantic retrieval. Four optional company outputs used Flash at budget exhaustion.",
     "not_established": "A blanket causal attribution of feed quality to cheaper summarization.",
     "review": "Personally compare current full public fields with their full research inputs and retained paired outputs. Do not grade prose using phrase matching or reduce capability to fit a study allowance.",
-    "source_fix": "Each existing Home update acquires broad news. The existing shared event nominator performs bounded independent discovery and retains a substantive market synthesis even without focused event nominations. The final editor receives all acquired captures and that synthesis. Common research guidance uses numbers selectively rather than reciting the market table. Publication time, observation time and upcoming release status stay distinct; no topic/ticker-specific rules."
+    "source_fix": "Coverage belongs to the existing news producer, which acquires the market-wide bounded snapshot into the existing news_articles/news_symbol_map datasets. Home consumes that shared snapshot. Its existing shared AQL/Zopedia nominator and focused investigations own current follow-up research. The candidate enables existing tools at nomination; focused investigations already had them. No Home-local direct provider feed, shadow intake/status dataset, new job, schedule or completion trigger. Final editing receives all acquired captures and substantive research. Common guidance uses numbers selectively and preserves chronology.",
+    "source_snapshot_controls": {
+      "NEWS_MARKET_ARTICLE_LIMIT": 50,
+      "NEWS_TICKER_ARTICLE_LIMIT": 50,
+      "NEWS_LOOKBACK_DAYS": 2,
+      "semantics": "Merge a bounded market-wide snapshot with the existing selected-company snapshot, deduplicated in the same canonical datasets. Selected-company reports retain their dates without a new fixed age cutoff. Provider pages are at most50; larger configured scope limits paginate. Company research selection/limits remain independent. No snapshot claims exhaustive agenda coverage; current follow-up belongs to the same shared research engine.",
+      "failures": "Retain each successfully acquired scope and mark the missing scope in the existing execution receipt/degraded components. All requested scopes failing, or missing credentials, fail acquisition; no successful empty snapshot is fabricated."
+    },
+    "scheduling": {
+      "news_cron_utc": "5 14,20 * * 1-5",
+      "home_cron_utc": "50 14,16,18,20 * * 1-5",
+      "dependency": "Existing independent schedules; Home reads latest published datasets, with no news-completion trigger. No schedule change is included."
+    }
   }
 }

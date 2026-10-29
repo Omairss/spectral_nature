@@ -1,5 +1,5 @@
 {
-  "status": "source_repairs_verified_locally_not_qualitatively_accepted_or_deployed",
+  "status": "home_local_acquisition_removed_shared_producer_corrected_qualification_pending",
   "owner_example": {
     "market_observation_utc": "2026-10-28T18:35:00Z",
     "publication_run_id": "7e7084f7-2fc4-47de-8d0c-e75a4798a924",
@@ -9,11 +9,11 @@
   "confirmed_causes": [
     {
       "cause": "Coverage began with a ticker-filtered news snapshot from the twice-daily news producer.",
-      "effect": "Intervening Home builds did not independently refresh the broad news agenda."
+      "effect": "Broad reports without a selected company could be absent from the common snapshot. Intervening Home updates read the last news publication; their existing shared research tools supply current follow-up."
     },
     {
       "cause": "Source-event nomination had no research tools and returned immediately without feed documents.",
-      "effect": "The supplied ticker reports bounded discovery; consequential macro or upcoming developments could be absent despite current mover data."
+      "effect": "Nomination could not independently acquire missing agenda sources. Focused investigations already had tools, so it is incorrect to describe the whole prior research engine as unable to retrieve beyond the feed or movers."
     },
     {
       "cause": "The final Home editor standalone source intake kept only the event-news prefix, and received no broad research synthesis.",
@@ -86,7 +86,7 @@
     }
   },
   "candidate_behavior": [
-    "Fetch market-wide full-content news at each existing Home schedule.",
+    "Acquire a market-wide bounded snapshot in the existing twice-daily news producer; publish the existing shared news datasets and let Home consume them.",
     "Use the existing shared nominator for bounded independent discovery, dated economic context and a retained substantive market synthesis.",
     "Retain acquired tool captures even if nomination fails; preserve unresolved references as fallible leads.",
     "Deliver all acquired captures and market research to the final full-model editor.",
@@ -94,7 +94,7 @@
     "Use shared plain-language guidance: numbers belong where magnitude, comparison or a threshold changes the explanation."
   ],
   "validation": {
-    "operational_contracts_passed": 192,
+    "operational_contracts_passed": 198,
     "complete_new_model_output_review": "pending",
     "inference_started": false,
     "candidate_image_built": false,
@@ -129,5 +129,37 @@
       }
     ],
     "finding": "Unfiltered pre-close acquisition includes current Fed press-conference reporting absent from the old filtered intake. The later broad page is dominated by newer reports and does not preserve the full earlier agenda on its own; dated retained intake and independent shared discovery are both needed."
+  },
+  "rejected_candidate": {
+    "commit": "3b454943",
+    "defect": "Direct market-wide Alpaca acquisition inside Home created a consumer-local bypass and shadow intake/status datasets, contrary to producer ownership and the owner instruction.",
+    "deployed": false,
+    "correction": "Removed Home direct provider acquisition and its datasets/config. Broadened the existing news producer instead. Shared AQL research and complete final-source handoff remain in the established engine."
+  },
+  "scheduling": {
+    "news_cron_utc": "5 14,20 * * 1-5",
+    "home_cron_utc": "50 14,16,18,20 * * 1-5",
+    "dependency": "Existing independent schedules; Home reads latest published datasets, with no news-completion trigger. No schedule change is included."
+  },
+  "shared_producer_source_check": {
+    "inference_started": false,
+    "cases": [
+      {
+        "case": "morning-producer",
+        "asof_utc": "2026-10-28T14:05:00+00:00",
+        "rows": 50,
+        "sha256": "3c6cd2c1e2e9d6aaab5ad9929e18a12315669f2a1a2b91433261b154f55c5fcb",
+        "full_content_present": 44
+      },
+      {
+        "case": "afternoon-producer",
+        "asof_utc": "2026-10-28T20:05:00+00:00",
+        "rows": 50,
+        "sha256": "bd3f0da4da9cf94e6847889a0c7a0e4e8673032efc33963fcb5f7e85c628f787",
+        "full_content_present": 4
+      }
+    ],
+    "finding": "Actual producer-time queries retain the broad source response. The morning latest50 spans only minutes of a high-volume feed; the afternoon page contains Fed reporting and current Microsoft/Alphabet earnings headlines. A bounded broad page alone is not exhaustive and must not replace selected-company intake. The producer retains both scopes; current follow-up remains in the existing shared engine.",
+    "quality_acceptance": "Source acquisition evidence only; no new generated output has been accepted."
   }
 }
