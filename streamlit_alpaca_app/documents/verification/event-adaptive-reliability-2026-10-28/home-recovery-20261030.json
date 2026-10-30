@@ -1,0 +1,116 @@
+{
+  "status": "production_catchup_published_with_retrieval_warning",
+  "checked_at_utc": "2026-10-30T17:28:03.363469+00:00",
+  "owner_authorization": "I think it failed today's run for lack of funds, restart it. Then let's double click into existing planner select an affordable research agenda before launching investigations.",
+  "failed_runs": [
+    {
+      "run_id": "ab8a6768-6c58-4a1f-82aa-c08d01c4bca4",
+      "scheduled_start_utc": "2026-10-30T14:50:00Z",
+      "error": "Final Home publication/review blocked by provider credit admission;0.33USD unreserved reported."
+    },
+    {
+      "run_id": "afb280df-6ee0-4f3f-a666-14e17ba3edcd",
+      "scheduled_start_utc": "2026-10-30T16:50:00Z",
+      "error": "Final Home publication/review blocked by provider credit admission;0.22USD unreserved reported."
+    }
+  ],
+  "balance_before_restart": {
+    "checked_at_utc": "2026-10-30T17:21:56.630749+00:00",
+    "http_status": 200,
+    "is_available": true,
+    "balances": [
+      {
+        "currency": "USD",
+        "total_balance": "100.22",
+        "granted_balance": "0.00",
+        "topped_up_balance": "100.22"
+      }
+    ]
+  },
+  "restart": {
+    "execution": "attention-home-build-5ph3n67",
+    "run_id": "cc78e60c-e878-402a-be55-e3c38d0a0ae5",
+    "platform_start_utc": "2026-10-30T17:22:15Z",
+    "asof_time_utc": "2026-10-30T17:22:55.934638Z",
+    "status": "Warning",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+    "provider_http200_confirmed": true,
+    "scope": "One fresh normal production catch-up with current configuration. No model, schedule, budget, code or provider override."
+  },
+  "planner_inspection": {
+    "existing_behavior": "The existing source-event planner already receives current spending and asks for useful variable breadth/depth. This is deployed behavior. Remaining focused-budget work concerns enforcing one admitted agenda across pre-planner ticker-news search, source-event work, separate12-mover research and ticker enrichment.",
+    "matched_prior_run": "ae8bd310-85c1-48b3-be7e-6b49299a0e8d",
+    "source_event_plans": 6,
+    "separate_mover_plans": 12,
+    "offpeak_normalized_surface_costs_usd": {
+      "aql.source_event_research": 2.586793836,
+      "attention.candidate": 0.670002344,
+      "aql.source_event_nomination": 0.628792384,
+      "attention_home.zopedia_ticker_enrichment": 0.328617916,
+      "attention_home.public_surface_quality": 0.268868908,
+      "page_agentic_summary": 0.090838,
+      "attention_home.daily_datapoints": 0.022289124,
+      "Stock Investigator.page_agentic_summary_review": 0.01214166,
+      "services.aql.writer": 0.008976372,
+      "Stock Investigator.page_agentic_summary": 0.004763256,
+      "Market Explorer.page_agentic_summary_review": 0.002886756,
+      "Market Explorer.page_agentic_summary": 0.0016774560000000001
+    },
+    "normalization": "Every successful call in the matched prior run was peak-priced. Divide recorded token-price estimates by2 for a same-token off-peak comparison. Unknown charges remain excluded from this estimate and retained in the original ledger.",
+    "design_direction": [
+      "Choose incremental research questions jointly across sources and observations, rather than launch independent per-ticker workloads.",
+      "Retain bounded current discovery inside the existing shared engine; move broad per-ticker news backfill after investigation admission.",
+      "Reserve Pro final composition/review, then admit useful complete research attempts using known request/tool quotes and remaining credit/time.",
+      "Make all downstream research paths consume the admitted agenda and reuse its findings; core labeling cannot create fresh admission authority.",
+      "Permit same-run reassessment of priorities as current investigations expose missing facts, return unused funds or justify event-margin usage.",
+      "Precision is personally evaluated from complete outputs and originals; model confidence, source counts and ticker rules do not establish it."
+    ]
+  },
+  "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/operations/event-adaptive-reliability-2026-10-28/home-recovery-20261030",
+  "new_runtime_changes": false,
+  "paid_study_inference": false,
+  "last_observed_progress": {
+    "checked_at_utc": "2026-10-30T17:29:17.719283+00:00",
+    "run": {
+      "run_id": "cc78e60c-e878-402a-be55-e3c38d0a0ae5",
+      "status": "Running",
+      "start_time_utc": "2026-10-30 17:22:57.403965+00:00",
+      "end_time_utc": null,
+      "asof_time_utc": "2026-10-30 17:22:55.934638+00:00",
+      "progress_stage": "building_narratives",
+      "progress_message": "Building attention narratives and graph from materialized inputs (research_limit=12).",
+      "error_summary": null
+    },
+    "provider_attempts": [
+      {
+        "provider": "deepseek",
+        "status": "started",
+        "http_status": null,
+        "attempts": 1,
+        "latest_attempt": "2026-10-30 17:29:05.997455+00:00"
+      },
+      {
+        "provider": "deepseek",
+        "status": "success",
+        "http_status": 200,
+        "attempts": 2,
+        "latest_attempt": "2026-10-30 17:26:43.896770+00:00"
+      }
+    ]
+  },
+  "operator_probe": {
+    "outcome": "One direct log probe selected an incorrect container name and returnedContainerNotFound. Persisted LogAnalytics and database provider receipts establish real job progress. This probe did not affect execution."
+  },
+  "completion": {
+    "end_time_utc": "2026-10-30T18:29:10.623968Z",
+    "progress_stage": "research_degraded",
+    "warning": "One semantic retrieval operation exceeded its deadline (LLMDeadlineExceeded).",
+    "public_readback": {
+      "http_status": 200,
+      "status": "available",
+      "run_id": "cc78e60c-e878-402a-be55-e3c38d0a0ae5",
+      "story_count": 11
+    },
+    "qualitative_review": "Not performed as part of this read-only architecture audit."
+  }
+}

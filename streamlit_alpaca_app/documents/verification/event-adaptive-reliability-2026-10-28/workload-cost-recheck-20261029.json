@@ -1,0 +1,93 @@
+{
+  "checked_at_utc": "2026-10-30T04:46:56.836055+00:00",
+  "scope": "Read-only check of production schedules, retained provider usage and both public Home gateways. No inference or configuration changes.",
+  "conclusion": "Workload identities and cadence remain accurate. Earlier approximately40USD scheduled weekday projection is not established for the new release.",
+  "production_schedule_utc": {
+    "attention-home-build": "50 14,16,18,20 * * 1-5",
+    "news-ingest-and-features": "5 14,20 * * 1-5",
+    "trading-agent-build": "35 14,16,18,20 * * 1-5",
+    "zopedia-learning": "20 15,19 * * 1-5"
+  },
+  "recent_recorded_deepseek_usd_per_run": {
+    "home_published_runs": [
+      6.049374988,
+      5.89419199,
+      9.253296024
+    ],
+    "company_news_afternoon": 6.116724244,
+    "trading_completed_runs": [
+      1.467610496,
+      1.196004656
+    ],
+    "learning_afternoon": 1.234373096
+  },
+  "projection": "After normalizing the catch-up to off-peak prices, repeating the recent successful/partially completed run levels implies approximately38to46USD per scheduled weekday. One completed latest-image Home sample does not establish a stable daily mean.",
+  "october29_pacific_four_workload_recorded_estimated_usd": {
+    "attention-home-build": 28.888600812,
+    "news-ingest-and-features": 8.458256502000001,
+    "zopedia-learning": 1.234981874,
+    "trading-agent-build": 2.663615152
+  },
+  "october29_pacific_four_workload_total_estimated_usd": 41.24545434,
+  "unpriced_deepseek_attempts": {
+    "attention-home-build": 14,
+    "news-ingest-and-features": 5,
+    "zopedia-learning": 2,
+    "trading-agent-build": 4
+  },
+  "limitations": [
+    "Recorded token-priced estimates are not invoices. Unpriced failed/interrupted requests remain unresolved in the original ledger; they are not treated as free.",
+    "Today includes failed scheduled work and an extra Home catch-up; credit exhaustion suppressed other runs. It is not a representative full-service day.",
+    "This table excludes development verification, manual/interactive research, maintenance, Azure compute and other providers.",
+    "There is only one completed Home run on the latest worker image; Trading and other workloads do not yet have a stable full-day sample on it."
+  ],
+  "latest_home": {
+    "run_id": "ae8bd310-85c1-48b3-be7e-6b49299a0e8d",
+    "status": "Succeeded",
+    "end_time_utc": "2026-10-30 02:14:22.297285+00:00",
+    "as_of": "2026-10-30T01:14:30.327154+00:00",
+    "stories": 13,
+    "estimated_deepseek_usd": 9.253296024,
+    "unpriced_deepseek_attempts": 3,
+    "public_gateways_confirmed": [
+      "sn-next-ui",
+      "sn-streamlit-ui"
+    ]
+  },
+  "latest_home_cost_by_purpose_usd": {
+    "full_model_research": 2.94457152,
+    "full_model_synthesis": 3.163111864,
+    "full_model_review": 3.08472164,
+    "flash_auxiliary_outputs": 0.060891
+  },
+  "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/operations/event-adaptive-reliability-2026-10-28/home-publication-failure-20261029",
+  "projection_correction": {
+    "checked_at_utc": "2026-10-30T04:54:54.296504+00:00",
+    "finding": "The catch-up successful requests all used weekday peak rates at01:14to02:14UTC. Its9.253296024USD estimate is4.626648012USD at normal scheduled off-peak rates. The original43to59USD extrapolation mixed price bands and must not be used as a normal scheduled-day expectation.",
+    "same_workload_offpeak_estimate_usd": 37.992805352,
+    "recent_observed_levels_normalized_weekday_range_usd": [
+      38,
+      46
+    ],
+    "limits": "Hypothetical normalized token mix, not an established average. Unknown charges and unscheduled work remain separate."
+  },
+  "cost_reduction_analysis": {
+    "request": "Ideas for approximately10USD/day while preserving quality; no implementation, schedule or provider changes authorized by this analysis.",
+    "private_usage_evidence": "/Users/omairs/Library/Application Support/SpectralNature/operations/event-adaptive-reliability-2026-10-28/home-publication-failure-20261029/cost-reduction-token-analysis-20261029.json",
+    "latest_home_input_tokens": 5743662,
+    "latest_home_cached_input_tokens": 328576,
+    "latest_home_cache_hit_percent": 5.720670889059976,
+    "latest_home_input_cost_percent": 76.80984252060712,
+    "afternoon_news_cache_hit_percent": 4.06277760696168,
+    "cache_only_counterfactual_daily_usd": {
+      "observed_offpeak_token_mix": 37.993,
+      "75_percent_input_cache_hits": 18.338,
+      "90_percent_input_cache_hits": 13.911,
+      "100_percent_input_cache_hits_unrealistic_upper_bound": 10.711
+    },
+    "counterfactual_assumptions": "Same successful calls, models and output tokens, all off-peak; raises cache hits without reducing existing hits. No estimate that these cache ratios are achievable. Attempt failures/unknowns excluded and preserved in their original ledger.",
+    "recommended_direction": "Extend existing AQL/Zopedia event research reuse across consumers and update changed evidence; improve shared prefix/context organization; preserve Pro for agenda, source reconciliation, causal reasoning, final publication and trading judgments; cheap models handle literal intake/extraction. Do not invent a separate retrieval service or rely on stale publications.",
+    "quality_acceptance": "Personally compare complete current feeds, research omissions, dated claims, useful connections and trading reasoning on quiet and heavy days; passing execution checks is insufficient.",
+    "budget_target": "10USD/day base across inference providers, with existing configurable50percent event margin if retained. Target allocations are proposals, not measured achievable cost or permission to change production."
+  }
+}

@@ -1,5 +1,9 @@
 # Learnings — Active Guidelines
 
+## Normalize inference prices before projecting costs — 2026-10-29
+
+Separate scheduled off-peak usage from exceptional peak-priced catch-ups before extrapolating a daily cost. The same latest Home tokens cost $9.25 at peak and $4.63 off-peak. Provider prefix caching reduces input cost, while artifact reuse avoids complete repeated calls; they are different mechanisms. Preserve output-token costs and unknown attempts when estimating savings. A model-preserving cache-only counterfactual does not establish achievable cache hits or unchanged qualitative coverage. See [cost evidence](verification/event-adaptive-reliability-2026-10-28/workload-cost-recheck-20261029.json).
+
 ## Home production source preservation — 2026-10-26
 
 Trace freshness across the saved publication, direct backend and public gateway. The October 26 producer and FastAPI were current while Next.js retained Friday’s response because the serialized fetch-cache entry exceeded its 2 MB limit. A short TTL does not bound staleness when replacement fails. Keep complete research and charts; review replacement by a larger publication, conditional reads, independent updates, replay and recovery.
@@ -1485,3 +1489,27 @@ A coherent shared Python release can coexist with a newer production frontend. R
 ### Public stories can share research — October29
 
 Scope public story identity to its original logical run and the model-selected story_id. Preserve research IDs as many-to-many provenance rather than consuming a research bundle as a unique card. Use the selected story ticker for price/issuer metadata. Verify the actual retained failed output, unchanged owner-accepted output, serialized drilldowns and final Home DTO without repurchasing inference.
+
+### Home budget planning starts from the owner's data-led architecture — October 30, 2026
+
+The owner explicitly states the system was designed around data leads. Trace the actual producing signals, lead selection, shared retrieval and research handoffs before proposing budget consolidation. A shared engine is not evidence that independent news nomination belongs in the intended architecture. Historical October 8 Home repair notes and philosophy permit source-led nomination before numerical selection; that is a conflict to surface, not authorization to override the latest instruction. Do not equate data leads with only the largest price movers. Provider replacement is on hold; retain the working product while reviewing the design.
+
+### The complete Home order is an architectural contract — October 30, 2026
+
+The owner's corrected sequence puts numerical analysis and grouping before one upfront planner, with underlying data and headlines as its inputs. Detect changes in which assets move together; existing benchmark correlation measures and a current connected group do not establish detection of changes in clustering. Research/review and final writing already use Zopedia. The final editor can inspect original sources without a new planner pass. The owner explicitly withdrew mandatory K-attempt omission; do not introduce a required approval pool or treat direct original-source use as a violation. The corrected source audit identifies three upstream gaps and preserves the existing researcher, reviewer, final editor, evidence tools and accounting. See verification/event-adaptive-reliability-2026-10-28/data-first-home-design-audit-20261030.json.
+
+### Independent attention requires broad data before name selection — October 30, 2026
+
+The weekly audit found Lilly, J&J, Walmart, AbbVie, GE Aerospace, Amgen and Philip Morris absent from all 15 saved Home publications, despite approximately 0.35 percentage points of combined index support. Prices were present. The accepted shortlist replay put Lilly just outside its eligible gainers/absolute-move cuts; current data-first work must not merely move the same small mover list earlier. Build multi-horizon, relative and grouped context across the available universe before choosing research names. A grouping change is useful but not required to investigate quiet collective leadership. Distinguish measured visibility from an unrun planner counterfactual. See verification/event-adaptive-reliability-2026-10-28/weekly-attention-bias-20261030.json.
+
+### Count story appearances separately from incremental research value — October 30, 2026
+
+A manual review of 151 Home story appearances across 15 retained publications grouped them into 91 subjects: 77 substantive first treatments, 20 meaningful follow-ups, 40 low-value repeats and 14 background/generic treatments. Rewritten headlines do not establish novelty. Repeated display can be useful, and a repeated event can deserve deeper research, but neither automatically justifies a full new investigation. Same-event provider records prove fresh paid calls in selected repeated cases; content repetition alone cannot establish dollar waste. Extend the existing planner/reviewer context and retained research behavior rather than adding a retrieval service or another final planner. See verification/event-adaptive-reliability-2026-10-28/weekly-story-value-cost-audit-20261030.json.
+
+### Attribute research spending by operation and billing component — October 30, 2026
+
+The 41.8448USD historical Home event/company subtotal spans 974 successful priced calls: research steps 40.2%, internal synthesis 28.9%, internal answer review 29.0%, and response-format repair 1.9%. Separately, input processing accounts for 77.2%; reasoning output is a subset of output charges. Internal research writing/review is distinct from public feed writing/review. Focused event queries currently include the broad market observations on each phase. Input tokens mix market data, sources, prior research and instructions; do not label them all article reading or all redundant context. See verification/event-adaptive-reliability-2026-10-28/event-company-research-cost-detail-20261030.json.
+
+### Market-First Research checkpoint and assumption review — October 30, 2026
+
+Name the design separately from accepted source. Preserve the exact accepted application, complete live image/configuration references and a recoverable Git checkpoint before implementing. The measured index support is retrospective; dated holdings and taxonomy are not proof of real-time planner discovery. A data-first sequence is insufficient if it retains a pre-group name cut, mistakes sector labels for changing clusters, suppresses news without price movement or narrows evidence irreversibly. Complete-run costs and full outputs must establish recall and savings. See plans/MARKET_FIRST_RESEARCH_2026-10-30.json.

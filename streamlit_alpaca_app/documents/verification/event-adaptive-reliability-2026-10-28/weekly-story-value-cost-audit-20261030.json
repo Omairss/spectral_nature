@@ -1,0 +1,959 @@
+{
+  "status": "read_only_editorial_and_cost_audit_complete_no_implementation_or_inference",
+  "recorded_at_utc": "2026-10-30T21:02:14.510003+00:00",
+  "question": "Would data-first attention prevent the measured omissions; what are the 151 stories, how repetitive/useful are they, and what cost opportunity does that imply?",
+  "important_count_clarification": "151 means public story appearances across 15 saved Home publications during October 26–30, not 151 distinct investigations, source articles, or stories in one run. The audit read existing local/SQL/Blob records and made no paid model calls.",
+  "editorial_method": {
+    "reviewer": "Primary assistant personally read the public story narratives, compared earlier/later treatments and assigned all 151 labels. Code calculated counts only.",
+    "scope": "Incremental informational usefulness of public narrative, not a source-by-source factual precision audit, investment return backtest, paid model grading or proof of invoice savings.",
+    "event_family_definition": "Same underlying development across rewritten headlines is one subject. Distinct developments involving the same company remain separate: Intel upgrade versus quarterly guidance; SanDisk old contract backlog versus new quarterly report; SpaceX financing versus compute renewal. Broader same-day group cards can overlap company cards.",
+    "criteria": {
+      "N": "substantive_first_treatment",
+      "U": "material_followup",
+      "R": "repeat_with_little_incremental_value",
+      "B": "background_or_generic_first_treatment"
+    },
+    "judgment": "Newly added operating mechanisms, financing exposure, original-source reconciliations or meaningful contrary evidence count as follow-ups. A later price, more figures, another headline or generic sector explanation alone usually does not. Important observed moves can still justify useful hypotheses without a confirmed company event. Borderline decisions are retained per appearance rather than treated as an objective quality score.",
+    "comparison_limit": "First treatment means first in these saved publications. It does not prove the event itself was new on that date. Older context without a substantive current development is labeled background."
+  },
+  "publication_counts": {
+    "appearances": 151,
+    "publications": 15,
+    "distinct_subjects_editorial_grouping": 91,
+    "exact_distinct_headlines": 150,
+    "substantive_first_treatments": 77,
+    "worthwhile_followups": 20,
+    "repeats_with_little_added_information": 40,
+    "mostly_background_or_generic": 14,
+    "substantive_or_meaningful_update_appearances": 97,
+    "low_incremental_value_appearances": 54,
+    "low_incremental_value_percent": 35.76158940397351,
+    "repeat_appearances_including_useful_followups": 60
+  },
+  "topics": [
+    {
+      "topic": "ai-capital",
+      "appearances": 23
+    },
+    {
+      "topic": "company-results",
+      "appearances": 98
+    },
+    {
+      "topic": "tech-products",
+      "appearances": 3
+    },
+    {
+      "topic": "macro-energy",
+      "appearances": 2
+    },
+    {
+      "topic": "company-deals",
+      "appearances": 16
+    },
+    {
+      "topic": "macro-policy",
+      "appearances": 4
+    },
+    {
+      "topic": "market-groups",
+      "appearances": 5
+    }
+  ],
+  "topic_interpretation": "98 appearances cover company results/guidance, including many technology companies. 23 specifically concern AI capital/IPO/compute funding; 16 concern company deals; the other 14 cover macro/policy, energy, products and group moves. AI exposure is wider than the 23 financing stories, because earnings and deals also concern AI suppliers.",
+  "repeated_subjects": [
+    {
+      "subject": "boeing-q3-production",
+      "appearances": 5,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value",
+        "repeat_with_little_incremental_value",
+        "material_followup",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "05.08",
+        "06.06",
+        "07.07",
+        "09.04",
+        "10.04"
+      ]
+    },
+    {
+      "subject": "anthropic-ipo",
+      "appearances": 4,
+      "classifications": [
+        "substantive_first_treatment",
+        "material_followup",
+        "repeat_with_little_incremental_value",
+        "material_followup"
+      ],
+      "appearance_ids": [
+        "01.02",
+        "02.01",
+        "03.02",
+        "07.01"
+      ]
+    },
+    {
+      "subject": "robert-half-q3",
+      "appearances": 4,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value",
+        "repeat_with_little_incremental_value",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "01.08",
+        "04.10",
+        "06.11",
+        "07.12"
+      ]
+    },
+    {
+      "subject": "amd-meta-partnership",
+      "appearances": 4,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value",
+        "material_followup",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "04.04",
+        "05.02",
+        "06.03",
+        "07.03"
+      ]
+    },
+    {
+      "subject": "meta-equity-raise",
+      "appearances": 3,
+      "classifications": [
+        "substantive_first_treatment",
+        "material_followup",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "01.04",
+        "02.02",
+        "03.03"
+      ]
+    },
+    {
+      "subject": "corteva-separation",
+      "appearances": 3,
+      "classifications": [
+        "background_or_generic_first_treatment",
+        "material_followup",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "01.10",
+        "03.10",
+        "07.13"
+      ]
+    },
+    {
+      "subject": "broadcom-anthropic-financing",
+      "appearances": 3,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value",
+        "material_followup"
+      ],
+      "appearance_ids": [
+        "04.01",
+        "05.01",
+        "06.01"
+      ]
+    },
+    {
+      "subject": "neocloud-funding-warning",
+      "appearances": 3,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value",
+        "material_followup"
+      ],
+      "appearance_ids": [
+        "04.02",
+        "05.03",
+        "06.02"
+      ]
+    },
+    {
+      "subject": "corning-q3",
+      "appearances": 3,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value",
+        "material_followup"
+      ],
+      "appearance_ids": [
+        "04.05",
+        "05.04",
+        "06.04"
+      ]
+    },
+    {
+      "subject": "herc-q3",
+      "appearances": 3,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "05.06",
+        "06.08",
+        "07.06"
+      ]
+    },
+    {
+      "subject": "spacex-anthropic-renewal",
+      "appearances": 3,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "08.01",
+        "09.01",
+        "10.05"
+      ]
+    },
+    {
+      "subject": "gev-q3-trench",
+      "appearances": 3,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "08.02",
+        "09.02",
+        "10.01"
+      ]
+    },
+    {
+      "subject": "vertiv-q3",
+      "appearances": 3,
+      "classifications": [
+        "substantive_first_treatment",
+        "material_followup",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "08.03",
+        "09.03",
+        "10.02"
+      ]
+    },
+    {
+      "subject": "evercore-q3",
+      "appearances": 3,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "08.06",
+        "09.09",
+        "10.08"
+      ]
+    },
+    {
+      "subject": "hayward-q3",
+      "appearances": 3,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "08.07",
+        "09.07",
+        "10.09"
+      ]
+    },
+    {
+      "subject": "stellantis-q3",
+      "appearances": 3,
+      "classifications": [
+        "substantive_first_treatment",
+        "material_followup",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "08.10",
+        "09.06",
+        "10.06"
+      ]
+    },
+    {
+      "subject": "alphabet-q3-results",
+      "appearances": 3,
+      "classifications": [
+        "substantive_first_treatment",
+        "material_followup",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "11.01",
+        "12.01",
+        "13.02"
+      ]
+    },
+    {
+      "subject": "servicenow-q3",
+      "appearances": 3,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "11.03",
+        "12.02",
+        "13.01"
+      ]
+    },
+    {
+      "subject": "spacex-apollo-financing",
+      "appearances": 2,
+      "classifications": [
+        "substantive_first_treatment",
+        "material_followup"
+      ],
+      "appearance_ids": [
+        "01.01",
+        "02.03"
+      ]
+    },
+    {
+      "subject": "verizon-q3",
+      "appearances": 2,
+      "classifications": [
+        "substantive_first_treatment",
+        "material_followup"
+      ],
+      "appearance_ids": [
+        "01.03",
+        "02.04"
+      ]
+    },
+    {
+      "subject": "braze-salesforce-merger",
+      "appearances": 2,
+      "classifications": [
+        "background_or_generic_first_treatment",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "01.07",
+        "04.09"
+      ]
+    },
+    {
+      "subject": "ttm-q3",
+      "appearances": 2,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "01.11",
+        "03.09"
+      ]
+    },
+    {
+      "subject": "tesla-spacex-merger-debate",
+      "appearances": 2,
+      "classifications": [
+        "substantive_first_treatment",
+        "material_followup"
+      ],
+      "appearance_ids": [
+        "03.04",
+        "03.06"
+      ]
+    },
+    {
+      "subject": "micron-contracted-revenue",
+      "appearances": 2,
+      "classifications": [
+        "background_or_generic_first_treatment",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "04.06",
+        "06.10"
+      ]
+    },
+    {
+      "subject": "xylem-q3",
+      "appearances": 2,
+      "classifications": [
+        "substantive_first_treatment",
+        "material_followup"
+      ],
+      "appearance_ids": [
+        "05.07",
+        "06.07"
+      ]
+    },
+    {
+      "subject": "bloom-energy-cashflow",
+      "appearances": 2,
+      "classifications": [
+        "background_or_generic_first_treatment",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "05.09",
+        "07.09"
+      ]
+    },
+    {
+      "subject": "lincoln-electric-q3",
+      "appearances": 2,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "06.09",
+        "07.08"
+      ]
+    },
+    {
+      "subject": "netskope-billing-transition",
+      "appearances": 2,
+      "classifications": [
+        "background_or_generic_first_treatment",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "06.12",
+        "07.11"
+      ]
+    },
+    {
+      "subject": "visa-q4",
+      "appearances": 2,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "08.04",
+        "09.05"
+      ]
+    },
+    {
+      "subject": "jll-q3",
+      "appearances": 2,
+      "classifications": [
+        "substantive_first_treatment",
+        "material_followup"
+      ],
+      "appearance_ids": [
+        "08.08",
+        "09.12"
+      ]
+    },
+    {
+      "subject": "brinker-q1",
+      "appearances": 2,
+      "classifications": [
+        "substantive_first_treatment",
+        "material_followup"
+      ],
+      "appearance_ids": [
+        "09.11",
+        "10.07"
+      ]
+    },
+    {
+      "subject": "marvell-lumentum-talks",
+      "appearances": 2,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "12.03",
+        "13.13"
+      ]
+    },
+    {
+      "subject": "amazon-q3",
+      "appearances": 2,
+      "classifications": [
+        "substantive_first_treatment",
+        "material_followup"
+      ],
+      "appearance_ids": [
+        "13.06",
+        "14.02"
+      ]
+    },
+    {
+      "subject": "intel-q3-q4-guide",
+      "appearances": 2,
+      "classifications": [
+        "substantive_first_treatment",
+        "material_followup"
+      ],
+      "appearance_ids": [
+        "14.01",
+        "15.01"
+      ]
+    },
+    {
+      "subject": "reddit-q3-referrals",
+      "appearances": 2,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "14.03",
+        "15.07"
+      ]
+    },
+    {
+      "subject": "global-payments-buyout-talks",
+      "appearances": 2,
+      "classifications": [
+        "substantive_first_treatment",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "14.08",
+        "15.09"
+      ]
+    },
+    {
+      "subject": "software-selloff-oct30",
+      "appearances": 2,
+      "classifications": [
+        "background_or_generic_first_treatment",
+        "repeat_with_little_incremental_value"
+      ],
+      "appearance_ids": [
+        "14.10",
+        "14.11"
+      ]
+    }
+  ],
+  "useful_examples": [
+    {
+      "ids": [
+        "13.05"
+      ],
+      "reason": "Gilead separates current HIV demand and raised guidance from a future Medicare pricing headwind."
+    },
+    {
+      "ids": [
+        "14.02"
+      ],
+      "reason": "Amazon follow-up provides an interest-cost and debt bridge rather than repeating the initial EPS miss."
+    },
+    {
+      "ids": [
+        "15.04"
+      ],
+      "reason": "CareDx distinguishes operating growth from prior-period collections and acquisition comparability."
+    },
+    {
+      "ids": [
+        "06.02"
+      ],
+      "reason": "Neocloud follow-up distinguishes secured project finance from closed/expensive unsecured corporate credit."
+    }
+  ],
+  "low_value_examples": [
+    {
+      "ids": [
+        "08.01",
+        "09.01",
+        "10.05"
+      ],
+      "reason": "Three SpaceX-Anthropic renewal treatments keep the same unconfirmed report without obtaining the missing rate, capacity or term."
+    },
+    {
+      "ids": [
+        "01.08",
+        "04.10",
+        "06.11",
+        "07.12"
+      ],
+      "reason": "Four Robert Half treatments largely repeat the same staffing-versus-consulting split while changing the price."
+    },
+    {
+      "ids": [
+        "01.07",
+        "04.09"
+      ],
+      "reason": "Old Braze cash offer appears again with an October 20 price rather than a new clearance or fresh spread change."
+    },
+    {
+      "ids": [
+        "14.10",
+        "14.11"
+      ],
+      "reason": "Two cards in one publication mainly repeat a generic software/rates selloff explanation."
+    }
+  ],
+  "recorded_costs": {
+    "scope": "DeepSeek provider-attempt ledger for exactly the 15 published Home logical runs. Includes research, final composition/review, chart and supplementary outputs attached to those runs. Excludes unpublished/failed Home roots, company-news jobs, trading, learning, DEV qualification, Azure and other providers.",
+    "known_estimated_usd": 71.705704732,
+    "deepseek_http_attempts": 2298,
+    "attempts_without_price_estimate": 230,
+    "billing_status": "Token-priced estimates retained in native provider records, not invoice reconciliation. Missing-price attempts are not assumed free; failed requests can also be uncharged. Historical releases and peak/off-peak pricing are mixed, so this is not a current daily projection.",
+    "by_surface": [
+      {
+        "surface": "aql.source_event_research",
+        "http_attempts": 295,
+        "known_estimated_usd": 26.681872792,
+        "attempts_without_price_estimate": 15
+      },
+      {
+        "surface": "attention.candidate",
+        "http_attempts": 779,
+        "known_estimated_usd": 15.16288497,
+        "attempts_without_price_estimate": 85
+      },
+      {
+        "surface": "attention_home.public_surface_quality",
+        "http_attempts": 35,
+        "known_estimated_usd": 9.457998704,
+        "attempts_without_price_estimate": 1
+      },
+      {
+        "surface": "attention_home.zopedia_ticker_enrichment",
+        "http_attempts": 433,
+        "known_estimated_usd": 6.584331028,
+        "attempts_without_price_estimate": 64
+      },
+      {
+        "surface": "aql.source_event_nomination",
+        "http_attempts": 32,
+        "known_estimated_usd": 5.448898884,
+        "attempts_without_price_estimate": 2
+      },
+      {
+        "surface": "attention_home.daily_datapoints",
+        "http_attempts": 128,
+        "known_estimated_usd": 2.85371306,
+        "attempts_without_price_estimate": 4
+      },
+      {
+        "surface": "page_agentic_summary",
+        "http_attempts": 258,
+        "known_estimated_usd": 2.63732865,
+        "attempts_without_price_estimate": 39
+      },
+      {
+        "surface": "services.aql.writer",
+        "http_attempts": 120,
+        "known_estimated_usd": 0.785189036,
+        "attempts_without_price_estimate": 0
+      },
+      {
+        "surface": "Stock Investigator.page_agentic_summary_review",
+        "http_attempts": 50,
+        "known_estimated_usd": 0.515179594,
+        "attempts_without_price_estimate": 1
+      },
+      {
+        "surface": "Stock Investigator.page_agentic_summary",
+        "http_attempts": 50,
+        "known_estimated_usd": 0.401570826,
+        "attempts_without_price_estimate": 0
+      },
+      {
+        "surface": "research.search_evidence",
+        "http_attempts": 42,
+        "known_estimated_usd": 0.367356408,
+        "attempts_without_price_estimate": 13
+      },
+      {
+        "surface": "aql.source_research",
+        "http_attempts": 33,
+        "known_estimated_usd": 0.287262756,
+        "attempts_without_price_estimate": 4
+      },
+      {
+        "surface": "zopedia.memory",
+        "http_attempts": 9,
+        "known_estimated_usd": 0.188081714,
+        "attempts_without_price_estimate": 1
+      },
+      {
+        "surface": "Market Explorer.page_agentic_summary_review",
+        "http_attempts": 14,
+        "known_estimated_usd": 0.160332702,
+        "attempts_without_price_estimate": 1
+      },
+      {
+        "surface": "Market Explorer.page_agentic_summary",
+        "http_attempts": 14,
+        "known_estimated_usd": 0.150737822,
+        "attempts_without_price_estimate": 0
+      },
+      {
+        "surface": "services.aql.macro",
+        "http_attempts": 6,
+        "known_estimated_usd": 0.022965786,
+        "attempts_without_price_estimate": 0
+      }
+    ],
+    "published_runs": [
+      {
+        "run_id": "c88ae637-ec0e-4d4b-90cc-1f97ad33415d",
+        "known_estimated_usd": 2.984961804,
+        "attempts": 139
+      },
+      {
+        "run_id": "a374e295-9952-45c1-bd0c-a60f817ebbde",
+        "known_estimated_usd": 1.847069224,
+        "attempts": 123
+      },
+      {
+        "run_id": "603d999f-bc23-4951-a5ca-1b2571205a49",
+        "known_estimated_usd": 0.7497720560000001,
+        "attempts": 70
+      },
+      {
+        "run_id": "bcbd3d9a-2432-48b9-b07e-8691083e040a",
+        "known_estimated_usd": 1.515198652,
+        "attempts": 135
+      },
+      {
+        "run_id": "f3795e3f-9261-41e5-abc3-61da65e41bf6",
+        "known_estimated_usd": 3.905657448,
+        "attempts": 188
+      },
+      {
+        "run_id": "ba226bcd-c929-42ec-bd19-4382e7ccb231",
+        "known_estimated_usd": 7.538987984,
+        "attempts": 252
+      },
+      {
+        "run_id": "7625ab19-d009-4313-8269-541166982cc0",
+        "known_estimated_usd": 4.0110389,
+        "attempts": 137
+      },
+      {
+        "run_id": "88327dc1-234e-45f8-8d6e-e1ebbec34fef",
+        "known_estimated_usd": 4.161923486,
+        "attempts": 170
+      },
+      {
+        "run_id": "8c85a20f-3821-4486-86a1-5430f5f73be1",
+        "known_estimated_usd": 5.547845156,
+        "attempts": 166
+      },
+      {
+        "run_id": "7e7084f7-2fc4-47de-8d0c-e75a4798a924",
+        "known_estimated_usd": 4.358794402,
+        "attempts": 157
+      },
+      {
+        "run_id": "f25b336b-0bbc-4cb4-b2a8-17a261bbf632",
+        "known_estimated_usd": 6.049374988,
+        "attempts": 135
+      },
+      {
+        "run_id": "4351e04c-9e02-417e-afd1-ad3f2082226c",
+        "known_estimated_usd": 5.89419199,
+        "attempts": 144
+      },
+      {
+        "run_id": "ae8bd310-85c1-48b3-be7e-6b49299a0e8d",
+        "known_estimated_usd": 9.253296024,
+        "attempts": 117
+      },
+      {
+        "run_id": "cc78e60c-e878-402a-be55-e3c38d0a0ae5",
+        "known_estimated_usd": 5.668368266,
+        "attempts": 148
+      },
+      {
+        "run_id": "dcd80e39-c65a-48d3-8942-c1cce874b55a",
+        "known_estimated_usd": 8.219224352000001,
+        "attempts": 217
+      }
+    ],
+    "repeat_investigation_examples": [
+      {
+        "subject": "event:source-7838d19d8961ceafee1e",
+        "title": "SpaceX's early, upsized compute renewal with Anthropic points to rising AI compute pricing",
+        "distinct_published_runs": 3,
+        "known_estimated_usd": 1.703446536,
+        "per_run": [
+          {
+            "run_id": "88327dc1-234e-45f8-8d6e-e1ebbec34fef",
+            "known_estimated_usd": 0.45527284,
+            "purposes": {
+              "agent.research_step": 2,
+              "agent.final_synthesis": 1,
+              "agent.answer_judge": 1
+            }
+          },
+          {
+            "run_id": "8c85a20f-3821-4486-86a1-5430f5f73be1",
+            "known_estimated_usd": 1.01136772,
+            "purposes": {
+              "agent.research_step": 2,
+              "agent.final_synthesis": 1,
+              "agent.answer_judge": 1
+            }
+          },
+          {
+            "run_id": "7e7084f7-2fc4-47de-8d0c-e75a4798a924",
+            "known_estimated_usd": 0.23680597600000003,
+            "purposes": {
+              "agent.research_step": 1,
+              "agent.final_synthesis": 1,
+              "agent.answer_judge": 1
+            }
+          }
+        ]
+      },
+      {
+        "subject": "event:source-cce210a062632adeb963",
+        "title": "GE Vernova's Q3 order surge, raised guidance, and $9B Trench acquisition",
+        "distinct_published_runs": 3,
+        "known_estimated_usd": 0.661595088,
+        "per_run": [
+          {
+            "run_id": "88327dc1-234e-45f8-8d6e-e1ebbec34fef",
+            "known_estimated_usd": 0.216751216,
+            "purposes": {
+              "agent.research_step": 1,
+              "agent.final_synthesis": 1,
+              "agent.answer_judge": 1
+            }
+          },
+          {
+            "run_id": "8c85a20f-3821-4486-86a1-5430f5f73be1",
+            "known_estimated_usd": 0.21979447600000002,
+            "purposes": {
+              "agent.research_step": 1,
+              "agent.final_synthesis": 1,
+              "agent.answer_judge": 1
+            }
+          },
+          {
+            "run_id": "7e7084f7-2fc4-47de-8d0c-e75a4798a924",
+            "known_estimated_usd": 0.225049396,
+            "purposes": {
+              "agent.research_step": 1,
+              "agent.final_synthesis": 1,
+              "agent.answer_judge": 1
+            }
+          }
+        ]
+      },
+      {
+        "subject": "event:source-8d9ddebd0f7cf9e4c4c7",
+        "title": "Boeing's Q3 loss exposes 737 wing bottleneck and delays rate 52 to 2H27",
+        "distinct_published_runs": 3,
+        "known_estimated_usd": 0.6753376080000001,
+        "per_run": [
+          {
+            "run_id": "88327dc1-234e-45f8-8d6e-e1ebbec34fef",
+            "known_estimated_usd": 0.197440936,
+            "purposes": {
+              "agent.research_step": 1,
+              "agent.final_synthesis": 1,
+              "agent.answer_judge": 1
+            }
+          },
+          {
+            "run_id": "8c85a20f-3821-4486-86a1-5430f5f73be1",
+            "known_estimated_usd": 0.23897605600000002,
+            "purposes": {
+              "agent.research_step": 1,
+              "agent.final_synthesis": 1,
+              "agent.answer_judge": 1
+            }
+          },
+          {
+            "run_id": "7e7084f7-2fc4-47de-8d0c-e75a4798a924",
+            "known_estimated_usd": 0.23892061600000003,
+            "purposes": {
+              "agent.research_step": 1,
+              "agent.final_synthesis": 1,
+              "agent.answer_judge": 1
+            }
+          }
+        ]
+      }
+    ],
+    "important_limit": "Repeated public text is not itself proof of repeated paid work. The three subject examples do have fresh provider calls across distinct runs. Their full estimated costs are not all waste: initial work and some deeper follow-ups are useful. No claim that 36 percent of the bill is recoverable.",
+    "event_company_operation_detail": "event-company-research-cost-detail-20261030.json"
+  },
+  "research_dispatch_context": {
+    "company_plan_rows": 180,
+    "company_plan_statuses": {
+      "unknown": 26,
+      "completed": 130,
+      "partial": 24
+    },
+    "source_event_plan_rows": 58,
+    "method": "Latest immutable checkpoint per dataset/run, restricted to the same 15 published roots. Plan rows do not establish fresh successful investigations; provider attempts are separate."
+  },
+  "source_findings": [
+    {
+      "source": "services/aql/events.py:454",
+      "finding": "Event research subject identity derives from a hash of source IDs/source references/question. Identical article sets may reuse the subject across runs; a changed source set can split the same real-world event into a different subject."
+    },
+    {
+      "source": "services/aql/events.py:482",
+      "finding": "Existing event research already supplies earlier event/company research to the shared agent. Reuse infrastructure is present; the observed repeated provider calls show this does not necessarily avoid another full research/synthesis/review pass."
+    },
+    {
+      "source": "services/aql/collector.py:724",
+      "finding": "Company candidate research supplies the prior business-model dossier, but this function does not supply the preceding attention-candidate investigation as its explicit per-company reusable subject. Do not claim all shared memory is absent."
+    },
+    {
+      "source": "services/aql/collector.py:747",
+      "finding": "Company research still enters shared Zopedia. Proposed change should extend existing selection/reuse behavior rather than introduce a new retrieval service or parallel writer."
+    }
+  ],
+  "answer_on_coverage": {
+    "verdict": "The proposed order helps, but its input and selection contract must preserve broad patterns before a name cut. Raw data or a new planner alone does not ensure coverage.",
+    "needed_inside_existing_flow": [
+      "Prepare broad multi-horizon, relative-performance, participation and group context before reducing to a small name list; use point-in-time benchmark weights for contribution claims.",
+      "Planner considers groups and explanatory questions as well as names, with no requirement for a headline, a large one-day outlier or a changed cluster to make ordinary group behavior visible.",
+      "Give the existing planner retained research and previous publications so it can assess what changed, what remains unexplained and whether further work would improve the understanding. Market importance and incremental information are separate considerations.",
+      "Give the existing Zopedia reviewer the numerical context and selected agenda so it can notice a major market pattern missing from the proposed explanation and request correction/reallocation within the original budget and clock. No extra planner, forced sector quota, mandatory approval pool or K-attempt drop gate.",
+      "On small budgets, investigate a collective pattern with representative companies rather than launch a full separate investigation of every company. Always reassess current observations; unchanged source text can still accompany a genuinely changed market relationship that merits fresh research."
+    ],
+    "honest_limit": "Finite budgets cannot guarantee every important company is covered. Aim to preserve explanatory coverage of the major measured patterns and retain operational reasons for selections/omissions. The current audit does not qualify a candidate planner."
+  },
+  "cost_direction": "Use the existing common planner and retained research to avoid repeated acquisition/reasoning on the same unchanged question. Reassess current data and sources each run, research what would materially improve the explanation, and preserve strong-model reasoning/review for selected work. Repeated display can be useful for new readers; it should not automatically trigger full repeated research. Final prose deduplication alone would not recover upstream spending.",
+  "evidence": {
+    "private_directory": "/Users/omairs/Library/Application Support/SpectralNature/operations/event-adaptive-reliability-2026-10-28/weekly-attention-bias-20261030",
+    "per_appearance_review": "story-appearance-editorial-review.json",
+    "cost_records": "published-runs-provider-costs.json",
+    "dispatch_records": "published-runs-research-dispatch.json",
+    "immutable_source_version_manifest": "collected-datasets.json"
+  },
+  "changes": {
+    "runtime": false,
+    "deployment": false,
+    "paid_inference": false,
+    "provider_replacement": "held"
+  }
+}

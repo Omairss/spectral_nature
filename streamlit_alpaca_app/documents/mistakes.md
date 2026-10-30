@@ -1,5 +1,9 @@
 # Mistakes — Active Guidelines
 
+## Peak-priced catch-up included in normal cost forecast — 2026-10-29
+
+The initial $43–$58 weekday projection mixed the evening catch-up’s double-price tokens with normal scheduled off-peak runs. Its $9.25 recorded estimate remains correct, but the same tokens price at $4.63 off-peak. The normalized recent-run extrapolation is approximately $38–$46 per scheduled weekday, with unresolved charges and abnormal failures separate. Compare price bands and input/output/cache usage before attributing a cost increase to a release. [Corrected evidence](verification/event-adaptive-reliability-2026-10-28/workload-cost-recheck-20261029.json).
+
 ## Home production source preservation — 2026-10-26
 
 The October 22 refresh change added a persistent Next.js fetch cache without covering replacement by a larger real publication. On October 26 the new entry exceeded 2 MB; revalidation repeatedly failed to replace Friday’s response despite a current saved publication and FastAPI response. Producer success and a configured TTL did not establish public freshness.
@@ -1420,3 +1424,23 @@ Promoting the Trading images initially left production without the DEV-owned Alp
 ### Research-source uniqueness rejected a valid publication — October29
 
 The first coherent scheduled run retained14 completed stories but its publisher rejected distinct ADT and Glaukos stories sharing a broader investigation. The source was incorrectly used as the public story identity. Corrected the existing materializer for every story; original research remains intact and model text is unchanged. Release preflight also caught a concurrent Trading promotion before any build, so the correction was reapplied to that accepted Git source rather than rolling back its worker/API behavior. The private verification harness initially used a nonexistent Home summary key; corrected the harness to the actual markdown contract before qualification. The job start API also rejected the full resource template’s unsupported volumes field before execution; qualification then used its supported start-template shape.
+
+### Proposed Home budget consolidation before resolving lead ownership — October 30, 2026
+
+Treated the existing news-led branch as a justified design requirement and proposed a joint news/mover agenda before reconciling the owner's data-led architecture. This made the discussion drift toward a new lead-selection design. The owner also rejected an immediate news-provider replacement; only read-only application inspection followed, with no acquisition/runtime/deployment changes. The audit found October 8 repair documentation and philosophy explicitly describing source-led nomination before numerical selection. Preserve that evidence, record the owner's correction, and trace the original data-lead flow before further design or implementation.
+
+### Component presence was confused with the required Home sequence — October 30, 2026
+
+Explained the independent article and company research paths before establishing their order against the owner's diagram. The accepted source investigates before grouping and attaches detailed signals later. The initial audit also overreached by making K-attempt omission and a mandatory approved-result pool required gaps. The owner clarified that K is not required and final composition needs no planner pass. The corrected audit removes those requirements, recognizes that the final editor already uses Zopedia with original sources, and confines the main implementation gaps to pre-research numerical/group inputs, changes in clustering, and one upfront investigation selection/dispatch. No application changes or deployments were made.
+
+### Verify selection ranks and evidence cache identity — October 30, 2026
+
+During the weekly coverage audit, an initial local cache keyed only dataset and run collided across immutable versions/checkpoints. Re-keyed by full blob path, redownloaded and repeated the price/publication reads. Also checked the actual shortlist with macro-role liquidity exemptions: Lilly was eligible gainer 26 and absolute move 41, not its raw-universe gainer rank 36. No runtime fix or financial conclusion was based on the superseded probe. Preserve symbol identity, immutable dataset identity and the exact eligible population when explaining where information was lost.
+
+### Explain the denominator before presenting an audit count — October 30, 2026
+
+The earlier answer said 15 Home updates containing 151 stories without immediately distinguishing appearances across historical publications from distinct investigations and source articles. The follow-up clarifies that reading existing records incurred no paid inference. Its editorial labels measure incremental public information, not verified factual precision, and cannot be converted mechanically into a cost-saving percentage. Native cost records are reported separately with their scope and unresolved charges.
+
+### Separate design benefits from verified outcomes — October 30, 2026
+
+The discussion of Market-First Research described expected cost/recall benefits before a candidate existed. The named plan now explicitly records them as hypotheses, identifies the audited 999-instrument coverage limit and retrospective end-weight attribution, and requires point-in-time matched comparisons. A local code checkpoint preserves accepted behavior; it cannot certify the new planner, guarantee zero omissions or restore Azure/data state by itself. No redesign runtime or release was made during this review.

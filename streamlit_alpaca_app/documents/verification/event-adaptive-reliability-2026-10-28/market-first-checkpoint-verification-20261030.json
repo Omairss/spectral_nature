@@ -1,0 +1,103 @@
+{
+  "verified_at_utc": "2026-10-30T21:38:07.867171+00:00",
+  "tag": "checkpoint/market-first-baseline-20261030",
+  "baseline_commit": "6923419b57f885892d443b163863985343eba895",
+  "bundle_path": "/Users/omairs/Library/Application Support/SpectralNature/operations/market-first-research-20261030/accepted-baseline.bundle",
+  "bundle_sha256": "487834d30e5de462e3707b1d3e5fbc91517533c5c2ca98b2f6286d029d598506",
+  "bundle_bytes": 131598249,
+  "bundle_verify_passed": true,
+  "restore_path": "/Users/omairs/Library/Application Support/SpectralNature/operations/market-first-research-20261030/recovery-rehearsal",
+  "restored_git_tree_clean": true,
+  "complete_source_files_checked": 319,
+  "source_mismatches": [],
+  "release_source_role_checks": [
+    {
+      "accepted_source_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+      "files": 319,
+      "role": "worker",
+      "runtime_files": 195,
+      "runtime_inventory_sha256": "d052b77b61ba8f461ec03c5d910de38793a8ee9ed550b31cfeb1dd034c6a6258",
+      "source_inventory_sha256": "309db5c956f31776dbaefdd95522abe25618a0481514923e08048397b765745b",
+      "source_revision": "6923419b57f885892d443b163863985343eba895"
+    },
+    {
+      "accepted_source_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+      "files": 319,
+      "role": "api-next",
+      "runtime_files": 195,
+      "runtime_inventory_sha256": "d052b77b61ba8f461ec03c5d910de38793a8ee9ed550b31cfeb1dd034c6a6258",
+      "source_inventory_sha256": "309db5c956f31776dbaefdd95522abe25618a0481514923e08048397b765745b",
+      "source_revision": "6923419b57f885892d443b163863985343eba895"
+    },
+    {
+      "accepted_source_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
+      "files": 319,
+      "role": "broker",
+      "runtime_files": 195,
+      "runtime_inventory_sha256": "d052b77b61ba8f461ec03c5d910de38793a8ee9ed550b31cfeb1dd034c6a6258",
+      "source_inventory_sha256": "309db5c956f31776dbaefdd95522abe25618a0481514923e08048397b765745b",
+      "source_revision": "6923419b57f885892d443b163863985343eba895"
+    },
+    {
+      "accepted_source_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+      "files": 319,
+      "role": "web",
+      "runtime_files": 94,
+      "runtime_inventory_sha256": "4a23356f6f2d5172517e953a79f434503381679b40209e54ae9ea961386cee56",
+      "source_inventory_sha256": "309db5c956f31776dbaefdd95522abe25618a0481514923e08048397b765745b",
+      "source_revision": "6923419b57f885892d443b163863985343eba895"
+    }
+  ],
+  "restore_scope": "Isolated fresh repository cloned from the self-contained bundle; no production resource or original IDE file was changed. No build, runtime test, inference, migration or rollback execution.",
+  "remote_backup_status": "baseline annotated tag pushed and independently read back",
+  "remote_baseline_refs": {
+    "refs/tags/checkpoint/market-first-baseline-20261030": "35bb670f7af806443a2d7fe734bae802f669234f",
+    "refs/tags/checkpoint/market-first-baseline-20261030^{}": "6923419b57f885892d443b163863985343eba895"
+  },
+  "plan_branch": "fix/home-publication-identity-20261029",
+  "plan_tag": "plan/market-first-research-v1-20261030",
+  "plan_commit_identity": "Resolve the annotated plan tag after the checkpoint commit; the plan remains an unimplemented proposal.",
+  "audit_readback": {
+    "dataset_versions_checked": 152,
+    "parquet_row_count_mismatches": [],
+    "publication_versions": 15,
+    "public_story_appearances": 151,
+    "editorial_label_appearances": 151,
+    "editorial_label_counts": {
+      "N": 77,
+      "B": 14,
+      "U": 20,
+      "R": 40
+    },
+    "editorial_labels_are_judgments_not_precision_scores": true,
+    "cost_priced_rows_reconciled": 974,
+    "cost_component_sum_usd": 41.84475776199997
+  },
+  "audit_manifest_sha256": "870b926ab52269e906e81b530eb2748178adba0ac9a240bbbab581aba10ef78a",
+  "live_readback_summary": {
+    "resources": 36,
+    "configuration_and_image_drift": [],
+    "immutable_registry_manifests_verified": 4
+  },
+  "reviewed_assumptions": 18,
+  "unverified_outcomes": [
+    "Candidate planner recall and precision",
+    "Actual whole-run cost savings",
+    "Selected clustering method stability and production resource fit"
+  ],
+  "restoration_instructions": {
+    "git_tag": [
+      "git worktree add -b recovery/market-first <new-checkout-path> checkpoint/market-first-baseline-20261030"
+    ],
+    "bundle": [
+      "git clone --no-checkout <accepted-baseline.bundle> <new-recovery-path>",
+      "git -C <new-recovery-path> checkout --detach checkpoint/market-first-baseline-20261030"
+    ],
+    "production": "Use the recorded immutable per-role images and supported image-template rollback process only under applicable owner authorization. The checkpoint has not performed a production rollback or rewound data."
+  },
+  "scope_note": "Documentation and baseline preservation only. The main IDE checkout concurrent runtime is untouched. A clean source inventory and restore do not certify unimplemented model behavior."
+}

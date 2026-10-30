@@ -1,5 +1,5 @@
 {
-  "status": "publication_identity_repair_deployed_verified_current_catchup_running",
+  "status": "accepted_production_preserved_market_first_plan_reviewed",
   "owner_goal": "Reliable current reporting with predictable event-adaptive costs. The previous 90% reduction target is retired.",
   "requirements": {
     "configured_base_budget": "Retain user-defined per-logical-run budgets and protected full-model interpretation, synthesis and review.",
@@ -117,9 +117,10 @@
     },
     "build_source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
     "production_evidence": "publication-identity-repair.json",
-    "required_next_step": "Observe the already-running current catch-up publication; no source/deployment work remains for the identity correction.",
+    "required_next_step": "Identity correction is deployed and the fresh current catch-up published13stories on both production gateways. Provider disconnect initiating cause remains unconfirmed; this observation does not claim transport failures are eliminated.",
     "latest_observation": "publication-identity-repair.json",
-    "catchup_execution": "attention-home-build-c4833nb"
+    "catchup_execution": "attention-home-build-c4833nb",
+    "cost_recheck": "workload-cost-recheck-20261029.json"
   },
   "instruction_audit": {
     "scope": "This cost/reliability rollout and its qualification records. Confirmed actions and inaccurate completion statements; not a claim that every later-discovered defect proves an earlier instruction was ignored.",
@@ -465,5 +466,221 @@
     "production_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
     "production_evidence": "promotion-production.json",
     "applies_to": "Owner-accepted incremental worker release; the separate coherent design has no build or deployment."
+  },
+  "focused_home_budget_proposal": {
+    "status": "superseded_by_explicit_data_first_owner_flow_not_implemented",
+    "recorded_at_utc": "2026-10-30T05:25:47.142033+00:00",
+    "owner_direction": "Explain implementation of lower breadth while preserving depth and publication precision.",
+    "scope": "Discussed target is2.50USD per Home run, four runs per weekday:10USD base for Home only. Company/news, Trading and Learning have separate costs; no shared10USD daily application budget is implemented.",
+    "approach": "Extend the existing AQL/Zopedia nomination, research and budget flow. No new intake, retrieval service, provider-managed agent runtime or scheduler.",
+    "work_order": [
+      {
+        "id": "one_current_agenda",
+        "change": "Supply news/source events, mover observations and dated completed findings to the existing shared planner. Keep bounded current-source discovery. Rank consequential incremental questions together, with source references and reusable findings; no ticker, confidence-score or source-count admission heuristics."
+      },
+      {
+        "id": "fund_before_fanout",
+        "change": "Protect current final composition/review, then admit only investigations whose anticipated acquisition and full-model synthesis/review fit remaining funds and time. Use metered quotes and retained receipts rather than model-invented dollar estimates. Do not fan out first and allocate after spending."
+      },
+      {
+        "id": "one_admission_across_paths",
+        "change": "Make source-event research, the independent12-mover path, group work and ticker enrichment obey the same admitted agenda. Only admitted analysis shares protected completion; naming a new research subtask core must not evade admission. Reuse existing findings and original source links before adding work."
+      },
+      {
+        "id": "finish_then_expand",
+        "change": "Complete selected investigations; admit another useful question only when actual refunds/released reservations leave room. Choose fewer subjects rather than uniformly reducing reasoning/context. Preserve full-model source reconciliation and final public review."
+      },
+      {
+        "id": "fresh_partial_behavior",
+        "change": "Every run assesses current inputs. If an admitted question expands, use remaining resources or justified event margin, then report only defensible current findings and narrower conclusions. Keep unresolved attempts explicit; never invent certainty, re-date old conclusions or defer the whole briefing."
+      },
+      {
+        "id": "preserve_clients_and_visibility",
+        "change": "Keep existing Home DTO, publication ownership, charts, source/story identities and Trading behavior. Track the independently observed20-producer-capacity versus16-public-beat mismatch; a new focused policy must not rely on truncating completed stories to save cost."
+      },
+      {
+        "id": "qualify_complete_outputs",
+        "change": "Compare the accepted source with the focused candidate on matched quiet, heavy, conflicting, stale-background and partial-failure inputs. Personally inspect full Brief/Attention, originals, material omissions, trade-relevant distinctions and attempt-inclusive costs. Operational concurrency/retry/accounting checks do not establish qualitative acceptance."
+      }
+    ],
+    "config": "Use existing run budget and configurable event margin; model/task routing remains centrally owned. No fixed story quota. Initial example2.50USD base and50percent event margin gives3.75USD research allowance before separately visible completion overruns. Scope does not authorize changing production.",
+    "acceptance": "Demonstrated lower whole-run costs and fewer marginal subjects with preserved quality for selected subjects; no claim that arbitrary complexity can fit an exact2.50USD cap.",
+    "execution_this_turn": {
+      "runtime_changes": false,
+      "configuration_changes": false,
+      "paid_inference": false,
+      "deployment": false
+    },
+    "source_inspection_evidence": "home-recovery-20261030.json",
+    "important_boundary": "Source-event nomination already uses live spending. Extend that existing stage so its admission governs pre-planner ticker search, mover investigations and ticker enrichment; do not describe the deployed budget-aware planner as missing.",
+    "governing_record": "data-first-home-design-audit-20261030.json"
+  },
+  "lambda_follow_on_evaluation": {
+    "status": "owner_requested_follow_on_read_only_feasibility_complete_benchmark_not_started",
+    "ordered_after": "focused_home_budget_proposal: implementation and local complete-output acceptance",
+    "owner_instruction": "After that, evaluate the lambda instance approach. If we can batch process this in under2hours, at8USD/hour that might be reasonable.",
+    "checked_at_utc": "2026-10-30T05:31:16.064836+00:00",
+    "economic_comparison": {
+      "assumed_whole_instance_usd_hour": 8,
+      "one_two_hour_batch_usd": 16,
+      "two_two_hour_batches_usd": 32,
+      "four_two_hour_batches_usd": 64,
+      "total_gpu_minutes_matching_10_usd_before_other_costs": 75
+    },
+    "live_account_readback": {
+      "checked_at_utc": "2026-10-30T05:29:30.279725+00:00",
+      "read_only": true,
+      "types_http_status": 200,
+      "relevant_types": [
+        {
+          "name": "gpu_8x_b200_sxm6",
+          "usd_per_instance_hour": 53.52,
+          "gpu_count": 8,
+          "memory_gib": 2900,
+          "available_regions": []
+        },
+        {
+          "name": "gpu_2x_b200_sxm6",
+          "usd_per_instance_hour": 13.78,
+          "gpu_count": 2,
+          "memory_gib": 720,
+          "available_regions": []
+        },
+        {
+          "name": "gpu_1x_b200_sxm6",
+          "usd_per_instance_hour": 6.99,
+          "gpu_count": 1,
+          "memory_gib": 360,
+          "available_regions": []
+        },
+        {
+          "name": "gpu_8x_h100_sxm5",
+          "usd_per_instance_hour": 31.92,
+          "gpu_count": 8,
+          "memory_gib": 1800,
+          "available_regions": []
+        },
+        {
+          "name": "gpu_4x_h100_sxm5",
+          "usd_per_instance_hour": 16.36,
+          "gpu_count": 4,
+          "memory_gib": 900,
+          "available_regions": []
+        },
+        {
+          "name": "gpu_2x_h100_sxm5",
+          "usd_per_instance_hour": 8.38,
+          "gpu_count": 2,
+          "memory_gib": 450,
+          "available_regions": []
+        },
+        {
+          "name": "gpu_1x_h100_sxm5",
+          "usd_per_instance_hour": 4.29,
+          "gpu_count": 1,
+          "memory_gib": 225,
+          "available_regions": []
+        },
+        {
+          "name": "gpu_1x_h100_pcie",
+          "usd_per_instance_hour": 3.29,
+          "gpu_count": 1,
+          "memory_gib": 200,
+          "available_regions": []
+        }
+      ],
+      "instances_http_status": 200,
+      "active_allocations": []
+    },
+    "same_pro_model_feasibility": "NVIDIA documents the DeepSeek-V4-Pro-0813-NVFP4 deployment validated on8B200s. This is a documented working configuration, not a proven minimum. The account lists that instance at53.52USD/hour, or107.04USD for2hours before other charges. An approximately8USD/hour experiment therefore needs a different quality-qualified model or a hybrid; it cannot assume the current Pro fits that hardware.",
+    "historical_evidence": "October20 pairedH100 allocation at8.38USD/hour ran a pinned30B BF16 model using oneGPU. Hardware/transport passed, source-analysis quality remained unqualified; do not use it as production quality acceptance.",
+    "current_full_workload_reference": {
+      "method": "Extrapolate last sampled Home4, news2, Trading4 and Learning2 successful calls; not the proposed focused workload and not a server benchmark.",
+      "input_tokens": 56643898,
+      "generated_tokens_including_reasoning": 5227034,
+      "ideal_aggregate_generated_tokens_per_second_for_two_hours": 725.9769444444,
+      "limits": "Excludes startup/prefill/tool waits/retries; the measured focused workload must replace this baseline before timing any rental."
+    },
+    "evaluation_order": [
+      "Measure the locally accepted focused workflow: real source/context sizes, task dependencies, generated reasoning, concurrency and whole-run quality/cost.",
+      "Select a documented runtime/model configuration preserving required context, tools and reasoning; compare full local inference and hybrid localresearch plusProcore options on identical selected topics.",
+      "Batch independent requests in the existing provider transport while preserving tool-dependent sequencing, per-publication as_of identities and original source times.",
+      "Measure cold and warm windows, model loading, prefill/decode, CPU/network tool waits, output review, persistence and allocation termination. Compare one batch, two batches and four shorter fresh windows.",
+      "Personally assess full Brief/Attention and trade-relevant research; preserve precision/depth and account for API charges in hybrids, storage, all allocatedGPUs, idle/loading time and taxes.",
+      "Check total America/Los_Angeles daily research spending before any allocation; comply with the existing25USD approval threshold. Arm bounded termination before launch and verify instance absence afterward."
+    ],
+    "freshness_constraint": "A once-daily batch cannot incorporate subsequent events into later updates. Reusable background can be batched, but current event handling must run in later windows or remain separately priced.",
+    "capacity_note": "At readback the account lists no capacity in the inspectedB200/H100 types and has no active instances. This is an observation, not a future capacity guarantee or a launched experiment.",
+    "sources": [
+      "https://lambda.ai/pricing",
+      "https://docs.lambda.ai/public-cloud/billing/",
+      "https://huggingface.co/nvidia/DeepSeek-V4-Pro-0813-NVFP4/raw/main/README.md"
+    ],
+    "execution_this_turn": {
+      "paid_rentals": 0,
+      "inference_calls": 0,
+      "production_mutations": 0
+    }
+  },
+  "production_home_recovery_20261030": "home-recovery-20261030.json",
+  "home_data_lead_owner_clarification_20261030": {
+    "owner_statement": "THIS WHOLE SYSTEM WAS DESIGNED AROUND DATA LEADS",
+    "status": "read_only_architecture_reconciliation_before_further_design",
+    "supersedes": "Prior discussion treating joint independent news/mover nomination as the agreed future Home architecture. The focused Home budget proposal is not implemented or accepted.",
+    "evidence_conflict": "October 8 Home repair record and current historical philosophy explicitly permit source-led nomination before numerical selection; audit original data-lead ownership and reconcile this conflict against current owner direction.",
+    "guardrail": "Do not collapse data leads to a fixed top-mover list, replace news acquisition, remove working research, or deploy a redesign during this discussion.",
+    "runtime_changes": false
+  },
+  "data_first_home_target_20261030": {
+    "status": "source_audit_rechecked_after_owner_corrections_implementation_pending",
+    "record": "data-first-home-design-audit-20261030.json",
+    "revision": 4,
+    "governing_owner_request": "Data analysis -> grouping and change in clustering -> one upfront Zopedia planner using underlying data and headlines -> Zopedia research/review -> Zopedia Attention and Brief composition. No extra planner for final composition; K-attempt omission is not required.",
+    "implementation_items": [
+      "D1",
+      "D2",
+      "D3"
+    ],
+    "withdrawn_requirements": [
+      "Mandatory K-attempt omission",
+      "Approved-investigation-only publication pool",
+      "Another planner for final composition or every source-backed final story"
+    ],
+    "runtime_changes": false,
+    "news_provider_replacement": "held",
+    "purpose": "Build attention from the underlying market and economy, independently of which companies dominate the news cycle."
+  },
+  "weekly_attention_bias_audit_20261030": {
+    "status": "complete_read_only_audit",
+    "record": "weekly-attention-bias-20261030.json",
+    "finding": "Seven missed positive contributors supplied about 0.35 percentage points of index support; daily-mover preselection can omit them before research. Broad numerical grouping and multi-horizon market context must precede individual-name cuts.",
+    "implementation_effect": "Refines D1/D3 acceptance; does not reopen deployed cost/reliability fixes or create a fourth independent research path.",
+    "runtime_changes": false
+  },
+  "weekly_story_value_cost_audit_20261030": {
+    "status": "complete_read_only",
+    "record": "weekly-story-value-cost-audit-20261030.json",
+    "finding": "151 appearances / 91 subjects; editorial assessment: 77 substantive first treatments, 20 material follow-ups, 40 low-value repeats, 14 background/generic treatments. Published Home runs record 71.7057USD known DeepSeek estimates; not all repeat work is avoidable.",
+    "design_refinement": "Existing planner/reviewer must see broad numerical context, prior research and previous publications, so major patterns are explained and unchanged questions do not automatically trigger full repeat research. This refines D1/D3; no extra planner/retrieval system/publication gate.",
+    "runtime_changes": false,
+    "operation_detail": "event-company-research-cost-detail-20261030.json",
+    "input_context_finding": "41.8448USD event/company research: 16.8249 research steps, 12.1092 internal synthesis, 12.1219 internal review, 0.7888 format repair. Input processing is 32.3078USD (77.2%). Focused event questions currently repeat the broad market observations. Keep the broad numerical planner input while making focused research context relevant; no runtime change made."
+  },
+  "market_first_research": {
+    "name": "Market-First Research",
+    "canonical_plan": "../../plans/MARKET_FIRST_RESEARCH_2026-10-30.json",
+    "status": "design_reviewed_implementation_not_started_outcome_qualification_pending",
+    "baseline_tag": "checkpoint/market-first-baseline-20261030",
+    "upstream_items": [
+      "D1",
+      "D2",
+      "D3"
+    ],
+    "source_scope": "Accepted application baseline is preserved; original IDE checkout concurrent runtime remains untouched.",
+    "completed_cost_reliability_work": "Preserved as deployed; this proposal does not reopen those fixes.",
+    "checkpoint_verification": "market-first-checkpoint-verification-20261030.json",
+    "baseline_commit": "6923419b57f885892d443b163863985343eba895",
+    "reviewed_assumptions": 18,
+    "plan_tag": "plan/market-first-research-v1-20261030"
   }
 }

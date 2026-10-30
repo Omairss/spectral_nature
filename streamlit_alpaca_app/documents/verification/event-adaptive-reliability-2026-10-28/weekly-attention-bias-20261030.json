@@ -1,0 +1,527 @@
+{
+  "status": "read_only_measured_coverage_audit_complete_not_an_implemented_planner_comparison",
+  "recorded_at_utc": "2026-10-30T20:39:28.821218+00:00",
+  "owner_purpose": "Build our own attention from stock/economic observations so news-cycle sampling does not decide which developments merit investigation.",
+  "answer": "Yes, the retained numerical observations expose a material missed pattern: health care, consumer staples, financials and other sectors offset part of the technology/communications decline. Several of the largest positive contributors received no public Home coverage. The current daily-mover preselection can discard these observations before company research, so merely moving that same shortlist earlier would not fulfill the purpose.",
+  "scope": {
+    "baseline": "2026-10-23 close",
+    "end_snapshot_utc": "2026-10-30T18:35:36.331634+00:00",
+    "end_snapshot_pacific": "2026-10-30 11:35 PDT",
+    "friday_values_are_intraday": true,
+    "production_publications_inspected": 15,
+    "published_story_records": 151,
+    "publication_period": "2026-10-26 through the saved 2026-10-30 11:51 PDT Home publication; includes all retained public versions, not only latest feed",
+    "inspection": "Complete Brief prose and story public text were inspected alongside titles/symbol references. Literal name searches were used to navigate, not as an independent semantic quality score. JPMorgan analyst mentions are not company-performance coverage."
+  },
+  "method": {
+    "holdings": "Official SPY holdings workbook, holdings sheet, as of October 29; downloaded October 30. Used as an S&P 500 proxy, not official index attribution.",
+    "holdings_url": "https://www.ssga.com/us/en/institutional/library-content/products/fund-data/etfs/us/holdings-daily-us-en-spy.xlsx",
+    "holdings_local_path": "/Users/omairs/Library/Application Support/SpectralNature/operations/event-adaptive-reliability-2026-10-28/weekly-attention-bias-20261030/spy-official-holdings.xlsx",
+    "price_source": "Retained production price_history, run 314648f0-8490-401e-9a0f-f3c3189bf003, asof 2026-10-30 18:35:36 UTC; 1,489,462 rows.",
+    "covered_positions": 479,
+    "covered_fund_weight_pct": 99.295428,
+    "weighting": "Back-adjust October 29 weights to October 23 using each position price ratio, normalize covered start weights plus uncovered end weights, multiply by price returns. Combine share classes by issuer identifier. Assumes stable relative holdings; no dividend total-return claim.",
+    "sector_source": "Active production entity taxonomy; official holdings workbook sector cells were blank. Sector labels are context, not measured correlation clusters.",
+    "approx_portfolio_week_return_pct": -1.0644801556557888,
+    "retained_spy_week_price_return_pct": -1.0620796757169426,
+    "reconciliation": "Approximate weighted return -1.06448% versus retained SPY -1.06208%; supports the contribution ranking without claiming official attribution."
+  },
+  "missed_companies": [
+    {
+      "symbol": "LLY",
+      "company": "Eli Lilly",
+      "weekly_price_return_pct": 11.7985662323,
+      "approx_index_contribution_bps": 18.3204034709,
+      "published_story_references": 0,
+      "candidate_records": 1,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "JNJ",
+      "company": "Johnson & Johnson",
+      "weekly_price_return_pct": 4.3321710127,
+      "approx_index_contribution_bps": 4.1949965462,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "WMT",
+      "company": "Walmart",
+      "weekly_price_return_pct": 3.2535246517,
+      "approx_index_contribution_bps": 2.6467640472,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 1
+    },
+    {
+      "symbol": "ABBV",
+      "company": "AbbVie",
+      "weekly_price_return_pct": 3.2723200224,
+      "approx_index_contribution_bps": 2.516471166,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 1
+    },
+    {
+      "symbol": "GE",
+      "company": "GE Aerospace",
+      "weekly_price_return_pct": 5.3215698631,
+      "approx_index_contribution_bps": 2.4008126954,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "AMGN",
+      "company": "Amgen",
+      "weekly_price_return_pct": 6.3355988934,
+      "approx_index_contribution_bps": 2.2899548832,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "PM",
+      "company": "Philip Morris",
+      "weekly_price_return_pct": 4.6892230576,
+      "approx_index_contribution_bps": 2.2204290049,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    }
+  ],
+  "missed_companies_combined_contribution_bps": 34.589831813800004,
+  "missed_public_prose": "All seven have no matching company story reference or substantive company mention in the inspected Attention and Brief publications.",
+  "positive_contributors_top_25": [
+    {
+      "symbol": "LLY",
+      "company": "Eli Lilly",
+      "weekly_price_return_pct": 11.7985662323,
+      "approx_index_contribution_bps": 18.3204034709,
+      "published_story_references": 0,
+      "candidate_records": 1,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "TSLA",
+      "company": "TESLA INC",
+      "weekly_price_return_pct": 6.2958484482,
+      "approx_index_contribution_bps": 10.0531156191,
+      "published_story_references": 5,
+      "candidate_records": 4,
+      "company_research_plans": 0,
+      "source_event_plan_references": 2
+    },
+    {
+      "symbol": "JNJ",
+      "company": "Johnson & Johnson",
+      "weekly_price_return_pct": 4.3321710127,
+      "approx_index_contribution_bps": 4.1949965462,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "GILD",
+      "company": "GILEAD SCIENCES INC",
+      "weekly_price_return_pct": 9.8708871304,
+      "approx_index_contribution_bps": 2.9106995488,
+      "published_story_references": 1,
+      "candidate_records": 3,
+      "company_research_plans": 0,
+      "source_event_plan_references": 1
+    },
+    {
+      "symbol": "WMT",
+      "company": "Walmart",
+      "weekly_price_return_pct": 3.2535246517,
+      "approx_index_contribution_bps": 2.6467640472,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 1
+    },
+    {
+      "symbol": "ABBV",
+      "company": "AbbVie",
+      "weekly_price_return_pct": 3.2723200224,
+      "approx_index_contribution_bps": 2.516471166,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 1
+    },
+    {
+      "symbol": "GE",
+      "company": "GE Aerospace",
+      "weekly_price_return_pct": 5.3215698631,
+      "approx_index_contribution_bps": 2.4008126954,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "AMGN",
+      "company": "Amgen",
+      "weekly_price_return_pct": 6.3355988934,
+      "approx_index_contribution_bps": 2.2899548832,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "PM",
+      "company": "Philip Morris",
+      "weekly_price_return_pct": 4.6892230576,
+      "approx_index_contribution_bps": 2.2204290049,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "KLAC",
+      "company": "KLA CORP",
+      "weekly_price_return_pct": 7.5054960154,
+      "approx_index_contribution_bps": 2.1684699689,
+      "published_story_references": 0,
+      "candidate_records": 2,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "XOM",
+      "company": "EXXONMOBIL HOLDINGS CORP",
+      "weekly_price_return_pct": 1.7193384641,
+      "approx_index_contribution_bps": 1.9736848393,
+      "published_story_references": 1,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 3
+    },
+    {
+      "symbol": "VRT",
+      "company": "VERTIV HOLDINGS CO A",
+      "weekly_price_return_pct": 17.2985355056,
+      "approx_index_contribution_bps": 1.9682854917,
+      "published_story_references": 6,
+      "candidate_records": 4,
+      "company_research_plans": 4,
+      "source_event_plan_references": 2
+    },
+    {
+      "symbol": "MA",
+      "company": "MASTERCARD INC   A",
+      "weekly_price_return_pct": 2.5417883153,
+      "approx_index_contribution_bps": 1.9507874169,
+      "published_story_references": 1,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 1
+    },
+    {
+      "symbol": "V",
+      "company": "VISA INC CLASS A SHARES",
+      "weekly_price_return_pct": 1.8174019608,
+      "approx_index_contribution_bps": 1.9240093769,
+      "published_story_references": 2,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 1
+    },
+    {
+      "symbol": "RTX",
+      "company": "RTX CORP",
+      "weekly_price_return_pct": 4.9060160218,
+      "approx_index_contribution_bps": 1.9197528455,
+      "published_story_references": 1,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 2
+    },
+    {
+      "symbol": "MRK",
+      "company": "MERCK + CO. INC.",
+      "weekly_price_return_pct": 3.3867969987,
+      "approx_index_contribution_bps": 1.8488519875,
+      "published_story_references": 1,
+      "candidate_records": 1,
+      "company_research_plans": 0,
+      "source_event_plan_references": 1
+    },
+    {
+      "symbol": "TXN",
+      "company": "TEXAS INSTRUMENTS INC",
+      "weekly_price_return_pct": 4.3879459402,
+      "approx_index_contribution_bps": 1.7281228097,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "JPM",
+      "company": "JPMORGAN CHASE + CO",
+      "weekly_price_return_pct": 1.272886315,
+      "approx_index_contribution_bps": 1.7079736571,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "REGN",
+      "company": "REGENERON PHARMACEUTICALS",
+      "weekly_price_return_pct": 13.186976929,
+      "approx_index_contribution_bps": 1.5849536348,
+      "published_story_references": 1,
+      "candidate_records": 4,
+      "company_research_plans": 2,
+      "source_event_plan_references": 2
+    },
+    {
+      "symbol": "PWR",
+      "company": "QUANTA SERVICES INC",
+      "weekly_price_return_pct": 12.2011956751,
+      "approx_index_contribution_bps": 1.527289857,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "GM",
+      "company": "GENERAL MOTORS CO",
+      "weekly_price_return_pct": 14.981890023,
+      "approx_index_contribution_bps": 1.5165161447,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "HD",
+      "company": "HOME DEPOT INC",
+      "weekly_price_return_pct": 3.0882536903,
+      "approx_index_contribution_bps": 1.4988987034,
+      "published_story_references": 0,
+      "candidate_records": 0,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "APH",
+      "company": "AMPHENOL CORP CL A",
+      "weekly_price_return_pct": 5.054322154,
+      "approx_index_contribution_bps": 1.4066501529,
+      "published_story_references": 1,
+      "candidate_records": 1,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    },
+    {
+      "symbol": "GEV",
+      "company": "GE VERNOVA INC",
+      "weekly_price_return_pct": 4.2305236271,
+      "approx_index_contribution_bps": 1.3958891589,
+      "published_story_references": 5,
+      "candidate_records": 2,
+      "company_research_plans": 0,
+      "source_event_plan_references": 5
+    },
+    {
+      "symbol": "VRTX",
+      "company": "VERTEX PHARMACEUTICALS INC",
+      "weekly_price_return_pct": 6.7672545427,
+      "approx_index_contribution_bps": 1.3669937346,
+      "published_story_references": 0,
+      "candidate_records": 1,
+      "company_research_plans": 0,
+      "source_event_plan_references": 0
+    }
+  ],
+  "sector_contributions": [
+    {
+      "sector": "Health Care",
+      "approx_index_contribution_bps": 33.4736965686,
+      "constituents_with_prices": 56
+    },
+    {
+      "sector": "Financials",
+      "approx_index_contribution_bps": 10.6556459296,
+      "constituents_with_prices": 67
+    },
+    {
+      "sector": "Consumer Staples",
+      "approx_index_contribution_bps": 10.0519704326,
+      "constituents_with_prices": 31
+    },
+    {
+      "sector": "Industrials",
+      "approx_index_contribution_bps": 9.8165160318,
+      "constituents_with_prices": 77
+    },
+    {
+      "sector": "Utilities",
+      "approx_index_contribution_bps": 4.7623663111,
+      "constituents_with_prices": 29
+    },
+    {
+      "sector": "Consumer Discretionary",
+      "approx_index_contribution_bps": 4.6689340036,
+      "constituents_with_prices": 48
+    },
+    {
+      "sector": "Real Estate",
+      "approx_index_contribution_bps": 3.2127478694,
+      "constituents_with_prices": 26
+    },
+    {
+      "sector": "Energy",
+      "approx_index_contribution_bps": 1.9485933009,
+      "constituents_with_prices": 21
+    },
+    {
+      "sector": "Materials",
+      "approx_index_contribution_bps": 1.9139298943,
+      "constituents_with_prices": 23
+    },
+    {
+      "sector": "Unclassified",
+      "approx_index_contribution_bps": 0.0062303121,
+      "constituents_with_prices": 1
+    },
+    {
+      "sector": "Communication Services",
+      "approx_index_contribution_bps": -79.7814084918,
+      "constituents_with_prices": 18
+    },
+    {
+      "sector": "Information Technology",
+      "approx_index_contribution_bps": -107.1772377282,
+      "constituents_with_prices": 82
+    }
+  ],
+  "coverage_qualification": "Non-tech coverage was not literally zero. Gilead and Merck were covered Thursday after close; Visa was covered Wednesday; Exxon and General Dynamics appeared Friday. The failure is missing major supporters and failing to explain the offsetting market pattern.",
+  "lilly_observed_handoff": {
+    "observation_utc": "2026-10-29T16:35:44.476391+00:00",
+    "observation_pacific": "Thursday 09:35 PDT, before the 09:50 Home run",
+    "day_price_change_pct": 6.344379275879963,
+    "dollar_volume": 156489113.215,
+    "base_shortlist_replay": {
+      "mode": "legacy",
+      "liquidity_min": 25000000.0,
+      "combined_count": 999,
+      "anchor_count": 584,
+      "liquid_count": 632,
+      "lly_gainer_rank": 26,
+      "lly_abs_rank": 41,
+      "lly_macro_role": {
+        "symbol": "LLY",
+        "commodity_role": "",
+        "rates_role": "",
+        "defensive_role": "",
+        "macro_role_tags": [],
+        "source_of_truth": "llm_taxonomy",
+        "updated_at_utc": "2026-03-29 01:00:32.587709+00:00"
+      },
+      "shortlist_count": 50,
+      "lly_in_shortlist": false,
+      "shortlist": [
+        "ADT",
+        "NOW",
+        "FTNT",
+        "PURR",
+        "TXT",
+        "GEN",
+        "HII",
+        "AUR",
+        "MRVL",
+        "DRS",
+        "SCI",
+        "MIR",
+        "FCN",
+        "ATI",
+        "CRS",
+        "ALGM",
+        "HONA",
+        "HAPN",
+        "FORM",
+        "SARO",
+        "SFM",
+        "ALNY",
+        "GOOGL",
+        "GOOG",
+        "PLXS",
+        "TEAM",
+        "CAT",
+        "DDOG",
+        "TWLO",
+        "IREN",
+        "FTI",
+        "CTSH",
+        "FSLY",
+        "CIFR",
+        "NET",
+        "WDAY",
+        "FIG",
+        "GKOS",
+        "CVNA",
+        "INSM",
+        "NCLH",
+        "FLS",
+        "CMG",
+        "AGCO",
+        "PATK",
+        "CAKE",
+        "VMC",
+        "TEX",
+        "LHX",
+        "APG"
+      ],
+      "role_lookup_asof": "2026-10-30",
+      "limitations": "Current retained taxonomy used; no paid or production-write calls. No holdings/attention additions needed to establish failure of base mover admission."
+    },
+    "observed_candidate_result": "No Lilly candidate in Thursday retained Home candidate datasets. Its sole weekly Home candidate record was Friday at rank 73 of 81, with production company research limit 12. No company or source-event research plan for Lilly and no story.",
+    "earlier_headline_context": "The retained shared news already included an October 28 preview naming Lilly earnings on Thursday. Across retained versions eight distinct Lilly-named headlines were found, but none was the actual Q3 earnings release. This is not a claim about every article available online or every earlier ingestion checkpoint.",
+    "official_followup": "Lilly Q3 release dated October 29 reports strong sales growth and raises full-year revenue guidance; reported EPS guidance is affected by acquired IPR&D. Its existence establishes a meaningful original source for investigation, not sole causation of the price gain.",
+    "official_release_url": "https://investor.lilly.com/news-releases/news-release-details/lilly-reports-third-quarter-2026-financial-results-raises-full"
+  },
+  "causes_supported_by_evidence": [
+    "A reduced daily-mover candidate pool precedes company research; several steady multi-day index supporters never entered it.",
+    "Using current retained taxonomy and accepted pure shortlist function, Lilly is 26th among eligible positive movers and 41st by absolute move, outside the 25-gainer and 40-large-move limits. It is not rejected by its own liquidity. Macro-role exemptions alter the eligible ranks; raw-universe rank 36 is not the admission rank.",
+    "Legacy ranking also awards evidence and preexisting attention bonuses. Independent article-event research precedes company candidates. Grouping occurs after research. These mechanisms do not supply the required full-market grouped numerical context before common research selection.",
+    "The initial source-event planner receives broad raw market observations, but not the grouped multi-day and index-support analysis measured here. Raw data presence alone did not generate the missing narrative."
+  ],
+  "design_implications": [
+    "Compute the broad numerical view and groups before reducing the universe to a small individual-name research list. Summarize all available coverage rather than sending unbounded raw rows.",
+    "Represent multiple horizons, relative performance, participation and contribution/concentration against appropriate benchmarks. Retain dated benchmark membership/weights if claiming index contribution; these audit weights were acquired for this analysis, not demonstrated as an existing Home planner input.",
+    "Preserve quiet collective leadership as a research question even without a new cluster change or an extreme individual move. Sector aggregation here demonstrates visibility, not evidence that clustering itself changed.",
+    "Let one upfront Zopedia planner use that context with economic observations and dated headlines to choose N useful questions under the existing budget. No fixed company allowlist, forced sector slots, compulsory move threshold or guarantee of seven individual articles.",
+    "Continue through existing shared Zopedia research and review, then Zopedia final Attention/Brief composition. No extra final planner, mandatory approval-only pool or K-attempt omission gate."
+  ],
+  "counterfactual_limit": "This measured replay establishes that available data could have exposed the neglected question before publication. It does not establish that a new planner selected it, that cluster membership changed, that precision/depth is accepted, or that all omissions were caused solely by news bias. Actual candidate planning and complete outputs still need a retained-input comparison.",
+  "evidence_location": "/Users/omairs/Library/Application Support/SpectralNature/operations/event-adaptive-reliability-2026-10-28/weekly-attention-bias-20261030",
+  "operational_scope": {
+    "runtime_files_changed": false,
+    "deployment": false,
+    "paid_inference_or_gpu": false,
+    "production_reads_only": true,
+    "new_retrieval_system": false,
+    "news_provider_replacement": "held"
+  },
+  "related_design": "data-first-home-design-audit-20261030.json",
+  "point_in_time_qualification": "Retrospective attribution uses October 29 holdings downloaded Friday and current retained taxonomy. It does not prove those exact weights/group labels were available to earlier Home runs. Candidate historical comparisons must use contemporaneous inputs. The Thursday Lilly price observation itself was already retained before Home."
+}

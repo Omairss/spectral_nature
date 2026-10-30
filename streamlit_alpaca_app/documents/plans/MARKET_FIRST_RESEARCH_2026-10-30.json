@@ -1,0 +1,261 @@
+{
+  "name": "Market-First Research",
+  "id": "market-first-research-20261030",
+  "revision": 1,
+  "status": "design_reviewed_implementation_not_started_outcome_qualification_pending",
+  "recorded_at_utc": "2026-10-30T21:35:52.070592+00:00",
+  "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
+  "source_of_truth": "This named plan owns the proposed implementation. The earlier design audit and measured coverage/value/cost records are linked evidence. Existing release acceptance remains the authority for accepted runtime code.",
+  "baseline": {
+    "checkpoint_tag": "checkpoint/market-first-baseline-20261030",
+    "code_head_before_plan_checkpoint": "6923419b57f885892d443b163863985343eba895",
+    "accepted_application_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+    "source_inventory_files": 319,
+    "runtime_files": 195,
+    "source_inventory_sha256": "309db5c956f31776dbaefdd95522abe25618a0481514923e08048397b765745b",
+    "worker_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+    "deployment_snapshot": "../verification/event-adaptive-reliability-2026-10-28/market-first-baseline-20261030.json",
+    "meaning": "Accepted pre-redesign application with measured coverage/cost limitations, not a claim of defect-free behavior. The named plan is not implemented by this checkpoint.",
+    "original_ide_checkout": "Concurrent dirty work on master is preserved and is not the accepted runtime baseline.",
+    "checkpoint_verification": "../verification/event-adaptive-reliability-2026-10-28/market-first-checkpoint-verification-20261030.json",
+    "baseline_tag_revision": "6923419b57f885892d443b163863985343eba895"
+  },
+  "scope": {
+    "owns": "Home numerical lead preparation, pre-research market grouping and one common Home investigation selection/dispatch, using existing AQL/Zopedia research/review/composition and shared reuse.",
+    "existing_news_collection": "Retain the working shared news producer and its schedules. Headlines are inputs, not a third Home research planner. Provider replacement remains held.",
+    "other_workloads": "Company/news, Trading, Learning and interactive research keep their existing ownership and schedules. Home savings are not a whole-application cost forecast. Shared reuse must respect each consumer contract and access scope.",
+    "runtime_changes_now": false,
+    "deployment_now": false,
+    "paid_qualification_now": false
+  },
+  "ordered_flow": [
+    {
+      "stage": "Current observations",
+      "inputs": "Existing stock/economic histories, snapshots, instrument identity, data coverage and available benchmark membership/weights.",
+      "output": "Dated numerical observations. Preserve economic release time separately from reference period and revision; stock observation time separately from bar date.",
+      "deepseek_effect": "Numerical collection itself requires no DeepSeek. Existing independent inference workloads remain separately priced."
+    },
+    {
+      "stage": "Numerical analysis before name cuts",
+      "inputs": "The available covered universe and multiple dated windows.",
+      "output": "Movers/anomalies, relative and multi-day performance, participation, concentration and benchmark support/drag where weights are valid. No silent top-name prefilter of the market overview.",
+      "deepseek_effect": "Use numerical calculations for numerical measures; the planner interprets their meaning. CPU/data work is not free, but is not DeepSeek inference."
+    },
+    {
+      "stage": "Market-derived groups and their changes",
+      "inputs": "Comparable adjusted return histories with known coverage across dated windows.",
+      "output": "Observed groups, within/between-group behavior, and credible changes in relationships or membership. Preserve sector/business labels as context rather than proof of a measured cluster.",
+      "deepseek_effect": "Group calculations need no mandatory LLM call. Avoid adding a separate model summarizer before the common planner."
+    },
+    {
+      "stage": "One upfront Home Zopedia plan",
+      "inputs": "Compact but broad numerical/group picture; access to the underlying observations; dated economic context and headlines; relevant prior research, prior publications and remaining budget/time.",
+      "output": "N useful research questions with relevant observations, affected entities/groups, previous findings, unanswered questions and intended follow-ups. The same agenda owns Home event, company, macro and group research allocation.",
+      "deepseek_effect": "Replace existing independent event/company dispatch. Planning may cost more per decision; total savings depend on reduced redundant work and actual selected breadth.",
+      "coverage_rule": "A numerical anomaly or changed cluster is not an admission requirement. New macro releases, upcoming decisions, private-company developments and important headlines can justify research before visible price changes."
+    },
+    {
+      "stage": "Focused investigation inside Zopedia",
+      "inputs": "The selected question, relevant unmodified observations/histories, group context, source references and dated retained research.",
+      "output": "Shared research using retained Zopedia evidence and existing source acquisition/search/read tools. Broader data and alternative entities remain accessible when the original framing is wrong.",
+      "deepseek_effect": "Avoid repeating every unrelated market row in every focused step. Preserve decisive details and contradictory evidence; reducing context can increase follow-up calls, so measure the complete cost."
+    },
+    {
+      "stage": "Reuse, reassess and extend",
+      "inputs": "Current observations plus earlier source-backed findings in the correct access scope.",
+      "output": "Current assessment of what still holds, what changed and what needs additional research. Same-event continuity is semantic and many-to-many with source documents; article hashes are provenance, not the only real-event identity.",
+      "deepseek_effect": "Avoid automatically repurchasing full unchanged investigations. Existing reuse infrastructure is extended, not replaced by a new event registry or retrieval service.",
+      "freshness_rule": "Every run assesses current data. Unchanged headlines do not freeze the earlier explanation; unexplained new market behavior can require fresh investigation. Reused conclusions retain original dates and remain correctable."
+    },
+    {
+      "stage": "Existing Zopedia review",
+      "inputs": "Relevant evidence for each answer; concise broad numerical context and the selected agenda for cross-market explanation review.",
+      "output": "Corrected reasoning and useful follow-ups, including important observed patterns not explained in the proposed publication.",
+      "deepseek_effect": "Review can add work; do not reinsert the full market raw rows into every reviewer. Preserve full-model core review and existing run accounting. No extra review system, binary admission pool or K-attempt drop rule."
+    },
+    {
+      "stage": "Existing Zopedia Attention and Brief composition",
+      "inputs": "Current reviewed findings, original sources and the numerical context.",
+      "output": "Attention and its coherent Brief summary, preserved charts, full source drilldowns and consistent API/web/native views. The final editor may inspect original sources directly and needs no additional planner.",
+      "deepseek_effect": "Preserve accepted final writing/review quality. Writing shorter visible cards alone does not recover earlier investigation spend."
+    }
+  ],
+  "implementation_order": [
+    {
+      "id": "D1",
+      "state": "not_started",
+      "work": "Move existing numerical preparation upstream. Preserve broad available-universe coverage, current economic context and multiple horizons before company cuts; establish any needed dated benchmark input using the existing producer ownership.",
+      "evidence_to_inspect": "Exact initial planner context, missing data/universe changes, quiet collective support and index contribution reproducibility."
+    },
+    {
+      "id": "D2",
+      "state": "not_started",
+      "work": "Reuse suitable numerical relationship/group components and compare dated market-derived groupings. Keep pre-research observations separate from relationships learned later through research. Choose the method after inspecting histories and stability; a taxonomy regrouping is insufficient.",
+      "evidence_to_inspect": "Actual changed/stable relationships, sparse history, corporate actions, asynchronous observations, universe churn and ordinary movement noise. Do not claim the Intel example occurred without measuring it."
+    },
+    {
+      "id": "D3",
+      "state": "not_started",
+      "work": "Adapt existing Zopedia selection and dispatch to the common agenda. Carry relevant context, existing retained research and prior publications; reconcile Home macro/group/ticker analysis under that agenda without deleting downstream client data. Preserve concurrency across independent admitted work.",
+      "evidence_to_inspect": "Actual chosen questions, original source follow-ups, repeat-investigation continuity, completeness of final market explanation, and measured attempt-inclusive cost."
+    },
+    {
+      "id": "consumer_consistency",
+      "state": "not_started",
+      "work": "Preserve producer/story/source/research identities and chart/drilldown contracts. Resolve the observed producer capacity versus API 16-story cap in the existing owner before claiming a complete publication; do not use truncation as a budget policy.",
+      "evidence_to_inspect": "Exact same publication across stored results, FastAPI, both Next.js gateways and native client."
+    },
+    {
+      "id": "qualitative_comparison",
+      "state": "not_started",
+      "work": "Personally compare full accepted-baseline and candidate outputs on matched retained inputs, including unseen quiet/heavy and conflicting inputs; record important omissions and reasoning quality, not exact expected wording.",
+      "evidence_to_inspect": "Complete research, review, Attention, Brief and charts; no hardcoded example tickers, sector quotas or programmatic NLP pass/fail score."
+    },
+    {
+      "id": "development_release",
+      "state": "not_started",
+      "work": "After requested behavior is accepted locally, reconcile accepted changes in Git and use the supported release/source acceptance process for all affected consumers.",
+      "evidence_to_inspect": "Exact DEV images, source inventories, operational preservation and complete current user paths. This checkpoint is not development or production acceptance."
+    },
+    {
+      "id": "production_release",
+      "state": "not_authorized_by_this_checkpoint_request",
+      "work": "Preserve explicit owner control over promotion of this redesign. Present measured output and costs; the current instruction requests a plan review/checkpoint.",
+      "evidence_to_inspect": "Future explicit production instruction and exact DEV-accepted digests."
+    }
+  ],
+  "assumption_review": [
+    {
+      "assumption": "We see the whole stock market",
+      "finding": "Not established. The audited daily snapshot contained 999 selected instruments; SPY price coverage was 99.3 percent by weight, which is not universal company coverage.",
+      "design_consequence": "Keep available-universe/missingness visible to planning and evaluation. Do not mistake absent observations for flat trading or no event."
+    },
+    {
+      "assumption": "The retrospective attribution proves real-time discoverability",
+      "finding": "Only partially. Lilly price observations existed Thursday morning, but this audit used October 29 holdings downloaded Friday and later current taxonomy.",
+      "design_consequence": "Use genuinely point-in-time weights, inputs and publication cutoffs in candidate comparisons. The attribution is retrospective approximate support, not an official or already-run historical planner result."
+    },
+    {
+      "assumption": "Current raw returns are safe for grouping or index attribution",
+      "finding": "Raw price histories can contain splits, dividends, symbol changes, stale bars and incomparable sessions.",
+      "design_consequence": "Use existing adjustment/identity contracts; distinguish price/total returns and current intraday/closing windows. Do not infer a relationship break from data defects."
+    },
+    {
+      "assumption": "Sector support establishes a rotation or changed correlation cluster",
+      "finding": "It establishes offsetting price contributions, not investor money flows or changed clustering. Sector taxonomy is not a measured return cluster.",
+      "design_consequence": "Use the sector result as a coverage case; measure statistical relationships and their change separately. Quiet leadership merits attention even when grouping remains stable."
+    },
+    {
+      "assumption": "Any cluster membership difference is meaningful",
+      "finding": "Window length, small samples, missing data and universe churn can change membership without an economic regime change.",
+      "design_consequence": "Compare overlapping coverage and dated relationship strength/stability; report uncertainty to the planner instead of forcing a theme or a changed-group story."
+    },
+    {
+      "assumption": "Data-first means only large moves deserve research",
+      "finding": "Rejected by owner intent. Important policy, earnings and private-entity developments can precede price movement.",
+      "design_consequence": "Complete numerical analysis first but allow headline/economic/calendar leads in the same planner. No compulsory anomaly threshold or fixed sector quota."
+    },
+    {
+      "assumption": "A compact numerical overview cannot lose useful information",
+      "finding": "Unproven. Averages, top lists or overcompression can erase the same quiet leaders we want to find.",
+      "design_consequence": "Preserve breadth, distribution, contributors and opposing observations, with access to underlying rows. Inspect actual planner choices instead of assuming compactness ensures recall."
+    },
+    {
+      "assumption": "Focused research context always saves money",
+      "finding": "Unproven. It reduces input volume but can lose provider-prefix cache hits or require more tool/model calls.",
+      "design_consequence": "Measure whole logical-run input/output/cached tokens, calls, unknown costs, source acquisition and quality. Keep broad-context access and avoid irreversible evidence removal."
+    },
+    {
+      "assumption": "An unchanged article means no useful new investigation",
+      "finding": "False. Market relationships, prices, economic conditions or unanswered questions can change despite identical source text.",
+      "design_consequence": "Assess evidence and observed behavior together. Retained research is a correctable starting point, not a freshness exemption or permanent truth."
+    },
+    {
+      "assumption": "Repeated public text proves wasted paid inference",
+      "finding": "False in general. Some repeats are useful updates or cheap redisplay. The selected event examples do independently show fresh model calls across runs.",
+      "design_consequence": "Join semantic editorial review with native provider attempts; do not multiply 36 percent low-value appearances by the total bill to claim savings."
+    },
+    {
+      "assumption": "The 41.84USD subtotal is article downloads or one run",
+      "finding": "It is cumulative recorded DeepSeek estimates across 15 published roots: research steps 16.8249, internal synthesis 12.1092, internal review 12.1219, format repairs 0.7888. Input processing is 77.2 percent.",
+      "design_consequence": "Separate internal research and final public writing/review, acquisition fees and other workloads. Reading input tokens includes data/instructions/prior findings, not just articles."
+    },
+    {
+      "assumption": "Stable event identity can be implemented with title or article hashes",
+      "finding": "That can split the same development or merge unrelated events involving the same company. The existing subject is currently source-set-derived.",
+      "design_consequence": "Use the existing Zopedia/memory/research continuity to interpret same versus changed questions, keep many-to-many source provenance and access scope, and avoid a new parallel event service."
+    },
+    {
+      "assumption": "One planner removes all failure points and duplication",
+      "finding": "No. It can be wrong or unavailable; research can expose new questions, and separately scheduled consumers still exist.",
+      "design_consequence": "Keep selected agenda and completed paid work under the existing durable run/ownership contracts. Permit useful follow-up within the same budget and clock; preserve other consumers and shared research reuse."
+    },
+    {
+      "assumption": "Broad numerical context in every review is cheap",
+      "finding": "It could recreate the original context amplification.",
+      "design_consequence": "Keep relevant detailed evidence in investigation reviews and a concise broad overview in the existing publication review. Do not add another mandatory agent stage."
+    },
+    {
+      "assumption": "Lower redundant work guarantees both a lower bill and higher recall",
+      "finding": "Unproven. Heavy days may use released capacity for additional research; budgets are allowances rather than quotas.",
+      "design_consequence": "Evaluate total spend, cost per useful investigation, important patterns explained and selected-question depth separately. No promised percentage saving or complete recall."
+    },
+    {
+      "assumption": "A code tag alone restores the product",
+      "finding": "It restores source, not Azure templates, image availability, database state or external provider behavior.",
+      "design_consequence": "Preserve source, committed acceptance, all resource/image references and private configuration backup. Validate immutable image availability and rehearse isolated source restoration. No database rewind or config overwrite as an automatic rollback."
+    },
+    {
+      "assumption": "Previous research/publications are an unbiased guide to importance",
+      "finding": "They can preserve the same technology/news attention bias and anchor the planner to its earlier omissions.",
+      "design_consequence": "Prepare the numerical overview independently before adding prior narrative context. Use publication history to assess incremental information, not as a vote for continuing the same subjects. Evaluate unfamiliar group patterns and opposing evidence as well as the known rotation example."
+    },
+    {
+      "assumption": "Numerical preprocessing has no material operating cost or timing risk",
+      "finding": "It has no mandatory DeepSeek fee, but full-history pairwise grouping can consume CPU, RAM, database/network capacity and run time. Its production resource fit is not benchmarked by this plan.",
+      "design_consequence": "Reuse existing owned numerical datasets/computation and profile the method on actual covered histories before selecting it. Preserve current producer deadlines and usable partial coverage; do not add an unbounded Home matrix calculation, new scheduler or silent data truncation to meet the budget."
+    }
+  ],
+  "preserved_operational_contracts": [
+    "Keep existing user-defined soft budgets, configurable event margin, full-model protected core completion, atomic shared-account/run reservations, unknown charges and original retry deadlines. Do not reset ledgers or reintroduce the removed whole-run fallback.",
+    "Assess current observations every run. No next-run rollover masquerading as fresh research, no re-dating historical statements and no raw-data-only independent prose writer. Existing economical best-effort completion remains within shared Zopedia when funds are small.",
+    "Planner or source failure must retain completed paid findings and expose degradation in operational records. Use the existing shared completion behavior and original clock; do not disguise an old publication as current. Actual provider outage cannot be promised away by this plan.",
+    "Keep namespaces, account/privacy/access scope and write policies. Qualification uses isolated storage with no production or shared-memory writes.",
+    "Independent admitted investigations may run concurrently within existing provider limits; a common plan does not mean serial research or unlimited workers.",
+    "Preserve independent public story identities and many-to-many research references, all accepted charts, original-source reading, source drilldowns and read-only API/client behavior.",
+    "Do not replace news acquisition, change production schedules/models/budgets, create another retrieval service or add a final planner as part of this checkpoint."
+  ],
+  "configuration_policy": "Reuse centrally owned configuration for allowance, event margin, deadlines and concurrency. Numerical horizon/grouping choices and the amount/depth of selected work remain adaptable. Choose defaults from complete-output comparisons rather than encoding this week's example companies or a fixed N. Any new setting requires one owner and documented effect, not a collection of exception flags.",
+  "qualification_cases": [
+    "Quiet current inputs: recognize limited new information and spend less without presenting old events as new.",
+    "Important group support with modest individual moves: assess the measured October 26–30 omissions, using only contemporaneously available data and sources. Avoid hardcoding the seven companies.",
+    "Heavy contradictory day: surface both declining high-weight names and offsetting groups; protect investigation depth and preserve the configurable event margin.",
+    "Genuine and spurious grouping changes: inspect persistent breaks, stable groups, universe churn, incomplete histories and corporate actions.",
+    "New consequential headline or macro release without a price anomaly: preserve a useful lead without reverting to headline frequency as the entire agenda.",
+    "Same event/new article, same article/new market behavior, and same company/different event: compare retained findings and ask the actual new question.",
+    "Bad initial question or narrow context: investigator expands beyond original names, finds contrary evidence and corrects the explanation.",
+    "Planner/source/provider failure and original deadline: preserve current completed research, correct status/accounting, no reset/respend/hidden stale substitution.",
+    "Complete publication: inspect research, review, Attention, Brief, charts/drilldowns and all clients; stable execution checks alone do not establish qualitative quality."
+  ],
+  "evaluation_policy": {
+    "quality": "Primary agent personally reads full outputs and original evidence. Use held-out cases and compare substantive omissions, precision and useful mechanisms; deterministic tests check operational/data contracts only.",
+    "cost": "Compare matched evidence, same models and price bands. Include all attempts, shared reuse, peak/off-peak effects, source acquisition and completion; unknown charges remain explicit. Do not extrapolate one peak catch-up as normal daily expense.",
+    "research_provider": "Follow AGENTS.md Lambda-only research policy and shared 25USD Pacific-day approval threshold. Earlier scoped DeepSeek verification approvals are closed and do not authorize new comparison spending. No rental or paid inference in this checkpoint.",
+    "acceptance_status": "Not run for this redesign. Cost reduction, recall improvement and safe cluster-change detection remain hypotheses until complete-output evaluation."
+  },
+  "recovery": {
+    "source": "Use the annotated checkpoint in a new worktree/branch, preserving active work. A verified Git bundle and a separate fresh repository restore provide local recovery independent of working-tree edits.",
+    "production": "Retained known images are explicit rollback records. Any future production rollback uses the supported, separately authorized image/template process with before/after verification. Never assemble a new release from extracted historical image files.",
+    "data": "This checkpoint performs no migrations or database writes. Future implementation must preserve additive/backward-compatible research/publication contracts before relying on image rollback; source recovery alone cannot undo destructive data changes.",
+    "baseline_tag_revision": "6923419b57f885892d443b163863985343eba895",
+    "plan_tag": "plan/market-first-research-v1-20261030"
+  },
+  "evidence": {
+    "source_audit": "../verification/event-adaptive-reliability-2026-10-28/data-first-home-design-audit-20261030.json",
+    "coverage": "../verification/event-adaptive-reliability-2026-10-28/weekly-attention-bias-20261030.json",
+    "story_value": "../verification/event-adaptive-reliability-2026-10-28/weekly-story-value-cost-audit-20261030.json",
+    "cost_operations": "../verification/event-adaptive-reliability-2026-10-28/event-company-research-cost-detail-20261030.json",
+    "release_acceptance": "../../infra/release_acceptance.json"
+  },
+  "next_action": "Implement D1 in accepted Git source after this baseline checkpoint, then D2/D3 as one coherent change to existing flow. Do not claim local/model/DEV acceptance before performing it."
+}

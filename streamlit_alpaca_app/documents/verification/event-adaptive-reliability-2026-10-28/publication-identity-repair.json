@@ -1,8 +1,8 @@
 {
-  "status": "production_deployed_verified_catchup_running",
+  "status": "production_deployed_verified_fresh_catchup_published",
   "source_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
   "review_base_revision": "708d6e0bca19e60fec3d1329a874323f6389b70d",
-  "recorded_at_utc": "2026-10-30T01:18:21.145920+00:00",
+  "recorded_at_utc": "2026-10-30T04:46:56.836055+00:00",
   "incident": "home-publication-failure-20261029.json",
   "runtime_changes": [
     "pipeline/jobs/attention_home_build.py"
@@ -56,7 +56,7 @@
     "all_configurations_unchanged": 36,
     "retained_non_worker_images": 7
   },
-  "freshness": "One normal current production catch-up started at01:13:52UTC,18:13Pacific. It uses the existing10USD base, configurable50% event margin and original configured deadlines. Normal schedules are unchanged. No historical comparison or reconstructed replay payload was written to production. Latest completed public snapshot remains18:50UTC until the fresh run publishes.",
+  "freshness": "Fresh normal catch-up completed at2026-10-30T02:14:22UTC (October29 19:14Pacific). Both public gateways serve13stories from the current run, as_of2026-10-30T01:14:30UTC. No schedule, model or budget override was used.",
   "source_integration": {
     "current_live_release": "documents/verification/trading-system-2026-10-29/PRODUCTION.json",
     "accepted_build_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
@@ -831,19 +831,34 @@
     "execution": "attention-home-build-c4833nb",
     "scope": "One normal production catch-up using the current template and configured allowance. No schedule, model, budget or inference-policy override.",
     "expected_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
-    "status": "Running",
+    "status": "Succeeded",
     "start_time_utc": "2026-10-30T01:13:52+00:00",
     "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
     "application_status": [
       {
         "run_id": "ae8bd310-85c1-48b3-be7e-6b49299a0e8d",
-        "status": "Running",
+        "job_name": "attention-home-build",
+        "status": "Succeeded",
         "start_time_utc": "2026-10-30 01:14:31.889519+00:00",
-        "asof_time_utc": "2026-10-30 01:14:30.327154+00:00",
-        "progress_stage": "building_narratives",
-        "progress_message": "Building attention narratives and graph from materialized inputs (research_limit=12).",
+        "end_time_utc": "2026-10-30 02:14:22.297285+00:00",
+        "platform_execution_name": "attention-home-build-c4833nb",
         "error_summary": null
       }
-    ]
+    ],
+    "end_time_utc": "2026-10-30T02:14:25+00:00",
+    "public_readback": {
+      "run_id": "ae8bd310-85c1-48b3-be7e-6b49299a0e8d",
+      "status": "Succeeded",
+      "end_time_utc": "2026-10-30 02:14:22.297285+00:00",
+      "as_of": "2026-10-30T01:14:30.327154+00:00",
+      "stories": 13,
+      "estimated_deepseek_usd": 9.253296024,
+      "unpriced_deepseek_attempts": 3,
+      "public_gateways_confirmed": [
+        "sn-next-ui",
+        "sn-streamlit-ui"
+      ]
+    },
+    "cost_evidence": "workload-cost-recheck-20261029.json"
   }
 }

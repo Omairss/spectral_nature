@@ -1,0 +1,104 @@
+{
+  "status": "complete_read_only_call_and_token_cost_decomposition",
+  "recorded_at_utc": "2026-10-30T21:07:50.011245+00:00",
+  "scope": "Exactly the 41.844757762USD event/company research estimate from 15 published Home logical runs over October 26–30, 2026. This is historical cumulative spending, not per run or per day. No new inference.",
+  "interpretation": "DeepSeek charges model input/output processing. It is not a direct fee per article, tool call or unit of wall-clock thinking. Reading supplied source text, planning next tools, reasoning, internal answer synthesis and answer review all use model calls. Search/crawl/API and Azure charges are separate from this subtotal.",
+  "by_model_operation": {
+    "agent.research_step": {
+      "recorded_attempts": 555,
+      "successful_priced_calls": 504,
+      "known_estimated_usd": 16.824932037999993,
+      "input_tokens": 26761877,
+      "cached_input_tokens": 6778112,
+      "output_tokens": 1250840,
+      "reasoning_output_tokens": 708795,
+      "unpriced_attempt_statuses": {
+        "failure": 38,
+        "not_sent": 13
+      }
+    },
+    "agent.final_synthesis": {
+      "recorded_attempts": 276,
+      "successful_priced_calls": 240,
+      "known_estimated_usd": 12.109164187999996,
+      "input_tokens": 12162074,
+      "cached_input_tokens": 329088,
+      "output_tokens": 1647825,
+      "reasoning_output_tokens": 1236654,
+      "unpriced_attempt_statuses": {
+        "failure": 32,
+        "not_sent": 2,
+        "started": 2
+      }
+    },
+    "agent.answer_judge": {
+      "recorded_attempts": 228,
+      "successful_priced_calls": 218,
+      "known_estimated_usd": 12.121901571999999,
+      "input_tokens": 12919542,
+      "cached_input_tokens": 794112,
+      "output_tokens": 1595327,
+      "reasoning_output_tokens": 1094148,
+      "unpriced_attempt_statuses": {
+        "failure": 7,
+        "started": 2,
+        "not_sent": 1
+      }
+    },
+    "agent.research_step.repair": {
+      "recorded_attempts": 15,
+      "successful_priced_calls": 12,
+      "known_estimated_usd": 0.7887599640000001,
+      "input_tokens": 1199830,
+      "cached_input_tokens": 30592,
+      "output_tokens": 16528,
+      "reasoning_output_tokens": 0,
+      "unpriced_attempt_statuses": {
+        "not_sent": 1,
+        "started": 1,
+        "failure": 1
+      }
+    }
+  },
+  "by_research_path_usd": {
+    "event_investigations": 26.681872791999997,
+    "company_candidate_investigations": 15.162884970000002
+  },
+  "by_billing_component_usd": {
+    "uncached_input": 32.13217742999997,
+    "cached_input": 0.17567027199999954,
+    "reasoning_output": 6.472960500000005,
+    "other_output": 3.063949559999997
+  },
+  "billing_component_method": "Use price-version-independent DeepSeek rates only after reconciling every priced row to the original recorded charge within 1e-8 USD; observed rates match across all historical versions and rate bands. Reasoning is a subset of completion tokens, not an additional charge.",
+  "priced_calls": 974,
+  "known_estimated_usd": 41.844757761999986,
+  "input_cost_fraction": 0.7720882956416427,
+  "token_totals": {
+    "input_tokens": 53043323,
+    "cached_input_tokens": 7931904,
+    "output_tokens": 4510520,
+    "reasoning_output_tokens": 3039597
+  },
+  "operation_meaning": {
+    "agent.research_step": "Read supplied query, data, retained research and source/tool history; interpret evidence, choose a next tool or decide to finish. Includes within-investigation planning, not the separate market-wide event nomination cost.",
+    "agent.final_synthesis": "Compose the internal research answer/structured artifact from collected evidence. These are not the later public-feed writing calls.",
+    "agent.answer_judge": "Read evidence plus draft, independently assess interpretation and return a corrected internal answer. Can include substantial reasoning and rewritten answer text, not merely a short score.",
+    "agent.research_step.repair": "Repair a malformed structured model response. Not a general label for all provider/network retries."
+  },
+  "concrete_context_amplification": {
+    "source": "services/aql/events.py:486",
+    "finding": "Each focused event query includes the complete market_observations list plus economic observations and retained research. The broad input has approximately 999 instruments in the audited window; it is carried in the question used by research, synthesis and review.",
+    "source_two": "services/zopedia_agent.py:1970,2006,2121",
+    "finding_two": "Research prompts carry query, supplied context, tool catalogue/history and planning state. Synthesis/review carry the query and collected evidence again; review additionally carries the draft. Existing evidence-context selection can narrow tool evidence when needed, but the broad question remains.",
+    "limit": "Input ledger does not separately price article text, market rows, tool schemas and prior research. The 32.31USD input cost must not all be called article reading or all be called duplicated data. Input-token totals are processing volume across calls, not distinct source content."
+  },
+  "review_source": "services/zopedia_agent.py:2190",
+  "cost_implication": "Most expense is input processing, especially large event-investigation contexts. Reusing useful research, focusing each investigation on relevant observations and avoiding repeated full reasoning passes on unchanged questions are more directly supported opportunities than simply reducing visible article count. Preserve the broad numerical picture for the common planner and cross-market final review; focused researchers still need relevant context and access to broader data.",
+  "uncertainty": "Estimates reconcile every priced call and historical rate band; not an invoice. Additional unpriced records retain their recorded failure/not_sent/started status; do not treat all as billable or all as free. Reasoning tokens are included within output tokens, not an extra charge.",
+  "unpriced_attempt_statuses": {
+    "failure": 78,
+    "not_sent": 17,
+    "started": 5
+  }
+}

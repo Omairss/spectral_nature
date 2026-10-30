@@ -1,0 +1,185 @@
+{
+  "status": "rechecked_against_owner_corrections_design_only",
+  "revision": 4,
+  "recorded_at_utc": "2026-10-30T21:02:14.510003+00:00",
+  "owner_flow": [
+    "Collect raw stock and economic observations; calculate anomalies and movers.",
+    "Group and cluster using the underlying observations. Detect changes in clustering, including assets no longer moving with their earlier group.",
+    "One upfront Zopedia planner receives the underlying observations, grouped leads, changes in grouping, dated context and news headlines; it selects N research items.",
+    "Zopedia research investigates those items using retained research, original sources, Serper and source acquisition.",
+    "Zopedia review assesses and improves the research. No mandatory K-attempt rejection/omission mechanism is required.",
+    "Zopedia composes Attention and Brief from the resulting research and underlying sources. Final composition does not need another planner pass.",
+    "API and clients display retained output rather than starting hidden research."
+  ],
+  "latest_owner_corrections": [
+    {
+      "instruction": "if there is a change in clustering",
+      "meaning": "Detect a change in the market-derived grouping itself. The Intel/AI-trade example illustrates an asset ceasing to move with its earlier group; it is not a request to verify that current Intel claim or encode Intel/AI rules."
+    },
+    {
+      "instruction": "Reviewer corrects or rejects; omit after K chances -> this is not a requirement",
+      "meaning": "Remove the proposed mandatory retry-and-drop gate from the required change list. Preserve review in the shared Zopedia process without inventing this additional publication requirement."
+    },
+    {
+      "instruction": "NOTHING is allowed to take a shortcut. Everything goes through zopedia and the data sources in the order mentioned.",
+      "meaning": "Preserve the ordered numerical analysis, grouping, research selection, Zopedia research/review and composition flow. Sharing an inference gateway alone does not establish that sequence. Reuse the existing direct Zopedia composition rather than adding another research planner there."
+    },
+    {
+      "instruction": "Planner is not needed for this stage",
+      "context": "Final editor composing from retained research and original sources.",
+      "meaning": "Direct source access by the final Zopedia editor and a source-only selected story are not, by themselves, evidence of a forbidden shortcut. Do not add another planner or require a separate previously approved investigation for every statement or final story."
+    }
+  ],
+  "source_authority": {
+    "checkout": "spectral_nature_home_publication_identity_20261029",
+    "head": "6923419b",
+    "accepted_application_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+    "comparison": "git diff accepted revision..HEAD over services/compute/pipeline is empty",
+    "production_worker_digest": "sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48"
+  },
+  "current_execution_order": [
+    {
+      "stage": "Input collection",
+      "current": "Home loads market/attention data and saved news; it also backfills missing ticker news. Headlines/articles are legitimate inputs, and collecting them is not a third independent research planner.",
+      "source": [
+        "pipeline/jobs/attention_home_build.py:2396",
+        "pipeline/jobs/attention_home_build.py:2456"
+      ]
+    },
+    {
+      "stage": "Article/event research",
+      "current": "Shared Zopedia nomination and focused investigations run before numerical company-candidate construction and grouping. The nomination already receives market observations, FRED summary, yield facts and headlines; it does not receive pre-research groups or changes in their membership.",
+      "source": [
+        "services/aql/pipeline.py:198",
+        "services/aql/events.py:360"
+      ]
+    },
+    {
+      "stage": "Separate company selection/research",
+      "current": "Home builds numerical company candidates and independently takes up to its configured company limit (12 in production). Selected companies use the shared Zopedia researcher.",
+      "source": [
+        "services/aql/pipeline.py:210",
+        "services/aql/pipeline.py:280",
+        "services/aql/pipeline.py:436",
+        "services/aql/collector.py:701"
+      ]
+    },
+    {
+      "stage": "Grouping after investigation",
+      "current": "After company investigations, Home builds pair relationships and connected groups. Relationships can use taxonomy, historical correlation and newly produced research claims. This is not a data-only grouping supplied before the first planner.",
+      "source": [
+        "services/aql/pipeline.py:562",
+        "services/attention_signal_graph.py:40",
+        "services/aql/clusterer.py:107"
+      ]
+    },
+    {
+      "stage": "Group/macro work",
+      "current": "Grouped writing and macro assessment/verification occur as later branches. Their model operations already use the shared Zopedia engine, but they are not all chosen by one upstream plan from grouped stock/economic leads. Macro promotion also has separate numerical rules.",
+      "source": [
+        "services/aql/pipeline.py:584",
+        "services/aql/pipeline.py:730",
+        "services/aql/pipeline.py:767",
+        "services/aql/writer.py:442",
+        "services/aql/macro.py:338",
+        "services/aql/assembler.py:668"
+      ]
+    },
+    {
+      "stage": "Detailed signals and enrichment",
+      "current": "Home attaches detailed stock/correlation/FRED signals after the research/group stage, then performs ticker enrichment through Zopedia with supplied sources. These observations can inform final composition, but arrive too late to guide the initial common research allocation.",
+      "source": [
+        "pipeline/jobs/attention_home_build.py:2547",
+        "pipeline/jobs/attention_home_build.py:2621",
+        "pipeline/jobs/attention_home_build.py:754"
+      ]
+    },
+    {
+      "stage": "Final composition and review",
+      "current": "The final editor already uses Zopedia, retained findings, complete source readers and observation records. It composes selected stories and Brief together. Selection may reference source documents without an existing research bundle. That capability alone is not a defect and does not require another planner.",
+      "source": [
+        "pipeline/jobs/attention_home_build.py:2090",
+        "pipeline/jobs/attention_home_build.py:2197",
+        "pipeline/jobs/attention_home_build.py:2302",
+        "pipeline/jobs/attention_home_build.py:2334"
+      ]
+    },
+    {
+      "stage": "Charts and read path",
+      "current": "Daily chart selection/captions already use Zopedia with actual numerical histories and the composed briefing. The Home API reads retained output; it does not run a new LLM. A separate existing API cap of 16 stories can truncate a producer publication whose section capacities total 20; this is a publication-consistency issue, not a reason to add a planner.",
+      "source": [
+        "services/daily_market_datapoints.py:99",
+        "services/daily_market_datapoints.py:146",
+        "services/home_view.py:186",
+        "services/home_view.py:239",
+        "data_access/layer.py:2340"
+      ]
+    }
+  ],
+  "required_implementation_changes": [
+    {
+      "id": "D1",
+      "status": "not_implemented",
+      "change": "Make numerical lead preparation and grouping precede optional investigation. Bring existing stock/economic/anomaly/correlation observations into the common upfront input. Keep the pre-research numerical grouping distinct from later relationships inferred during research.",
+      "measured_refinement": "October 30 audit: seven material positive index contributors had no public Home company coverage across 15 retained publications. Build the broad multi-horizon/relative/group/market-impact numerical context before individual-name cuts. A daily-mover shortlist alone is insufficient; Lilly was already up 6.34% Thursday at 09:35 but fell just outside base shortlist limits (eligible gainer 26 / absolute move 41). Retain dated benchmark membership/weights for any attribution claim; sector labels alone are not correlation clusters."
+    },
+    {
+      "id": "D2",
+      "status": "not_implemented",
+      "change": "Compare market-derived groupings across dated observation windows and identify actual changes in which assets move together. Existing benchmark correlation changes and current connected groups are useful components but do not establish this behavior. Do not use a static sector/theme label as proof of group membership, or mistake missing data and changing coverage for a changed market relationship."
+    },
+    {
+      "id": "D3",
+      "status": "not_implemented",
+      "change": "Adapt existing Zopedia planning/dispatch so one upstream planner chooses N investigations from grouped numerical leads and headlines. Replace independent article-event and top-company dispatch with that selected work. Reconcile later macro/group/ticker analyses as parts of selected work or source context in the shared flow, rather than independent allocations. Continue using existing Zopedia research, review and final composition.",
+      "measured_refinement": "Planner inputs must expose quiet collective support as well as conspicuous individual declines and dated headlines. A cluster change is one possible lead, not a prerequisite for ordinary group research. No fixed names, forced sector allocations or extra final planner.",
+      "incremental_work_refinement": "Use existing retained research and prior publications to assess what a fresh investigation would add. Keep current data assessment every run; unchanged articles can accompany an important unexplained market change. Same actual event should not become unrelated research solely because article IDs differ. Existing reviewer should compare final explanation with the broad numerical context and selected agenda; no new review gate or planner."
+    }
+  ],
+  "preserve_existing_work": [
+    "Stock/economic data producers, anomaly calculations, correlation measures, retained histories and original-source access are reusable.",
+    "Serper, page acquisition, retained Zopedia knowledge, shared research/review, run accounting and original deadlines remain the owning infrastructure.",
+    "Review is already present. No new K-attempt omission rule, fixed source-count gate, mandatory binary approval or separate approval artifact is required by the corrected design.",
+    "Final composition is already in Zopedia. It can inspect original sources and compose Attention and Brief without another planner pass. Do not classify using an original directly as proof that the process was bypassed.",
+    "Preserve accepted final-writing quality, independent story identities, many-to-many source/research relationships, chart histories, drilldowns and clients.",
+    "News headlines remain explicit planner inputs. Data-first does not mean only the biggest movers or an arbitrary mandatory price-change cutoff.",
+    "Lower budgets should change the amount and depth of work inside the same shared process, not introduce a cheaper independent writer or a direct raw-data-to-prose shortcut."
+  ],
+  "not_required": [
+    "A separate planner for final writing, source inspection, Brief or every individual final story.",
+    "An enforced K-attempt correction/reject/omit lifecycle.",
+    "A mandatory approved-investigation publication pool that bars the Zopedia editor from reading original source records.",
+    "New retrieval infrastructure, a new agent runtime or a parallel Home-only writer.",
+    "News-provider replacement or a change to the running production schedule/allowance during this audit."
+  ],
+  "acceptance_work": [
+    "Inspect real current/prior market-derived groupings, including grouping changes, unrelated moves, first-run history and incomplete numerical coverage. Do not claim the Intel example happened without measuring its observations.",
+    "Inspect the exact combined data/headline context reaching the upfront planner and its chosen questions on quiet, heavy and conflicting-evidence inputs.",
+    "Read complete investigation, review, Attention, Brief and chart outputs with their original data and sources. Ensure final composition remains useful and every narrative operation uses the shared Zopedia owner in its proper stage.",
+    "Check budget/deadline and provider-failure behavior using existing operational contracts. Do not reset ledgers, lose retained findings, silently present earlier outputs as new or add an observation-only prose substitute.",
+    "Reconcile the existing API display cap with the producer output so Brief and the visible feed refer to the same publication.",
+    "Compare the October 26–30 retained inputs against actual Attention/Brief omissions: Lilly, J&J, Walmart, AbbVie, GE Aerospace, Amgen and Philip Morris plus already covered Gilead/Merck/Visa. Inspect whether the planner recognizes the offsetting market pattern without encoding these names or forcing a sector quota. The numerical audit proves visibility, not candidate qualitative acceptance.",
+    "Inspect current versus retained research and prior-publication context on the measured repetitive subjects. Distinguish useful updates (Amazon financing bridge, Corning fiber economics, Xylem strong orders/divestitures) from price-only repeats. Verify major unexplained numerical patterns can displace lower-value repeat investigations within the same budget, without fixed company/sector quotas or freezing old interpretations."
+  ],
+  "revision_history": [
+    {
+      "revision": 1,
+      "state": "superseded_design_only",
+      "correction": "The prior audit incorrectly carried K-attempt omission and a mandatory approved-result pool into the required implementation gaps. It also described direct original-source use by the final Zopedia editor as requiring an upstream research-plan admission. These are withdrawn requirements."
+    }
+  ],
+  "scope_and_holds": {
+    "application_changes_this_audit": false,
+    "deployment": false,
+    "paid_qualification_inference": false,
+    "provider_replacement": "Still held. Do not remove or replace the functioning news acquisition service in this architecture audit.",
+    "budget_configuration": "No change to current production allowance or schedule. Earlier $2.50 Home-per-run scenario remains a proposal, not live configuration or a whole-app daily cost claim.",
+    "lambda_evaluation": "Remains a separate recorded follow-on after the focused implementation and local acceptance; no GPU rental or provider change in this audit."
+  },
+  "next_action": "The audit now identifies three upstream gaps. No runtime change is made; preserve the existing Zopedia researcher, reviewer and final editor while planning the ordered data/grouping/selection correction.",
+  "purpose": "Build attention from the underlying market and economy, independently of which companies dominate the news cycle.",
+  "weekly_market_coverage_audit": "weekly-attention-bias-20261030.json",
+  "weekly_story_value_cost_audit": "weekly-story-value-cost-audit-20261030.json",
+  "named_plan": "../../plans/MARKET_FIRST_RESEARCH_2026-10-30.json",
+  "assumption_review": "The named plan separates measured observations, retrospective evidence and unverified implementation outcomes; it governs the proposal going forward."
+}
