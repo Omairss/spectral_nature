@@ -48,8 +48,9 @@
   },
   "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/operations/event-adaptive-reliability-2026-10-28/home-publication-failure-20261029",
   "release": {
-    "status": "not_deployed",
-    "production_authorization_basis": "Standing owner instruction to fix the release and push once verified, plus explicit approval of the coherent candidate. This corrects its first scheduled publication failure; no expanded feature or paid run."
+    "status": "worker_build_running",
+    "production_authorization_basis": "Standing owner instruction to fix the release and push once verified, plus explicit approval of the coherent candidate. This corrects its first scheduled publication failure; no expanded feature or paid run.",
+    "ACR_run": "cj1dg"
   },
   "freshness": "No retained historical comparison is republished as current. No manual paid production run started.",
   "source_integration": {
@@ -64,6 +65,8 @@
     "preservation": "Current Trading release is the Git base. Its API, broker, web, native and paper-account behavior is retained. Only the one publisher correction is applied; all other application files remain byte-identical to the accepted Trading source. Both retained-output replays and all11 operational checks pass again on this integrated source.",
     "initial_preflight": "The earlier315-file candidate was rejected before any build because its retained-image proof did not cover the newly deployed Trading images. No Azure image mutation or ACR build occurred from that candidate.",
     "application_files": 319,
-    "runtime_files": 195
+    "runtime_files": 195,
+    "reconciled_source_check_passed": true,
+    "actual_build_source": "d72891b51d9a7a663d9cb207a13a293aa96383ce"
   }
 }

@@ -1416,3 +1416,7 @@ Before Trading production promotion, comparison against the actual live web imag
 ### Production readiness includes the owned account link — October29
 
 Promoting the Trading images initially left production without the DEV-owned Alpaca connection, so the live screen had no account timeline. Verified the same signed-in owner/portfolio, active admin membership, actual control-store binding and broker account identity, then completed production setup through the existing account service using Key Vault references. Production now retains real balances/history and every live refresh component succeeds. Verify environment-specific account prerequisites before promotion, alongside image and configuration checks.
+
+### Research-source uniqueness rejected a valid publication — October29
+
+The first coherent scheduled run retained14 completed stories but its publisher rejected distinct ADT and Glaukos stories sharing a broader investigation. The source was incorrectly used as the public story identity. Corrected the existing materializer for every story; original research remains intact and model text is unchanged. Release preflight also caught a concurrent Trading promotion before any build, so the correction was reapplied to that accepted Git source rather than rolling back its worker/API behavior. The private verification harness initially used a nonexistent Home summary key; corrected the harness to the actual markdown contract before qualification.

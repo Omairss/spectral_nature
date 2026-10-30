@@ -1481,3 +1481,7 @@ Trading requires a real account timeline, persistent approval decisions and exac
 ### Compare every consumer with its own accepted source — October29
 
 A coherent shared Python release can coexist with a newer production frontend. Review each live image against its own accepted Git inputs before promotion; preserve independent features such as the Broad Economy outlook. Exact-image DEV review, complete configuration fingerprints, installed-version readback and physical launch are separate evidence. An installed iPhone build is not launch-verified while iOS reports Locked.
+
+### Public stories can share research — October29
+
+Scope public story identity to its original logical run and the model-selected story_id. Preserve research IDs as many-to-many provenance rather than consuming a research bundle as a unique card. Use the selected story ticker for price/issuer metadata. Verify the actual retained failed output, unchanged owner-accepted output, serialized drilldowns and final Home DTO without repurchasing inference.
