@@ -203,7 +203,8 @@ struct MarketEventCarousel: View {
               }
             } label: {
               Text(event.label)
-                .font(.system(size: 13, weight: selection?.event == event.id ? .semibold : .medium))
+                .font(.system(size: 12 + CGFloat(min(1, max(0, event.importance))) * 2,
+                              weight: selection?.event == event.id ? .semibold : .medium))
                 .foregroundStyle(selection?.event == event.id ? Theme.teal : Theme.text)
                 .lineLimit(1).minimumScaleFactor(0.7)
                 .frame(width: width, height: expanded ? 40 : 22)
