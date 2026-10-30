@@ -2111,9 +2111,11 @@ def _apply_home_surface_quality_items(
         raise AttentionHomeBuildError("The selected publication exceeds its declared display capacity.")
     candidates = {str(item.get("bundle_id") or ""): item
                   for section in limits for item in payload.get(section) or []}
+    observations = {_normalize_symbol(item.get("symbol")): item
+                    for item in payload.get("event_candidates_1d") or []
+                    if _normalize_symbol(item.get("symbol"))}
     updated = {**payload, **{section: [] for section in limits}}
     bundles = {key: {**value, "publish": False} for key, value in bundle_map.items()}
-    selected_bundles: set[str] = set()
     selected_candidates: set[str] = set()
     discovered = 0
     for section in limits:
@@ -2122,39 +2124,35 @@ def _apply_home_surface_quality_items(
             if not source_ids or len(set(source_ids)) != len(source_ids) or any(sid not in source_records for sid in source_ids):
                 raise AttentionHomeBuildError("Selected research source identity is unknown or repeated.")
             records = [source_records[sid] for sid in source_ids]
-            bundle_id = records[0].get("metadata", {}).get("bundle_id")
+            research_bundle_ids = list(dict.fromkeys(
+                record["metadata"]["bundle_id"] for record in records
+                if record.get("metadata", {}).get("bundle_id")))
+            if any(identity not in bundle_map for identity in research_bundle_ids):
+                raise AttentionHomeBuildError("Selected research bundle is unavailable.")
+            selected_candidates.update(identity for identity in research_bundle_ids if identity in candidates)
             revision = stories[selected["story_id"]]
-            if bundle_id:
-                if bundle_id not in bundle_map:
-                    raise AttentionHomeBuildError("Selected research bundle is unavailable.")
-                bundle = dict(bundle_map[bundle_id])
-                item = dict(candidates.get(bundle_id) or bundle)
-                if bundle_id in candidates:
-                    selected_candidates.add(bundle_id)
-            else:
-                identity_text = json.dumps([revision["event_title"], sorted(source_ids)], ensure_ascii=False)
-                event_id = "home-" + hashlib.sha256(identity_text.encode()).hexdigest()[:20]
-                bundle_id = "event::" + event_id
-                symbols = selected["supporting_symbols"]
-                documents = [record["content"] for record in records
-                             if record.get("metadata", {}).get("kind") == "source_document"]
-                bundle = {
-                    "bundle_id": bundle_id, "event_id": event_id, "bundle_type": "event", "event_type": "source_event",
-                    "source_event": True, "asof_time_utc": asof_time_utc, "supporting_symbols": symbols,
-                    "anchor_symbol": symbols[0] if symbols else "", "symbol": symbols[0] if symbols else "",
-                    "run_id": payload.get("run_id") or (payload.get("coverage_summary") or {}).get("run_id", ""),
-                    "source_ids": [doc.get("source_id") or doc.get("document_id") for doc in documents],
-                    "evidence": [{**doc, "headline": doc.get("title", ""),
-                                  "source": doc.get("source_provider", ""),
-                                  "source_text": doc.get("raw_text", "")} for doc in documents],
-                    "research_evidence": [record["content"] for record in records
-                                          if record.get("metadata", {}).get("kind") != "source_document"],
-                }
-                item = dict(bundle)
+            symbols = selected["supporting_symbols"]
+            primary_symbol = symbols[0] if symbols else ""
+            source_bundle = bundle_map[research_bundle_ids[0]] if research_bundle_ids else {}
+            source_symbol = _normalize_symbol(source_bundle.get("anchor_symbol") or source_bundle.get("symbol"))
+            # Source ownership and public story identity are independent. A
+            # shared investigation may support several distinct selected stories.
+            # Borrow ticker metadata only from this story's actual primary ticker.
+            base = source_bundle if source_symbol == primary_symbol else bundle_map.get("symbol::" + primary_symbol, {})
+            bundle = dict(base)
+            item = dict(candidates.get(base.get("bundle_id")) or observations.get(primary_symbol) or base)
+            if not research_bundle_ids:
                 discovered += 1
-            if bundle_id in selected_bundles:
-                raise AttentionHomeBuildError("A research bundle cannot appear twice in the selected feed.")
-            selected_bundles.add(bundle_id)
+            run_id = payload.get("run_id") or (payload.get("coverage_summary") or {}).get("run_id", "")
+            identity_text = json.dumps([run_id or str(asof_time_utc), selected["story_id"]], ensure_ascii=False)
+            event_id = "home-" + hashlib.sha256(identity_text.encode()).hexdigest()
+            bundle_id = "event::" + event_id
+            documents = [record["content"] for record in records
+                         if record.get("metadata", {}).get("kind") == "source_document"]
+            evidence = [entry for identity in research_bundle_ids for entry in bundle_map[identity].get("evidence") or []]
+            evidence.extend({**doc, "headline": doc.get("title", ""),
+                             "source": doc.get("source_provider", ""),
+                             "source_text": doc.get("raw_text", "")} for doc in documents)
             canonical = {key: str(revision[key]).strip() for key in _HOME_PUBLIC_TEXT_FIELDS}
             text = {**canonical,
                 "headline": canonical["event_title"], "what_changed_text": canonical["what_happened_text"],
@@ -2164,15 +2162,23 @@ def _apply_home_surface_quality_items(
                 "surface_business_context_text": canonical["business_context_text"], "surface_source_summary": "",
             }
             metadata = {"publish": True, "public_surface_reviewed": True, "public_surface_review_note": "",
-                "research_source_ids": source_ids,
+                "bundle_id": bundle_id, "event_id": event_id, "story_id": selected["story_id"],
+                "bundle_type": "event", "run_id": run_id, "asof_time_utc": asof_time_utc,
+                "symbol": primary_symbol, "anchor_symbol": primary_symbol, "supporting_symbols": symbols,
+                "change_pct": observations.get(primary_symbol, {}).get("change_pct", item.get("change_pct")),
+                "research_source_ids": source_ids, "research_bundle_ids": research_bundle_ids,
+                "source_ids": list(dict.fromkeys(
+                    [source_id for identity in research_bundle_ids for source_id in bundle_map[identity].get("source_ids") or []]
+                    + [doc.get("source_id") or doc.get("document_id") for doc in documents])),
+                "evidence": evidence,
+                "research_evidence": [record["content"] for record in records
+                                      if record.get("metadata", {}).get("kind") != "source_document"],
+                "market_observations": [observations[symbol] for symbol in symbols if symbol in observations],
                 "public_surface_time_basis": revision["time_basis"], "cause_status": revision["cause_status"],
                 "surface_cause_status": revision["cause_status"]}
-            # Existing ticker, graph, price and drilldown metadata survive selection.
+            # Original research bundles remain intact; the story's drilldown
+            # retains every selected source and its complete original metadata.
             item.update(text); item.update(metadata)
-            if not item.get("anchor_symbol"):
-                item["anchor_symbol"] = item.get("symbol") or bundle.get("anchor_symbol", "")
-            if not item.get("symbol"):
-                item["symbol"] = item.get("anchor_symbol") or bundle.get("symbol", "")
             bundle.update(text); bundle.update(metadata)
             bundles[bundle_id] = bundle
             updated[section].append(item)

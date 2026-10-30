@@ -31,12 +31,14 @@ def test_reader_identity_selects_previously_unpublished_research_without_losing_
         {"top_events": [], "must_read_movers": [], "unresolved_large_moves": []}, bundles,
         publication(["bundle:retained", "bundle:context"]), source_records=records, asof_time_utc="2026-10-29T17:49:00Z")
     row = updated["top_events"][0]
-    assert row["bundle_id"] == "retained"
+    assert row["bundle_id"] != "retained"
+    assert row["story_id"] == "chosen" and row["research_bundle_ids"] == ["retained", "context"]
     assert row["change_pct"] == -9 and row["price_history"] == [1, 2]
     assert row["evidence"] == original["retained"]["evidence"]
     assert row["research_source_ids"] == ["bundle:retained", "bundle:context"]
     assert all(row[field] == field for field in _HOME_PUBLIC_TEXT_FIELDS)
-    assert saved["retained"]["publish"] and counts["reviewed"] == 1
+    assert not saved["retained"]["publish"] and saved[row["bundle_id"]]["publish"]
+    assert counts["reviewed"] == 1
     assert bundles == original
 
 
