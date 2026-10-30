@@ -19,18 +19,15 @@ import pandas as pd
 from data_access.query_service import QueryService
 from services.json_utils import frame_to_records, to_jsonable, to_list
 from services.aql.pipeline import build_bottom_up_attention_artifacts
-from services.aql.collector import search_symbol_news_payload
 from services.aql.summarizer import build_market_stories
 from services.aql_zopedia_engine import (
     attach_aql_zopedia_summary_audio as attach_attention_home_summary_audio,
     load_aql_zopedia_llm_client,
-    run_aql_zopedia_agent,
     run_aql_zopedia_structured_agent,
-    resolve_research_budget,
 )
 from services.attention_surface import clean_attention_text, hydrate_home_item_with_bundle
-from services.attention_home_1d import build_attention_entity_master, resolve_macro_anchor_symbols, shortlist_attention_symbols_1d
-from services.attention_materialized import bars_by_symbol_from_price_history, serialize_attention_home_payload, serialize_attention_research_bundles
+from services.attention_home_1d import build_attention_entity_master, resolve_macro_anchor_symbols
+from services.attention_materialized import bars_by_symbol_from_price_history, deserialize_attention_home_payload, serialize_attention_home_payload, serialize_attention_research_bundles
 from services.attention_ticker_snapshots import (
     build_attention_ticker_background_snapshot_frame,
     build_attention_ticker_snapshot_frame,
@@ -115,23 +112,6 @@ def _attention_home_research_limit() -> int:
     except Exception:
         parsed = 40
     return max(parsed, 1)
-
-
-def _attention_home_search_backfill_limit() -> int:
-    raw = (os.getenv("ATTENTION_HOME_SEARCH_BACKFILL_LIMIT") or "100").strip()
-    try:
-        parsed = int(raw)
-    except Exception:
-        parsed = 100
-    return max(parsed, 1)
-
-
-def _attention_home_search_backfill_max_workers() -> int:
-    return _env_positive_int("ATTENTION_HOME_SEARCH_BACKFILL_MAX_WORKERS", 4)
-
-
-def _attention_home_search_backfill_symbol_timeout_seconds() -> int:
-    return _env_positive_int("ATTENTION_HOME_SEARCH_BACKFILL_SYMBOL_TIMEOUT_SECONDS", 45)
 
 
 def _attention_home_search_backfill_lookback_days() -> int:
@@ -482,24 +462,6 @@ def _build_page_agentic_summary_frame(
     return pd.DataFrame(rows)
 
 
-def _zopedia_enrichment_limit() -> int:
-    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_LIMIT", 12)
-
-
-def _zopedia_enrichment_timeout_seconds() -> int:
-    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_TIMEOUT_SECONDS", 600)
-
-
-def _zopedia_agent_llm_timeout_seconds(total_timeout_seconds: int) -> int:
-    configured = _env_positive_int("ATTENTION_HOME_ZOPEDIA_AGENT_LLM_TIMEOUT_SECONDS",
-                                   int(resolve_research_budget()["llm_step_timeout_seconds"]))
-    return max(30, min(configured, max(int(total_timeout_seconds), 1)))
-
-
-def _zopedia_enrichment_max_workers() -> int:
-    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_MAX_WORKERS", 4)
-
-
 def _home_surface_quality_timeout_seconds() -> int:
     return _env_positive_int("ATTENTION_HOME_SURFACE_QUALITY_TIMEOUT_SECONDS", 600)
 
@@ -646,71 +608,6 @@ def _is_retryable_zopedia_llm_failure(result: object) -> bool:
     )
 
 
-def _zopedia_enrichment_failure_categories(
-    *,
-    status: object,
-    answer_markdown: object,
-    limitations: list[Any],
-    tool_calls: list[Any],
-    quality_review: dict[str, Any],
-) -> list[str]:
-    status_text = str(status or "").strip().lower()
-    if status_text in {"completed", "success"} and str(answer_markdown or "").strip():
-        return []
-    pieces: list[str] = [status_text, str(answer_markdown or "")]
-    pieces.extend(str(item or "") for item in limitations)
-    pieces.append(json.dumps(quality_review, default=str))
-    for tool_call in tool_calls:
-        if isinstance(tool_call, dict):
-            pieces.append(str(tool_call.get("tool_name") or ""))
-            pieces.append(str(tool_call.get("status") or ""))
-            pieces.append(str(tool_call.get("error") or ""))
-            pieces.append(str(tool_call.get("message") or ""))
-    text = " ".join(pieces).lower()
-    categories: list[str] = []
-    if any(marker in text for marker in ("non-json", "invalid json", "empty content", "no choices", "refused")):
-        categories.append("llm_structured_output_failure")
-    if any(marker in text for marker in ("timeout", "timed out", "readtimeout")):
-        categories.append("timeout")
-    if any(marker in text for marker in ("tool budget", "max tool", "budget exhausted", "maximum tool", "budget is depleting")):
-        categories.append("tool_budget_exhausted")
-    if any(marker in text for marker in ("indexerror", "requires object_value", "unsupported tool argument", "invalid tool arguments")):
-        categories.append("tool_contract_failure")
-    if any(marker in text for marker in ("quality monitor", "failed_quality_review", "quality review")):
-        categories.append("quality_rejected")
-    if any(marker in text for marker in ("no recent", "no relevant", "no current", "stale", "freshness", "no substantive evidence")):
-        categories.append("no_current_evidence")
-    if any(marker in text for marker in ("no zopedia", "memory missing", "wiki", "retained memory")):
-        categories.append("zopedia_recall_gap")
-    if any(marker in text for marker in ("did not use", "wander", "not followed", "unrelated", "low-signal loop", "exhausted 2 restarts")):
-        categories.append("agent_trajectory_issue")
-    if not categories and status_text and status_text not in {"completed", "success"}:
-        categories.append("unknown_failure")
-    seen: set[str] = set()
-    ordered: list[str] = []
-    for category in categories:
-        if category not in seen:
-            seen.add(category)
-            ordered.append(category)
-    return ordered
-
-
-def _cap_zopedia_confidence(confidence: object, limitations: list[Any]) -> str:
-    normalized = str(confidence or "low").strip().lower()
-    if normalized not in {"low", "medium", "high"}:
-        normalized = "low"
-    limitation_text = " ".join(str(item or "") for item in limitations).lower()
-    source_quality_flags = (
-        "not directly verified",
-        "official company filings not",
-        "financial blogs",
-        "source quality",
-    )
-    if normalized == "high" and any(flag in limitation_text for flag in source_quality_flags):
-        return "medium"
-    return normalized
-
-
 def _zopedia_asof_text(asof_time_utc: object) -> str:
     try:
         ts = pd.Timestamp(asof_time_utc) if asof_time_utc is not None else pd.Timestamp.utcnow()
@@ -721,81 +618,6 @@ def _zopedia_asof_text(asof_time_utc: object) -> str:
         return ts.isoformat()
     except Exception:
         return str(asof_time_utc or "").strip()
-
-
-def _build_zopedia_enrichment_query(symbol: str, *, asof_text: str) -> str:
-    return (
-        f"Compose the investor explanation for {symbol} from the supplied completed research and source captures. "
-        f"As-of timestamp: {asof_text}. This is the composition pass after acquisition, not a second investigation. "
-        "Use the acquired company, peer, customer, supplier, sector, private-company, policy and macro context "
-        "when it helps explain the business. Generated research is dated, fallible analysis, not independent "
-        "corroboration. Preserve useful indirect connections and distinguish observations from hypotheses. "
-        "A source report may describe an older event and a new reaction: keep both dates and explain the distinction. "
-        "If the evidence supports a broad sector move, describe that mechanism without inventing a precise cause. "
-        "Distinguish direct data from proxies: if you only have ETF/proxy evidence such as USO, XLE, SMH, "
-        "or peer moves, describe the proxy or peer move; do not convert it into a confirmed commodity, "
-        "rate, or macro fact. "
-        "Older developments can remain relevant context; do not present them as new disclosures. "
-        "The answer must be a useful investor synthesis, not an inventory of missing evidence. "
-        "Name the best supported sector, macro, peer, customer, supplier, policy, or financing mechanism; "
-        "if none is supported, write one short watch-next sentence and stop. "
-        "A watch-next sentence should use affirmative monitoring language, such as watching the next filing, "
-        "contract update, earnings detail, sector data, or peer print; do not write 'confirm', 'verify', "
-        "'check whether', or similar absence-framed wording. "
-        "Write only a final synthesis; never print tool-output scaffolding, raw evidence tables, "
-        "or a paragraph about failing to synthesize. "
-        "Structure with only substantive sections: ### What Changed, "
-        "### Business Context, ### Most Likely Driver, ### What To Watch. "
-        "Skip any section where you have nothing substantive to say. "
-        "Keep the total answer under 200 words."
-    )
-
-
-def _run_single_zopedia_enrichment(
-    symbol: str,
-    *,
-    timeout_seconds: int,
-    asof_time_utc: object,
-    initial_evidence: list[dict[str, Any]] | None = None,
-) -> dict[str, Any]:
-    query = _build_zopedia_enrichment_query(symbol, asof_text=_zopedia_asof_text(asof_time_utc))
-    try:
-        result = run_aql_zopedia_agent(
-            query=query, task="attention_ticker_enrichment",
-            surface="attention_home.zopedia_ticker_enrichment", force_refresh=True,
-            max_tool_calls=0,
-            run_timeout_seconds=timeout_seconds,
-            llm_step_timeout_seconds=_zopedia_agent_llm_timeout_seconds(timeout_seconds),
-            initial_evidence=initial_evidence, persist_findings=False,
-            request_context={"asof_time_utc": _zopedia_asof_text(asof_time_utc),
-                             "allowed_source_access": ["supplied"]},
-            write_policy="none",
-        )
-    except Exception as exc:
-        result = {"status": "failed", "error": f"{type(exc).__name__}: {exc}", "limitations": [f"{type(exc).__name__}: {exc}"]}
-    tool_calls = [item for item in result.get("tool_calls", []) if isinstance(item, dict)]
-    limitations = list(result.get("limitations") or [])
-    quality_review = dict(result.get("quality_review") or {})
-    answer = str(result.get("answer_markdown") or "")
-    status = str(result.get("status") or "failed")
-    if _looks_like_failed_zopedia_synthesis_answer(answer):
-        answer, status = "", "failed_synthesis"
-    return {
-        "symbol": symbol, "status": status, "answer_markdown": answer,
-        "answer_status": str(result.get("answer_status") or ""),
-        "confidence": _cap_zopedia_confidence(result.get("confidence"), limitations),
-        "limitations_json": json.dumps(limitations),
-        "tool_calls_json": json.dumps(tool_calls, default=str),
-        "quality_review_json": json.dumps(quality_review, default=str),
-        "failure_categories_json": json.dumps(_zopedia_enrichment_failure_categories(
-            status=status, answer_markdown=answer, limitations=limitations,
-            tool_calls=tool_calls, quality_review=quality_review,
-        )),
-        "model": str(result.get("model") or ""),
-        "agent_run_id": str(result.get("run_id") or ""),
-        "error_summary": str(result.get("error") or ""),
-        "runtime_json": json.dumps(result.get("runtime") or {}, default=str),
-    }
 
 
 ZOPEDIA_MARKET_SUMMARY_KEY = "__MARKET_SUMMARY__"
@@ -1115,97 +937,26 @@ def _build_market_summary_query(
 
 
 def _build_zopedia_enrichment_frame(
-    payload: dict[str, Any],
-    *,
-    bundle_map: dict[str, dict[str, Any]] | None = None,
-    asof_time_utc: object,
-    run_id: str,
+    payload: dict[str, Any], *, bundle_map: dict[str, dict[str, Any]] | None = None,
+    asof_time_utc: object, run_id: str,
 ) -> pd.DataFrame:
-    limit = _zopedia_enrichment_limit()
-    timeout = _zopedia_enrichment_timeout_seconds()
-    symbols = collect_attention_ticker_symbols(payload, bundle_map, max_symbols=limit)
-    if not symbols:
-        symbols = _extract_story_symbols(payload)[:limit]
-
-    evidence_by_symbol: dict[str, list[dict[str, Any]]] = {symbol: [] for symbol in symbols}
-    for bundle_id, bundle in (bundle_map or {}).items():
-        # Acquisition is evidence. Generated explanations remain draft analysis.
-        evidence = [
-            {**item, "text": item.get("source_text") or item.get("raw_text") or item.get("text")}
-            for item in bundle.get("evidence") or []
-            if isinstance(item, dict) and (item.get("source_text") or item.get("raw_text") or item.get("text"))
-        ]
-        evidence.extend(
-            {"source_id": f"{bundle_id}::tool::{index}", "title": item.get("tool_name", ""),
-             "text": item["text"], "source_refs": item.get("source_refs") or []}
-            for index, item in enumerate(bundle.get("research_evidence") or [])
-            if isinstance(item, dict) and item.get("text") and item.get("tool_name") != "research.supplied_context"
-        )
-        evidence.append({
-            "kind": "completed_research_context",
-            "bundle_id": bundle_id,
-            "asof_time_utc": bundle.get("asof_time_utc"),
-            "company_context": bundle.get("business_contexts") or bundle.get("business_context") or {},
-            "draft_analysis": {key: bundle.get(key) for key in (
-                "what_happened_text", "what_changed_text", "why_happened_text", "why_now_text",
-                "business_context_text", "watch_next_text", "observed_members", "instrument_context",
-            )},
-        })
+    """Project selected research into the existing ticker drilldown contract."""
+    by_symbol: dict[str, list[dict[str, Any]]] = {}
+    for bundle in (bundle_map or {}).values():
+        if not bundle.get("findings_markdown"):
+            continue
         for symbol in bundle.get("supporting_symbols") or []:
-            if symbol in evidence_by_symbol:
-                evidence_by_symbol[symbol].extend(evidence)
-
-    from concurrent.futures import ThreadPoolExecutor, as_completed
-    rows: list[dict[str, Any]] = []
-
-    if symbols:
-        print(f"[info] attention-home-build zopedia ticker enrichment: {len(symbols)} symbols, timeout={timeout}s each")
-        max_workers = min(len(symbols), _zopedia_enrichment_max_workers())
-        with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="zopedia-enrich") as pool:
-            futures = {
-                pool.submit(
-                    copy_context().run, _run_single_zopedia_enrichment,
-                    symbol,
-                    timeout_seconds=timeout,
-                    asof_time_utc=asof_time_utc,
-                    initial_evidence=evidence_by_symbol[symbol],
-                ): symbol
-                for symbol in symbols
-            }
-            for future in as_completed(futures):
-                symbol = futures[future]
-                try:
-                    row = future.result()
-                except Exception as exc:
-                    print(f"[warn] zopedia enrichment thread failed symbol={symbol}: {type(exc).__name__}: {exc}")
-                    row = {
-                        "symbol": symbol,
-                        "status": "failed",
-                        "answer_markdown": "",
-                        "confidence": "",
-                        "limitations_json": "[]",
-                        "tool_calls_json": "[]",
-                        "quality_review_json": "{}",
-                        "failure_categories_json": json.dumps(
-                            _zopedia_enrichment_failure_categories(
-                                status="failed",
-                                answer_markdown="",
-                                limitations=[str(exc)],
-                                tool_calls=[],
-                                quality_review={},
-                            )
-                        ),
-                        "model": "",
-                    }
-                rows.append(row)
-                status = row.get("status", "unknown")
-                print(f"[info] zopedia enrichment {symbol}: {status}")
-
-    frame = pd.DataFrame(rows)
-    ts = pd.Timestamp(asof_time_utc)
-    frame["generated_at_utc"] = ts.tz_localize("UTC") if ts.tzinfo is None else ts.tz_convert("UTC")
-    frame["run_id"] = str(run_id)
-    return frame.reset_index(drop=True)
+            by_symbol.setdefault(symbol, []).append(bundle)
+    rows = []
+    for symbol, bundles in by_symbol.items():
+        rows.append({"symbol": symbol, "status": "completed", "research_origin": "common_market_agenda",
+            "answer_markdown": "\n\n".join("## " + bundle["event_title"] + "\n\n" + bundle["findings_markdown"] for bundle in bundles),
+            "confidence": "", "limitations_json": "[]", "tool_calls_json": "[]",
+            "quality_review_json": json.dumps({"research_reviews": [bundle.get("quality_review") or {} for bundle in bundles]}, default=str),
+            "source_bundle_ids_json": json.dumps([bundle["bundle_id"] for bundle in bundles]),
+            "failure_categories_json": "[]", "model": "", "run_id": run_id,
+            "generated_at_utc": pd.Timestamp(asof_time_utc)})
+    return pd.DataFrame(rows)
 
 
 def _normalize_symbol(value: object) -> str:
@@ -1338,73 +1089,6 @@ def _company_name_map(frame: pd.DataFrame) -> dict[str, str]:
     rows[name_column] = rows[name_column].fillna("").astype(str).str.strip()
     rows = rows[rows["symbol"].ne("") & rows[name_column].ne("")]
     return dict(rows.drop_duplicates(subset=["symbol"], keep="first").itertuples(index=False, name=None))
-
-
-def _news_payload_has_articles(payload: dict[str, Any] | None) -> bool:
-    if not isinstance(payload, dict):
-        return False
-    articles = payload.get("articles")
-    return isinstance(articles, pd.DataFrame) and not articles.empty
-
-
-def _search_backfill_news_payloads(
-    symbols: list[str],
-    *,
-    existing_payloads: dict[str, dict[str, Any]],
-    company_name_by_symbol: dict[str, str] | None = None,
-    limit: int = 8,
-) -> dict[str, dict[str, Any]]:
-    normalized_symbols = [_normalize_symbol(symbol) for symbol in symbols if _normalize_symbol(symbol)]
-    if not normalized_symbols:
-        return {}
-
-    candidates = [
-        symbol
-        for symbol in normalized_symbols
-        if not _news_payload_has_articles(existing_payloads.get(symbol))
-    ]
-    if not candidates:
-        return {}
-
-    backfilled: dict[str, dict[str, Any]] = {}
-    max_workers = min(len(candidates), _attention_home_search_backfill_max_workers())
-    timeout_seconds = _attention_home_search_backfill_symbol_timeout_seconds()
-    print(
-        "[info] attention-home-build search-backed news backfill starting "
-        f"candidates={len(candidates)} workers={max_workers} timeout={timeout_seconds}s"
-    )
-
-    def _fetch(symbol: str) -> tuple[str, dict[str, Any] | None, str]:
-        try:
-            payload = _call_with_timeout(
-                f"news-backfill-{symbol}",
-                timeout_seconds,
-                lambda: search_symbol_news_payload(
-                    symbol,
-                    company_name=str((company_name_by_symbol or {}).get(symbol) or "").strip(),
-                    max_results=max(int(limit), 1),
-                ),
-            )
-        except Exception as exc:
-            return symbol, None, f"{type(exc).__name__}: {exc}"
-        return symbol, payload if isinstance(payload, dict) else None, ""
-
-    completed = 0
-    with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="news-backfill") as pool:
-        futures = {pool.submit(copy_context().run, _fetch, symbol): symbol for symbol in candidates}
-        for future in as_completed(futures):
-            symbol, payload, error = future.result()
-            completed += 1
-            if error:
-                print(f"[warn] attention-home-build news backfill failed symbol={symbol}: {error}")
-            elif _news_payload_has_articles(payload):
-                backfilled[symbol] = payload or {}
-            if completed == len(candidates) or completed % 10 == 0:
-                print(
-                    "[info] attention-home-build search-backed news backfill progress "
-                    f"completed={completed}/{len(candidates)} hits={len(backfilled)}"
-                )
-    return backfilled
 
 
 def _materialize_news_payload_frame(
@@ -2232,7 +1916,7 @@ def _review_home_public_surface(
         records[source_id] = {"title": str(row.get("symbol") or source_id),
             "metadata": {"kind": "company_research", "symbol": row.get("symbol"), "status": row.get("status")},
             "content": to_jsonable(row)}
-        if row.get("status") == "completed" and row.get("answer_markdown"):
+        if row.get("status") == "completed" and row.get("answer_markdown") and row.get("research_origin") != "common_market_agenda":
             findings.append({"source_id": source_id, "findings": row["answer_markdown"]})
     for index, doc in enumerate(intake):
         identity = str(doc.get("source_id") or doc.get("document_id") or index)
@@ -2243,6 +1927,9 @@ def _review_home_public_surface(
     records["market-observations"] = {"title": "Complete market observations",
         "metadata": {"kind": "market_observations", "asof_time_utc": str(asof_time_utc)},
         "content": to_jsonable(payload.get("market_coverage") or {})}
+    records["market-groups"] = {"title": "Market-wide numerical observations and changing groups",
+        "metadata": {"kind": "numerical_context", "asof_time_utc": str(asof_time_utc)},
+        "content": to_jsonable(payload.get("market_context") or {})}
     records["market-research"] = {"title": "Shared market research and question agenda",
         "metadata": {"kind": "shared_research"}, "content": to_jsonable(market_research or [])}
     service = QueryService.from_environment().with_supplied_evidence(records)
@@ -2260,6 +1947,10 @@ def _review_home_public_surface(
         "the overview and only those selected stories. Each story_id has one written story; unselected findings "
         "remain available for research and must not be expanded into discarded public drafts. "
         "The reviewer sees this selection and these exact bodies; publication preserves them without a later cutoff. "
+        "Compare the proposed explanation against the supplied market groups, participation and multi-day "
+        "leadership, including offsetting strength. Do not let prior headlines decide what deserves attention. "
+        "Inspect the underlying numerical context when an important pattern is unexplained. "
+        "Reused research retains its original event and research dates; its current assessment is separate. "
         "Judge the whole briefing: what matters now, what changes the interpretation, what consequential "
         "operating or policy explanation is missing, and whether its conclusions follow from the sources. "
         "Completed research is fallible analysis, not independent confirmation. Use the existing evidence reader "
@@ -2282,6 +1973,8 @@ def _review_home_public_surface(
         "or limitations. Keep independent useful findings when one source or interpretation remains unresolved."
     )
     initial_evidence = [{
+        "numerical_overview": {key: value for key, value in (payload.get("market_context") or {}).items()
+                               if key not in {"observations", "columns", "previous_groups"}},
         "completed_research_findings": findings,
         "market_research_findings": market_research or [],
         "source_index": [{"source_id": source_id, "title": record["title"], "metadata": record["metadata"],
@@ -2393,21 +2086,10 @@ def build_attention_home_output_frames(
     )
     holdings = [symbol for symbol in holdings if symbol]
 
-    shortlist = shortlist_attention_symbols_1d(
-        movers,
-        holdings=holdings,
-        attention_rows=attention_rows,
-        max_count=100,
-    )
-    if not shortlist:
-        print("[info] attention-home-build has no ticker shortlist; continuing source-event research")
+    # Prepare the covered universe before selection; no daily mover name cut.
+    symbols = movers["symbol"].dropna().astype(str).tolist()
     research_limit = _attention_home_research_limit()
-    search_backfill_limit = _attention_home_search_backfill_limit()
-
-    print(
-        "[info] attention-home-build prepared inputs "
-        f"movers={len(movers)} shortlist={len(shortlist)} holdings={len(holdings)}"
-    )
+    print(f"[info] attention-home-build prepared inputs movers={len(movers)} holdings={len(holdings)}")
     print("[info] attention-home-build loading universe/taxonomy snapshots")
     universe_snapshot_frame = load_materialized_frame_fn("universe_snapshot")
     listing_identity_frame = load_materialized_frame_fn("us_equity_listings")
@@ -2422,13 +2104,12 @@ def build_attention_home_output_frames(
         else:
             identity_frame = listing_identity_frame
     taxonomy_labels_frame = load_materialized_frame_fn("entity_taxonomy_labels")
-    company_name_by_symbol = _company_name_map(identity_frame)
     asset_metadata = {
         str(row["symbol"]): {**row, "name": row.get("security_name") or row.get("name")}
         for row in to_jsonable(identity_frame.to_dict("records")) if row.get("symbol")
     }
     entity_master = build_attention_entity_master(
-        shortlist, taxonomy_frame=taxonomy_labels_frame, asset_metadata_by_symbol=asset_metadata,
+        symbols, taxonomy_frame=taxonomy_labels_frame, asset_metadata_by_symbol=asset_metadata,
     )
     research_universe = identity_frame.copy()
     if "symbol" in taxonomy_labels_frame:
@@ -2440,35 +2121,27 @@ def build_attention_home_output_frames(
         "[info] attention-home-build loaded universe/taxonomy "
         f"universe_rows={len(universe_snapshot_frame)} taxonomy_rows={len(taxonomy_labels_frame)}"
     )
-    bars_by_symbol = bars_by_symbol_from_price_history(
-        price_history_frame,
-        shortlist,
-        asof_time_utc=ctx.asof,
-        lookback_days=120,
-    )
-    print("[info] attention-home-build building news payloads and search backfill")
-    news_payloads = _news_payloads_from_articles_frame(
-        news_frame,
-        symbols=shortlist,
-        limit=8,
-        asof_time_utc=ctx.asof,
-    )
-    search_backfill_payloads = _search_backfill_news_payloads(
-        shortlist[:search_backfill_limit],
-        existing_payloads=news_payloads,
-        company_name_by_symbol=company_name_by_symbol,
-        limit=8,
-    )
-    if search_backfill_payloads:
-        print(
-            "[info] attention-home-build search-backed news backfill: "
-            f"symbols={len(search_backfill_payloads)}"
-        )
-        news_payloads.update(search_backfill_payloads)
+    bar_symbols = list(dict.fromkeys([*symbols, os.getenv("PHASE_SHIFT_BENCHMARK", "SPY").strip().upper()]))
+    bars_by_symbol = bars_by_symbol_from_price_history(price_history_frame, bar_symbols,
+        asof_time_utc=ctx.asof, lookback_days=504)
+    news_payloads = _news_payloads_from_articles_frame(news_frame, symbols=symbols, limit=8, asof_time_utc=ctx.asof)
     context_payloads = _context_payloads_from_frame(attention_context_frame)
     print("[info] attention-home-build loading macro context snapshots")
     fred_summary_frame = load_materialized_frame_fn("fred_summary")
     yield_curve_facts_frame = load_materialized_frame_fn("yield_curve_facts_1d")
+    from compute.signal_extraction import extract_signals_from_bars, extract_signals_from_phase_shift_summary
+    from compute.fred import build_fred_signal_dicts
+    market_signals = extract_signals_from_bars(bars_by_symbol, category="equity")
+    cross_signals = extract_signals_from_phase_shift_summary(load_materialized_frame_fn("correlation_phase_shift_summary"))
+    fred_signals = build_fred_signal_dicts(load_materialized_frame_fn("fred_observations"))
+    previous = deserialize_attention_home_payload(load_materialized_frame_fn("attention_home_snapshots_1d"))
+    previous_time = pd.to_datetime(previous.get("generated_at_utc"), utc=True, errors="coerce")
+    previous_publication = ({"asof_time_utc": previous.get("generated_at_utc"),
+        "brief": previous.get("homepage_summary"),
+        "stories": [{key: item.get(key) for key in ("headline", "event_title", "supporting_symbols", "what_changed_text")}
+                    for section in ("top_events", "must_read_movers", "unresolved_large_moves")
+                    for item in previous.get(section, [])]}
+        if pd.notna(previous_time) and previous_time <= pd.Timestamp(ctx.asof) else {})
     embedding_client = load_embedding_client()
 
     top_events_review_limit = _attention_home_top_events_review_limit()
@@ -2501,6 +2174,8 @@ def build_attention_home_output_frames(
         unresolved_limit=unresolved_review_limit,
         research_limit=research_limit,
         load_search_clients=True,
+        economic_context={"fred_signals": fred_signals},
+        previous_publication=previous_publication,
         progress_callback=research_progress_fn,
     )
     payload = dict(artifacts.home_payload or {})
@@ -2520,7 +2195,7 @@ def build_attention_home_output_frames(
         {
             "equity_universe_count": int(movers[~movers["symbol"].isin(macro_anchor_symbols)]["symbol"].nunique()),
             "macro_anchor_target_count": len(macro_anchor_symbols),
-            "research_symbol_count": min(len(shortlist), research_limit),
+            "research_symbol_count": len(artifacts.frames.get("attention_candidates_1d", pd.DataFrame())),
         }
     )
     payload["coverage_summary"] = coverage
@@ -2542,44 +2217,7 @@ def build_attention_home_output_frames(
             f"symbols={len(business_contexts)}"
         )
 
-    # --- Signal extraction: dense market + macro signals for the LLM summary ---
-    try:
-        from compute.signal_extraction import (
-            extract_signals_from_bars,
-            extract_signals_from_phase_shift_summary,
-        )
-        from compute.fred import build_fred_signal_dicts
-
-        # Market signals from the full price history (not the 120-day attention window)
-        full_price_history_frame = load_materialized_frame_fn("price_history")
-        full_bars = bars_by_symbol_from_price_history(
-            full_price_history_frame,
-            shortlist,
-            asof_time_utc=ctx.asof,
-            lookback_days=504,  # 2yr for signal extraction
-        )
-        market_signals = extract_signals_from_bars(full_bars, category="equity")
-
-        # Cross-series signals from precomputed correlation phase shifts
-        phase_summary_frame = load_materialized_frame_fn("correlation_phase_shift_summary")
-        cross_signals = extract_signals_from_phase_shift_summary(phase_summary_frame)
-
-        # FRED macro signals from precomputed observations
-        fred_obs_frame = load_materialized_frame_fn("fred_observations")
-        fred_signals = build_fred_signal_dicts(fred_obs_frame)
-
-        payload["market_signals"] = market_signals
-        payload["cross_series_signals"] = cross_signals
-        payload["fred_signals"] = fred_signals
-        print(
-            f"[info] attention-home-build signal extraction: "
-            f"market={len(market_signals)} cross={len(cross_signals)} fred={len(fred_signals)}"
-        )
-    except Exception as exc:
-        print(f"[warn] attention-home-build signal extraction failed (non-fatal): {type(exc).__name__}: {exc}")
-        payload.setdefault("market_signals", [])
-        payload.setdefault("cross_series_signals", [])
-        payload.setdefault("fred_signals", [])
+    payload.update(market_signals=market_signals, cross_series_signals=cross_signals, fred_signals=fred_signals)
 
     market_coverage = _build_home_market_coverage_contract(
         movers=movers,
@@ -2615,23 +2253,10 @@ def build_attention_home_output_frames(
         relationship_checks_frame=artifacts.frames.get("macro_relationship_checks_1d", pd.DataFrame()),
     )
 
-    # --- Zopedia ticker enrichment: pre-compute deep dives for homepage tickers ---
-    try:
-        print("[info] attention-home-build starting zopedia ticker enrichment")
-        artifacts.frames["attention_ticker_zopedia_enrichments"] = _build_zopedia_enrichment_frame(
-            payload,
-            bundle_map=artifacts.bundle_map,
-            asof_time_utc=ctx.asof,
-            run_id=ctx.run_id,
-        )
-        enrichment_count = len(artifacts.frames["attention_ticker_zopedia_enrichments"])
-        completed_count = int(
-            (artifacts.frames["attention_ticker_zopedia_enrichments"]["status"] == "completed").sum()
-        ) if enrichment_count > 0 else 0
-        print(f"[info] attention-home-build zopedia enrichment done: {completed_count}/{enrichment_count} completed")
-    except Exception as exc:
-        print(f"[warn] attention-home-build zopedia enrichment failed (non-fatal): {type(exc).__name__}: {exc}")
-        artifacts.frames["attention_ticker_zopedia_enrichments"] = pd.DataFrame()
+    # Drilldowns expose the same selected, reviewed research. They do not run a
+    # second per-ticker investigation after the common agenda has completed.
+    artifacts.frames["attention_ticker_zopedia_enrichments"] = _build_zopedia_enrichment_frame(
+        payload, bundle_map=artifacts.bundle_map, asof_time_utc=ctx.asof, run_id=ctx.run_id)
 
     enrichment_rows = (
         artifacts.frames["attention_ticker_zopedia_enrichments"].to_dict(orient="records")
@@ -2714,6 +2339,7 @@ def build_attention_home_output_frames(
     failed_tickers = [str(row.get("symbol")) for row in ticker_rows if row.get("status") != "completed"]
     unreviewed_tickers = [
         str(row.get("symbol")) for row in ticker_rows if row.get("status") == "completed"
+        and row.get("research_origin") != "common_market_agenda"
         and _json_payload(row.get("quality_review_json"), default={}).get("verdict") not in {"accept", "revise"}
     ]
     coverage = dict(payload.get("coverage_summary") or {})
@@ -2757,9 +2383,19 @@ def build_attention_home_output_frames(
     )
 
     snapshot_symbols = collect_attention_ticker_symbols(payload, artifacts.bundle_map, max_symbols=120)
+    research_news_payloads = {}
+    for bundle in artifacts.bundle_map.values():
+        evidence = [{**doc, "headline": doc.get("headline") or doc.get("title"),
+                     "content": doc.get("source_text") or doc.get("raw_text"),
+                     "summary": doc.get("source_text") or doc.get("raw_text")}
+                    for doc in bundle.get("evidence") or [] if isinstance(doc, dict)]
+        for symbol in bundle.get("supporting_symbols") or []:
+            research_news_payloads.setdefault(symbol, {"articles": []})["articles"].extend(evidence)
+    research_news_payloads = {symbol: {"articles": pd.DataFrame(value["articles"])}
+                              for symbol, value in research_news_payloads.items()}
     merged_news_frame = _merge_news_frames(
         news_frame,
-        _materialize_news_payload_frame(search_backfill_payloads, asof_time_utc=ctx.asof),
+        _materialize_news_payload_frame(research_news_payloads, asof_time_utc=ctx.asof),
     )
     momentum_profiles_frame = load_materialized_frame_fn("momentum_profiles")
     quarterly_fundamentals_frame = load_materialized_frame_fn("quarterly_fundamentals")
@@ -2873,59 +2509,13 @@ def build_attention_home_output_frames(
             print(f"[warn] attention-home-build page agentic summaries failed (non-fatal): {type(exc).__name__}: {exc}")
             artifacts.frames["page_agentic_summaries"] = pd.DataFrame()
 
-    search_results = artifacts.frames.get("attention_search_results", pd.DataFrame()).copy()
-    if not search_results.empty:
-        search_results["symbol"] = search_results["candidate_id"].astype(str).map(
-            lambda value: _normalize_symbol(str(value).split("candidate::", 1)[1]) if "candidate::" in str(value) else ""
-        )
-        legacy_search_news = pd.DataFrame(
-            {
-                "symbol": search_results.get("symbol", pd.Series(dtype=str)),
-                "row_type": "article",
-                "headline": search_results.get("title", pd.Series(dtype=str)),
-                "summary": search_results.get("snippet", pd.Series(dtype=str)),
-                "source": search_results.get("source", pd.Series(dtype=str)),
-                "published_at": search_results.get("published_at", pd.Series(dtype=str)),
-                "url": search_results.get("url", pd.Series(dtype=str)),
-                "payload_source": search_results.get("provider", pd.Series(dtype=str)),
-                "fallback_summary": "",
-                "asof_time_utc": pd.Timestamp(ctx.asof).isoformat(),
-            }
-        )
-        legacy_search_news = legacy_search_news[legacy_search_news["symbol"].astype(str).ne("")].reset_index(drop=True)
-        if not legacy_search_news.empty:
-            asof_ts = pd.to_datetime(ctx.asof, utc=True, errors="coerce")
-            legacy_search_news["published_at"] = legacy_search_news.apply(
-                lambda row: coerce_article_published_at(
-                    row.get("published_at"),
-                    url=row.get("url"),
-                    asof_time_utc=asof_ts,
-                ),
-                axis=1,
-            )
-            legacy_search_news = legacy_search_news[
-                legacy_search_news["published_at"].apply(
-                    lambda value: is_recent_for_attention(
-                        value,
-                        asof_time_utc=asof_ts,
-                        max_age_days=3,
-                        include_undated=False,
-                    )
-                )
-            ].reset_index(drop=True)
-    else:
-        legacy_search_news = pd.DataFrame()
-
-    backfill_search_news = _materialize_attention_web_search_news(
-        search_backfill_payloads,
-        asof_time_utc=ctx.asof,
-    )
+    research_news = _materialize_attention_web_search_news(research_news_payloads, asof_time_utc=ctx.asof)
 
     return {
         **artifacts.frames,
         "attention_home_1d": artifacts.frames.get("attention_home_snapshots_1d", pd.DataFrame()),
         "attention_research_bundles": artifacts.frames.get("attention_bundle_snapshots", pd.DataFrame()),
-        "attention_web_search_news": _merge_news_frames(legacy_search_news, backfill_search_news),
+        "attention_web_search_news": research_news,
     }
 
 

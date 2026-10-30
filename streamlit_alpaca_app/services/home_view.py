@@ -236,7 +236,7 @@ def build_public_home_view(
             "audio_mime_type": _clean(summary_payload.get("audio_mime_type"), limit=80) or "audio/mpeg",
         }
 
-    narrative_beats = [item for item in build_attention_home_narrative_beats(payload)[:16] if isinstance(item, dict)]
+    narrative_beats = [item for item in build_attention_home_narrative_beats(payload) if isinstance(item, dict)]
     if not is_replay:
         requested_symbols = list(
             dict.fromkeys(

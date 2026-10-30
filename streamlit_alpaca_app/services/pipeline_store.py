@@ -2873,10 +2873,10 @@ def list_research_artifacts(*, namespace: str, subjects: list[str] | None = None
                 JOIN aql_zopedia_execution_state a
                   ON a.namespace=%s AND a.state_key=p.payload->>'artifact_id'
                 WHERE p.namespace=%s AND (%s::text[] IS NULL OR a.payload->>'subject'=ANY(%s))
-                  AND (%s::text IS NULL OR a.payload->>'task'=%s)
+                  AND (%s::text IS NULL OR right(p.state_key,length(%s)+1)=':' || %s)
                 ORDER BY p.updated_at_utc DESC LIMIT %s""",
                         (namespace, namespace + ":latest", subjects or None, subjects or None,
-                         task, task, min(max(limit, 1), 100)))
+                         task, task, task, min(max(limit, 1), 100)))
             return [dict(row[0]) for row in cur.fetchall()]
 
 

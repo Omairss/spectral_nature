@@ -30,6 +30,7 @@ def serialize_attention_home_payload(payload: dict[str, Any]) -> pd.DataFrame:
     row = {
         "run_id": _coerce_text((payload or {}).get("run_id")),
         "generated_at_utc": _coerce_text((payload or {}).get("generated_at_utc")),
+        "market_context_json": _json_dumps((payload or {}).get("market_context") or {}),
         "coverage_summary_json": _json_dumps((payload or {}).get("coverage_summary") or {}),
         "taxonomy_horizon_trends_json": _json_dumps((payload or {}).get("taxonomy_horizon_trends") or []),
         "top_events_json": _json_dumps((payload or {}).get("top_events") or []),
@@ -53,6 +54,7 @@ def deserialize_attention_home_payload(frame: pd.DataFrame) -> dict[str, Any]:
     return {
         "run_id": _coerce_text(row.get("run_id")),
         "generated_at_utc": _coerce_text(row.get("generated_at_utc")),
+        "market_context": _json_loads(row.get("market_context_json"), default={}),
         "coverage_summary": _json_loads(row.get("coverage_summary_json"), default={}),
         "taxonomy_horizon_trends": _json_loads(row.get("taxonomy_horizon_trends_json"), default=[]),
         "top_events": _json_loads(row.get("top_events_json"), default=[]),
@@ -231,7 +233,7 @@ def bars_by_symbol_from_price_history(
     asof_ts = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
     if pd.notna(asof_ts):
         cutoff = asof_ts - pd.Timedelta(days=max(int(lookback_days), 1))
-        out = out[(out["timestamp"] >= cutoff) & (out["timestamp"] <= asof_ts + pd.Timedelta(days=1))].copy()
+        out = out[(out["timestamp"] >= cutoff) & (out["timestamp"] <= asof_ts)].copy()
     bars_by_symbol: dict[str, pd.DataFrame] = {}
     for symbol, group in out.groupby("symbol", dropna=False):
         bars_by_symbol[str(symbol)] = group.sort_values("timestamp").reset_index(drop=True)

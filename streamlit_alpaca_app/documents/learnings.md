@@ -1513,3 +1513,7 @@ The 41.8448USD historical Home event/company subtotal spans 974 successful price
 ### Market-First Research checkpoint and assumption review — October 30, 2026
 
 Name the design separately from accepted source. Preserve the exact accepted application, complete live image/configuration references and a recoverable Git checkpoint before implementing. The measured index support is retrospective; dated holdings and taxonomy are not proof of real-time planner discovery. A data-first sequence is insufficient if it retains a pre-group name cut, mistakes sector labels for changing clusters, suppresses news without price movement or narrows evidence irreversibly. Complete-run costs and full outputs must establish recall and savings. See plans/MARKET_FIRST_RESEARCH_2026-10-30.json.
+
+### Keep numerical coverage and focused research context separate — October 30, 2026
+
+Market-First preparation retains the complete observed universe before selecting questions. Return groups use adjusted completed-session histories; current partial bars and raw snapshot returns keep separate time/basis labels. A group hash identifies its exact members, not a permanent economic theme. Selected investigations receive relevant observations with access to all originals through the existing evidence reader. Reused findings retain their original dates, and two questions may reference one prior artifact without overwriting their execution or publication identities. Operational checks do not establish model quality or savings.

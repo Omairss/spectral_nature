@@ -1444,3 +1444,7 @@ The earlier answer said 15 Home updates containing 151 stories without immediate
 ### Separate design benefits from verified outcomes — October 30, 2026
 
 The discussion of Market-First Research described expected cost/recall benefits before a candidate existed. The named plan now explicitly records them as hypotheses, identifies the audited 999-instrument coverage limit and retrospective end-weight attribution, and requires point-in-time matched comparisons. A local code checkpoint preserves accepted behavior; it cannot certify the new planner, guarantee zero omissions or restore Azure/data state by itself. No redesign runtime or release was made during this review.
+
+### Qualification setup must match production storage assumptions — October 30, 2026
+
+The initial Market-First preparation queried large research payloads before narrowing their lightweight latest pointers and exceeded its read timeout; the next local PostgreSQL setup used SQL_ASCII and rejected retained Unicode source text. No inference was sent. Narrow pointer identities before loading full artifacts, use UTF8 for isolated PostgreSQL, and preserve attempt costs across qualification retries. The runtime research-list query now filters task identity on the existing pointer key instead of decoding unrelated full results.
