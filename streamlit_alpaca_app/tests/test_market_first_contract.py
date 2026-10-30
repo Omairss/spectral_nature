@@ -69,6 +69,7 @@ def test_one_agenda_dispatches_only_selected_questions_with_focused_context(monk
     def run(**kwargs):
         calls.append(kwargs)
         if kwargs["task"] == "source_event_nomination":
+            assert "anomaly_score" in kwargs["service"].read_supplied_evidence(source_id="market-observations")["text"]
             return {"status": "completed", "payload": {"research_agenda": ["Question"],
                 "findings_markdown": "Current assessment", "events": [plan()]}}
         assert '"symbol": "UNRELATED"' not in kwargs["query"]
@@ -81,9 +82,25 @@ def test_one_agenda_dispatches_only_selected_questions_with_focused_context(monk
     result = pipeline.build_bottom_up_attention_artifacts(movers, llm_client=object(),
         generated_at_utc="2026-10-30T18:50Z", run_id="contract")
     assert [call["task"] for call in calls] == ["source_event_nomination", "source_event_research"]
-    assert result.frames["attention_candidates_1d"].symbol.tolist() == ["A"]
+    assert set(result.frames["attention_candidates_1d"].symbol) == {"A", "UNRELATED"}
     assert result.home_payload["market_context"]["coverage"]["observed_symbols"] == 2
     assert len(result.bundle_map) == 1
+
+
+def test_zero_selected_investigations_preserve_current_numerical_signals(monkeypatch):
+    monkeypatch.delenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", raising=False)
+    calls = []
+    def run(**kwargs):
+        calls.append(kwargs['task'])
+        return {'status': 'completed', 'payload': {'research_agenda': [],
+            'findings_markdown': 'Current assessment', 'events': []}}
+    monkeypatch.setattr(events, 'run_aql_zopedia_structured_agent', run)
+    result = pipeline.build_bottom_up_attention_artifacts(pd.DataFrame({'symbol': ['A'], 'close': [10],
+        'prev_close': [9], 'change_pct': [1], 'volume': [100]}), llm_client=object(),
+        generated_at_utc='2026-10-30T18:50Z', run_id='quiet-contract')
+    assert calls == ['source_event_nomination']
+    assert result.frames['attention_candidates_1d'].symbol.tolist() == ['A']
+    assert result.bundle_map == {} and result.home_payload['top_events'] == []
 
 
 def test_reuse_keeps_original_sources_dates_and_distinct_question_identity(monkeypatch):
@@ -179,3 +196,20 @@ def test_partial_snapshot_does_not_compare_yesterdays_return_with_todays_benchma
     rows = [dict(zip(context["columns"], values)) for values in context["observations"]]
     row = next(row for row in rows if row["symbol"] == "C")
     assert pd.isna(row.get("return_5d_excess_pp"))
+
+
+def test_relationship_change_compares_the_same_prior_peers():
+    bars = histories()
+    a = bars['A'].close.pct_change().fillna(0).to_numpy()
+    c = bars['C'].close.pct_change().fillna(0).to_numpy()
+    bars['B']['close'] = 100 * np.cumprod(1 + np.concatenate([a[:60], c[60:]]))
+    for frame in bars.values():
+        frame.attrs['price_adjustment'] = 'all'
+    context = build_market_attention_context(pd.DataFrame({'symbol': list(bars)}), bars,
+        asof_time_utc=bars['A'].timestamp.iloc[-1] + pd.Timedelta(days=1), comparison_shift=40)
+    assert ['A', 'B'] in context['previous_groups'].values()
+    assert any(group['members'] == ['B', 'C'] for group in context['groups'])
+    b = next(dict(zip(context['columns'], row)) for row in context['observations']
+             if row[context['columns'].index('symbol')] == 'B')
+    assert b['prior_group_peer_correlation_previous_window'] > .99
+    assert b['prior_group_peer_correlation_current_window'] < .4

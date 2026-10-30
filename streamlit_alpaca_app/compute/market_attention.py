@@ -138,6 +138,8 @@ def build_market_attention_context(
             "snapshot_price_adjustment": snapshot.get("price_adjustment"),
             "price_adjustment": adjustment.get(symbol, "missing"),
             "group": membership.get(symbol), "previous_group": old_membership.get(symbol)}
+        row.update({key: snapshot.get(key) for key in ("anomaly_score", "return_z", "volume_z", "range_z", "anomaly_history_count")
+                    if key in snapshot})
         row.update(performance(symbol))
         peers = [s for s in old_groups.get(old_membership.get(symbol, ""), []) if s != symbol]
         if peers:
@@ -178,6 +180,7 @@ def build_market_attention_context(
         "method": {"grouping": "complete-linkage positive return correlation",
             "aggregation": "Group and sector returns are equal-weight means of covered instruments, not official sector or capitalization-weighted index returns.",
             "peer_comparison": "Both peer-correlation windows use the company's prior group peers, not its newly assigned current group.",
+            "anomaly_features": "Existing daily return, volume and range anomaly features retain their snapshot basis. Adjusted-history daily_return_z and return groups are separate observations, not confirmations of those raw features.",
             "window_sessions": window, "comparison_shift_sessions": comparison_shift,
             "minimum_pair_observations": min_observations, "correlation_floor": correlation_floor,
             "current_window": [str(recent.index.min()), str(recent.index.max())],

@@ -523,7 +523,7 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
             "properties": {
                 "story_id": {"type": "string"},
                 "time_basis": _STORY_TIME_BASIS_SCHEMA,
-                "event_title": {"type": "string", "description": "The substantive development, with chronology and strength of explanation intact."},
+                "event_title": {"type": "string", "description": "The substantive development, with chronology and strength of explanation intact. A hypothesized cause remains a hypothesis in the headline; a caveat later in the story cannot correct an asserted cause."},
                 "surface_summary_text": {"type": "string", "description": "The development's essential meaning for an investor, without duplicating the headline or detailed account."},
                 "what_happened_text": {"type": "string", "description": "Explain what changed in the business, policy or market. Describe reported beats, misses and guidance changes in words; retain an exact quantity only when it explains the scale or a consequential distinction. Do not transcribe actual-versus-estimate pairs or financial statement line items into prose."},
                 "why_happened_text": {"type": "string", "description": "Explain the supported mechanism and worthwhile competing interpretations. Distinguish inference from reported explanation; develop the reasoning rather than repeat the observations."},
@@ -1973,6 +1973,12 @@ def _review_home_public_surface(
         "choose a figure for the briefing only if removing it would materially change the reader's understanding "
         "of the mechanism, scale or tradeoff. A reported beat or miss does not require restating actuals, "
         "estimates and every reported metric. Explain useful connections, including uncertain leads. "
+        "Write from the business meaning rather than compressing a list of research claims. Ticker rows and "
+        "charts already show price performance and financial values; prose explains what changes the investment "
+        "interpretation. Use words for direction and scale when an exact figure adds no decision value. "
+        "Keep uncertainty at the point of the causal claim, including the headline and summary; a later caveat "
+        "does not make an earlier assertion accurate. Standing economic relationships explain a possible "
+        "mechanism, not why investors traded today. Leave a public field empty when it adds no distinct insight. "
         "Establish time_basis before each story's prose: "
         "distinguish current observations, original event dates, source publication dates and upcoming information. "
         "A background statement must not become a new announcement through its headline. "

@@ -165,11 +165,21 @@ def build_bottom_up_attention_artifacts(
     run_id = _coerce_text(run_id) or f"attention-run-{uuid.uuid4().hex[:12]}"
     policy = {name: (float(get_config_param(key)) if name == "correlation_floor" else int(get_config_param(key)))
               for name, key in _MARKET_PARAMETERS.items()}
-    numerical = to_jsonable(build_market_attention_context(daily_movers, bars_by_symbol or {},
-        asof_time_utc=asof, universe=topology_universe_frame,
-        benchmark_symbol=os.getenv("PHASE_SHIFT_BENCHMARK", "SPY").strip().upper(), **policy))
     entity_rows = entity_master if isinstance(entity_master, pd.DataFrame) else build_attention_entity_master(
         daily_movers.get("symbol", pd.Series(dtype=str)).dropna().astype(str).tolist())
+    # Numerical signals retain complete coverage independently of which questions
+    # receive research. Ranking and macro consumers must not inherit that cut.
+    candidates = _augment_candidate_frame(build_attention_event_candidates_1d(
+        daily_movers, selected_symbols=daily_movers.get("symbol", pd.Series(dtype=str)).tolist(),
+        attention_rows=attention_rows, bars_by_symbol=bars_by_symbol, news_payloads=news_payloads,
+        context_payloads=context_payloads, entity_master=entity_rows, holdings=holdings,
+        asof_time_utc=asof), asof_time_utc=asof, run_id=run_id)
+    feature_columns = [key for key in ("anomaly_score", "return_z", "volume_z", "range_z", "anomaly_history_count")
+                       if key in candidates and key not in daily_movers]
+    observed = daily_movers.merge(candidates[["symbol", *feature_columns]], on="symbol", how="left") if "symbol" in daily_movers else daily_movers
+    numerical = to_jsonable(build_market_attention_context(observed, bars_by_symbol or {},
+        asof_time_utc=asof, universe=topology_universe_frame,
+        benchmark_symbol=os.getenv("PHASE_SHIFT_BENCHMARK", "SPY").strip().upper(), **policy))
     source_news = news_frame
     if not isinstance(source_news, pd.DataFrame):
         articles = [item["articles"] for item in (news_payloads or {}).values()
@@ -179,21 +189,24 @@ def build_bottom_up_attention_artifacts(
                     if isinstance(fred_summary_frame, pd.DataFrame) else [],
                 "yield_curve_observations": to_jsonable(yield_curve_facts_frame.to_dict("records"))
                     if isinstance(yield_curve_facts_frame, pd.DataFrame) else [], **(economic_context or {})}
-    selected = research_source_events(source_news, market_frame=daily_movers,
+    selected = research_source_events(source_news, market_frame=observed,
         universe_frame=topology_universe_frame, asof_time_utc=asof, run_id=run_id,
         llm_client=llm_client, market_context=numerical, macro_context=economic,
         previous_publication=previous_publication,
         progress_callback=(lambda event: progress_callback(0, 1, event)) if progress_callback else None)
-    # Numerical preparation covers the universe. Candidate rows below are display
-    # adapters for the common agenda, never an independent research shortlist.
+    # Selection narrows research and its display adapters, never numerical data.
     symbols = list(dict.fromkeys(
         [_normalize_symbol(symbol) for row in selected["plans"]
          for symbol in json.loads(row["plan_json"])["related_symbols"]]
         + [symbol for bundle in selected["bundles"] for symbol in bundle["supporting_symbols"]]))
-    candidates = _augment_candidate_frame(build_attention_event_candidates_1d(
-        daily_movers, selected_symbols=symbols, attention_rows=attention_rows,
-        bars_by_symbol=bars_by_symbol, news_payloads=news_payloads, context_payloads=context_payloads,
-        entity_master=entity_rows, holdings=holdings, asof_time_utc=asof), asof_time_utc=asof, run_id=run_id)
+    extra_symbols = sorted(set(symbols) - set(candidates.get("symbol", [])))
+    if extra_symbols:
+        extra = _augment_candidate_frame(build_attention_event_candidates_1d(
+            daily_movers, selected_symbols=extra_symbols, attention_rows=attention_rows,
+            bars_by_symbol=bars_by_symbol, news_payloads=news_payloads, context_payloads=context_payloads,
+            entity_master=entity_rows, holdings=holdings, asof_time_utc=asof), asof_time_utc=asof, run_id=run_id)
+        candidates = pd.concat([candidates, extra], ignore_index=True)
+    selected_candidates = candidates[candidates["symbol"].isin(symbols)]
     identities = { _normalize_symbol(row.get("symbol")): row for row in to_jsonable(
         topology_universe_frame.to_dict("records"))} if isinstance(topology_universe_frame, pd.DataFrame) else {}
     observations = {_normalize_symbol(row.get("symbol")): row for row in to_jsonable(daily_movers.to_dict("records"))}
@@ -240,13 +253,13 @@ def build_bottom_up_attention_artifacts(
         "supporting_claim_ids_json": _json_dumps(bundle["supporting_claim_ids"]),
         "event_score": 0., "cause_status": bundle["cause_status"], "event_type": "market_research"}
         for bundle in bundles])
-    home = _build_home_payload(candidates, bundle_map, bundles, attention_rows=attention_rows,
+    home = _build_home_payload(selected_candidates, bundle_map, bundles, attention_rows=attention_rows,
         generated_at_utc=asof, run_id=run_id, entity_master=entity_rows, top_events_limit=top_events_limit,
         must_read_limit=must_read_limit, unresolved_limit=unresolved_limit,
         macro_release_bundles=[], macro_release_force_limit=0, relationship_checks_frame=checks,
         hypotheses_frame=hypotheses)
     home["market_context"] = numerical
-    home["homepage_graph"] = build_homepage_attention_graph_payload(candidates, graph, clusters,
+    home["homepage_graph"] = build_homepage_attention_graph_payload(selected_candidates, graph, clusters,
         universe_frame=topology_universe_frame if isinstance(topology_universe_frame, pd.DataFrame) else entity_rows)
     home["coverage_summary"].update({"source_event_research_status": selected["status"],
         "source_event_nominated_count": len(selected["plans"]), "source_event_completed_count": len(bundles),
