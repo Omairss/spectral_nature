@@ -39,6 +39,7 @@ struct MarketEventCarousel: View {
   @State private var position: String?
   @State private var expanded = false
   @State private var selection: Selection?
+  @State private var focusRequest: String?
 
   private struct Selection: Equatable {
     let day: String
@@ -91,7 +92,10 @@ struct MarketEventCarousel: View {
           ScrollView(.horizontal) {
             HStack(alignment: .top, spacing: 0) {
               ForEach(calendar.days) { day in
-                column(day, width: step) { id in reader.scrollTo(id, anchor: .center) }
+                column(day, width: step) { id in
+                  focusRequest = id
+                  reader.scrollTo(id, anchor: .center)
+                }
                   .frame(width: step, height: height, alignment: .top)
                   .background {
                     GeometryReader { geometry in
@@ -114,7 +118,9 @@ struct MarketEventCarousel: View {
           .coordinateSpace(name: "marketCalendarViewport")
           .scrollIndicators(.hidden)
           .scrollTargetBehavior(Snap(step: step))
-          .onAppear { reader.scrollTo(calendar.referenceDate, anchor: .center) }
+          .onGeometryChange(for: CGSize.self, of: { $0.size }) { _ in
+            reader.scrollTo(focusRequest ?? calendar.referenceDate, anchor: .center)
+          }
           .onPreferenceChange(Centers.self) { centers in
             if let nearest = centers.min(by: {
               abs($0.value - viewportWidth / 2) < abs($1.value - viewportWidth / 2)
@@ -142,6 +148,7 @@ struct MarketEventCarousel: View {
           }
           Spacer()
           Button {
+            focusRequest = position
             withAnimation(animation) { expanded = false; selection = nil }
           } label: {
             Image(systemName: "chevron.up").font(.system(size: 12, weight: .medium))
