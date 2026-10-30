@@ -73,7 +73,7 @@ struct MarketEventCarousel: View {
         let viewportWidth = viewport.size.width
         let step = viewportWidth / 5
         ScrollView(.horizontal) {
-          HStack(alignment: .top, spacing: 0) {
+          LazyHStack(alignment: .top, spacing: 0) {
             ForEach(calendar.days) { day in
               column(day, width: step)
                 .frame(width: step, height: height, alignment: .top)
@@ -90,8 +90,8 @@ struct MarketEventCarousel: View {
             }
           }
           .scrollTargetLayout()
-          .padding(.horizontal, step * 2)
         }
+        .contentMargins(.horizontal, step * 2, for: .scrollContent)
         .scrollIndicators(.hidden)
         .scrollTargetBehavior(.viewAligned)
         .scrollPosition(id: $position, anchor: .center)
@@ -157,7 +157,7 @@ struct MarketEventCarousel: View {
           dateLabel(day).frame(width: width, height: 44)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(day.label), \(day.events.count) events")
+        .accessibilityLabel("\(day.label), \(day.events.count) \(day.events.count == 1 ? "event" : "events")")
 
         ScrollView(.vertical) {
           VStack(spacing: 0) {
@@ -202,7 +202,7 @@ struct MarketEventCarousel: View {
         .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
-      .accessibilityLabel("\(day.label), \(day.events.count) events")
+      .accessibilityLabel("\(day.label), \(day.events.count) \(day.events.count == 1 ? "event" : "events")")
       .accessibilityHint("Expands the calendar in place")
       .accessibilityIdentifier("calendar-day-\(day.id)")
     }
