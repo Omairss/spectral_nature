@@ -483,7 +483,7 @@ def test_market_discovery_retains_acquisition_without_feed_or_focused_events(mon
         macro_context={"observations": [{"date": "2026-10-27", "value": 1}]})
     assert len(calls) == 1 and calls[0]["max_tool_calls"] > 0
     assert calls[0]["service"].read_supplied_evidence(source_id="economic-observations")["text"]
-    assert calls[0]["initial_evidence"][0]["evidence_manifest"]["source_count"] == 3
+    assert calls[0]["service"].read_supplied_evidence(source_id="previous-publication")["text"]
     assert result["documents"][0]["raw_text"] == source["content"]
     assert result["documents"][0]["url"] == source["url"]
     assert result["market_research"][0]["status"] == ("completed" if valid_contract else "failed")
