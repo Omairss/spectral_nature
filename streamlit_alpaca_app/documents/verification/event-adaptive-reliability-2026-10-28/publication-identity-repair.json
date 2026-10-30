@@ -1,5 +1,5 @@
 {
-  "status": "exact_worker_image_cloud_qualified",
+  "status": "development_deployed_verified",
   "source_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
   "review_base_revision": "708d6e0bca19e60fec3d1329a874323f6389b70d",
   "recorded_at_utc": "2026-10-30T00:53:53.801033+00:00",
@@ -48,7 +48,7 @@
   },
   "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/operations/event-adaptive-reliability-2026-10-28/home-publication-failure-20261029",
   "release": {
-    "status": "development_rollout_ready",
+    "status": "production_rollout_ready",
     "production_authorization_basis": "Standing owner instruction to fix the release and push once verified, plus explicit approval of the coherent candidate. This corrects its first scheduled publication failure; no expanded feature or paid run.",
     "ACR_run": "cj1dg"
   },
@@ -145,5 +145,126 @@
     "paid_inference_calls": 0,
     "production_writes": false,
     "persistent_job_template_changes": false
+  },
+  "development_deployment": {
+    "environment": "development",
+    "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+    "source_inventory_sha256": "309db5c956f31776dbaefdd95522abe25618a0481514923e08048397b765745b",
+    "runtime_inventory_sha256": "d052b77b61ba8f461ec03c5d910de38793a8ee9ed550b31cfeb1dd034c6a6258",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48"
+    },
+    "targets": [
+      {
+        "name": "trading-agent-build-dev",
+        "kind": "jobs",
+        "role": "worker",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+        "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
+        "provisioning_state": "Succeeded"
+      },
+      {
+        "name": "macro-fred-daily-dev",
+        "kind": "jobs",
+        "role": "worker",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+        "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
+        "provisioning_state": "Succeeded"
+      },
+      {
+        "name": "sn-research-run-dev",
+        "kind": "jobs",
+        "role": "worker",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+        "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
+        "provisioning_state": "Succeeded"
+      },
+      {
+        "name": "dataset-refresh-dev",
+        "kind": "jobs",
+        "role": "worker",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+        "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
+        "provisioning_state": "Succeeded"
+      },
+      {
+        "name": "attention-home-next-dev",
+        "kind": "jobs",
+        "role": "worker",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+        "configuration_sha256": "b307da9a8aeb66a26d800e66b5e602d5300542114a1f4af4275f416f083e023b",
+        "provisioning_state": "Succeeded"
+      },
+      {
+        "name": "attention-ticker-next-dev",
+        "kind": "jobs",
+        "role": "worker",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+        "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
+        "provisioning_state": "Succeeded"
+      },
+      {
+        "name": "daily-datapoints-next-dev",
+        "kind": "jobs",
+        "role": "worker",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+        "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
+        "provisioning_state": "Succeeded"
+      },
+      {
+        "name": "technical-history-next-dev",
+        "kind": "jobs",
+        "role": "worker",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+        "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
+        "provisioning_state": "Succeeded"
+      },
+      {
+        "name": "equities-next-dev",
+        "kind": "jobs",
+        "role": "worker",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+        "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
+        "provisioning_state": "Succeeded"
+      },
+      {
+        "name": "system-recovery-dev",
+        "kind": "jobs",
+        "role": "worker",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+        "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
+        "provisioning_state": "Succeeded"
+      },
+      {
+        "name": "cleanup-trial-observer-dev",
+        "kind": "jobs",
+        "role": "worker",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+        "configuration_sha256": "a2c020dace093967fddc70cf28d1dfa7d823f94df764256a85e99cce486b3b09",
+        "provisioning_state": "Succeeded"
+      },
+      {
+        "name": "zopedia-maintenance-dev",
+        "kind": "jobs",
+        "role": "worker",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+        "configuration_sha256": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
+        "provisioning_state": "Succeeded"
+      }
+    ],
+    "recorded_at": "2026-10-30T01:09:43.459077+00:00",
+    "job_executions_started": 0
   }
 }

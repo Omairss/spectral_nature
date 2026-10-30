@@ -1495,8 +1495,15 @@
     "scope": "Standing authorization to complete the release fixes, reinforced by Good. Push to prod for the coherent candidate. Correct its observed publication identity failure after local retained-output and exact-image DEV verification. Preserve current Trading source and all36 configurations; retain seven non-worker images."
   },
   "development_acceptance": {
-    "status": "pending",
-    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json"
+    "status": "accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48"
+    },
+    "source_inventory_sha256": "309db5c956f31776dbaefdd95522abe25618a0481514923e08048397b765745b",
+    "recorded_at_utc": "2026-10-30T01:10:17.021339+00:00",
+    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+    "development_targets": 12,
+    "qualification_execution": "macro-fred-daily-dev-rn8dr5m"
   },
   "production_acceptance": {
     "status": "pending",
