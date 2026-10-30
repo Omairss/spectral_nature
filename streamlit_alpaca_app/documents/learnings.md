@@ -1521,3 +1521,7 @@ Market-First preparation retains the complete observed universe before selecting
 ### Carry dated knowledge through the existing research flow — October 30, 2026
 
 A data-first planner alone does not protect discoveries: investigations need relevant prior findings and original captures, while retaining access to wider observations. Missing a fresh headline does not prove a factor cause. Reader IDs must name stable captured sources, and response schemas should enumerate those exact IDs. A projected ticker view is not independent research confirmation. Peer comparisons must state which fixed peer set is compared; covered-instrument means are not official index returns.
+
+### Research selection must not truncate numerical production — October 30, 2026
+
+Generate existing numerical anomaly features for the covered universe before grouping and planning. Preserve that complete dataset for ranking and macro consumers when the planner buys few or no investigations. A focused Home display is a projection of those same observations. Qualitative comparisons must freeze historical memory as well as market inputs; exact-input caches and immutable paid artifacts may remain without promoting rejected trials into prior knowledge. Public prose explains business meaning while the existing ticker rows and charts carry quantities; uncertainty belongs at the causal claim, including its headline.

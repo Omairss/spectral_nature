@@ -1456,3 +1456,7 @@ The first Market-First paid comparison exposed a new input mistake: copying the 
 ### Repair research handoffs before accepting a data-first selection — October 30, 2026
 
 The first complete Market-First comparison selected previously missed numerical leads but framed broad groups as competing causal explanations and failed to pass relevant prior publication findings into focused research. Publication then failed on list-position source references. No candidate was accepted or deployed. Corrected the owning planner/research context, retained dated originals in the existing reader, and bound publication references to stable capture IDs rather than adding aliases or suppressing failures.
+
+### Keep qualification history fixed and numerical consumers broad — October 30, 2026
+
+A retry initially included unaccepted trial findings in its prior-research context. Paused further paid transport, retained all immutable work and costs, and froze the original 39 retained artifacts for comparisons. The consumer audit also found that limiting numerical candidate rows to selected investigations would narrow signal-ranking and macro inputs, especially on a zero-investigation run. Moved the existing numerical preparation before selection across the covered universe; research and display selection remain separate. The full first successful publication still repeated chart values and overstated some causal headlines, so it remains unaccepted while the owning editor contract is corrected and replayed.
