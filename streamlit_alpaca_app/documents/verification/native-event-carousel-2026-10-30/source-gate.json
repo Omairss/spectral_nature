@@ -1,0 +1,10 @@
+{
+  "accepted_source_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+  "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+  "files": 319,
+  "role": "api-next",
+  "runtime_files": 195,
+  "runtime_inventory_sha256": "d052b77b61ba8f461ec03c5d910de38793a8ee9ed550b31cfeb1dd034c6a6258",
+  "source_inventory_sha256": "309db5c956f31776dbaefdd95522abe25618a0481514923e08048397b765745b",
+  "source_revision": "958d7c88c949b251b023068e56a2dddd7842a234"
+}
