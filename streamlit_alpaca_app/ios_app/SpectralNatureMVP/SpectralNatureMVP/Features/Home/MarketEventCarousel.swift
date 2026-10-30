@@ -70,7 +70,8 @@ struct MarketEventCarousel: View {
   var body: some View {
     VStack(spacing: 0) {
       GeometryReader { viewport in
-        let step = viewport.size.width / 5
+        let viewportWidth = viewport.size.width
+        let step = viewportWidth / 5
         ScrollView(.horizontal) {
           HStack(alignment: .top, spacing: 0) {
             ForEach(calendar.days) { day in
@@ -78,7 +79,7 @@ struct MarketEventCarousel: View {
                 .frame(width: step, height: height, alignment: .top)
                 .visualEffect { content, geometry in
                   let center: CGFloat = geometry.frame(in: .scrollView(axis: .horizontal)).midX
-                  let depth: CGFloat = abs(center - viewport.size.width / 2) / step
+                  let depth: CGFloat = abs(center - viewportWidth / 2) / step
                   let scale: CGFloat = max(0.5, 1 - depth * 0.18)
                   let opacity: Double = Double(max(0.08, 1 - depth * 0.38))
                   return content
