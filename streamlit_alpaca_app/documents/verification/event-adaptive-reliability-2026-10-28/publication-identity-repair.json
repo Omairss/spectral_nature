@@ -1,5 +1,5 @@
 {
-  "status": "accepted_locally_exact_image_qualification_pending",
+  "status": "exact_worker_image_cloud_qualified",
   "source_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
   "review_base_revision": "708d6e0bca19e60fec3d1329a874323f6389b70d",
   "recorded_at_utc": "2026-10-30T00:53:53.801033+00:00",
@@ -37,7 +37,7 @@
     "operational_checks_passed": 11,
     "prose_grading_from_tests": false,
     "paid_inference_calls": 0,
-    "harness_sha256": "cc503e82ee3db7d1ee755a440cac63bd50f667f5520f67a3eb1427a3c8caa493"
+    "harness_sha256": "8496d451267f3c39ff01de965090803a8c84dcc71f73c6d96f7ad5eb5b49076e"
   },
   "reviewed_consumers": {
     "all": 36,
@@ -48,7 +48,7 @@
   },
   "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/operations/event-adaptive-reliability-2026-10-28/home-publication-failure-20261029",
   "release": {
-    "status": "worker_build_running",
+    "status": "development_rollout_ready",
     "production_authorization_basis": "Standing owner instruction to fix the release and push once verified, plus explicit approval of the coherent candidate. This corrects its first scheduled publication failure; no expanded feature or paid run.",
     "ACR_run": "cj1dg"
   },
@@ -68,5 +68,82 @@
     "runtime_files": 195,
     "reconciled_source_check_passed": true,
     "actual_build_source": "d72891b51d9a7a663d9cb207a13a293aa96383ce"
+  },
+  "cloud_qualification": {
+    "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+    "source_inventory_sha256": "309db5c956f31776dbaefdd95522abe25618a0481514923e08048397b765745b",
+    "runtime_inventory_sha256": "d052b77b61ba8f461ec03c5d910de38793a8ee9ed550b31cfeb1dd034c6a6258",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48"
+    },
+    "role": "worker",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "runtime_files": 195,
+    "execution": "macro-fred-daily-dev-rn8dr5m",
+    "execution_status": "Succeeded",
+    "harness_sha256": "8496d451267f3c39ff01de965090803a8c84dcc71f73c6d96f7ad5eb5b49076e",
+    "input": {
+      "blob": "release-qualification/home-publication-identity-20261029/28f3e6708ec7022d990ae830145818d9622aa3e9cf80e6cd8d4d1a3e62437bbf.json",
+      "sha256": "28f3e6708ec7022d990ae830145818d9622aa3e9cf80e6cd8d4d1a3e62437bbf",
+      "bytes": 25064271,
+      "case_stories": [
+        14,
+        11
+      ],
+      "private_input_only": true,
+      "registered_as_application_dataset": false
+    },
+    "receipts": [
+      {
+        "probe": "package",
+        "files": 195,
+        "git_sha": "d72891b51d9a7a663d9cb207a13a293aa96383ce"
+      },
+      {
+        "probe": "publication_identity",
+        "case": "failed-production-14",
+        "stories": 14,
+        "original_research_bundles": 87,
+        "all_written_fields_preserved": true,
+        "source_provenance_preserved": true,
+        "original_research_unchanged": true,
+        "distinct_story_identities": true,
+        "ticker_identity_and_drilldown_verified": true,
+        "serialized_public_dto_verified": true,
+        "same_run_replay_stable": true,
+        "paid_inference_calls": 0,
+        "counts": {
+          "changed": 14,
+          "dropped": 18,
+          "reviewed": 14,
+          "discovered": 0
+        }
+      },
+      {
+        "probe": "publication_identity",
+        "case": "owner-accepted-11",
+        "stories": 11,
+        "original_research_bundles": 92,
+        "all_written_fields_preserved": true,
+        "source_provenance_preserved": true,
+        "original_research_unchanged": true,
+        "distinct_story_identities": true,
+        "ticker_identity_and_drilldown_verified": true,
+        "serialized_public_dto_verified": true,
+        "same_run_replay_stable": true,
+        "paid_inference_calls": 0,
+        "counts": {
+          "changed": 11,
+          "dropped": 4,
+          "reviewed": 11,
+          "discovered": 2
+        }
+      }
+    ],
+    "paid_inference_calls": 0,
+    "production_writes": false,
+    "persistent_job_template_changes": false
   }
 }

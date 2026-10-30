@@ -1100,7 +1100,16 @@
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48": {
+          "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+          "source_inventory_sha256": "309db5c956f31776dbaefdd95522abe25618a0481514923e08048397b765745b",
+          "runtime_inventory_sha256": "d052b77b61ba8f461ec03c5d910de38793a8ee9ed550b31cfeb1dd034c6a6258",
+          "all_packaged_files_checked": true,
+          "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+          "development_qualification_execution": "macro-fred-daily-dev-rn8dr5m"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
