@@ -55,6 +55,7 @@ from services.page_agentic_summary import (
 from services.pipeline_store import load_latest_dataset_frame, load_recent_dataset_frames
 from services.daily_market_datapoints import build_daily_datapoint_catalog, select_daily_market_datapoints
 from services.llm_execution import complete_core_research, model_call_context, protect_core_research
+from services.saa.storage import build_canonical_document_fields
 
 
 PersistDatasetFn = Callable[[str, pd.DataFrame, Any, Any | None], None]
@@ -1905,6 +1906,7 @@ def _review_home_public_surface(
             "title": bundle.get("event_title") or bundle.get("headline") or bundle_id,
             "metadata": {"kind": "shared_research", "bundle_id": bundle_id,
                          "asof_time_utc": bundle.get("asof_time_utc"),
+                         **{key: bundle.get(key) for key in ("research_action", "research_asof_time_utc", "research_completed_at_utc", "current_assessment_asof_time_utc")},
                          "symbols": bundle.get("supporting_symbols") or [bundle.get("symbol")]},
             "content": to_jsonable(bundle),
         }
@@ -1912,16 +1914,18 @@ def _review_home_public_surface(
         if answer:
             findings.append({"source_id": source_id, "findings": answer})
     for index, row in enumerate(enrichment_rows or []):
+        if row.get("research_origin") == "common_market_agenda":
+            continue
         source_id = "company-research:" + str(index)
         records[source_id] = {"title": str(row.get("symbol") or source_id),
             "metadata": {"kind": "company_research", "symbol": row.get("symbol"), "status": row.get("status")},
             "content": to_jsonable(row)}
         if row.get("status") == "completed" and row.get("answer_markdown") and row.get("research_origin") != "common_market_agenda":
             findings.append({"source_id": source_id, "findings": row["answer_markdown"]})
-    for index, doc in enumerate(intake):
-        identity = str(doc.get("source_id") or doc.get("document_id") or index)
-        records["source:" + identity + ":" + str(index)] = {"title": doc.get("title") or identity,
-            "metadata": {"kind": "source_document", "source_id": identity, "url": doc.get("url"),
+    for doc in intake:
+        identity = doc.get("canonical_document_id") or build_canonical_document_fields(doc)["canonical_document_id"]
+        records["source:" + identity] = {"title": doc.get("title") or identity,
+            "metadata": {"kind": "source_document", "original_source_id": doc.get("source_id"), "url": doc.get("url"),
                          "published_at": doc.get("published_at"), "provider_symbols": doc.get("provider_symbols")},
             "content": to_jsonable(doc)}
     records["market-observations"] = {"title": "Complete market observations",
@@ -1936,7 +1940,10 @@ def _review_home_public_surface(
     schema = {**_HOME_SURFACE_QUALITY_SCHEMA, "properties": {
         **_HOME_SURFACE_QUALITY_SCHEMA["properties"],
         "selection": {**_HOME_SURFACE_QUALITY_SCHEMA["properties"]["selection"], "properties": {
-            section: {**_HOME_SURFACE_QUALITY_SCHEMA["properties"]["selection"]["properties"][section], "maxItems": limit}
+            section: {**_HOME_SURFACE_QUALITY_SCHEMA["properties"]["selection"]["properties"][section], "maxItems": limit,
+                "items": {**_HOME_STORY_SELECTION_SCHEMA, "properties": {**_HOME_STORY_SELECTION_SCHEMA["properties"],
+                    "source_ids": {**_HOME_STORY_SELECTION_SCHEMA["properties"]["source_ids"],
+                                   "items": {"type": "string", "enum": list(records)}}}}}
             for section, limit in limits.items()}},
     }}
     query = (
@@ -2139,7 +2146,11 @@ def build_attention_home_output_frames(
     previous_publication = ({"asof_time_utc": previous.get("generated_at_utc"),
         "brief": {key: (previous.get("homepage_summary") or {}).get(key)
                   for key in ("headline", "summary_text")},
-        "stories": [{key: item.get(key) for key in ("headline", "event_title", "supporting_symbols", "what_changed_text")}
+        "stories": [{key: item.get(key) for key in ("headline", "event_title", "supporting_symbols", "what_changed_text",
+            *_HOME_PUBLIC_TEXT_FIELDS, "public_surface_time_basis", "source_ids")}
+            | {"evidence": [{key: capture.get(key) for key in ("source_id", "document_id", "canonical_document_id", "title", "headline",
+                "raw_text", "source_text", "url", "published_at", "source", "source_provider", "source_kind", "source_trace", "raw_text_origin", "provider_symbols")}
+                           for capture in item.get("evidence") or []]}
                     for section in ("top_events", "must_read_movers", "unresolved_large_moves")
                     for item in previous.get(section, [])]}
         if pd.notna(previous_time) and previous_time <= pd.Timestamp(ctx.asof) else {})

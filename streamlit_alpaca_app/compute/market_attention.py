@@ -98,6 +98,8 @@ def build_market_attention_context(
 
     groups, membership = group(correlations[0])
     old_groups, old_membership = group(correlations[1])
+    performance_through = max((series.index[-1] for symbol, series in current_prices.items()
+                               if not series.empty and adjustment.get(symbol) == "all"), default=None)
 
     def performance(symbol: str) -> dict[str, Any]:
         result: dict[str, Any] = {}
@@ -105,7 +107,7 @@ def build_market_attention_context(
         if not series.empty and adjustment.get(symbol) == "all":
             result["history_through"] = str(series.index[-1])
             result["includes_current_snapshot"] = bool(series.index[-1] == today)
-            expected = list(panel.index) + ([today] if series.index[-1] == today else [])
+            expected = list(panel.index) + ([today] if performance_through == today else [])
             if not expected or series.index[-1] != expected[-1]:
                 return result
             for horizon in (5, 20):
@@ -139,9 +141,9 @@ def build_market_attention_context(
         row.update(performance(symbol))
         peers = [s for s in old_groups.get(old_membership.get(symbol, ""), []) if s != symbol]
         if peers:
-            row["previous_peer_correlation"] = correlations[1].loc[symbol, peers].mean()
-            row["current_peer_correlation"] = correlations[0].loc[symbol, peers].mean()
-            row["peer_correlation_change"] = row["current_peer_correlation"] - row["previous_peer_correlation"]
+            row["prior_group_peer_correlation_previous_window"] = correlations[1].loc[symbol, peers].mean()
+            row["prior_group_peer_correlation_current_window"] = correlations[0].loc[symbol, peers].mean()
+            row["prior_group_peer_correlation_change"] = row["prior_group_peer_correlation_current_window"] - row["prior_group_peer_correlation_previous_window"]
         records.append(row)
     benchmark = {"symbol": benchmark_symbol, **performance(benchmark_symbol)}
     for row in records:
@@ -171,6 +173,8 @@ def build_market_attention_context(
             "relationship_ineligible": sorted(set(current.index) - set(common)),
             "index_attribution": "unavailable: no dated benchmark membership and weights supplied"},
         "method": {"grouping": "complete-linkage positive return correlation",
+            "aggregation": "Group and sector returns are equal-weight means of covered instruments, not official sector or capitalization-weighted index returns.",
+            "peer_comparison": "Both peer-correlation windows use the company's prior group peers, not its newly assigned current group.",
             "window_sessions": window, "comparison_shift_sessions": comparison_shift,
             "minimum_pair_observations": min_observations, "correlation_floor": correlation_floor,
             "current_window": [str(recent.index.min()), str(recent.index.max())],

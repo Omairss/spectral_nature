@@ -1517,3 +1517,7 @@ Name the design separately from accepted source. Preserve the exact accepted app
 ### Keep numerical coverage and focused research context separate — October 30, 2026
 
 Market-First preparation retains the complete observed universe before selecting questions. Return groups use adjusted completed-session histories; current partial bars and raw snapshot returns keep separate time/basis labels. A group hash identifies its exact members, not a permanent economic theme. Selected investigations receive relevant observations with access to all originals through the existing evidence reader. Reused findings retain their original dates, and two questions may reference one prior artifact without overwriting their execution or publication identities. Operational checks do not establish model quality or savings.
+
+### Carry dated knowledge through the existing research flow — October 30, 2026
+
+A data-first planner alone does not protect discoveries: investigations need relevant prior findings and original captures, while retaining access to wider observations. Missing a fresh headline does not prove a factor cause. Reader IDs must name stable captured sources, and response schemas should enumerate those exact IDs. A projected ticker view is not independent research confirmation. Peer comparisons must state which fixed peer set is compared; covered-instrument means are not official index returns.

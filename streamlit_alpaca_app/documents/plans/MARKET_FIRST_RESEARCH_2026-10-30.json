@@ -257,7 +257,7 @@
     "cost_operations": "../verification/event-adaptive-reliability-2026-10-28/event-company-research-cost-detail-20261030.json",
     "release_acceptance": "../../infra/release_acceptance.json"
   },
-  "next_action": "Implement D1 in accepted Git source after this baseline checkpoint, then D2/D3 as one coherent change to existing flow. Do not claim local/model/DEV acceptance before performing it.",
+  "next_action": "Complete qualitative qualification of the implemented common agenda, prior-publication handoff and stable source-reference contract under the same approved $10 cap. Preserve all paid work and unknown charges. DEV only after local acceptance; production held.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",

@@ -1452,3 +1452,7 @@ The initial Market-First preparation queried large research payloads before narr
 ### Keep media out of research history — October 30, 2026
 
 The first Market-First paid comparison exposed a new input mistake: copying the previous homepage summary object also copied its narration audio and internal traces into planning. Stopped the comparison, retained all actual and unknown charges under the same approval, and changed the owning input to pass only the prior headline and summary text. The full numerical context precedes headlines, with group/sector summaries before the complete observation table. No candidate was deployed from that attempt.
+
+### Repair research handoffs before accepting a data-first selection — October 30, 2026
+
+The first complete Market-First comparison selected previously missed numerical leads but framed broad groups as competing causal explanations and failed to pass relevant prior publication findings into focused research. Publication then failed on list-position source references. No candidate was accepted or deployed. Corrected the owning planner/research context, retained dated originals in the existing reader, and bound publication references to stable capture IDs rather than adding aliases or suppressing failures.

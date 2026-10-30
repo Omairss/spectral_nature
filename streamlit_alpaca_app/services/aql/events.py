@@ -21,6 +21,7 @@ from ..work_scope import WorkCancelled
 from ..common.news_freshness import coerce_article_published_at
 from ..json_utils import to_jsonable
 from .. import pipeline_store
+from ..saa.storage import build_canonical_document_fields
 from ..llm import (
     get_config_param,
     register_config_param,
@@ -69,7 +70,7 @@ _P_EVENT_TOOLS = register_config_param(
 _P_EVENT_WORKERS = register_config_param(
     "Source event maximum workers",
     group="AQL / Zopedia Engine",
-    default=3,
+    default=8,
     description="Maximum concurrent focused investigations sharing the original run allowance and deadline.",
 )
 _P_PRIOR_EVENT_LIMIT = register_config_param(
@@ -105,6 +106,10 @@ _NOMINATION_PROMPT = register_narrative_prompt(
         "unexplained behavior can require fresh investigation. Never re-date an old disclosure as new. "
         "Keep each investigation's context focused: select related_symbols, relevant group_ids and economic "
         "series IDs; broader observations remain accessible. Plan decisive follow-ups rather than checklists. "
+        "A measured group can contain different businesses and explanations. Separate materially different "
+        "questions instead of assigning a large group one assumed cause. Ask open questions; do not force a "
+        "choice between a news explanation and a factor explanation before investigating. Preserve consequential "
+        "numerical discoveries even when the headline collection has no matching article. "
         "Source IDs are supplied identities or exact URLs acquired by tools. A numerical lead needs no article. "
         "Return events in priority order, research_agenda as the current questions, and findings_markdown as "
         "substantive current assessment and unresolved questions, not a public Brief or a list of figures."
@@ -122,7 +127,8 @@ _EVENT_SCHEMA: dict[str, Any] = {
             "type": "string",
             "enum": ["supported", "partial", "unresolved", "continuation"],
         },
-        "supporting_symbols": {"type": "array", "items": {"type": "string"}},
+        "supporting_symbols": {"type": "array", "items": {"type": "string"},
+            "description": "Companies materially explained or investigated in the findings, including useful unresolved numerical discoveries. Not limited to companies with fresh articles; exclude incidental comparisons."},
         "claims": {
             "type": "array",
             "items": {
@@ -211,6 +217,23 @@ def research_source_events(
                 }),
             }
         )
+    # The previous publication carries its original captures, not new reporting.
+    # Keep them in the same reader so a narrower intake cannot erase known facts.
+    for story in (previous_publication or {}).get("stories", []):
+        for capture in story.get("evidence") or []:
+            text = capture.get("raw_text") or capture.get("source_text") or ""
+            if not text:
+                continue
+            doc = {**capture, "title": capture.get("title") or capture.get("headline") or "",
+                "raw_text": text, "text": text, "source_kind": capture.get("source_kind") or "news",
+                "source_provider": capture.get("source_provider") or capture.get("source") or "",
+                "published_at": capture.get("published_at"), "url": capture.get("url") or "",
+                "raw_text_origin": capture.get("raw_text_origin") or "retained_reference"}
+            doc.update(build_canonical_document_fields(doc))
+            if capture.get("canonical_document_id"):
+                doc["canonical_document_id"] = capture["canonical_document_id"]
+            doc["source_id"] = doc["document_id"] = doc["canonical_document_id"]
+            documents.append(doc)
     documents = list({doc["document_id"]: doc for doc in documents}.values())
     # Keep original provider captures in the returned documents, while each
     # model receives source text once alongside its identity and provenance.
@@ -309,7 +332,7 @@ def research_source_events(
     }
     previews = [
         {
-            key: doc[key]
+            key: doc.get(key)
             for key in ("source_id", "title", "url", "published_at", "provider_symbols", "source_trace", "raw_text_origin")
         }
         | {"text_preview": doc["text"][:1200]}
@@ -347,12 +370,15 @@ def research_source_events(
         context_status = "unavailable"
         record_execution_issue("event_allocation_history", exc)
     source_records = {doc["source_id"]: {"title": doc["title"],
-        "metadata": {"kind": "source_document", "url": doc["url"], "published_at": doc["published_at"]},
+        "metadata": {"kind": "source_document", "url": doc["url"], "published_at": doc["published_at"],
+                     "provider_symbols": doc.get("provider_symbols", [])},
         "content": {key: doc.get(key) for key in model_source_fields}} for doc in documents}
     source_records.update({"market-observations": {"title": "Underlying current market observations",
         "metadata": {"asof_time_utc": asof.isoformat()}, "content": to_jsonable(market.to_dict("records"))},
         "market-groups": {"title": "Market-wide numerical context and groups", "metadata": {}, "content": to_jsonable(market_context or {})},
-        "economic-observations": {"title": "Dated economic observations", "metadata": {}, "content": to_jsonable(macro_context or {})}})
+        "economic-observations": {"title": "Dated economic observations", "metadata": {}, "content": to_jsonable(macro_context or {})},
+        "previous-publication": {"title": "Previous publication with original dated sources", "metadata": {},
+                                 "content": to_jsonable(previous_publication or {})}})
     service = QueryService.from_environment().with_supplied_evidence(source_records)
     nomination = run_aql_zopedia_structured_agent(
         query=get_prompt(_NOMINATION_PROMPT)
@@ -364,7 +390,10 @@ def research_source_events(
                  "economic_observations": macro_context or {},
                  "previous_market_context": {key: value for key, value in (((previous_nomination or {}).get("artifact_context") or {}).get("market_context") or {}).items()
                                              if key not in {"observations", "columns", "previous_groups"}},
-                 "previous_publication": previous_publication or {},
+                 "previous_publication": {"asof_time_utc": (previous_publication or {}).get("asof_time_utc"),
+                    "brief": (previous_publication or {}).get("brief"),
+                    "stories": [{key: story.get(key) for key in ("headline", "event_title", "supporting_symbols", "what_changed_text")}
+                                for story in (previous_publication or {}).get("stories", [])]},
                  "evidence_manifest": service.supplied_evidence_manifest,
                  "completed_research_context_status": context_status,
                  "dated_completed_investigations": prior_investigations}
@@ -485,6 +514,10 @@ def research_source_events(
             "the investigation plan. Provider symbol tags do not restrict the affected companies. Sources can concern "
             "private entities. Compare competing interpretations, and distinguish reported facts, established business "
             "relationships and plausible market effects. Do not claim a contemporaneous price move proves causation. "
+            "A missing fresh article does not establish a factor explanation or erase a numerical discovery. "
+            "Read relevant prior findings and their dated originals before repeating discovery. Investigate the "
+            "business explanation and alternatives; retain unresolved observations without substituting an "
+            "unsupported common cause. Different companies in a numerical group can have different causes. "
             "For company questions explain the business: products, customers, demand and operating economics, "
             "with the relevant competitive or policy connections and contrary evidence. "
             "Record one substantive shared research answer in findings_markdown. Explain the operating or policy "
@@ -515,10 +548,18 @@ def research_source_events(
         economic_ids = set(plan["economic_series_ids"])
         focused_macro = {key: [row for row in rows if str(row.get("series_id") or row.get("id") or "") in economic_ids]
                          for key, rows in (macro_context or {}).items() if isinstance(rows, list)}
+        related_stories = [{key: value for key, value in story.items() if key != "evidence"}
+            for story in (previous_publication or {}).get("stories", [])
+            if related.intersection(_normalize_symbol(s) for s in story.get("supporting_symbols") or [])]
+        related_headlines = [preview for preview in previews
+            if related.intersection(_normalize_symbol(s) for s in preview.get("provider_symbols") or [])]
         research_request = to_jsonable({"asof": asof, "investigation": {key: value for key, value in plan.items() if key != "observation_refs"},
             "market_observations": focused_observations, "numerical_columns": context_columns,
             "numerical_observations": focused_context, "groups": selected_groups,
-            "economic_observations": focused_macro, "broader_evidence": service.supplied_evidence_manifest})
+            "economic_observations": focused_macro, "relevant_prior_publication": related_stories,
+            "related_headline_hints": related_headlines,
+            "context_note": "Symbol overlap supplies discovery hints, not relevance or truth judgments. The previous-publication reader retains original captures; all other headlines remain accessible.",
+            "broader_evidence": service.supplied_evidence_manifest})
         research_instructions = (instructions + " Reuse completed investigations before repeating acquisition. They are dated, "
                 "fallible model analysis: compare the new source event against them and use their source references for "
                 "focused follow-up, without counting earlier model interpretations as independent confirmations.")
@@ -667,6 +708,8 @@ def research_source_events(
             "research_action": plan["research_action"],
             "current_assessment": plan["rationale"],
             "research_asof_time_utc": prior_context.get("asof_time_utc") if plan["research_action"] == "reuse" else asof,
+            "research_completed_at_utc": prior.get("created_at_utc") if plan["research_action"] == "reuse" else pd.Timestamp.now(tz="UTC"),
+            "current_assessment_asof_time_utc": asof,
             "prior_artifact_id": plan["prior_artifact_id"],
             "event_score": 0.0,
             "supporting_symbols": symbols,

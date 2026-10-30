@@ -143,3 +143,39 @@ def test_stale_history_does_not_become_a_current_relative_return():
     stale = next(row for row in rows if row["symbol"] == "C")
     assert stale.get("return_5d_pct") is None or pd.isna(stale["return_5d_pct"])
     assert stale.get("return_5d_excess_pp") is None or pd.isna(stale["return_5d_excess_pp"])
+
+
+def test_prior_publication_reaches_focused_research_without_copying_unrelated_bodies(monkeypatch):
+    monkeypatch.delenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", raising=False)
+    capture = {"title": "Original", "source_text": "Dated original body", "url": "https://example.invalid/a",
+               "published_at": "2026-10-29T12:00Z", "canonical_document_id": "saa_doc::original"}
+    previous = {"asof_time_utc": "2026-10-29T14:00Z", "stories": [
+        {"supporting_symbols": ["A"], "what_happened_text": "Relevant prior finding", "evidence": [capture]},
+        {"supporting_symbols": ["OTHER"], "what_happened_text": "Unrelated full body"}]}
+
+    def run(**kwargs):
+        if kwargs["task"] == "source_event_nomination":
+            return {"status": "completed", "payload": {"research_agenda": [], "findings_markdown": "Assessment", "events": [plan()]}}
+        assert "Relevant prior finding" in kwargs["query"]
+        assert "Unrelated full body" not in kwargs["query"]
+        original = kwargs["service"].read_supplied_evidence(source_id="saa_doc::original")
+        assert "Dated original body" in original["text"]
+        return {"status": "completed", "payload": answer()}
+
+    monkeypatch.setattr(events, "run_aql_zopedia_structured_agent", run)
+    result = events.research_source_events(pd.DataFrame(), market_frame=pd.DataFrame(), universe_frame=None,
+        asof_time_utc="2026-10-30T18:50Z", run_id="current", llm_client=object(), previous_publication=previous)
+    assert result["status"] == "completed"
+
+
+def test_partial_snapshot_does_not_compare_yesterdays_return_with_todays_benchmark():
+    bars = histories()
+    for frame in bars.values():
+        frame.attrs["price_adjustment"] = "all"
+    asof = bars["A"].timestamp.iloc[-1] + pd.Timedelta(hours=10)
+    bars["C"] = bars["C"].iloc[:-1].copy()
+    context = build_market_attention_context(pd.DataFrame({"symbol": list(bars)}), bars,
+        asof_time_utc=asof, benchmark_symbol="A")
+    rows = [dict(zip(context["columns"], values)) for values in context["observations"]]
+    row = next(row for row in rows if row["symbol"] == "C")
+    assert pd.isna(row.get("return_5d_excess_pp"))
