@@ -45,6 +45,21 @@ struct MarketEventCarousel: View {
     let event: String
   }
 
+  private struct Centers: PreferenceKey {
+    static var defaultValue: [String: CGFloat] = [:]
+    static func reduce(value: inout [String: CGFloat], nextValue: () -> [String: CGFloat]) {
+      value.merge(nextValue(), uniquingKeysWith: { _, next in next })
+    }
+  }
+
+  private struct Snap: ScrollTargetBehavior {
+    let step: CGFloat
+    func updateTarget(_ target: inout ScrollTarget, context: TargetContext) {
+      let limit = max(0, context.contentSize.width - context.containerSize.width)
+      target.rect.origin.x = min(limit, max(0, (target.rect.minX / step).rounded() * step))
+    }
+  }
+
   init(calendar: MarketEventCalendar) {
     self.calendar = calendar
     _position = State(initialValue: calendar.referenceDate)
@@ -72,38 +87,49 @@ struct MarketEventCarousel: View {
       GeometryReader { viewport in
         let viewportWidth = viewport.size.width
         let step = viewportWidth / 5
-        ScrollView(.horizontal) {
-          LazyHStack(alignment: .top, spacing: 0) {
-            ForEach(calendar.days) { day in
-              column(day, width: step)
-                .frame(width: step, height: height, alignment: .top)
-                .visualEffect { content, geometry in
-                  let center: CGFloat = geometry.frame(in: .scrollView(axis: .horizontal)).midX
-                  let depth: CGFloat = abs(center - viewportWidth / 2) / step
-                  let scale: CGFloat = max(0.5, 1 - depth * 0.18)
-                  let opacity: Double = Double(max(0.08, 1 - depth * 0.38))
-                  return content
-                    .scaleEffect(scale, anchor: .top)
-                    .opacity(opacity)
-                }
-                .id(day.id)
+        ScrollViewReader { reader in
+          ScrollView(.horizontal) {
+            HStack(alignment: .top, spacing: 0) {
+              ForEach(calendar.days) { day in
+                column(day, width: step) { id in reader.scrollTo(id, anchor: .center) }
+                  .frame(width: step, height: height, alignment: .top)
+                  .background {
+                    GeometryReader { geometry in
+                      Color.clear.preference(key: Centers.self,
+                        value: [day.id: geometry.frame(in: .named("marketCalendarViewport")).midX])
+                    }
+                  }
+                  .visualEffect { content, geometry in
+                    let center: CGFloat = geometry.frame(in: .named("marketCalendarViewport")).midX
+                    let depth: CGFloat = abs(center - viewportWidth / 2) / step
+                    let scale: CGFloat = max(0.5, 1 - depth * 0.18)
+                    let opacity: Double = Double(max(0.08, 1 - depth * 0.38))
+                    return content.scaleEffect(scale, anchor: .top).opacity(opacity)
+                  }
+                  .id(day.id)
+              }
             }
+            .padding(.horizontal, step * 2)
           }
-          .scrollTargetLayout()
-        }
-        .contentMargins(.horizontal, step * 2, for: .scrollContent)
-        .scrollIndicators(.hidden)
-        .scrollTargetBehavior(.viewAligned)
-        .scrollPosition(id: $position, anchor: .center)
-        .mask {
-          LinearGradient(stops: [
-            .init(color: .clear, location: 0),
-            .init(color: .black.opacity(0.65), location: 0.09),
-            .init(color: .black, location: 0.32),
-            .init(color: .black, location: 0.68),
-            .init(color: .black.opacity(0.65), location: 0.91),
-            .init(color: .clear, location: 1),
-          ], startPoint: .leading, endPoint: .trailing)
+          .coordinateSpace(name: "marketCalendarViewport")
+          .scrollIndicators(.hidden)
+          .scrollTargetBehavior(Snap(step: step))
+          .onAppear { reader.scrollTo(calendar.referenceDate, anchor: .center) }
+          .onPreferenceChange(Centers.self) { centers in
+            if let nearest = centers.min(by: {
+              abs($0.value - viewportWidth / 2) < abs($1.value - viewportWidth / 2)
+            })?.key { position = nearest }
+          }
+          .mask {
+            LinearGradient(stops: [
+              .init(color: .clear, location: 0),
+              .init(color: .black.opacity(0.65), location: 0.09),
+              .init(color: .black, location: 0.32),
+              .init(color: .black, location: 0.68),
+              .init(color: .black.opacity(0.65), location: 0.91),
+              .init(color: .clear, location: 1),
+            ], startPoint: .leading, endPoint: .trailing)
+          }
         }
       }
       .frame(height: height)
@@ -148,11 +174,12 @@ struct MarketEventCarousel: View {
   }
 
   @ViewBuilder
-  private func column(_ day: MarketEventCalendar.Day, width: CGFloat) -> some View {
+  private func column(_ day: MarketEventCalendar.Day, width: CGFloat,
+                      scrollTo: @escaping (String) -> Void) -> some View {
     if expanded {
       VStack(spacing: 0) {
         Button {
-          withAnimation(animation) { position = day.id; selection = nil }
+          withAnimation(animation) { scrollTo(day.id); selection = nil }
         } label: {
           dateLabel(day).frame(width: width, height: 44)
         }
@@ -163,8 +190,9 @@ struct MarketEventCarousel: View {
           VStack(spacing: 0) {
             ForEach(day.events) { event in
               Button {
+                scrollTo(day.id)
+                position = day.id
                 withAnimation(animation) {
-                  position = day.id
                   let next = Selection(day: day.id, event: event.id)
                   selection = selection == next ? nil : next
                 }
@@ -186,7 +214,7 @@ struct MarketEventCarousel: View {
       }
     } else {
       Button {
-        withAnimation(animation) { position = day.id; expanded = true; selection = nil }
+        withAnimation(animation) { scrollTo(day.id); expanded = true; selection = nil }
       } label: {
         VStack(spacing: 0) {
           dateLabel(day).frame(height: 34)
