@@ -173,66 +173,50 @@ struct MarketEventCarousel: View {
     .accessibilityIdentifier("market-event-carousel")
   }
 
-  @ViewBuilder
   private func column(_ day: MarketEventCalendar.Day, width: CGFloat,
                       scrollTo: @escaping (String) -> Void) -> some View {
-    if expanded {
-      VStack(spacing: 0) {
-        Button {
-          withAnimation(animation) { scrollTo(day.id); selection = nil }
-        } label: {
-          dateLabel(day).frame(width: width, height: 44)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("\(day.label), \(day.events.count) \(day.events.count == 1 ? "event" : "events")")
+    // Stable column identity keeps the horizontal target alive while its rows expand.
+    VStack(spacing: 0) {
+      Button {
+        withAnimation(animation) { scrollTo(day.id); expanded = true; selection = nil }
+      } label: {
+        dateLabel(day).frame(width: width, height: 44)
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("\(day.label), \(day.events.count) \(day.events.count == 1 ? "event" : "events")")
+      .accessibilityHint(expanded ? "Centers this date" : "Expands the calendar in place")
+      .accessibilityIdentifier("calendar-day-\(day.id)")
 
-        ScrollView(.vertical) {
-          VStack(spacing: 0) {
-            ForEach(day.events) { event in
-              Button {
+      ScrollView(.vertical) {
+        VStack(spacing: 0) {
+          ForEach(expanded ? day.events : day.highlights) { event in
+            Button {
+              if expanded {
                 scrollTo(day.id)
                 position = day.id
                 withAnimation(animation) {
                   let next = Selection(day: day.id, event: event.id)
                   selection = selection == next ? nil : next
                 }
-              } label: {
-                Text(event.label)
-                  .font(.system(size: 13, weight: selection?.event == event.id ? .semibold : .medium))
-                  .foregroundStyle(selection?.event == event.id ? Theme.teal : Theme.text)
-                  .lineLimit(1).minimumScaleFactor(0.7)
-                  .frame(width: width, height: 40)
-                  .contentShape(Rectangle())
+              } else {
+                withAnimation(animation) { scrollTo(day.id); expanded = true; selection = nil }
               }
-              .buttonStyle(.plain)
-              .accessibilityLabel("\(event.name), \(event.time.map { $0 + " ET" } ?? "time unconfirmed")")
-              .accessibilityIdentifier("calendar-event-\(event.id)")
-            }
-          }
-        }
-        .scrollIndicators(.hidden)
-      }
-    } else {
-      Button {
-        withAnimation(animation) { scrollTo(day.id); expanded = true; selection = nil }
-      } label: {
-        VStack(spacing: 0) {
-          dateLabel(day).frame(height: 34)
-          VStack(spacing: 7) {
-            ForEach(day.highlights) { event in
-              Text(event.label).font(.system(size: 13, weight: .medium))
+            } label: {
+              Text(event.label)
+                .font(.system(size: 13, weight: selection?.event == event.id ? .semibold : .medium))
+                .foregroundStyle(selection?.event == event.id ? Theme.teal : Theme.text)
                 .lineLimit(1).minimumScaleFactor(0.7)
+                .frame(width: width, height: expanded ? 40 : 22)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(event.name), \(event.time.map { $0 + " ET" } ?? "time unconfirmed")")
+            .accessibilityIdentifier("calendar-event-\(event.id)")
           }
-          .frame(maxWidth: .infinity, alignment: .top)
         }
-        .frame(width: width, height: 94, alignment: .top)
-        .contentShape(Rectangle())
       }
-      .buttonStyle(.plain)
-      .accessibilityLabel("\(day.label), \(day.events.count) \(day.events.count == 1 ? "event" : "events")")
-      .accessibilityHint("Expands the calendar in place")
-      .accessibilityIdentifier("calendar-day-\(day.id)")
+      .scrollDisabled(!expanded)
+      .scrollIndicators(.hidden)
     }
   }
 
