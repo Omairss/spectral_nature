@@ -1,8 +1,8 @@
 {
   "status": "accepted_locally",
-  "scope": "Owner-authorized persistent paper Trading system on shared backend, Next.js and SwiftUI. Exact DEV-accepted images across all 36 consumers; existing production Broad Economy outlook and all configurations retained.",
-  "source_revision": "ed5044be5eea4024a3a155ce214d04e33e682d11",
-  "review_base_revision": "a307fb77a59c8077a0d227f970034d439d2294af",
+  "scope": "Home story/research identity correction over the current accepted Trading release;29workers updated and seven non-worker images retained.",
+  "source_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+  "review_base_revision": "708d6e0bca19e60fec3d1329a874323f6389b70d",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
     ".env.example": "d4bf338c68c5a6db29e8de3c42e3b942066c4611689510129553b2f8db1cbb5e",
@@ -72,7 +72,7 @@
     "docker-compose.dev.yml": "b34fcd354a6743bbdf3c75b4c98dc49164d15f9eb5b02448d7c51a83f9ecf19d",
     "pipeline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "pipeline/jobs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "pipeline/jobs/attention_home_build.py": "1c12cd7071a1e5e134142a7c8193a6b2f1944b538535b5d497a56f5b44e0c0a8",
+    "pipeline/jobs/attention_home_build.py": "e623dbc3ceeabef6d12177229fed8c1b1886337868b1637bebb648b16feb10f2",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "cdd5a26eaeb72930534477bcc479af1c42531b1f01f4f1e3639b01c7734332b2",
@@ -385,7 +385,7 @@
     "data_access/query_service.py": "effe47edeabecef0a23736e9776b6839dd95f4412ec61840c6ad2b9cc9a9fec5",
     "pipeline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "pipeline/jobs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "pipeline/jobs/attention_home_build.py": "1c12cd7071a1e5e134142a7c8193a6b2f1944b538535b5d497a56f5b44e0c0a8",
+    "pipeline/jobs/attention_home_build.py": "e623dbc3ceeabef6d12177229fed8c1b1886337868b1637bebb648b16feb10f2",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "cdd5a26eaeb72930534477bcc479af1c42531b1f01f4f1e3639b01c7734332b2",
@@ -522,28 +522,7 @@
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
   "reviewed_changes": {
-    "api/main.py": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "api/paper_trading.py": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "compute/analytics.py": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "compute/paper_portfolio.py": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "compute/paper_sizing.py": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "pipeline/jobs/main.py": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "services/alpaca_api.py": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "services/alpaca_paper.py": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "services/brokerage_mcp_store.py": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "services/trading_agent_view.py": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "services/trading_call_tracking.py": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "services/trading_portfolio.py": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "web/app/api/datasets/[name]/route.ts": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "web/app/api/trading-agent/paper/[action]/route.ts": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "web/app/api/trading-agent/paper/calls/[callId]/route.ts": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "web/app/api/trading-agent/route.ts": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "web/app/broad-economy/page.tsx": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "web/app/globals.css": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "web/app/trading-agent/page.tsx": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "web/components/page-research-summary.tsx": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "web/components/trading-paper-portfolio.module.css": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-    "web/components/trading-paper-portfolio.tsx": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
+    "pipeline/jobs/attention_home_build.py": "Public story identity is scoped to the original run and model story_id, independent of many-to-many research sources. Preserve complete model prose/order/time basis, original research bundles, all selected provenance, per-story actual ticker/price observations and existing serialized Home/drilldown contracts. Both actual14-story and owner-accepted11-story retained outputs materialize with unchanged prose. No other current Trading runtime source is changed."
   },
   "retired_files": [
     "scripts/eval_critique_harness.py",
@@ -589,14 +568,21 @@
         "web/components/trading-paper-portfolio.module.css",
         "web/components/trading-paper-portfolio.tsx"
       ]
+    },
+    {
+      "name": "Home publication identity",
+      "status": "accepted",
+      "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+      "files": [
+        "pipeline/jobs/attention_home_build.py"
+      ]
     }
   ],
   "roles": {
     "worker": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7"
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
       ],
       "development_targets": [
         {
@@ -606,14 +592,15 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "macro-fred-daily-dev",
@@ -622,14 +609,15 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "sn-research-run-dev",
@@ -638,14 +626,15 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "dataset-refresh-dev",
@@ -654,14 +643,15 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "attention-home-next-dev",
@@ -670,14 +660,15 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "b307da9a8aeb66a26d800e66b5e602d5300542114a1f4af4275f416f083e023b",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "attention-ticker-next-dev",
@@ -686,14 +677,15 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "daily-datapoints-next-dev",
@@ -702,14 +694,15 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "technical-history-next-dev",
@@ -718,14 +711,15 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "equities-next-dev",
@@ -734,14 +728,15 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "system-recovery-dev",
@@ -750,14 +745,15 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "cleanup-trial-observer-dev",
@@ -766,14 +762,15 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "a2c020dace093967fddc70cf28d1dfa7d823f94df764256a85e99cce486b3b09",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "zopedia-maintenance-dev",
@@ -782,14 +779,15 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         }
       ],
       "production_targets": [
@@ -800,14 +798,15 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "equities-intraday-preload",
@@ -816,14 +815,15 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "macro-fred-daily",
@@ -832,14 +832,15 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "commodities-regime",
@@ -848,14 +849,15 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "options-liquid-universe",
@@ -864,14 +866,15 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "news-ingest-and-features",
@@ -880,14 +883,15 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "08d16a9ed58ad153576b6278c68e4cdc5d3a228aa035c569c36beeb70d15ff74",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "entity-taxonomy-refresh",
@@ -896,14 +900,15 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "attention-home-build",
@@ -912,14 +917,15 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "006190f074b4aa15d79421f21124812374cbb938194b54628eff41b675bbf513",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "fundamentals-quarterly-refresh",
@@ -928,14 +934,15 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "company-baseline-prefetch",
@@ -944,14 +951,15 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "trading-agent-build",
@@ -960,14 +968,15 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "zopedia-maintenance",
@@ -976,14 +985,15 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "zopedia-learning",
@@ -992,14 +1002,15 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "fab966688263776cc208a6d0de8341d6f0bde52cb332c52dcba9383f515df9d0",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "system-health",
@@ -1008,14 +1019,15 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "sn-research-run",
@@ -1024,27 +1036,28 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "evidence-index-dev",
           "kind": "jobs",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
           },
           "execution_binding": {
             "name": "evidence-index-dev",
@@ -1055,7 +1068,8 @@
             "cron": "*/5 * * * *"
           },
           "role": "worker",
-          "environment": "production"
+          "environment": "production",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         },
         {
           "name": "system-recovery",
@@ -1064,13 +1078,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+            "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
           },
           "execution_binding": {
             "name": "system-recovery",
@@ -1082,76 +1096,19 @@
             "environment": {
               "SYSTEM_RECOVERY_BUDGET_SECONDS": "60"
             }
-          }
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601"
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601": {
-          "status": "passed",
-          "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
-          "runtime_files": 195,
-          "runtime_inventory_sha256": "daebfe2d3efaf8cfeff0d97711561ef551195a972387ff4681260591bed3e413",
-          "all_packaged_files_checked": true,
-          "checks": [
-            "complete Git package",
-            "API imports/OpenAPI",
-            "worker and broker imports",
-            "retained native performance API",
-            "flat account zero return and undefined Sharpe"
-          ],
-          "external_requests": 0,
-          "role": "worker",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
-          "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
-          "complete_git_inventory_matches": true,
-          "qualification_run": "cj1dd",
-          "build_run": "cj1da",
-          "evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
-        }
-      }
+      "accepted_images": {}
     },
     "api-next": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:98ef2544913b3a1660a2ee66ce12fdc4935b1302c64075a70a8764f3f87f8636",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:98ef2544913b3a1660a2ee66ce12fdc4935b1302c64075a70a8764f3f87f8636",
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9e58df0fe8d6c3e0a61f7dad85e01b243198ee71d8c1773b34c2a7a8b581c926"
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7"
       ],
-      "development_targets": [
-        {
-          "name": "sn-api-next-dev",
-          "kind": "containerApps",
-          "role": "api-next",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:98ef2544913b3a1660a2ee66ce12fdc4935b1302c64075a70a8764f3f87f8636",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:98ef2544913b3a1660a2ee66ce12fdc4935b1302c64075a70a8764f3f87f8636",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
-        }
-      ],
-      "production_targets": [
-        {
-          "name": "sn-api-next",
-          "kind": "containerApps",
-          "role": "api-next",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9e58df0fe8d6c3e0a61f7dad85e01b243198ee71d8c1773b34c2a7a8b581c926",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9e58df0fe8d6c3e0a61f7dad85e01b243198ee71d8c1773b34c2a7a8b581c926",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
-        }
-      ],
+      "development_targets": [],
+      "production_targets": [],
       "accepted_images": {
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7": {
           "status": "passed",
@@ -1179,65 +1136,12 @@
       }
     },
     "web": {
-      "dependency_image": "node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5633697b3b6401a2264607398729c7f7469976aba094abf55810bcbbc983b4ba",
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229"
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
       ],
-      "development_targets": [
-        {
-          "name": "sn-next-ui-dev",
-          "kind": "containerApps",
-          "role": "web",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5633697b3b6401a2264607398729c7f7469976aba094abf55810bcbbc983b4ba",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5633697b3b6401a2264607398729c7f7469976aba094abf55810bcbbc983b4ba",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
-        }
-      ],
-      "production_targets": [
-        {
-          "name": "sn-streamlit-ui",
-          "kind": "containerApps",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
-            "source_revision": "b58c76568874fcddc84ea4b764ebcaf3ba4a5c1b",
-            "package_evidence": "documents/verification/broad-economy-summary-2026-10-27/production-packaged-images.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-            "review_scope": "Reviewed actual accepted production web inputs. Restore Economic outlook allowlist, page, component and styling exactly from accepted Git; retain all other production behavior alongside Trading."
-          },
-          "role": "web"
-        },
-        {
-          "name": "sn-next-ui",
-          "kind": "containerApps",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
-            "source_revision": "b58c76568874fcddc84ea4b764ebcaf3ba4a5c1b",
-            "package_evidence": "documents/verification/broad-economy-summary-2026-10-27/production-packaged-images.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md",
-            "review_scope": "Reviewed actual accepted production web inputs. Restore Economic outlook allowlist, page, component and styling exactly from accepted Git; retain all other production behavior alongside Trading."
-          },
-          "role": "web"
-        }
-      ],
+      "development_targets": [],
+      "production_targets": [],
       "accepted_images": {
         "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a": {
           "status": "passed",
@@ -1360,47 +1264,12 @@
       }
     },
     "broker": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c0b9fba4f8bb4b4a7dcff3765f9432d333b3be2d7008f6f11eae9512ffc8ae78",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:4c9dbdeac8e65ecdd54b055fc6087e8cb8492c40eb0aafee6dc300f6ab5a0c34",
-        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c0b9fba4f8bb4b4a7dcff3765f9432d333b3be2d7008f6f11eae9512ffc8ae78"
+        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577"
       ],
-      "development_targets": [
-        {
-          "name": "robinhood-main-sync-dev",
-          "kind": "jobs",
-          "role": "broker",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c0b9fba4f8bb4b4a7dcff3765f9432d333b3be2d7008f6f11eae9512ffc8ae78",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c0b9fba4f8bb4b4a7dcff3765f9432d333b3be2d7008f6f11eae9512ffc8ae78",
-            "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-            "package_evidence": "documents/verification/trading-system-2026-10-29/pre-promotion-package_acceptance.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
-        }
-      ],
-      "production_targets": [
-        {
-          "name": "robinhood-main-sync-prod",
-          "kind": "jobs",
-          "role": "broker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:4c9dbdeac8e65ecdd54b055fc6087e8cb8492c40eb0aafee6dc300f6ab5a0c34",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:4c9dbdeac8e65ecdd54b055fc6087e8cb8492c40eb0aafee6dc300f6ab5a0c34",
-            "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-            "package_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
-            "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
-          }
-        }
-      ],
+      "development_targets": [],
+      "production_targets": [],
       "accepted_images": {
         "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577": {
           "status": "passed",
@@ -1427,7 +1296,127 @@
       }
     }
   },
-  "untouched_consumers": [],
+  "untouched_consumers": [
+    {
+      "name": "sn-api-next-dev",
+      "kind": "containerApps",
+      "role": "api-next",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+        "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+        "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+        "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7"
+    },
+    {
+      "name": "sn-api-next",
+      "kind": "containerApps",
+      "role": "api-next",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+        "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+        "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+        "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7"
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "kind": "containerApps",
+      "role": "web",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+        "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+        "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+        "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
+    },
+    {
+      "name": "sn-streamlit-ui",
+      "kind": "containerApps",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+        "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+        "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+        "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+      },
+      "role": "web",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
+    },
+    {
+      "name": "sn-next-ui",
+      "kind": "containerApps",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+        "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+        "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+        "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+      },
+      "role": "web",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "kind": "jobs",
+      "role": "broker",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
+        "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+        "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+        "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577"
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "kind": "jobs",
+      "role": "broker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
+        "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+        "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+        "package_evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577"
+    }
+  ],
   "retired_consumers": [
     {
       "name": "sn-streamlit-ui-dev",
@@ -1461,9 +1450,8 @@
     }
   },
   "preceding_release": {
-    "source_revision": "a307fb77a59c8077a0d227f970034d439d2294af",
-    "acceptance_revision": "705809cb",
-    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json"
+    "source_revision": "ed5044be5eea4024a3a155ce214d04e33e682d11",
+    "evidence": "documents/verification/trading-system-2026-10-29/PRODUCTION.json"
   },
   "production_embedding_activation": {
     "owner_instruction": "Enable the existing Azure semantic search",
@@ -1494,31 +1482,15 @@
     "base_budgets_and_schedules_preserved": true
   },
   "production_authorization": {
-    "owner_instruction": "Promote and update iPhone",
-    "recorded_at": "2026-10-29T21:09:31.070868+00:00",
-    "evidence": "documents/verification/trading-system-2026-10-29/PRODUCTION_AUTHORIZATION.json"
+    "owner_instruction": "Push to prod once everything is fixed. If it's not fixed, fucking fix it and push",
+    "scope": "Standing authorization to complete the release fixes, reinforced by Good. Push to prod for the coherent candidate. Correct its observed publication identity failure after local retained-output and exact-image DEV verification. Preserve current Trading source and all36 configurations; retain seven non-worker images."
   },
   "development_acceptance": {
-    "status": "accepted",
-    "images": {
-      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
-      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
-      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
-      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577"
-    },
-    "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
-    "evidence": "documents/verification/trading-system-2026-10-29/DEVELOPMENT_ACCEPTANCE.json"
+    "status": "pending",
+    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json"
   },
   "production_acceptance": {
-    "status": "deployed",
-    "images": {
-      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
-      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
-      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
-      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577"
-    },
-    "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
-    "evidence": "documents/verification/trading-system-2026-10-29/PRODUCTION.json",
-    "complete_consumer_readback": "documents/verification/trading-system-2026-10-29/FINAL_CONSUMERS.json"
+    "status": "pending",
+    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json"
   }
 }

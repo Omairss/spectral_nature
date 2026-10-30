@@ -1,0 +1,97 @@
+{
+  "status": "cause_confirmed_unrepaired",
+  "recorded_at_utc": "2026-10-30T00:10:43.064560+00:00",
+  "execution": "attention-home-build-29888450",
+  "run_id": "1753cfba-a8d8-4cd3-846d-985e5937488b",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+  "schedule_start_utc": "2026-10-29T20:50:00Z",
+  "first_attempt": {
+    "failed_at_utc": "2026-10-29T21:41:39Z",
+    "error": "ChunkedEncodingError: Response ended prematurely",
+    "stage": "public Home writing/review"
+  },
+  "native_retry": {
+    "started_at_utc": "2026-10-29T21:42:26Z",
+    "same_original_run_id": true,
+    "failed_at_utc": "2026-10-29T22:05:20Z",
+    "error": "A research bundle cannot appear twice in the selected feed.",
+    "editor_result_status": "completed",
+    "written_selected_stories": 14
+  },
+  "duplicate_primary_research": {
+    "bundle:event::source-737f973b559714733ccf": [
+      {
+        "story_id": "story_adt_buyout",
+        "section": "must_read_movers",
+        "title": "Thrive Holdings agrees to acquire ADT for $10 per share in cash",
+        "source_ids": [
+          "bundle:event::source-737f973b559714733ccf",
+          "bundle:event::cluster-02-9f28a54abb",
+          "source:nan:50"
+        ]
+      },
+      {
+        "story_id": "story_gkos_q3",
+        "section": "must_read_movers",
+        "title": "Glaukos Q3 results, released after the 28 October close, drive a 33% gain on 29 October",
+        "source_ids": [
+          "bundle:event::source-737f973b559714733ccf",
+          "bundle:event::cluster-01-9cf77fa5f9",
+          "source:nan:22"
+        ]
+      }
+    ]
+  },
+  "cause": "Publication derives story bundle identity from the first selected research source and forbids using that bundle for another story. Distinct ADT and Glaukos stories selected the same primary research identity, so materialization rejected the entire completed publication. The source-to-public-story identity assumption is in the promoted release.",
+  "retained": [
+    "source research",
+    "market research",
+    "completed editor payload",
+    "publication failure receipts"
+  ],
+  "public_feed_at_investigation": {
+    "run_id": "4351e04c-9e02-417e-afd1-ad3f2082226c",
+    "as_of": "2026-10-29T18:50:37.219566+00:00",
+    "new_20_50_snapshot_published": false
+  },
+  "repair_or_replay_performed": false,
+  "paid_inference_started_during_investigation": false,
+  "evidence": "Real Azure execution/console logs, job_runs SQL receipt, both retained publication-review Parquet versions. Private originals in /Users/omairs/Library/Application Support/SpectralNature/operations/event-adaptive-reliability-2026-10-28/home-publication-failure-20261029",
+  "next_work": "Repair the publication identity/source relationship at its existing owner, preserve distinct complete stories and original source provenance, and verify against this actual retained output. No automatic deduplication, dropped story, historical-current republication or complete paid run during diagnosis.",
+  "provider_connection_investigation": {
+    "status": "truncated_http_responses_confirmed_initiating_cause_unknown",
+    "attempts": [
+      {
+        "attempt_id": "llmhttp_b88adcaba33d41bc87d9445f7fc814e0",
+        "started_at_utc": "2026-10-29 21:37:08.099835+00:00",
+        "duration_seconds": 61.631,
+        "error_type": "ChunkedEncodingError",
+        "http_status_recorded": null,
+        "provider_request_id_recorded": null,
+        "usage_recorded": null
+      },
+      {
+        "attempt_id": "llmhttp_fe681640ade34ccdaca00ef1862c77c7",
+        "started_at_utc": "2026-10-29 21:38:10.260765+00:00",
+        "duration_seconds": 182.448,
+        "error_type": "ChunkedEncodingError",
+        "http_status_recorded": null,
+        "provider_request_id_recorded": null,
+        "usage_recorded": null
+      }
+    ],
+    "same_request_retried": true,
+    "model": "deepseek-v4-pro",
+    "request_size_json_characters": 530312,
+    "context_preflight_fits": true,
+    "confirmed": "The HTTP client reported ChunkedEncodingError: Response ended prematurely while consuming the response. The same request was attempted twice before native job retry.",
+    "unknown": "No retained response headers, HTTP status, provider request ID, partial body or underlying socket event identifies whether DeepSeek, an upstream proxy or another network intermediary closed the response. A provider outage, queue timeout, rate limit or local timeout is not established.",
+    "observability_gap": "requests.Session.post uses buffered responses; body consumption can raise before the caller receives its Response object. Current metering then retains the exception class and duration but no response headers or partial-body diagnostics.",
+    "concurrent_window_evidence": "provider-concurrency-window.json shows one completed earlier DeepSeek call and these two failures; no other concurrent workload establishes the scope of a provider incident.",
+    "provider_status_check": "Official incident API could not be retrieved and search returned no matched incident. This is not evidence that no provider incident occurred.",
+    "references": [
+      "https://requests.readthedocs.io/en/latest/_modules/requests/models/",
+      "https://api-docs.deepseek.com/quick_start/rate_limit/"
+    ]
+  }
+}

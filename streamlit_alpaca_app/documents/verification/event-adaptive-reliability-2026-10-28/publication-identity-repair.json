@@ -1,0 +1,69 @@
+{
+  "status": "accepted_locally_exact_image_qualification_pending",
+  "source_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+  "review_base_revision": "708d6e0bca19e60fec3d1329a874323f6389b70d",
+  "recorded_at_utc": "2026-10-30T00:53:53.801033+00:00",
+  "incident": "home-publication-failure-20261029.json",
+  "runtime_changes": [
+    "pipeline/jobs/attention_home_build.py"
+  ],
+  "design": {
+    "identity": "Every model-selected story has a deterministic public bundle identity from the original logical run and its unique model story_id. Research source identities remain separate, many-to-many references.",
+    "source_preservation": "Original research bundles are retained unchanged except their display flag. Every selected source and source bundle remains attached to the public story drilldown.",
+    "ticker_metadata": "Model-selected supporting symbols determine the public ticker. Market observations are read by that ticker; a broader research source cannot silently supply another company ticker or return.",
+    "scope": "Existing publication owner only. No prompt/model/provider/schedule/budget/retrieval changes; no additional research flow or model call."
+  },
+  "local_verification": {
+    "retained_cases": [
+      {
+        "case": "failed-production-14",
+        "stories": 14,
+        "original_bundles": 87,
+        "basis": "Actual paid model selection/body and original source index; metadata reconstructed from same-run retained observations, articles, claims and event research."
+      },
+      {
+        "case": "owner-accepted-11",
+        "stories": 11,
+        "original_bundles": 92,
+        "basis": "Full previously accepted stored publication and bundles, with its original reader source index."
+      }
+    ],
+    "all_public_fields_and_order_preserved": true,
+    "original_research_unmodified": true,
+    "source_references_preserved": true,
+    "distinct_story_and_ticker_identity_verified": true,
+    "Parquet_drilldown_and_Home_DTO_readback": true,
+    "same_run_materialization_identity_stable": true,
+    "operational_checks_passed": 11,
+    "prose_grading_from_tests": false,
+    "paid_inference_calls": 0,
+    "harness_sha256": "cc503e82ee3db7d1ee755a440cac63bd50f667f5520f67a3eb1427a3c8caa493"
+  },
+  "reviewed_consumers": {
+    "all": 36,
+    "development_workers": 12,
+    "production_workers": 17,
+    "retained_API_broker_frontends": 7,
+    "preservation": "Only Home publication function changes. Worker command bindings, all other producers, shared engine/accounting/deadlines and configuration remain the already accepted coherent source. API/broker use their prior exact qualified images; frontend/native clients consume the unchanged DTO."
+  },
+  "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/operations/event-adaptive-reliability-2026-10-28/home-publication-failure-20261029",
+  "release": {
+    "status": "not_deployed",
+    "production_authorization_basis": "Standing owner instruction to fix the release and push once verified, plus explicit approval of the coherent candidate. This corrects its first scheduled publication failure; no expanded feature or paid run."
+  },
+  "freshness": "No retained historical comparison is republished as current. No manual paid production run started.",
+  "source_integration": {
+    "current_live_release": "documents/verification/trading-system-2026-10-29/PRODUCTION.json",
+    "accepted_build_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+    "accepted_branch_head": "708d6e0bca19e60fec3d1329a874323f6389b70d",
+    "repair_checkout": "/Users/omairs/Documents/code/spectral_nature_home_publication_identity_20261029",
+    "repair_branch": "fix/home-publication-identity-20261029",
+    "changed_runtime_files": [
+      "pipeline/jobs/attention_home_build.py"
+    ],
+    "preservation": "Current Trading release is the Git base. Its API, broker, web, native and paper-account behavior is retained. Only the one publisher correction is applied; all other application files remain byte-identical to the accepted Trading source. Both retained-output replays and all11 operational checks pass again on this integrated source.",
+    "initial_preflight": "The earlier315-file candidate was rejected before any build because its retained-image proof did not cover the newly deployed Trading images. No Azure image mutation or ACR build occurred from that candidate.",
+    "application_files": 319,
+    "runtime_files": 195
+  }
+}
