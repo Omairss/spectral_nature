@@ -64,6 +64,7 @@ struct HomeSnapshot: Codable {
   let dailyDatapoints: [Datapoint]?
   let dailyDatapointsAsOf: String?
   let graph: JSONValue?
+  var calendar: MarketEventCalendar? = nil
 }
 
 struct TickerSnapshot: Codable, Identifiable {

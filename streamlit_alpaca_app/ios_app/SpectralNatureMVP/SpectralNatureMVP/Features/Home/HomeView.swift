@@ -29,6 +29,16 @@ struct HomeView: View {
             }.font(.caption)
           }
         }
+        if let calendar = home?.calendar {
+          MarketEventCarousel(calendar: calendar).padding(.horizontal, -20)
+          if let graph = home?.graph {
+            NavigationLink {
+              AttentionGraphView(artifact: graph)
+            } label: {
+              AttentionNetworkPreview(artifact: graph)
+            }.buttonStyle(.plain)
+          }
+        }
         Picker("Daily Brief view", selection: $section) {
           Text("Brief").tag("Brief")
           Text("Attention").tag("Attention")
@@ -99,7 +109,7 @@ struct HomeView: View {
                 }
               }
             }
-              if let graph = home.graph {
+              if home.calendar == nil, let graph = home.graph {
                 NavigationLink {
                   AttentionGraphView(artifact: graph)
                 } label: {

@@ -1,0 +1,250 @@
+import SwiftUI
+
+struct MarketEventCalendar: Codable {
+  struct Event: Codable, Identifiable {
+    let id: String
+    let name: String
+    let ticker: String?
+    let shortLabel: String?
+    let type: String
+    let time: String?
+    let importance: Double
+    let summary: String?
+    let context: String?
+    let reaction: String?
+    let facts: [[String]]?
+
+    var label: String { ticker ?? shortLabel ?? name }
+  }
+
+  struct Day: Codable, Identifiable {
+    let id: String
+    let label: String
+    let events: [Event]
+
+    var highlights: [Event] {
+      let important = Set(events.sorted { $0.importance > $1.importance }.prefix(2).map(\.id))
+      return events.filter { important.contains($0.id) }
+    }
+  }
+
+  let referenceDate: String
+  let days: [Day]
+}
+
+/// The horizontal lens stays in place as the event stacks unfold beneath each date.
+struct MarketEventCarousel: View {
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  let calendar: MarketEventCalendar
+  @State private var position: String?
+  @State private var expanded = false
+  @State private var selection: Selection?
+
+  private struct Selection: Equatable {
+    let day: String
+    let event: String
+  }
+
+  init(calendar: MarketEventCalendar) {
+    self.calendar = calendar
+    _position = State(initialValue: calendar.referenceDate)
+  }
+
+  private var selectedDay: MarketEventCalendar.Day? {
+    calendar.days.first { $0.id == position }
+  }
+
+  private var selectedEvent: MarketEventCalendar.Event? {
+    guard let selection, selection.day == position else { return nil }
+    return selectedDay?.events.first { $0.id == selection.event }
+  }
+
+  private var height: CGFloat {
+    expanded ? 44 + CGFloat(min(calendar.days.map { $0.events.count }.max() ?? 0, 7)) * 40 : 94
+  }
+
+  private var animation: Animation? {
+    reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.88)
+  }
+
+  var body: some View {
+    VStack(spacing: 0) {
+      GeometryReader { viewport in
+        let step = viewport.size.width / 5
+        ScrollView(.horizontal) {
+          HStack(alignment: .top, spacing: 0) {
+            ForEach(calendar.days) { day in
+              column(day, width: step)
+                .frame(width: step, height: height, alignment: .top)
+                .visualEffect { content, geometry in
+                  let center = geometry.frame(in: .scrollView(axis: .horizontal)).midX
+                  let depth = abs(center - viewport.size.width / 2) / step
+                  return content
+                    .scaleEffect(max(0.5, 1 - depth * 0.18), anchor: .top)
+                    .opacity(max(0.08, 1 - depth * 0.38))
+                }
+                .id(day.id)
+            }
+          }
+          .scrollTargetLayout()
+          .padding(.horizontal, step * 2)
+        }
+        .scrollIndicators(.hidden)
+        .scrollTargetBehavior(.viewAligned)
+        .scrollPosition(id: $position, anchor: .center)
+        .mask {
+          LinearGradient(stops: [
+            .init(color: .clear, location: 0),
+            .init(color: .black.opacity(0.65), location: 0.09),
+            .init(color: .black, location: 0.32),
+            .init(color: .black, location: 0.68),
+            .init(color: .black.opacity(0.65), location: 0.91),
+            .init(color: .clear, location: 1),
+          ], startPoint: .leading, endPoint: .trailing)
+        }
+      }
+      .frame(height: height)
+
+      if expanded {
+        HStack(spacing: 10) {
+          if let day = selectedDay {
+            Text("\(day.label) · \(day.events.count) \(day.events.count == 1 ? "event" : "events")")
+              .font(.caption).foregroundStyle(Theme.secondaryText)
+          }
+          Spacer()
+          Button {
+            withAnimation(animation) { expanded = false; selection = nil }
+          } label: {
+            Image(systemName: "chevron.up").font(.system(size: 12, weight: .medium))
+              .frame(width: 44, height: 44)
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel("Collapse market events")
+        }
+        .padding(.horizontal, 20)
+        .transition(.opacity)
+
+        if let event = selectedEvent {
+          eventDetail(event)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 16)
+            .transition(.opacity.combined(with: .move(edge: .top)))
+        }
+      }
+    }
+    .foregroundStyle(Theme.text)
+    .animation(animation, value: expanded)
+    .animation(animation, value: selection)
+    .onChange(of: calendar.days.map(\.id)) { _, ids in
+      if !ids.contains(position ?? "") { position = calendar.referenceDate; selection = nil }
+    }
+    .onChange(of: position) { _, next in
+      if selection?.day != next { selection = nil }
+    }
+    .accessibilityIdentifier("market-event-carousel")
+  }
+
+  @ViewBuilder
+  private func column(_ day: MarketEventCalendar.Day, width: CGFloat) -> some View {
+    if expanded {
+      VStack(spacing: 0) {
+        Button {
+          withAnimation(animation) { position = day.id; selection = nil }
+        } label: {
+          dateLabel(day).frame(width: width, height: 44)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(day.label), \(day.events.count) events")
+
+        ScrollView(.vertical) {
+          VStack(spacing: 0) {
+            ForEach(day.events) { event in
+              Button {
+                withAnimation(animation) {
+                  position = day.id
+                  let next = Selection(day: day.id, event: event.id)
+                  selection = selection == next ? nil : next
+                }
+              } label: {
+                Text(event.label)
+                  .font(.system(size: 13, weight: selection?.event == event.id ? .semibold : .medium))
+                  .foregroundStyle(selection?.event == event.id ? Theme.teal : Theme.text)
+                  .lineLimit(1).minimumScaleFactor(0.7)
+                  .frame(width: width, height: 40)
+                  .contentShape(Rectangle())
+              }
+              .buttonStyle(.plain)
+              .accessibilityLabel("\(event.name), \(event.time.map { $0 + " ET" } ?? "time unconfirmed")")
+              .accessibilityIdentifier("calendar-event-\(event.id)")
+            }
+          }
+        }
+        .scrollIndicators(.hidden)
+      }
+    } else {
+      Button {
+        withAnimation(animation) { position = day.id; expanded = true; selection = nil }
+      } label: {
+        VStack(spacing: 0) {
+          dateLabel(day).frame(height: 34)
+          VStack(spacing: 7) {
+            ForEach(day.highlights) { event in
+              Text(event.label).font(.system(size: 13, weight: .medium))
+                .lineLimit(1).minimumScaleFactor(0.7)
+            }
+          }
+          .frame(maxWidth: .infinity, alignment: .top)
+        }
+        .frame(width: width, height: 94, alignment: .top)
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("\(day.label), \(day.events.count) events")
+      .accessibilityHint("Expands the calendar in place")
+      .accessibilityIdentifier("calendar-day-\(day.id)")
+    }
+  }
+
+  private func dateLabel(_ day: MarketEventCalendar.Day) -> some View {
+    Text(Format.date(day.id).map { Format.historyDate($0, years: false) } ?? day.label)
+      .font(.system(size: 12, weight: day.id == position ? .semibold : .regular))
+      .foregroundStyle(day.id == position ? Theme.text : Theme.secondaryText)
+      .lineLimit(1).minimumScaleFactor(0.75)
+      .frame(maxWidth: .infinity)
+  }
+
+  private func eventDetail(_ event: MarketEventCalendar.Event) -> some View {
+    VStack(alignment: .leading, spacing: 10) {
+      Divider().overlay(Theme.border)
+      HStack(alignment: .firstTextBaseline) {
+        Text(event.name).font(.subheadline.weight(.semibold))
+        Spacer()
+        if let time = event.time {
+          Text(time + " ET").font(.caption.monospacedDigit()).foregroundStyle(Theme.secondaryText)
+        }
+      }
+      if let summary = event.summary, !summary.isEmpty {
+        Text(summary).font(.subheadline)
+      }
+      if let context = event.context, !context.isEmpty {
+        Text(context).font(.footnote).foregroundStyle(Theme.secondaryText).fixedSize(horizontal: false, vertical: true)
+      }
+      if let facts = event.facts, !facts.isEmpty {
+        ForEach(Array(facts.enumerated()), id: \.offset) { _, fact in
+          if fact.count >= 2 {
+            HStack(alignment: .firstTextBaseline) {
+              Text(fact[0]).foregroundStyle(Theme.secondaryText)
+              Spacer()
+              Text(fact[1]).multilineTextAlignment(.trailing)
+            }.font(.caption)
+          }
+        }
+      }
+      if let reaction = event.reaction, !reaction.isEmpty {
+        Text(reaction).font(.caption).foregroundStyle(Theme.secondaryText)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityIdentifier("calendar-event-detail")
+  }
+}
