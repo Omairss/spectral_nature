@@ -77,11 +77,13 @@ struct MarketEventCarousel: View {
               column(day, width: step)
                 .frame(width: step, height: height, alignment: .top)
                 .visualEffect { content, geometry in
-                  let center = geometry.frame(in: .scrollView(axis: .horizontal)).midX
-                  let depth = abs(center - viewport.size.width / 2) / step
+                  let center: CGFloat = geometry.frame(in: .scrollView(axis: .horizontal)).midX
+                  let depth: CGFloat = abs(center - viewport.size.width / 2) / step
+                  let scale: CGFloat = max(0.5, 1 - depth * 0.18)
+                  let opacity: Double = Double(max(0.08, 1 - depth * 0.38))
                   return content
-                    .scaleEffect(max(0.5, 1 - depth * 0.18), anchor: .top)
-                    .opacity(max(0.08, 1 - depth * 0.38))
+                    .scaleEffect(scale, anchor: .top)
+                    .opacity(opacity)
                 }
                 .id(day.id)
             }
