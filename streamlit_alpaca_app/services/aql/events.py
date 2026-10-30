@@ -110,6 +110,9 @@ _NOMINATION_PROMPT = register_narrative_prompt(
         "questions instead of assigning a large group one assumed cause. Ask open questions; do not force a "
         "choice between a news explanation and a factor explanation before investigating. Preserve consequential "
         "numerical discoveries even when the headline collection has no matching article. "
+        "Assess what offsets benchmark weakness as a market question in its own right; steady broad strength "
+        "deserves explanation even without a fresh headline. Retained hypotheses and reviewer disagreements "
+        "must remain distinct from established causes when deciding to reuse or extend research. "
         "Source IDs are supplied identities or exact URLs acquired by tools. A numerical lead needs no article. "
         "Return events in priority order, research_agenda as the current questions, and findings_markdown as "
         "substantive current assessment and unresolved questions, not a public Brief or a list of figures."
@@ -360,6 +363,8 @@ def research_source_events(
         prior_investigations = [
             {key: artifact.get(key) for key in ("artifact_id", "subject", "task", "created_at_utc")}
             | {"payload": (artifact.get("result") or {}).get("payload") or {},
+               "quality_review": ((artifact.get("result") or {}).get("agent_result") or {}).get("quality_review") or {},
+               "limitations": ((artifact.get("result") or {}).get("agent_result") or {}).get("limitations") or [],
                "artifact_context": {key: value for key, value in ((artifact.get("result") or {}).get("artifact_context") or {}).items()
                                     if key != "source_documents"}}
             for artifact in retained
@@ -379,6 +384,9 @@ def research_source_events(
         "economic-observations": {"title": "Dated economic observations", "metadata": {}, "content": to_jsonable(macro_context or {})},
         "previous-publication": {"title": "Previous publication with original dated sources", "metadata": {},
                                  "content": to_jsonable(previous_publication or {})}})
+    source_records.update({"retained-research:" + artifact["artifact_id"]: {
+        "title": artifact["subject"], "metadata": {"kind": "prior_model_analysis", "created_at_utc": artifact["created_at_utc"]},
+        "content": to_jsonable(artifact)} for artifact in retained})
     service = QueryService.from_environment().with_supplied_evidence(source_records)
     nomination = run_aql_zopedia_structured_agent(
         query=get_prompt(_NOMINATION_PROMPT)

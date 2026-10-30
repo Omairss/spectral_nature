@@ -158,7 +158,10 @@ def build_market_attention_context(
         group_rows.append({"id": key, "members": members,
             "previous_group_overlap": {p: sorted(set(members) & set(old_groups[p])) for p in sorted(prior)},
             "day_mean_pct": pd.to_numeric(selected.get("day_pct"), errors="coerce").mean(),
-            "week_mean_pct": pd.to_numeric(selected.get("week_pct", pd.Series(dtype=float)), errors="coerce").mean()})
+            "week_mean_pct": pd.to_numeric(selected.get("week_pct", pd.Series(dtype=float)), errors="coerce").mean(),
+            "advancing_count": int(pd.to_numeric(selected.get("day_pct"), errors="coerce").gt(0).sum()),
+            **{column + "_mean": pd.to_numeric(selected.get(column, pd.Series(dtype=float)), errors="coerce").mean()
+               for column in ("return_20d_pct", "week_excess_pp", "return_20d_excess_pp")}})
     sectors = []
     if "sector" in frame:
         for sector, members in frame.dropna(subset=["sector"]).groupby("sector"):
