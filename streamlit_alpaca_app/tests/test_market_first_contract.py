@@ -110,7 +110,8 @@ def test_reuse_keeps_original_sources_dates_and_distinct_question_identity(monke
         "text": "Original complete text", "raw_text": "Original complete text", "source_kind": "news",
         "source_provider": "original"}
     prior = {"artifact_id": "prior", "subject": "event:original", "created_at_utc": "2026-10-20T13:00Z",
-        "result": {"status": "completed", "payload": answer(), "artifact_context": {
+        "result": {"status": "completed", "payload": answer(), "agent_result": {
+            "tool_calls": [{"status": "failed"}], "quality_review": {"status": "failed"}}, "artifact_context": {
             "asof_time_utc": "2026-10-20T13:00Z", "source_documents": [source]}}}
     monkeypatch.setattr(events.pipeline_store, "list_research_artifacts", lambda **kwargs: [prior])
     monkeypatch.setattr(events, "latest_research_artifact", lambda **kwargs: None)
@@ -125,6 +126,7 @@ def test_reuse_keeps_original_sources_dates_and_distinct_question_identity(monke
     result = events.research_source_events(pd.DataFrame(), market_frame=pd.DataFrame(), universe_frame=None,
         asof_time_utc="2026-10-30T18:50Z", run_id="current", llm_client=object())
     assert len({bundle["bundle_id"] for bundle in result["bundles"]}) == 2
+    assert result['status'] == 'completed', 'Historical acquisition errors are not new execution failures'
     assert all(bundle["research_asof_time_utc"] == "2026-10-20T13:00Z" for bundle in result["bundles"])
     assert all(doc["published_at"] == source["published_at"] for doc in result["documents"])
     assert result["documents"][0]["raw_text"] == source["raw_text"]
@@ -213,3 +215,42 @@ def test_relationship_change_compares_the_same_prior_peers():
              if row[context['columns'].index('symbol')] == 'B')
     assert b['prior_group_peer_correlation_previous_window'] > .99
     assert b['prior_group_peer_correlation_current_window'] < .4
+
+
+def test_article_url_preserves_both_captures_and_claim_uses_its_named_capture(monkeypatch):
+    monkeypatch.delenv('LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE', raising=False)
+    url = 'https://example.invalid/article'
+    previous = {'stories': [{'supporting_symbols': ['A'], 'evidence': [{
+        'source_text': 'Earlier captured version', 'url': url, 'canonical_document_id': 'saa_doc::earlier'}]}]}
+    def run(**kwargs):
+        if kwargs['task'] == 'source_event_nomination':
+            return {'status': 'completed', 'payload': {'research_agenda': [], 'findings_markdown': 'Assessment',
+                'events': [plan(source_ids=[url])]}}
+        sources = kwargs['initial_evidence']
+        assert {source['text'] for source in sources} == {'Earlier captured version', 'Current captured version'}
+        current = next(source for source in sources if source['text'] == 'Current captured version')
+        return {'status': 'completed', 'payload': {**answer(), 'claims': [{
+            'claim_text': 'Current finding', 'source_id': current['document_id'], 'source_url': url,
+            'evidence_role': 'reported_fact'}]}}
+    monkeypatch.setattr(events, 'run_aql_zopedia_structured_agent', run)
+    result = events.research_source_events(pd.DataFrame([{'headline': 'Updated report', 'content': 'Current captured version',
+        'url': url, 'published_at': '2026-10-30T12:00Z'}]), market_frame=pd.DataFrame(), universe_frame=None,
+        asof_time_utc='2026-10-30T18:50Z', run_id='versions', llm_client=object(), previous_publication=previous)
+    claim = result['bundles'][0]['claims'][0]
+    assert claim['citation_status'] == 'resolved' and claim['document_id'] != 'saa_doc::earlier'
+
+
+def test_failed_acquisition_or_review_is_visible_without_discarding_valid_research(monkeypatch):
+    monkeypatch.delenv('LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE', raising=False)
+    def run(**kwargs):
+        if kwargs['task'] == 'source_event_nomination':
+            return {'status': 'completed', 'payload': {'research_agenda': [], 'findings_markdown': 'Assessment', 'events': [plan()]}}
+        return {'status': 'completed', 'payload': answer(), 'agent_result': {
+            'tool_calls': [{'status': 'failed', 'error': 'Acquisition deadline'}],
+            'quality_review': {'status': 'failed'}}}
+    monkeypatch.setattr(events, 'run_aql_zopedia_structured_agent', run)
+    result = events.research_source_events(pd.DataFrame(), market_frame=pd.DataFrame(), universe_frame=None,
+        asof_time_utc='2026-10-30T18:50Z', run_id='partial', llm_client=object())
+    assert result['status'] == 'partial' and len(result['bundles']) == 1
+    assert result['results'][0]['tool_failure_count'] == 1
+    assert result['results'][0]['review_status'] == 'failed'

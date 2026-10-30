@@ -445,6 +445,9 @@ def research_source_events(
         "research_agenda_json": json.dumps(payload.get("research_agenda", []) if isinstance(payload, dict) else []),
         "market_context_json": json.dumps(to_jsonable(market_context or {}), ensure_ascii=False),
         "error": nomination.get("error", ""),
+        "tool_failure_count": sum(call.get("status") in {"failed", "timeout", "cancelled"}
+                                  for call in discovery_agent.get("tool_calls", [])),
+        "review_status": (discovery_agent.get("quality_review") or {}).get("status", ""),
         "acquired_document_count": len(discovery["documents"]),
         "result_json": json.dumps(to_jsonable(nomination), ensure_ascii=False)}]
     if not isinstance(payload, dict) or list(
@@ -466,7 +469,7 @@ def research_source_events(
     # Keep the retained model response immutable when adapting source references.
     plans = [dict(plan) for plan in payload["events"]]
     by_id = {reference: doc for doc in documents
-             for reference in (doc["source_id"], doc["document_id"], doc.get("url")) if reference}
+             for reference in (doc["source_id"], doc["document_id"]) if reference}
     retained_by_id = {artifact["artifact_id"]: artifact for artifact in retained}
     for plan in plans:
         prior = retained_by_id.get(plan["prior_artifact_id"])
@@ -474,8 +477,12 @@ def research_source_events(
             record_execution_issue("market_research_continuity", ValueError("Selected prior research is unavailable; investigating the question afresh"))
             plan["research_action"] = "investigate"
         plan["source_refs"] = list(plan["source_ids"])
-        resolved = [by_id[ref]["source_id"] for ref in plan["source_refs"] if ref in by_id]
-        plan["unresolved_source_refs"] = [ref for ref in plan["source_refs"] if ref not in by_id]
+        # A URL can name several captures. Supply every original rather than
+        # silently replacing a current capture with an earlier version.
+        matches = {ref: [by_id[ref]] if ref in by_id else [doc for doc in documents if doc.get("url") == ref]
+                   for ref in plan["source_refs"]}
+        resolved = [doc["source_id"] for captures in matches.values() for doc in captures]
+        plan["unresolved_source_refs"] = [ref for ref, captures in matches.items() if not captures]
         plan["source_ids"] = list(dict.fromkeys(resolved))
         # A nominated market observation is evidence for investigating an
         # unexplained move; it is not evidence of the move's eventual cause.
@@ -624,9 +631,8 @@ def research_source_events(
             for doc in acquired["documents"]
             if doc.get("source_kind") != "research_tool_result"
         ]
-        by_url = {
-            doc["url"]: doc for doc in [*selected, *acquired_documents] if doc.get("url")
-        }
+        captured_by_id = {ref: doc for doc in [*selected, *acquired_documents]
+                          for ref in (doc["source_id"], doc["document_id"])}
         output = result.get("payload")
         record = {
             "run_id": run_id,
@@ -638,6 +644,11 @@ def research_source_events(
             "status": result.get("status"),
             "error": result.get("error", ""),
             "answer_status": agent.get("answer_status", ""),
+            "tool_failure_count": (sum(call.get("status") in {"failed", "timeout", "cancelled"}
+                                       for call in agent.get("tool_calls", []))
+                                   if plan["research_action"] != "reuse" else 0),
+            "review_status": (agent.get("quality_review") or {}).get("status", "")
+                             if plan["research_action"] != "reuse" else "reused_prior_review",
             "result_json": json.dumps(to_jsonable(result), ensure_ascii=False),
         }
         record["_acquired_documents"] = list({doc["source_id"]: doc for doc in [*selected, *acquired_documents]}.values())
@@ -658,11 +669,11 @@ def research_source_events(
         )
         claims = []
         for ordinal, item in enumerate(output["claims"]):
-            ref = by_url.get(item["source_url"], {})
-            supplied_doc = by_id.get(item["source_id"], {})
-            doc = ref or (
-                supplied_doc if supplied_doc.get("url") == item["source_url"] else {}
-            )
+            supplied_doc = captured_by_id.get(item["source_id"], {})
+            url_captures = {doc["document_id"]: doc for doc in [*selected, *acquired_documents]
+                            if item["source_url"] and doc.get("url") == item["source_url"]}
+            doc = (supplied_doc if supplied_doc and supplied_doc.get("url") == item["source_url"] else
+                   next(iter(url_captures.values())) if len(url_captures) == 1 else {})
             date = pd.to_datetime(
                 doc.get("published_at") or doc.get("published_date"),
                 utc=True,
@@ -716,7 +727,8 @@ def research_source_events(
             "research_action": plan["research_action"],
             "current_assessment": plan["rationale"],
             "research_asof_time_utc": prior_context.get("asof_time_utc") if plan["research_action"] == "reuse" else asof,
-            "research_completed_at_utc": prior.get("created_at_utc") if plan["research_action"] == "reuse" else pd.Timestamp.now(tz="UTC"),
+            "research_completed_at_utc": (prior.get("created_at_utc") if plan["research_action"] == "reuse" else
+                                          (result.get("artifact_reuse") or {}).get("created_at_utc") or pd.Timestamp.now(tz="UTC")),
             "current_assessment_asof_time_utc": asof,
             "prior_artifact_id": plan["prior_artifact_id"],
             "event_score": 0.0,
@@ -787,7 +799,9 @@ def research_source_events(
                 bundles.append(bundle)
     return {
         "status": "completed"
-        if nomination.get("status") == "completed" and len(bundles) == len(plans)
+        if (nomination.get("status") == "completed" and len(bundles) == len(plans)
+            and not any(row.get("tool_failure_count") or row.get("review_status") in {"failed", "timeout"}
+                        for row in [*market_research, *results]))
         else "partial"
         if bundles or market_research[0]["market_context_text"]
         else "failed",

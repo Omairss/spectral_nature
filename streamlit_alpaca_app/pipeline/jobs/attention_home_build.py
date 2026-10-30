@@ -489,39 +489,18 @@ _HOME_PUBLIC_TEXT_FIELDS = (
     "affected_assets_summary_text", "business_context_text", "watch_next_text",
 )
 
-_HOME_STORY_SELECTION_SCHEMA: dict[str, Any] = {
-    "type": "object", "additionalProperties": False,
-    "properties": {
-        "story_id": {"type": "string"},
-        "question": {"type": "string", "description": "The consequential question this selected story will answer."},
-        "source_ids": {"type": "array", "minItems": 1, "uniqueItems": True,
-                       "items": {"type": "string"},
-                       "description": "Exact source_id values from the supplied source index, also used by the evidence reader. Put the primary research first, followed by supporting context. May reference research bundles, original documents, company research or market observations."},
-        "supporting_symbols": {"type": "array", "items": {"type": "string"}},
-    }, "required": ["story_id", "question", "source_ids", "supporting_symbols"],
-}
-
 _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
     "type": "object", "additionalProperties": False,
     "properties": {
-        "selection": {
-            "type": "object", "additionalProperties": False,
-            "properties": {section: {"type": "array", "items": _HOME_STORY_SELECTION_SCHEMA}
-                           for section in ("top_events", "must_read_movers", "unresolved_large_moves")},
-            "required": ["top_events", "must_read_movers", "unresolved_large_moves"],
-        },
-        "market_summary": {
-            "type": "object", "additionalProperties": False,
-            "properties": {
-                "summary_text": {"type": "string", "description": "Explain the consequential developments and their implications in connected prose. This is the reader's orientation, not a list of stories or measurements."},
-                "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
-                "limitations": {"type": "array", "items": {"type": "string"}},
-            }, "required": ["summary_text", "confidence", "limitations"],
-        },
         "stories": {"type": "array", "items": {
             "type": "object", "additionalProperties": False,
             "properties": {
-                "story_id": {"type": "string"},
+                "section": {"type": "string", "enum": ["top_events", "must_read_movers", "unresolved_large_moves"],
+                            "description": "Choose exactly one display section for this distinct story. List each story once."},
+                "question": {"type": "string"},
+                "source_ids": {"type": "array", "minItems": 1, "uniqueItems": True, "items": {"type": "string"},
+                    "description": "Exact source index/reader identities. Primary research first, then supporting originals or observations."},
+                "supporting_symbols": {"type": "array", "items": {"type": "string"}},
                 "time_basis": _STORY_TIME_BASIS_SCHEMA,
                 "event_title": {"type": "string", "description": "The substantive development, with chronology and strength of explanation intact. A hypothesized cause remains a hypothesis in the headline; a caveat later in the story cannot correct an asserted cause."},
                 "surface_summary_text": {"type": "string", "description": "The development's essential meaning for an investor, without duplicating the headline or detailed account."},
@@ -533,13 +512,21 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
                 "cause_status": {"type": "string", "enum": ["supported", "partial", "unresolved"]},
             },
             "required": [
-                "story_id", "time_basis", "event_title", "surface_summary_text",
+                "section", "question", "source_ids", "supporting_symbols", "time_basis", "event_title", "surface_summary_text",
                 "what_happened_text", "why_happened_text", "affected_assets_summary_text",
                 "business_context_text", "watch_next_text", "cause_status",
             ],
         }},
+        "market_summary": {
+            "type": "object", "additionalProperties": False,
+            "properties": {
+                "summary_text": {"type": "string", "description": "Summarize the finished Attention stories and their investment implications in connected prose. Lead with the substantive business developments. This is not a sector-performance inventory or a second analysis of unused context."},
+                "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
+                "limitations": {"type": "array", "items": {"type": "string"}},
+            }, "required": ["summary_text", "confidence", "limitations"],
+        },
         "issues": {"type": "array", "items": {"type": "string"}},
-    }, "required": ["selection", "market_summary", "stories", "issues"],
+    }, "required": ["stories", "market_summary", "issues"],
 }
 
 
@@ -1786,13 +1773,9 @@ def _apply_home_surface_quality_items(
         "must_read_movers": _attention_home_must_read_display_limit(),
         "unresolved_large_moves": _attention_home_unresolved_display_limit(),
     }
-    selection = publication["selection"]
-    selected_ids = [item["story_id"] for section in limits for item in selection[section]]
-    stories = {item["story_id"]: item for item in publication["stories"]}
-    if (len(set(selected_ids)) != len(selected_ids) or len(stories) != len(publication["stories"])
-            or set(selected_ids) != set(stories)):
-        raise AttentionHomeBuildError("Selected stories and written stories must have the same unique identities.")
-    if any(len(selection[section]) > limit for section, limit in limits.items()):
+    stories = {section: [(ordinal, story) for ordinal, story in enumerate(publication["stories"])
+                         if story["section"] == section] for section in limits}
+    if any(len(stories[section]) > limit for section, limit in limits.items()):
         raise AttentionHomeBuildError("The selected publication exceeds its declared display capacity.")
     candidates = {str(item.get("bundle_id") or ""): item
                   for section in limits for item in payload.get(section) or []}
@@ -1804,7 +1787,7 @@ def _apply_home_surface_quality_items(
     selected_candidates: set[str] = set()
     discovered = 0
     for section in limits:
-        for selected in selection[section]:
+        for ordinal, selected in stories[section]:
             source_ids = selected["source_ids"]
             if not source_ids or len(set(source_ids)) != len(source_ids) or any(sid not in source_records for sid in source_ids):
                 raise AttentionHomeBuildError("Selected research source identity is unknown or repeated.")
@@ -1815,7 +1798,7 @@ def _apply_home_surface_quality_items(
             if any(identity not in bundle_map for identity in research_bundle_ids):
                 raise AttentionHomeBuildError("Selected research bundle is unavailable.")
             selected_candidates.update(identity for identity in research_bundle_ids if identity in candidates)
-            revision = stories[selected["story_id"]]
+            revision = selected
             symbols = selected["supporting_symbols"]
             primary_symbol = symbols[0] if symbols else ""
             source_bundle = bundle_map[research_bundle_ids[0]] if research_bundle_ids else {}
@@ -1829,7 +1812,7 @@ def _apply_home_surface_quality_items(
             if not research_bundle_ids:
                 discovered += 1
             run_id = payload.get("run_id") or (payload.get("coverage_summary") or {}).get("run_id", "")
-            identity_text = json.dumps([run_id or str(asof_time_utc), selected["story_id"]], ensure_ascii=False)
+            identity_text = json.dumps([run_id or str(asof_time_utc), ordinal], ensure_ascii=False)
             event_id = "home-" + hashlib.sha256(identity_text.encode()).hexdigest()
             bundle_id = "event::" + event_id
             documents = [record["content"] for record in records
@@ -1847,7 +1830,7 @@ def _apply_home_surface_quality_items(
                 "surface_business_context_text": canonical["business_context_text"], "surface_source_summary": "",
             }
             metadata = {"publish": True, "public_surface_reviewed": True, "public_surface_review_note": "",
-                "bundle_id": bundle_id, "event_id": event_id, "story_id": selected["story_id"],
+                "bundle_id": bundle_id, "event_id": event_id, "story_id": event_id,
                 "bundle_type": "event", "run_id": run_id, "asof_time_utc": asof_time_utc,
                 "symbol": primary_symbol, "anchor_symbol": primary_symbol, "supporting_symbols": symbols,
                 "change_pct": observations.get(primary_symbol, {}).get("change_pct", item.get("change_pct")),
@@ -1871,7 +1854,7 @@ def _apply_home_surface_quality_items(
     for section in limits:
         coverage[section + "_reviewed_count"] = len(updated[section])
         coverage[section + "_display_count"] = len(updated[section])
-    count = len(selected_ids)
+    count = len(publication["stories"])
     dropped = len(candidates) - len(selected_candidates)
     coverage.update(public_home_story_count=count, public_surface_quality_reviewed_count=count,
                     public_surface_quality_changed_count=count, public_surface_quality_dropped_count=dropped)
@@ -1912,7 +1895,10 @@ def _review_home_public_surface(
         }
         answer = bundle.get("findings_markdown") or bundle.get("research_result")
         if answer:
-            findings.append({"source_id": source_id, "findings": answer})
+            findings.append({"source_id": source_id, "findings": answer,
+                "claims": bundle.get("claims") or [],
+                "research_review": {key: (bundle.get("quality_review") or {}).get(key)
+                                    for key in ("critique_summary", "unsupported_claims", "evidence_gaps")}})
     for index, row in enumerate(enrichment_rows or []):
         if row.get("research_origin") == "common_market_agenda":
             continue
@@ -1939,19 +1925,18 @@ def _review_home_public_surface(
     service = QueryService.from_environment().with_supplied_evidence(records)
     schema = {**_HOME_SURFACE_QUALITY_SCHEMA, "properties": {
         **_HOME_SURFACE_QUALITY_SCHEMA["properties"],
-        "selection": {**_HOME_SURFACE_QUALITY_SCHEMA["properties"]["selection"], "properties": {
-            section: {**_HOME_SURFACE_QUALITY_SCHEMA["properties"]["selection"]["properties"][section], "maxItems": limit,
-                "items": {**_HOME_STORY_SELECTION_SCHEMA, "properties": {**_HOME_STORY_SELECTION_SCHEMA["properties"],
-                    "source_ids": {**_HOME_STORY_SELECTION_SCHEMA["properties"]["source_ids"],
-                                   "items": {"type": "string", "enum": list(records)}}}}}
-            for section, limit in limits.items()}},
+        "stories": {**_HOME_SURFACE_QUALITY_SCHEMA["properties"]["stories"], "maxItems": sum(limits.values()),
+            "items": {**_HOME_SURFACE_QUALITY_SCHEMA["properties"]["stories"]["items"], "properties": {
+                **_HOME_SURFACE_QUALITY_SCHEMA["properties"]["stories"]["items"]["properties"],
+                "source_ids": {"type": "array", "minItems": 1, "uniqueItems": True,
+                               "items": {"type": "string", "enum": list(records)}}}}},
     }}
     query = (
         f"As of {_zopedia_asof_text(asof_time_utc)}, compose the current investor briefing from shared research. "
-        "First choose the complete visible feed in selection, in each section's exact display order. "
+        "Choose the complete visible Attention feed as one list of distinct stories in display order, each with one section. "
         "The supplied section capacities are ceilings, not quotas. Choose the consequential questions and "
-        "independent developments before deciding whether they support a common interpretation. Then write "
-        "the overview and only those selected stories. Each story_id has one written story; unselected findings "
+        "independent developments before deciding whether they support a common interpretation. Write the stories "
+        "first, then summarize that finished list as the Brief. Unselected findings "
         "remain available for research and must not be expanded into discarded public drafts. "
         "The reviewer sees this selection and these exact bodies; publication preserves them without a later cutoff. "
         "Compare the proposed explanation against the supplied market groups, participation and multi-day "
@@ -1960,8 +1945,10 @@ def _review_home_public_surface(
         "Reused research retains its original event and research dates; its current assessment is separate. "
         "Judge the whole briefing: what matters now, what changes the interpretation, what consequential "
         "operating or policy explanation is missing, and whether its conclusions follow from the sources. "
-        "Completed research is fallible analysis, not independent confirmation. Use the existing evidence reader "
-        "to inspect the named originals, complete observations, competing explanations and wider findings. "
+        "Completed research is fallible analysis, not independent confirmation. "
+        "Preserve its distinction between reported facts, standing context and hypotheses, and the factual "
+        "corrections in research_review. Shortening an explanation must not invent a cause or change a group membership. "
+        "Use the existing evidence reader to inspect the named originals, complete observations, competing explanations and wider findings. "
         "Read the decisive original when a draft's explanation or detail is insufficient. There is no need to "
         "load the full numerical universe before deciding which observations help explain a development. "
         "Selection source_ids are the exact source_id values in the supplied source index, the same identities "
@@ -1981,6 +1968,9 @@ def _review_home_public_surface(
         "mechanism, not why investors traded today. Leave a public field empty when it adds no distinct insight. "
         "Establish time_basis before each story's prose: "
         "distinguish current observations, original event dates, source publication dates and upcoming information. "
+        "A daily bar's timestamp labels its interval; it is not the last-trade time. Publication time is not "
+        "measurement time. The view displays dates and chart values; the Brief should explain the finished stories "
+        "rather than begin with a dated numerical snapshot. "
         "A background statement must not become a new announcement through its headline. "
         "Public fields contain investor reporting; operational acquisition or review commentary belongs in issues "
         "or limitations. Keep independent useful findings when one source or interpretation remains unresolved."
@@ -1994,7 +1984,6 @@ def _review_home_public_surface(
                           "fields": list(record["content"]) if isinstance(record["content"], dict) else []}
                          for source_id, record in records.items()],
         "publication_capacity": limits,
-        "candidates": review_items,
         "evidence_manifest": service.supplied_evidence_manifest,
     }]
     attempts = _env_positive_int("ATTENTION_HOME_SURFACE_QUALITY_ATTEMPTS", 2)

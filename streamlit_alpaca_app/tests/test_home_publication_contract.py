@@ -11,10 +11,8 @@ from pipeline.jobs.attention_home_build import (
 
 
 def publication(source_ids):
-    selected = {"story_id": "chosen", "question": "", "source_ids": source_ids,
-                "supporting_symbols": ["EXAMPLE"]}
-    return {"selection": {"top_events": [selected], "must_read_movers": [], "unresolved_large_moves": []},
-            "stories": [{"story_id": "chosen", "time_basis": {}, "cause_status": "partial",
+    return {"stories": [{"section": "top_events", "question": "", "source_ids": source_ids,
+                         "supporting_symbols": ["EXAMPLE"], "time_basis": {}, "cause_status": "partial",
                          **{field: field for field in _HOME_PUBLIC_TEXT_FIELDS}}]}
 
 
@@ -32,7 +30,7 @@ def test_reader_identity_selects_previously_unpublished_research_without_losing_
         publication(["bundle:retained", "bundle:context"]), source_records=records, asof_time_utc="2026-10-29T17:49:00Z")
     row = updated["top_events"][0]
     assert row["bundle_id"] != "retained"
-    assert row["story_id"] == "chosen" and row["research_bundle_ids"] == ["retained", "context"]
+    assert row["story_id"] == row["event_id"] and row["research_bundle_ids"] == ["retained", "context"]
     assert row["change_pct"] == -9 and row["price_history"] == [1, 2]
     assert row["evidence"] == original["retained"]["evidence"]
     assert row["research_source_ids"] == ["bundle:retained", "bundle:context"]
@@ -70,9 +68,7 @@ def test_public_reader_preserves_the_whole_selected_publication(monkeypatch):
     monkeypatch.setenv('ATTENTION_HOME_TOP_EVENTS_DISPLAY_LIMIT', '20')
     selected = publication(['source:original'])
     story = selected['stories'][0]
-    choice = selected['selection']['top_events'][0]
-    selected['stories'] = [{**story, 'story_id': str(i)} for i in range(20)]
-    selected['selection']['top_events'] = [{**choice, 'story_id': str(i)} for i in range(20)]
+    selected['stories'] = [dict(story) for _ in range(20)]
     updated, _, _ = _apply_home_surface_quality_items({}, {}, selected,
         source_records={'source:original': {'metadata': {'kind': 'source_document'},
                         'content': {'source_id': 'original', 'raw_text': 'Complete original'}}},
@@ -92,7 +88,7 @@ def test_publication_source_contract_is_stable_and_bound_to_reader(monkeypatch):
     from pipeline.jobs import attention_home_build as home
     seen = []
     def run(**kwargs):
-        schema = kwargs['schema']['properties']['selection']['properties']['top_events']['items']
+        schema = kwargs['schema']['properties']['stories']['items']
         identities = schema['properties']['source_ids']['items']['enum']
         assert 'source:saa_doc::first' in identities and 'source:saa_doc::second' in identities
         assert not any(identity.startswith('company-research:') for identity in identities)

@@ -1525,3 +1525,7 @@ A data-first planner alone does not protect discoveries: investigations need rel
 ### Research selection must not truncate numerical production — October 30, 2026
 
 Generate existing numerical anomaly features for the covered universe before grouping and planning. Preserve that complete dataset for ranking and macro consumers when the planner buys few or no investigations. A focused Home display is a projection of those same observations. Qualitative comparisons must freeze historical memory as well as market inputs; exact-input caches and immutable paid artifacts may remain without promoting rejected trials into prior knowledge. Public prose explains business meaning while the existing ticker rows and charts carry quantities; uncertainty belongs at the causal claim, including its headline.
+
+### Preserve review meaning through publication — October 30, 2026
+
+A prose-only handoff loses the distinction between reported facts and hypotheses and can lose reviewer corrections during compression. Pass those existing claim roles and corrections with the findings. One canonical public story carries placement, sources and body; the application owns technical IDs. Compose Attention first and its Brief afterward. A failed source lookup can coexist with a valid answer and publication, while aggregate research health remains partial.
