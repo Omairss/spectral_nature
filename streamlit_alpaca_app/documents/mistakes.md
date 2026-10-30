@@ -1448,3 +1448,7 @@ The discussion of Market-First Research described expected cost/recall benefits 
 ### Qualification setup must match production storage assumptions — October 30, 2026
 
 The initial Market-First preparation queried large research payloads before narrowing their lightweight latest pointers and exceeded its read timeout; the next local PostgreSQL setup used SQL_ASCII and rejected retained Unicode source text. No inference was sent. Narrow pointer identities before loading full artifacts, use UTF8 for isolated PostgreSQL, and preserve attempt costs across qualification retries. The runtime research-list query now filters task identity on the existing pointer key instead of decoding unrelated full results.
+
+### Keep media out of research history — October 30, 2026
+
+The first Market-First paid comparison exposed a new input mistake: copying the previous homepage summary object also copied its narration audio and internal traces into planning. Stopped the comparison, retained all actual and unknown charges under the same approval, and changed the owning input to pass only the prior headline and summary text. The full numerical context precedes headlines, with group/sector summaries before the complete observation table. No candidate was deployed from that attempt.

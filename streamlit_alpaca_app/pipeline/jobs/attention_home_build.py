@@ -2137,7 +2137,8 @@ def build_attention_home_output_frames(
     previous = deserialize_attention_home_payload(load_materialized_frame_fn("attention_home_snapshots_1d"))
     previous_time = pd.to_datetime(previous.get("generated_at_utc"), utc=True, errors="coerce")
     previous_publication = ({"asof_time_utc": previous.get("generated_at_utc"),
-        "brief": previous.get("homepage_summary"),
+        "brief": {key: (previous.get("homepage_summary") or {}).get(key)
+                  for key in ("headline", "summary_text")},
         "stories": [{key: item.get(key) for key in ("headline", "event_title", "supporting_symbols", "what_changed_text")}
                     for section in ("top_events", "must_read_movers", "unresolved_large_moves")
                     for item in previous.get(section, [])]}

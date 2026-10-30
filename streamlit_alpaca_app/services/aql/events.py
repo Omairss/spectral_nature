@@ -359,7 +359,8 @@ def research_source_events(
         + "\nContext JSON:\n"
         + json.dumps(
             to_jsonable(
-                {"asof": asof, "sources": previews, "market_context": market_context or {},
+                {"asof": asof, "market_context": market_context or {},
+                 "sources": previews,
                  "economic_observations": macro_context or {},
                  "previous_market_context": {key: value for key, value in (((previous_nomination or {}).get("artifact_context") or {}).get("market_context") or {}).items()
                                              if key not in {"observations", "columns", "previous_groups"}},

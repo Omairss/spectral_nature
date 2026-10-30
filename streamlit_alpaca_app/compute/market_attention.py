@@ -98,17 +98,20 @@ def build_market_attention_context(
 
     groups, membership = group(correlations[0])
     old_groups, old_membership = group(correlations[1])
+
     def performance(symbol: str) -> dict[str, Any]:
         result: dict[str, Any] = {}
         series = current_prices.get(symbol, pd.Series(dtype=float))
         if not series.empty and adjustment.get(symbol) == "all":
             result["history_through"] = str(series.index[-1])
             result["includes_current_snapshot"] = bool(series.index[-1] == today)
+            expected = list(panel.index) + ([today] if series.index[-1] == today else [])
+            if not expected or series.index[-1] != expected[-1]:
+                return result
             for horizon in (5, 20):
                 if len(series) >= horizon + 1:
                     # Use a shared session index so missing bars do not turn a
                     # five-session measure into a longer, misleading horizon.
-                    expected = list(panel.index) + ([today] if series.index[-1] == today else [])
                     if len(expected) >= horizon + 1 and expected[-horizon - 1] in series.index:
                         result[f"return_{horizon}d_pct"] = (series.iloc[-1] / series.loc[expected[-horizon - 1]] - 1) * 100
             week_start = pd.Timestamp(today) - pd.Timedelta(days=pd.Timestamp(today).weekday())
@@ -175,5 +178,5 @@ def build_market_attention_context(
             "basis": "all-adjusted daily returns through prior completed session; multi-day performance uses the latest adjusted snapshot bar when present",
             "window_comparison": "Same eligible instruments in both windows; group IDs identify exact member sets, not permanent economic themes. New or missing history is coverage, not a relationship break.",
             "interpretation": "Observed relationships, not evidence of investor flows or statistically established regime changes. Sector labels are independent context."},
-        "columns": list(frame.columns), "observations": frame.round(4).where(frame.notna(), None).values.tolist(),
-        "groups": group_rows, "previous_groups": old_groups, "sectors": sectors, "benchmark": benchmark}
+        "benchmark": benchmark, "groups": group_rows, "previous_groups": old_groups, "sectors": sectors,
+        "columns": list(frame.columns), "observations": frame.round(4).where(frame.notna(), None).values.tolist()}

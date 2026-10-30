@@ -130,3 +130,16 @@ def test_completed_work_survives_an_independent_cancelled_investigation(monkeypa
         asof_time_utc="2026-10-30T18:50Z", run_id="current", llm_client=object())
     assert result["status"] == "partial" and len(result["bundles"]) == 1
     assert sorted(row["status"] for row in result["results"]) == ["cancelled", "completed"]
+
+
+def test_stale_history_does_not_become_a_current_relative_return():
+    bars = histories()
+    for frame in bars.values():
+        frame.attrs["price_adjustment"] = "all"
+    asof = bars["A"].timestamp.iloc[-1] + pd.Timedelta(hours=10)
+    bars["C"] = bars["C"].iloc[:-4].copy()
+    context = build_market_attention_context(pd.DataFrame({"symbol": list(bars)}), bars, asof_time_utc=asof, benchmark_symbol="A")
+    rows = [dict(zip(context["columns"], values)) for values in context["observations"]]
+    stale = next(row for row in rows if row["symbol"] == "C")
+    assert stale.get("return_5d_pct") is None or pd.isna(stale["return_5d_pct"])
+    assert stale.get("return_5d_excess_pp") is None or pd.isna(stale["return_5d_excess_pp"])
