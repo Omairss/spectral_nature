@@ -833,6 +833,17 @@
     "expected_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
     "status": "Running",
     "start_time_utc": "2026-10-30T01:13:52+00:00",
-    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48"
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+    "application_status": [
+      {
+        "run_id": "ae8bd310-85c1-48b3-be7e-6b49299a0e8d",
+        "status": "Running",
+        "start_time_utc": "2026-10-30 01:14:31.889519+00:00",
+        "asof_time_utc": "2026-10-30 01:14:30.327154+00:00",
+        "progress_stage": "building_narratives",
+        "progress_message": "Building attention narratives and graph from materialized inputs (research_limit=12).",
+        "error_summary": null
+      }
+    ]
   }
 }
