@@ -660,5 +660,11 @@
     "original_ide_checkout": "Concurrent unaccepted runtime changes preserved; not used to assemble this release."
   },
   "rollback": "Original immutable images and complete before/after resources retained in private deployment receipts. No automatic paid rerun/fallback reinstated.",
-  "private_evidence_directory": "/Users/omairs/Library/Application Support/SpectralNature/operations/event-adaptive-reliability-2026-10-28/coherent-development-20261029"
+  "private_evidence_directory": "/Users/omairs/Library/Application Support/SpectralNature/operations/event-adaptive-reliability-2026-10-28/coherent-development-20261029",
+  "post_release_observation": {
+    "status": "first_new_image_scheduled_run_failed",
+    "execution": "attention-home-build-29888450",
+    "evidence": "home-publication-failure-20261029.json",
+    "note": "Original image/configuration deployment and healthy API readback remain recorded. The first full scheduled research publication failed; release reliability is not accepted by those deployment checks."
+  }
 }

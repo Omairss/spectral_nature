@@ -1506,7 +1506,13 @@
     "qualification_execution": "macro-fred-daily-dev-rn8dr5m"
   },
   "production_acceptance": {
-    "status": "pending",
-    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json"
+    "status": "deployed_verified",
+    "recorded_at_utc": "2026-10-30T01:18:21.145920+00:00",
+    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48"
+    },
+    "production_workers": 17,
+    "all_consumer_configurations_preserved": 36
   }
 }

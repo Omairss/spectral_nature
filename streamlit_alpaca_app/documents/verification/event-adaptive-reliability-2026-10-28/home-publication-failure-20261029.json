@@ -1,5 +1,5 @@
 {
-  "status": "cause_confirmed_unrepaired",
+  "status": "publication_identity_repaired_deployed_provider_origin_unconfirmed",
   "recorded_at_utc": "2026-10-30T00:10:43.064560+00:00",
   "execution": "attention-home-build-29888450",
   "run_id": "1753cfba-a8d8-4cd3-846d-985e5937488b",
@@ -54,7 +54,7 @@
     "as_of": "2026-10-29T18:50:37.219566+00:00",
     "new_20_50_snapshot_published": false
   },
-  "repair_or_replay_performed": false,
+  "repair_or_replay_performed": true,
   "paid_inference_started_during_investigation": false,
   "evidence": "Real Azure execution/console logs, job_runs SQL receipt, both retained publication-review Parquet versions. Private originals in /Users/omairs/Library/Application Support/SpectralNature/operations/event-adaptive-reliability-2026-10-28/home-publication-failure-20261029",
   "next_work": "Repair the publication identity/source relationship at its existing owner, preserve distinct complete stories and original source provenance, and verify against this actual retained output. No automatic deduplication, dropped story, historical-current republication or complete paid run during diagnosis.",
@@ -93,5 +93,15 @@
       "https://requests.readthedocs.io/en/latest/_modules/requests/models/",
       "https://api-docs.deepseek.com/quick_start/rate_limit/"
     ]
+  },
+  "repair_evidence": "publication-identity-repair.json",
+  "catchup_execution": {
+    "started": true,
+    "execution": "attention-home-build-c4833nb",
+    "scope": "One normal production catch-up using the current template and configured allowance. No schedule, model, budget or inference-policy override.",
+    "expected_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+    "status": "Running",
+    "start_time_utc": "2026-10-30T01:13:52+00:00",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48"
   }
 }

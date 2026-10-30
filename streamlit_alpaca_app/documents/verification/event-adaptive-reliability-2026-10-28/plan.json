@@ -1,5 +1,5 @@
 {
-  "status": "owner_accepted_coherent_release_deployed_verified",
+  "status": "publication_identity_repair_deployed_verified_current_catchup_running",
   "owner_goal": "Reliable current reporting with predictable event-adaptive costs. The previous 90% reduction target is retired.",
   "requirements": {
     "configured_base_budget": "Retain user-defined per-logical-run budgets and protected full-model interpretation, synthesis and review.",
@@ -83,6 +83,12 @@
       "task": "Check application-level scheduled outcomes, not only process exit; report actual cost allocation, unfinished work and quality findings.",
       "status": "recovery_complete_current_publication_verified_application_warning_recorded",
       "evidence_or_remaining": "Recovery ran58m22s. Current public feed and all5supplementary summaries are published. Application Warning records2semantic deadlines and a source-free nomination funding reference defect; the latter is implemented/verified in new DEV source. Actual known successful DeepSeek usage estimate6.0494USD; unknown/audio charges separately retained."
+    },
+    {
+      "id": "production_story_source_identity",
+      "task": "Repair the publication mapping exposed by the first full coherent production run. Preserve distinct model-selected stories sharing research, original source metadata and completed paid work.",
+      "status": "fixed_deployed_verified",
+      "evidence_or_remaining": "publication-identity-repair.json. Distinct model-selected stories may share research. Actual14-story and accepted11-story replays pass unchanged on the exact image;12DEV and17production workers updated with all36 configurations and7other images preserved."
     }
   ],
   "spending_policy": "Owner-scoped DeepSeek continuation cap18USD after explicit additional5USD and3USD approvals. All earlier158attempts and unknown cost maxima remain inside that same cap. One same-evidence recovered-run comparison uses full Pro and isolated storage with no production/memory writes. Research-provider rule otherwise remains Lambda only.",
@@ -110,8 +116,10 @@
       "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:4c9dbdeac8e65ecdd54b055fc6087e8cb8492c40eb0aafee6dc300f6ab5a0c34"
     },
     "build_source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
-    "production_evidence": "coherent-production.json",
-    "required_next_step": "Observe the normal next scheduled execution; no duplicate paid run or further source work required for this promotion."
+    "production_evidence": "publication-identity-repair.json",
+    "required_next_step": "Observe the already-running current catch-up publication; no source/deployment work remains for the identity correction.",
+    "latest_observation": "publication-identity-repair.json",
+    "catchup_execution": "attention-home-build-c4833nb"
   },
   "instruction_audit": {
     "scope": "This cost/reliability rollout and its qualification records. Confirmed actions and inaccurate completion statements; not a claim that every later-discovered defect proves an earlier instruction was ignored.",
@@ -423,19 +431,19 @@
     }
   ],
   "development_source": {
-    "branch": "fix/shared-research-publication-dev-20261029",
+    "branch": "fix/home-publication-identity-20261029",
     "production_authorized": true,
     "local_complete_output_review": "Owner prefers candidate; previous personal quality rejection is retained as history.",
     "integrated_accepted_development_source": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
-    "source_acceptance": "accepted_locally_and_exact_images_cloud_qualified",
+    "source_acceptance": "accepted_and_exact_image_qualified",
     "remaining": [],
     "quality_evidence": "development-quality.json",
-    "source_review": "development-source-review.json",
-    "runtime_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
+    "source_review": "publication-identity-repair.json",
+    "runtime_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
     "build_started": true,
     "development_deployed": true,
     "production_deployed": true,
-    "production_evidence": "coherent-production.json"
+    "production_evidence": "publication-identity-repair.json"
   },
   "production_freshness_incident": "production-home-failure-20261029.json",
   "latest_production_authorization": {
