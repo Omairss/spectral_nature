@@ -1444,3 +1444,7 @@ The earlier answer said 15 Home updates containing 151 stories without immediate
 ### Separate design benefits from verified outcomes — October 30, 2026
 
 The discussion of Market-First Research described expected cost/recall benefits before a candidate existed. The named plan now explicitly records them as hypotheses, identifies the audited 999-instrument coverage limit and retrospective end-weight attribution, and requires point-in-time matched comparisons. A local code checkpoint preserves accepted behavior; it cannot certify the new planner, guarantee zero omissions or restore Azure/data state by itself. No redesign runtime or release was made during this review.
+
+### Native inline-link verification needs precise limits — October30
+
+Simulator exposed expandable paragraphs as single accessibility elements, and repeated coordinate taps returned `noWindowsAvailable`. Native accessibility activation did verify Intel, Microsoft and Fed expansion/collapse, including independent open paragraphs; it did not separately qualify the second Meta link, VoiceOver or larger text settings. Keep these limits in the receipt rather than modifying the product for automation or presenting authored sample explanations as qualified LLM generation. The actual paragraph layout and previous Markdown publication were personally inspected. [Review](verification/native-brief-expansion-2026-10-30/README.md).

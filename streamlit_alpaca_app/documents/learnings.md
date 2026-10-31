@@ -1513,3 +1513,7 @@ The 41.8448USD historical Home event/company subtotal spans 974 successful price
 ### Market-First Research checkpoint and assumption review — October 30, 2026
 
 Name the design separately from accepted source. Preserve the exact accepted application, complete live image/configuration references and a recoverable Git checkpoint before implementing. The measured index support is retrospective; dated holdings and taxonomy are not proof of real-time planner discovery. A data-first sequence is insufficient if it retains a pre-group name cut, mistakes sector labels for changing clusters, suppresses news without price movement or narrows evidence irreversibly. Complete-run costs and full outputs must establish recall and savings. See plans/MARKET_FIRST_RESEARCH_2026-10-30.json.
+
+### Expandable prose needs paired grammatical replacements — October30
+
+An inline explanation must be authored as a replacement that fits the same prefix and suffix, including their punctuation. Joining structured plain and expandable runs into one native attributed paragraph preserves baselines, wrapping and independent phrase state. The brief composer should produce both readings together and review full sentences with simultaneous expansions; a generic explanation appended to arbitrary prose is insufficient. Keep authored interaction fixtures separate from evidence-backed generation, and retain Markdown/audio compatibility. [Native POC](verification/native-brief-expansion-2026-10-30/README.md).
