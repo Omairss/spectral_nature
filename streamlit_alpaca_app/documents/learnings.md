@@ -1540,7 +1540,7 @@ A universal high-recall discovery instruction caused the reviewer to expand a fi
 
 ### Output format must not choose a different writer — October 30, 2026
 
-Structured final synthesis used a separate research-report instruction while Markdown used the shared reader-focused writing prompt. That made Home prose inconsistent despite a correct common agenda and reviewer. Use the same writing owner for both formats, adding only the JSON schema/serialization requirement and respecting the artifact purpose. No additional model call or publication layer is needed.
+Structured final synthesis used a separate research-report instruction while Markdown used the shared reader-focused writing prompt. That made Home prose inconsistent despite a correct common agenda and reviewer. Use the same writing owner for both formats, adding only the JSON schema/serialization requirement and respecting the artifact purpose. No additional model call or publication layer is needed. Preserve the schema author's field order in the actual model-visible request as well: canonical alphabetical ordering belongs in fingerprints, not the writing contract. A declaration of stories before their summary is ineffective if the transport reverses it. Fresh output followed that order, but the financial interpretation errors remained. Preserve the structural correction without treating it as proof of reasoning quality.
 
 ### A completed answer needs one response contract — October 30, 2026
 
@@ -1549,3 +1549,7 @@ The evidence reader wrapped final answers in a second control contract, even tho
 ### Give common planning coverage history, not every previous report — October 30, 2026
 
 The owner requested complete underlying observations plus headlines for common planning. Article excerpts and full prior reports exceed that role and repeat earlier attention. Supply a structured prior-question/asset/review index; retain complete findings and originals in the existing reader and give selected investigations the relevant complete research, review and limitations. Measure the actual producer input and preserve numerical/economic coverage and reader content before comparing fresh outputs. Do not call a lower input byte count a measured bill saving.
+
+### Expose what a retained capture actually contains — October 30, 2026
+
+A source title and URL do not distinguish a search snippet from a complete page capture. Preserve every version and expose its existing origin, source kind and captured text length in the source index, so the shared reader can select the relevant original. Do not treat opening a referenced capture as proof of reading the full underlying article, or use a longest-text rule as a substitute for research. Added source context alone did not establish correct financial interpretation; a year-over-year expense change is not, by itself, a variance against consensus.

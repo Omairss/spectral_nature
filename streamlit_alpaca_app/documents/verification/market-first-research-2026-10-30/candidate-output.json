@@ -1,0 +1,261 @@
+{
+  "status": "not_qualitatively_accepted",
+  "runtime_source_revision": "d188f7ddb51b6f707b1d4b4f803c22952759bbc9",
+  "asof_time_utc": "2026-10-30T18:50:00Z",
+  "meaning": "Complete unedited public model artifact from the final fresh writing/review comparison. Prior completed investigations were replayed against their exact inputs. This is verification evidence, not a current production publication.",
+  "artifact": {
+    "stories": [
+      {
+        "section": "top_events",
+        "question": "How far does Intel's memory-driven PC reset extend, and which businesses actually change?",
+        "source_ids": [
+          "bundle:event::question-2baaf0b9bc71b5be32a8",
+          "source:saa_doc::c089879e82a4ba0a367dc14c",
+          "source:saa_doc::93bee55525bcaf03bc7a6d0e",
+          "source:saa_doc::13cbbc5aea9aedfc45c7b6a3",
+          "source:saa_doc::3341ab13141441b708d0def2"
+        ],
+        "supporting_symbols": [
+          "INTC",
+          "DELL",
+          "HPQ",
+          "AMD",
+          "MU",
+          "SNDK",
+          "STX",
+          "WDC",
+          "TSM",
+          "TER",
+          "AMKR",
+          "STM",
+          "CLS",
+          "FORM"
+        ],
+        "time_basis": {
+          "current_observation": "At 18:35 UTC on 30 October 2026, the 04:00 UTC price bar showed Intel down about 31%, Dell down about 13%, HP down about 12%, AMD down about 13%, and memory/storage names down roughly 8-16%. These are intraday bar observations, not confirmed closing prices.",
+          "background_events": [
+            {
+              "event": "Intel reported Q3 FY2026 results and Q4 guidance after the close on 29 October 2026.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "source:saa_doc::93bee55525bcaf03bc7a6d0e",
+                "source:saa_doc::c089879e82a4ba0a367dc14c"
+              ]
+            }
+          ],
+          "report_dates": "The Benzinga reports were published on 30 October 2026 from about 12:23 UTC to 13:44 UTC."
+        },
+        "event_title": "Intel's 29 October Q4 guide extends a memory-driven PC reset into 2027, while data-center AI demand remains supply-constrained",
+        "surface_summary_text": "Intel beat Q3 but guided Q4 below expectations because memory costs and a PC inventory correction hit client computing; the reset transmits directly to PC makers and memory suppliers, but not to data-center AI demand.",
+        "what_happened_text": "Intel reported a strong third quarter, but the fourth-quarter plan was the problem. The company guided the upcoming quarter below market expectations, with a revenue midpoint about 9% below consensus and a much lower gross margin. Management blamed memory shortages and a PC inventory correction. Intel expects client-computing revenue to fall more than 20% from the previous quarter, sees 2026 PC unit demand down about 12%, and expects another decline in 2027 with a sharper first-half drop and possible second-half improvement. Gartner reported worldwide PC shipments fell 22.4% year over year in the third quarter.",
+        "why_happened_text": "Intel's explanation is a memory-driven PC inventory correction, not a collapse across all computing. Memory shortages raise input costs and discourage inexpensive PC builds, while OEMs reduce purchases to align inventory with soft sell-through. Gartner data points the same way: shipment declines reflect higher memory and storage prices, affordability pressure and inventory effects. Counterpoint also sees further shipment declines. The important distinction is that data-center AI remains the durable part. Intel's data-center and AI segment revenue rose 78% year over year, and management says supply cannot meet demand. The Fab 28 Israel disruption is a near-term supply constraint, not a change in that durability.",
+        "affected_assets_summary_text": "Dell and HP are direct exposures because their PC purchases and sell-through follow the market Intel described. AMD's decline is best read as broad semiconductor de-risking; no supplied source establishes a company-specific order cut. Micron, SanDisk, Western Digital and Seagate face expected lower PC volumes and future memory-price normalization; Seagate moved lower even after beating analyst earnings forecasts.",
+        "business_context_text": "Intel management expects the current memory-driven environment to persist until memory availability and prices normalize, but the supplied reports do not set an exact date for that normalization. Data-center supply relief is not expected until the second half of 2027. The two constraints therefore have different horizons.",
+        "watch_next_text": "Dell's 24 November earnings should show whether PC sell-through and inventory are stabilizing at the lower volume Counterpoint expects, or deteriorating further. OEM commentary and memory-price or supply signals through the first half of 2027 are the decisive updates.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "top_events",
+        "question": "Does Amazon's Q3 EPS miss make AI-debt service an immediate earnings risk even as AWS accelerates?",
+        "source_ids": [
+          "bundle:event::question-46fc7095e72552a9d607",
+          "source:saa_doc::f04d92c774c47bab85e6a63e",
+          "source:saa_doc::b0d2b9022e09c20e2970fb93",
+          "source:saa_doc::157508d9f6902fafe2921844"
+        ],
+        "supporting_symbols": [
+          "AMZN",
+          "NVDA",
+          "ORCL",
+          "META",
+          "GOOGL",
+          "MSFT",
+          "CRWV",
+          "LQD",
+          "SMH",
+          "MAGS"
+        ],
+        "time_basis": {
+          "current_observation": "On 30 October 2026, Amazon stock traded down about 6.7% in Friday premarket at $227.40; the current briefing observation time is 18:50 UTC.",
+          "background_events": [
+            {
+              "event": "Amazon released Q3 2026 results after the close on 29 October 2026.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "source:saa_doc::f04d92c774c47bab85e6a63e"
+              ]
+            },
+            {
+              "event": "Bank of America's Hartnett published financing-mix analysis on 30 October 2026.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::157508d9f6902fafe2921844"
+              ]
+            }
+          ],
+          "report_dates": "Coverage appeared on 30 October 2026; Amazon's Q3 results were released after the prior close."
+        },
+        "event_title": "Amazon's Q3 2026 EPS miss was driven by rising interest on AI debt even as AWS accelerated, while the stock move also reflected softer fourth-quarter sales",
+        "surface_summary_text": "Amazon's operating business beat forecasts, but interest on AI-related debt turned the earnings result into a miss; AWS demand remains exceptionally strong, so the investment question is whether AWS growth can outrun financing costs.",
+        "what_happened_text": "Amazon reported Q3 results after Thursday's close, covered on Friday 30 October. Operating profit beat forecasts by about $1.8 billion, but earnings per share came in below consensus. The gap is almost exactly explained by net interest: interest expense rose to $1.69 billion from $538 million a year earlier. Long-term debt more than doubled in nine months. Amazon's Q3 capital spending was $77.3 billion, full-year capex is about $220 billion, and CEO Andy Jassy said 2027 will be meaningfully more. Trailing 12-month free cash flow turned to a $42.4 billion outflow from a $14.8 billion inflow a year earlier.",
+        "why_happened_text": "The mechanism is that Amazon is building data centers before those facilities generate revenue, so debt service arrives first. AWS remained strong: revenue grew 39.3% year over year, operating income rose 55%, and backlog reached $578 billion, up 189%. Jassy expects AWS to grow more than 40% in 2027 and 2028. Under the competing interpretation, Bank of America's Hartnett argues the financing mix has already shifted from shareholders to bondholders; AI hyperscalers sold $182 billion of bonds in 2026, and credit spreads for Big Tech have widened. The stock's premarket decline also reflected a softer-than-expected fourth-quarter sales outlook, so the price move is not proof that debt was the sole cause.",
+        "affected_assets_summary_text": "The financing concern extends to other AI hyperscaler credits and long-dated technology bonds, not just Amazon stock. Amazon's 2076 bond was near 6.81% yield, and S&P Global says AI exposure is treated as distinct credit risk.",
+        "business_context_text": "Amazon said in July it would not borrow again in 2026, but a larger 2027 spending budget makes renewed issuance likely. The issue sits below Amazon's operating line and does not yet signal an AWS demand or operating-margin problem.",
+        "watch_next_text": "Formal 2027 capital-spending guidance, any new Amazon bond issuance, and AWS margin after newly built capacity is energized will determine whether AWS growth outruns interest and depreciation.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "top_events",
+        "question": "Does Reddit's weak Q4 guide and login test extend the Google AI-search concern to social advertising peers?",
+        "source_ids": [
+          "bundle:event::question-b7a25bcfbb4200ea1e27",
+          "source:saa_doc::9675a3f5ac9ec6f3f05321d8",
+          "source:saa_doc::5c4d43ada70b4bce4fa172d1"
+        ],
+        "supporting_symbols": [
+          "RDDT",
+          "PINS",
+          "SNAP",
+          "META"
+        ],
+        "time_basis": {
+          "current_observation": "At 16:35 UTC on 30 October 2026, RDDT was down about 29.2% intraday; the current briefing observation time is 18:50 UTC. This is not a confirmed close.",
+          "background_events": [
+            {
+              "event": "Reddit reported Q3 2026 results on 29 October 2026.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "source:saa_doc::9675a3f5ac9ec6f3f05321d8"
+              ]
+            },
+            {
+              "event": "Seeking Alpha published a cautionary Reddit note on 6 August 2026.",
+              "event_date": "2026-08-06",
+              "source_ids": [
+                "source:saa_doc::5c4d43ada70b4bce4fa172d1"
+              ]
+            }
+          ],
+          "report_dates": "CNBC reported Q3 results on 29 October 2026; the Seeking Alpha note appeared on 6 August 2026."
+        },
+        "event_title": "Reddit's 29 October Q3 beat is overshadowed by weak Q4 sales guidance, a U.S. user-growth miss, and an upcoming login test",
+        "surface_summary_text": "Reddit's core direct-ad audience is intact, but Google search referrals fell and future user growth is at risk; the login test is a response to that top-of-funnel problem.",
+        "what_happened_text": "Reddit reported Q3 2026 on 29 October. Earnings and revenue beat expectations. Revenue grew 53% year over year, ending a streak of eight consecutive quarters above 60% growth. Fourth-quarter revenue guidance was below estimates. Daily active uniques rose 12% year over year but missed forecasts, and U.S. daily active uniques fell 2% year over year. CEO Steve Huffman said Google search referral traffic declined meaningfully because of Google's shift to AI overviews, and he expects that to continue in the fourth quarter. Reddit will begin testing a login requirement outside the U.S. in the fourth quarter.",
+        "why_happened_text": "The search decline is mainly a user-acquisition and future ad-inventory problem, not an immediate loss of Reddit's core ad audience. Huffman said the vast majority of Reddit's revenue comes from app users and logged-in users who arrive directly, and both increased quarter over quarter. The planned login test is an attempt to convert anonymous search visitors into registered users who are more active and better suited to targeted ads. The risk is that some visitors leave rather than register. Reddit's data-licensing revenue rose 35% and remains under negotiation with Google, adding a second dimension to the Google relationship.",
+        "affected_assets_summary_text": "Simultaneous declines in Snap, Pinterest and Meta are consistent with sector caution around Google AI search, but no supplied source establishes that Reddit caused those moves; they may reflect separate causes.",
+        "business_context_text": "A prior Seeking Alpha note in August 2026 had already argued Reddit was costly relative to decelerating user growth, so the user miss touches an existing investor concern.",
+        "watch_next_text": "The material question is whether Reddit provides a start date and scope for the outside-U.S. login test, and whether the U.S. daily active user decline persists in the fourth quarter.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "unresolved_large_moves",
+        "question": "Does the simultaneous Datadog, Fastly and Cloudflare drop reflect shared high-beta software de-rating or unrelated moves?",
+        "source_ids": [
+          "bundle:event::question-a376006e333568ac99cc",
+          "source:saa_doc::3a65632a405189f4427ddd4f",
+          "source:saa_doc::e3d4981bb2a3bd8baac7cf82"
+        ],
+        "supporting_symbols": [
+          "DDOG",
+          "FSLY",
+          "NET"
+        ],
+        "time_basis": {
+          "current_observation": "At 18:35 UTC on 30 October 2026, the 04:00 UTC bar showed Datadog down about 12.4%, Fastly down about 12.1%, and Cloudflare down about 11.1%. These are intraday values, not confirmed closes.",
+          "background_events": [
+            {
+              "event": "Cloud stocks retreated on AI financing worries on 16 October 2026.",
+              "event_date": "2026-10-16",
+              "source_ids": [
+                "source:saa_doc::3a65632a405189f4427ddd4f"
+              ]
+            },
+            {
+              "event": "Broad technology pressure after Amazon and Intel results was reported on 30 October 2026.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::e3d4981bb2a3bd8baac7cf82"
+              ]
+            }
+          ],
+          "report_dates": "The Running Scared update was published on 30 October 2026; the earlier cloud retreat report was dated 16 October 2026."
+        },
+        "event_title": "Datadog, Fastly and Cloudflare fall 11-12% together on 30 October, but no supplied same-day company-specific catalyst establishes a shared operating cause",
+        "surface_summary_text": "The drop looks like broad long-duration software de-rating after Amazon and Intel fears, not a confirmed change in any company's operations.",
+        "what_happened_text": "At 18:35 UTC on 30 October, the latest 04:00 UTC bar showed Datadog down about 12.4%, Fastly down about 12.1%, and Cloudflare down about 11.1%. The reviewed evidence has no same-day company-specific earnings or guidance item for these three names. An earlier 16 October report described cloud stocks falling on AI financing worries. A 30 October update captured broad technology pressure after Amazon and Intel results and guidance disappointed.",
+        "why_happened_text": "The most likely interpretation is broad de-rating of high-multiple software businesses whose revenue arrives far in the future, making their present values more sensitive to higher discount rates and risk appetite. The 10-year Treasury yield was about 5.05% on 28 October, and the 20-session excess returns for all three were negative before today. Shared price moves alone do not prove a shared operating cause. A private or not-yet-captured company-specific item remains possible, but it is not evident in supplied evidence.",
+        "affected_assets_summary_text": "The move sits in the same return group as other long-duration software and AI-financing-sensitive names, but correlation groups are observed relationships, not evidence of a single fundamental driver.",
+        "business_context_text": "Datadog sells cloud monitoring software, Fastly operates an edge content-delivery network, and Cloudflare provides network security and edge services. Their cash flows are tied more to future cloud and edge demand than to Intel's PC cycle.",
+        "watch_next_text": "Any current company disclosure or analyst action for these names would separate a company-specific item from the broad sector move. Without one, the open question is whether the de-rating continues as yields and AI-financing concerns fluctuate.",
+        "cause_status": "unresolved"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Why are utilities, staples and energy offsetting the information-technology selloff?",
+        "source_ids": [
+          "bundle:event::question-5d737feef29582b31bad",
+          "source:saa_doc::04758249b1678e133451fd6c",
+          "source:saa_doc::cec842583d1161ea1b4f7712"
+        ],
+        "supporting_symbols": [
+          "XOM",
+          "CVX",
+          "VLO",
+          "PSX",
+          "MPC",
+          "D",
+          "NEE",
+          "GIS",
+          "SJM",
+          "CL",
+          "PEP",
+          "CAG"
+        ],
+        "time_basis": {
+          "current_observation": "At 18:35 UTC on 30 October 2026, utility, packaged-food staples and integrated-energy groups were higher in the snapshot. These are intraday observations, not confirmed closes.",
+          "background_events": [
+            {
+              "event": "ExxonMobil reported Q3 2026 results and raised its dividend on 30 October 2026.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::04758249b1678e133451fd6c"
+              ]
+            },
+            {
+              "event": "Chevron's CEO commented on elevated oil and refined-product prices on 30 October 2026.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::cec842583d1161ea1b4f7712"
+              ]
+            }
+          ],
+          "report_dates": "Coverage appeared on 30 October 2026."
+        },
+        "event_title": "Utilities, staples and energy offset the technology decline, but only energy has a clear current margin driver",
+        "surface_summary_text": "The market is using defensive and cash-flow groups to absorb technology weakness, but energy's rise is tied to refining margins; utilities and staples have no fresh single catalyst in supplied evidence.",
+        "what_happened_text": "As of the 18:35 UTC snapshot on 30 October, the utility group had most names advancing, with Dominion Energy and NextEra Energy up about 2.7% and 2.6%. Packaged-food staples rose about 3.2% on average, led by General Mills and Smucker. Integrated-energy names rose about 1.3% on average. These are intraday observations, not final closes.",
+        "why_happened_text": "Energy has the strongest source-backed explanation. ExxonMobil's third-quarter beat was led by refining, where adjusted earnings more than doubled to $9 billion. Benzinga linked that strength to supply disruptions from the U.S.-Israeli conflict with Iran and Ukrainian strikes on Russian refineries. Chevron's CEO separately described elevated refined-product prices. For utilities and staples, the captured evidence lacks a fresh causal source; the broad participation and positive 20-session excess returns are consistent with defensive positioning or power-demand themes, but that remains a hypothesis, not a reported fact.",
+        "affected_assets_summary_text": "The moves are not uniform. ExxonMobil and refiners have conflict-dependent margin support, which could reverse if conditions normalize. Regulated electric utilities and staples may be more stable if electricity demand and defensive flows continue.",
+        "business_context_text": "The 10-year Treasury yield was still about 5.05% on 28 October, so the utility strength is not a simple falling-rate bid; that makes the defensive or power-demand explanation more important to test.",
+        "watch_next_text": "Utility demand data, staple earnings details, and any decline in conflict-driven refining margins would show whether the offset is durable or only relative stability.",
+        "cause_status": "partial"
+      }
+    ],
+    "market_summary": {
+      "summary_text": "The current market is not a uniform selloff. Intel's 29 October guide extended a memory-driven PC reset into 2027, directly hitting PC makers and memory suppliers while data-center AI demand stayed strong. Amazon's Q3 results separated the operating business from the financing cost: AWS accelerated, but interest on AI-related debt turned an operating beat into an earnings miss, making the 2027 spending and debt path the central question. Reddit reported better earnings but weaker fourth-quarter sales, a U.S. user-growth miss, and a planned login test as Google search referrals fade, raising concern for future ad inventory. High-multiple software names such as Datadog, Fastly and Cloudflare fell together without a captured company-specific item, consistent with broad long-duration software de-rating. Utilities, staples and energy offset the technology weakness, but only energy has a clear current margin driver. The S&P benchmark was down only about 1.1% for the week and 2.3% over 20 sessions while information technology was down much more, so the damage remains concentrated. The unresolved questions are whether the PC correction lasts into 2027, whether AI debt service reprices infrastructure broadly, whether Google AI search changes social advertising, whether software weakness is shared risk or separate problems, and whether defensive support is durable or only relative stability.",
+      "confidence": "medium",
+      "limitations": [
+        "Price observations are snapshot or bar values and not final closing prices.",
+        "Group and sector returns are equal-weight means of observed instruments, not investor-flow evidence.",
+        "Several connections among simultaneous price moves are inferences rather than confirmed company-specific causes.",
+        "No supplied source establishes that Reddit caused simultaneous social-media peer moves."
+      ]
+    },
+    "issues": [
+      "The current observations are intraday/bar values, not confirmed closes.",
+      "The software drop and defensive rotation lack a fresh source-backed cause, so they are presented as hypotheses.",
+      "No same-day company-specific catalyst was found for Datadog, Fastly and Cloudflare; this may reflect evidence limits rather than absence.",
+      "Some group and sector return figures are equal-weight observational groupings, not official sector or capitalization-weighted indexes."
+    ]
+  }
+}

@@ -1,9 +1,9 @@
 {
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
-  "revision": 3,
-  "status": "implemented_headline_and_coverage_context_qualification_pending",
-  "recorded_at_utc": "2026-10-31T00:33:30.067822+00:00",
+  "revision": 4,
+  "status": "implemented_verified_execution_public_quality_hold",
+  "recorded_at_utc": "2026-10-31T03:18:50.047478+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
   "source_of_truth": "This named plan owns the implemented Market-First change and its remaining qualification. Existing release acceptance remains the authority for packaged runtime.",
   "baseline": {
@@ -26,7 +26,7 @@
     "other_workloads": "Company/news, Trading, Learning and interactive research keep their existing ownership and schedules. Home savings are not a whole-application cost forecast. Shared reuse must respect each consumer contract and access scope.",
     "runtime_changes_now": true,
     "deployment_now": false,
-    "paid_qualification_now": true
+    "paid_qualification_now": false
   },
   "ordered_flow": [
     {
@@ -83,31 +83,31 @@
   "implementation_order": [
     {
       "id": "D1",
-      "state": "implemented_numerical_replay_checked_qualitative_acceptance_pending",
+      "state": "implemented_numerical_verification_complete_public_quality_hold",
       "work": "Move existing numerical preparation upstream. Preserve broad available-universe coverage, current economic context and multiple horizons before company cuts; establish any needed dated benchmark input using the existing producer ownership.",
       "evidence_to_inspect": "Exact initial planner context, missing data/universe changes, quiet collective support and index contribution reproducibility."
     },
     {
       "id": "D2",
-      "state": "implemented_numerical_replay_checked_qualitative_acceptance_pending",
+      "state": "implemented_numerical_verification_complete_public_quality_hold",
       "work": "Reuse suitable numerical relationship/group components and compare dated market-derived groupings. Keep pre-research observations separate from relationships learned later through research. Choose the method after inspecting histories and stability; a taxonomy regrouping is insufficient.",
       "evidence_to_inspect": "Actual changed/stable relationships, sparse history, corporate actions, asynchronous observations, universe churn and ordinary movement noise. Do not claim the Intel example occurred without measuring it."
     },
     {
       "id": "D3",
-      "state": "implemented_operational_contracts_checked_full_output_qualification_pending",
+      "state": "implemented_full_local_flow_completed_public_quality_hold",
       "work": "Adapt existing Zopedia selection and dispatch to the common agenda. Carry relevant context, existing retained research and prior publications; reconcile Home macro/group/ticker analysis under that agenda without deleting downstream client data. Preserve concurrency across independent admitted work.",
       "evidence_to_inspect": "Actual chosen questions, original source follow-ups, repeat-investigation continuity, completeness of final market explanation, and measured attempt-inclusive cost."
     },
     {
       "id": "consumer_consistency",
-      "state": "implemented_operational_contracts_checked_full_output_qualification_pending",
+      "state": "implemented_full_local_flow_completed_public_quality_hold",
       "work": "Preserve producer/story/source/research identities and chart/drilldown contracts. Resolve the observed producer capacity versus API 16-story cap in the existing owner before claiming a complete publication; do not use truncation as a budget policy.",
       "evidence_to_inspect": "Exact same publication across stored results, FastAPI, both Next.js gateways and native client."
     },
     {
       "id": "qualitative_comparison",
-      "state": "in_progress_owner_approved_15usd",
+      "state": "complete_comparison_failed_quality_acceptance",
       "work": "Personally compare full accepted-baseline and candidate outputs on matched retained inputs, including unseen quiet/heavy and conflicting inputs; record important omissions and reasoning quality, not exact expected wording.",
       "evidence_to_inspect": "Complete research, review, Attention, Brief and charts; no hardcoded example tickers, sector quotas or programmatic NLP pass/fail score."
     },
@@ -241,7 +241,7 @@
     "quality": "Primary agent personally reads full outputs and original evidence. Use held-out cases and compare substantive omissions, precision and useful mechanisms; deterministic tests check operational/data contracts only.",
     "cost": "Compare matched evidence, same models and price bands. Include all attempts, shared reuse, peak/off-peak effects, source acquisition and completion; unknown charges remain explicit. Do not extrapolate one peak catch-up as normal daily expense.",
     "research_provider": "Owner authorized the full-production-model DeepSeek verification exception on October30, initially10USD and extended to13USD then15USD. One cumulative ledger includes every attempt and unknown maximum; isolated storage and no production writes.",
-    "acceptance_status": "Numerical preparation, common selection, focused investigations, reuse and materialization implemented;149 operational checks passed and50 focused shared-review checks pass. Public comparisons exposed an inherited reviewer objective that maximizes discovery even for Brief. Corrected in source; fresh qualitative comparison required before DEV. No deployment."
+    "acceptance_status": "The complete local flow and exact publication assembly finish; latest fresh writing/review follows the declared schema order. Numerical and operational checks pass. Confirmed public causal-comparison, segment-scope, concision and coverage errors remain. No build or deployment."
   },
   "recovery": {
     "source": "Use the annotated checkpoint in a new worktree/branch, preserving active work. A verified Git bundle and a separate fresh repository restore provide local recovery independent of working-tree edits.",
@@ -256,9 +256,10 @@
     "story_value": "../verification/event-adaptive-reliability-2026-10-28/weekly-story-value-cost-audit-20261030.json",
     "cost_operations": "../verification/event-adaptive-reliability-2026-10-28/event-company-research-cost-detail-20261030.json",
     "release_acceptance": "../../infra/release_acceptance.json",
-    "implementation_qualification": "../verification/market-first-research-2026-10-30/qualification.json"
+    "implementation_qualification": "../verification/market-first-research-2026-10-30/qualification.json",
+    "latest_public_artifact": "../verification/market-first-research-2026-10-30/candidate-output.json"
   },
-  "next_action": "Qualify the corrected common-planner headline/prior-coverage handoff and source-attribution review. Full market data and all originals remain available. Do not accept the earlier completed candidate from its reviewer grade; development stays held until personal acceptance and production stays held for the owner.",
+  "next_action": "Resolve the retained factual/causal interpretation and editorial coverage/concision failures at the shared owning handoff, then qualify the complete updated flow. Paid verification is stopped after the documented negative results; all costs and unknown maxima are retained. No build or development/production deployment is authorized by a model reviewer grade.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",
@@ -285,6 +286,9 @@
     "performance": "Current adjusted histories provide5/20session andweek-to-date performance; relative performance uses the existing configured phase-shift benchmark. Raw daily returns retain their separate basis and observation/bar times.",
     "dispatch": "One upfront shared Zopedia agenda replaces independent Home company, group, macro and ticker-enrichment inference. Relevant observations and chosen groups accompany focused questions; complete originals remain in the existing evidence reader.",
     "reuse": "Planner selects an exact existing artifact to reuse or extend after comparing current observations. Current assessment and original research/source dates are separate. Question-execution and public-story identities remain distinct from source identity.",
-    "invariants": "Existing financial ledger, original clock, protected full-model publication, shared research review, schedules, news producer and other research workloads unchanged. New runtime is not yet release-accepted."
+    "invariants": "Existing financial ledger, original clock, protected full-model publication, shared research review, schedules, news producer and other research workloads unchanged. New runtime is not yet release-accepted.",
+    "latest_source_revision": "d188f7ddb51b6f707b1d4b4f803c22952759bbc9",
+    "capture_provenance": "Existing final-editor source index exposes raw_text_origin, source_kind and captured text length. Complete and snippet captures remain separate; no longest-text heuristic or added retrieval path.",
+    "schema_order": "The shared provider presents artifact fields in declared order, including stories before Brief. Canonical fingerprints remain sorted. Actual fresh writing/review followed that order; source precision remains unaccepted."
   }
 }

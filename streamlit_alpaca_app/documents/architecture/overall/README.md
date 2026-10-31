@@ -4,7 +4,7 @@ This folder holds app-wide architecture and cross-cutting design docs.
 
 ## Docs
 
-- [Market-First Research — October 30](../../plans/MARKET_FIRST_RESEARCH_2026-10-30.json): full numerical observations and changing return groups before one Home Zopedia planner, focused shared investigations/review, Attention and its Brief. Implementation is under local qualification; production retains its accepted release. [Current evidence and remaining work](../../verification/market-first-research-2026-10-30/qualification.json).
+- [Market-First Research — October 30](../../plans/MARKET_FIRST_RESEARCH_2026-10-30.json): full numerical observations and changing return groups before one Home Zopedia planner, focused shared investigations/review, Attention and its Brief. The complete local flow finishes, but public precision/concision/coverage remain on hold; no candidate deployment. [Current evidence and remaining work](../../verification/market-first-research-2026-10-30/qualification.json).
 - [Publication prospects — 2026-10-16](audits/PUBLICATION_PROSPECTS_2026-10-16.md): empirical research handoff failures, longitudinal discovery evaluation, relevant prior work and the distinction between implemented evidence and proposed learners.
 - [System health investigation — 2026-10-15](audits/SYSTEM_HEALTH_2026-10-15.md): context overflows, database connection exhaustion, Trading Agent memory failures, partial output and monitoring gaps.
 - [Home explanation failure — 2026-10-08](audits/HOME_EXPLANATION_FAILURE_2026-10-08.md): retained OpenAI news missed by ticker-first intake, twelve enrichment timeouts, skipped group research and the shared repair boundaries.

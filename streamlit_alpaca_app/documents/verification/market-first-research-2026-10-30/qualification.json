@@ -1,19 +1,20 @@
 {
   "name": "Market-First Research",
-  "status": "implemented_headline_and_coverage_context_qualification_pending",
-  "source_revision": "eaa5084a",
+  "status": "implemented_verified_execution_public_quality_hold",
+  "source_revision": "d188f7ddb51b6f707b1d4b4f803c22952759bbc9",
   "review_base_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
-  "recorded_at_utc": "2026-10-31T02:15:58.604291+00:00",
+  "recorded_at_utc": "2026-10-31T03:18:50.043424+00:00",
   "runtime_review": {
     "compute/market_attention.py": "Full observed universe, adjusted completed-session return groups, fixed prior peers, common comparison coverage and session endpoints. Missing histories and unverified adjustment stay explicit. No exact index contribution without dated weights.",
     "services/aql/pipeline.py": "Existing numerical production precedes common research selection and remains broad for ranking and macro consumers, including N=0. One shared agenda replaces independent Home investigations; existing graph, claims, economic datasets and serializers preserved.",
     "services/aql/events.py": "One upfront Zopedia agenda, focused selected questions with access to wider originals, exact prior artifact selection and original research/source dates. Parallel workers retain shared allowance, original deadline and existing review. Current acquisition/review failures stay partial without discarding valid findings. Common planning uses headline metadata and prior-coverage metadata; selected investigations retain full relevant prior findings, reviews and limitations. All full originals remain readable.",
-    "pipeline/jobs/attention_home_build.py": "Existing Home producer owns complete history, prior textual findings, stable source captures, same-research ticker projections and one canonical public story contract. Shared Zopedia writes Attention then its Brief; technical identities belong to the application. Existing charts, drilldowns, narration and optional page producers retained. Public writing receives findings once; complete reviewed claims and originals remain in the existing reader. A concise task request replaces accumulated instructions.",
+    "pipeline/jobs/attention_home_build.py": "Existing Home producer owns complete history, prior textual findings, stable source captures, same-research ticker projections and one canonical public story contract. Shared Zopedia writes Attention then its Brief; technical identities belong to the application. Existing charts, drilldowns, narration and optional page producers retained. Public writing receives findings once; complete reviewed claims and originals remain in the existing reader. A concise task request replaces accumulated instructions. The source index now exposes capture origin, source kind and captured text length; actual input readback distinguishes search snippets from retained page captures. This metadata-only correction has no fresh model-output acceptance.",
     "services/attention_home_1d.py": "Optional selected_symbols bypasses old name shortlist only when caller explicitly supplies it; default behavior remains unchanged for other callers.",
     "services/attention_materialized.py": "Additive numerical context roundtrip and strict as-of history cutoff. Existing stored publication fields preserved; no database migration.",
     "services/home_view.py": "API projects all selected published stories; removes hidden 16-story cutoff. Both client renderers already map the complete supplied list.",
     "services/pipeline_store.py": "Task-specific research pointer filtering occurs before loading large unrelated artifacts. Real PostgreSQL listing checks cover task, subject and omitted task; financial ownership and publication contracts unchanged.",
-    "services/zopedia_agent.py": "Corrected the existing reviewer objective at source: artifact purpose controls selection and preservation. Removed unconditional high-recall competing-answer instructions; preserve source population, metric and comparison. Research retains useful hypotheses, complete knowledge rewrites preserve original detail. No new stage, gate, retry loop or response schema. Final synthesis now uses the existing shared writing prompt for both JSON and Markdown; only output serialization differs. This removes the separate research-report writer instruction without adding a model call. One provider-compatible decision field carries the complete artifact or evidence navigation, removing the redundant answer wrapper. Actual recorded complete review accepted with one offline gateway invocation and no new provider request. Review preserves the distinction between source observations, author interpretation and inference against the stated comparison baseline."
+    "services/zopedia_agent.py": "Corrected the existing reviewer objective at source: artifact purpose controls selection and preservation. Removed unconditional high-recall competing-answer instructions; preserve source population, metric and comparison. Research retains useful hypotheses, complete knowledge rewrites preserve original detail. No new stage, gate, retry loop or response schema. Final synthesis now uses the existing shared writing prompt for both JSON and Markdown; only output serialization differs. This removes the separate research-report writer instruction without adding a model call. One provider-compatible decision field carries the complete artifact or evidence navigation, removing the redundant answer wrapper. Actual recorded complete review accepted with one offline gateway invocation and no new provider request. Review preserves the distinction between source observations, author interpretation and inference against the stated comparison baseline.",
+    "services/llm.py": "Model-visible generation and literal JSON-repair schemas preserve their declared property order. Canonical hashing remains sorted and unchanged. Actual fresh responses emit stories before Brief; no new output field, model call, provider, budget or schema gate. Existing OpenAI/Azure structured-schema transports are unchanged."
   },
   "operational_verification": {
     "passed": 149,
@@ -31,6 +32,18 @@
     "latest_shared_writer_contract_checks": {
       "passed": 52,
       "seconds": 11.88
+    },
+    "latest_capture_metadata_checks": {
+      "passed": 4,
+      "seconds": 0.71,
+      "meaning": "Publication identities and DTO contracts. No prose grading."
+    },
+    "latest_transport_checks": {
+      "existing_cases_passed": 52,
+      "existing_case_seconds": 12.07,
+      "new_request_order_case_passed": 1,
+      "new_case_seconds": 0.83,
+      "meaning": "53 focused data/execution/provider/serialization checks across two invocations on the same behavioral code. The new check captures actual client request construction without network. No NLP grades."
     }
   },
   "numerical_verification": {
@@ -79,16 +92,17 @@
     "retained_prior_artifacts": 39,
     "comparison_history": "Original ordered 20 prior investigations fixed; no rejected trial becomes historical knowledge.",
     "storage": "Isolated PostgreSQL and immutable retained inputs; production connections read-only.",
-    "whole_flow": "Completed five fresh investigations and one semantic reuse, seven public stories and46ticker snapshots. Publication is not qualitatively accepted. The independent daily Highlights selection was not purchased because its complete maximum could not fit the remaining study allowance.",
-    "changed_stage": "The common planner still received article excerpts and complete prior reports beyond the requested headline inputs. It now receives headline metadata and a structured prior-coverage index, with the full numerical/economic view preserved. Complete captures and prior findings remain in the same supplied reader; selected investigations still receive relevant complete research plus its review and limitations. The shared reviewer now explicitly preserves source-author attribution and comparison baselines.",
+    "whole_flow": "Completed three fresh/update investigations and two semantic reuses, five public stories,39ticker snapshots and five Highlights. The source timeouts were retained as partial/degraded research. Full output is not qualitatively accepted.",
+    "changed_stage": "Headline/prior-coverage common planning was freshly verified through research, review, Attention, Brief and materialization. The subsequent capture-provenance metadata change was checked by actual producer input readback without inference.",
     "exclusions": [
       "Narration, live intraday collection and independent optional page inference were not purchased for this comparison. Their existing adapters remain unchanged.",
       "Quiet-day and semantic continuity checks are operational; a separate fresh quiet-day qualitative study has not been completed.",
       "The current production baseline has an earlier cutoff; no matched whole-system cost savings ratio is claimed."
     ],
     "next_comparisons": [
-      "Verify the changed complete common-plan/research/review/Attention/Brief path at full model quality; inspect non-tech discovery, editorial selection and financial inference against originals.",
-      "Check that the shared reviewer preserves complete retained knowledge while keeping interpretations attributed."
+      "Resolve the confirmed causal-comparison and segment-scope errors in the shared research/review handoff; do not add company-specific prose patches or assume more source text fixes them.",
+      "Demonstrate concise public output and preservation of consequential data discoveries through selection and Brief.",
+      "Freshly qualify the full updated flow before preparing any application build."
     ],
     "source_audit_correction": {
       "finding": "Reddit U.S. user miss is supported, not a population transfer. The complete CNBC capture states U.S. daily users50.7million against a53.5millionestimate, separately from the global user estimate.",
@@ -100,7 +114,7 @@
       "research": "Utility and defense investigations retained substantive hypotheses and contrary evidence.",
       "knowledge": "Restored the complete Moderna article, including pipeline failure, legal conditions, policy, workforce detail and original questions."
     },
-    "final_assembly": "Fresh research and public review corrected the earlier General Dynamics delivery/revenue timing error. The complete candidate still contains unnecessary financial detail, its Brief gives little prominence to the non-tech names found by the data, and the Amazon explanation strengthens a sourced suggestion into an established EPS-miss explanation. Hold deployment.",
+    "final_assembly": "Latest fresh output has the intended stories-before-Brief order and corrects memory-normalization timing plus article-versus-management attribution. It still treats a year-over-year interest comparison as explaining Amazon's variance against consensus, and calls Reddit other-revenue growth data-licensing growth. Public prose remains too numerical and the available Lilly/AstraZeneca leadership is absent. Not accepted.",
     "knowledge_writer": "Fresh complete retained-knowledge writing and review preserved the full article; personally read all9327characters against the original.",
     "protocol": "Fresh planning repeated a complete schema-valid review for an extra answer envelope. The shared response now puts the complete artifact directly in decision and retains the provider-compatible root object. No review metadata is fabricated; source https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=chat .",
     "publication_precision_issue": {
@@ -123,31 +137,80 @@
       "new_provider_requests": 0,
       "query_byte_reduction_fraction": 0.24430472439613493,
       "meaning": "Actual producer query is24.4percent smaller by UTF8bytes. Numerical/economic context and full supplied-reader content are identical. This is not a measured token or bill saving."
+    },
+    "evaluated_runtime_source_revision": "d188f7ddb51b6f707b1d4b4f803c22952759bbc9",
+    "current_comparison": {
+      "private_attempt": "attempt-16-headline-context",
+      "seconds": 1508.4023148749257,
+      "estimated_usage_usd": 1.43727,
+      "provider_requests_still_active": 0,
+      "meaning": "Current retained-input continuation on two study transport slots. The original logical clock and prior charges remain counted; this is not a production speed or daily-cost forecast."
+    },
+    "source_context_diagnostic": {
+      "private_attempt": "attempt-17-referenced-captures-review",
+      "estimated_usage_usd": 0.141825,
+      "method": "Same actual draft, full model and shared reviewer instructions; added the exact contents of11 referenced captures. No runtime change was made from this experiment.",
+      "result": "Did not resolve the financial reasoning error; final review added more figures to Brief. The first response mixed a root review with an invalid nested decision and required a valid subsequent response; no review metadata was fabricated.",
+      "limit": "Referenced captures are not necessarily complete articles. The CNBC search capture has188characters, while its7082character page capture remains separately retained. The index hid capture type and length."
+    },
+    "source_capture_metadata": {
+      "code_revision": "a063c478b3964f7a1497bd8f2962549614a2cb0b",
+      "new_provider_requests": 0,
+      "full_market_overview_and_findings_preserved": true,
+      "source_documents_preserved": true,
+      "readback": "Search-result188characters and page-capture7082characters for the same CNBC URL are separately visible to the existing reader/editor.",
+      "limit": "Replay materialization changed source-index insertion order and three research completion timestamps; no exactly matched fresh publication comparison is claimed."
+    },
+    "evaluation_scope": "The complete common-plan/research/materialization flow completed on eaa5084a. Final writing, shared review and canonical publication assembly were freshly repeated on d188f7dd with those exact paid research results replayed. The latest transport order also affects upstream model requests; no fresh complete upstream run is claimed after that correction.",
+    "independent_context_diagnostic": {
+      "private_attempt": "attempt-18-independent-context-review",
+      "estimated_usage_usd": 0.105009,
+      "method": "Same prompt, model and actual draft; all20capture versions for referenced URLs plus numerical overview; prior generated findings excluded from initial context.",
+      "result": "Body attribution improved and the full CNBC source was selected, but Brief retained the unqualified financial explanation. The reviewer substituted an older article price for an available current Intel observation instead of reading the numerical rows. This experimental context was not added to runtime."
+    },
+    "schema_order_correction": {
+      "source_revision": "d188f7ddb51b6f707b1d4b4f803c22952759bbc9",
+      "private_attempt": "attempt-19-authored-order-publication",
+      "cause": "The Home schema declared stories before market_summary, but shared DeepSeek and repair prompt serialization alphabetized schema keys, including story fields.",
+      "change": "Preserve authored order in model-visible schemas; canonical fingerprints remain sorted.",
+      "actual_fresh_output_order": [
+        "stories",
+        "market_summary",
+        "issues"
+      ],
+      "estimated_usage_usd": 0.19388,
+      "seconds": 306.8874239169527,
+      "quality_acceptance": false,
+      "limit": "Fixes an actual presentation-order contradiction. It does not establish correct financial reasoning or editorial selection."
     }
   },
   "recall": {
-    "observed": "The common agenda selected the regulated-utility versus merchant-power split and longer-horizon energy leadership, beyond the prior publication.",
-    "limit": "Does not guarantee every missed company or prove a statistically established cluster regime change."
+    "observed": "The latest common agenda researched non-tech support through utilities, staples and energy, including D/NEE/GIS/SJM; it did not select the available LLY/AZN strength. Broad data availability improves the opportunity for discovery but does not establish reliable final recall.",
+    "limit": "No company/sector quotas, forced example tickers, exact index-point attribution or universal recall claim."
   },
   "cost": {
     "approval_usd": 15,
-    "estimated_usage_usd": 10.325474,
+    "estimated_usage_usd": 12.203458,
     "unknown_maximum_usd": 2.29245,
-    "upper_committed_usd": 12.617924,
+    "upper_committed_usd": 14.495908,
     "pending_requests": 0,
     "all_attempts_and_unknown_maxima_included": true,
     "final_accounting": "Retained usage receipts and pinned prices; two ended requests lack receipts and retain original maximum bounds.",
-    "remaining_upper_allowance_usd": 2.382076,
-    "fresh_logical_case_estimate_usd": 1.891069,
-    "fresh_logical_case_scope": "Home-only retained-input verification, including its paid plan, paused requests and continuation; excludes other producers. Not a whole-system production savings estimate.",
+    "remaining_upper_allowance_usd": 0.504092,
+    "fresh_logical_case_estimate_usd": 1.43727,
+    "fresh_logical_case_scope": "Latest full Home retained-input comparison, including fresh common planning, three investigations/updates, two reused findings, final writing/review and five Highlights. Excludes other producers and prior attempts; the cumulative study total includes all attempts.",
     "additional_approvals": [
       "Approve up to $3 more",
       "Approve up to $2 more"
     ],
-    "accounting_asof": "Before the newly approved headline-context comparison; live pending reservations remain in the private ledger."
+    "accounting_asof": "Final study receipt readback; no pending calls. Known amounts are token/tool usage estimates, not reconciled billing totals.",
+    "additional_diagnostics_estimated_usd": 0.440714,
+    "local_postgresql_stopped": true,
+    "no_gpu_allocations": true,
+    "paid_verification_stopped": true
   },
   "deployment": {
-    "development": "Held: corrected planner context and source-attribution quality need fresh qualification",
+    "development": "Held: actual public output does not meet local quality requirements; no build or deployment started.",
     "production": "Held for owner evaluation",
     "production_writes": false,
     "schedule_provider_model_budget_changes": false,
@@ -164,8 +227,10 @@
   },
   "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/operations/market-first-research-20261030",
   "remaining_work": [
-    "Verify the corrected headline/prior-coverage planner input and shared attribution review with complete fresh outputs.",
+    "Resolve and verify shared/public interpretation of reported facts, source-author analysis and financial comparison baselines.",
+    "Verify that useful numerical discoveries survive selection and Brief composition without company-specific rules or sector quotas.",
+    "Meet the requested concise public writing style while retaining depth in research and charts.",
     "After local acceptance, package committed source, verify exact worker/API images and deploy development.",
-    "Owner evaluates development before production."
+    "Owner evaluates development before any production promotion."
   ]
 }
