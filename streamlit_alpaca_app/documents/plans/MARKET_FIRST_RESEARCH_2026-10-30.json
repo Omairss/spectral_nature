@@ -107,7 +107,7 @@
     },
     {
       "id": "qualitative_comparison",
-      "state": "in_progress_owner_approved_10usd",
+      "state": "in_progress_owner_approved_15usd",
       "work": "Personally compare full accepted-baseline and candidate outputs on matched retained inputs, including unseen quiet/heavy and conflicting inputs; record important omissions and reasoning quality, not exact expected wording.",
       "evidence_to_inspect": "Complete research, review, Attention, Brief and charts; no hardcoded example tickers, sector quotas or programmatic NLP pass/fail score."
     },
@@ -228,7 +228,7 @@
   "configuration_policy": "Reuse centrally owned configuration for allowance, event margin, deadlines and concurrency. Numerical horizon/grouping choices and the amount/depth of selected work remain adaptable. Choose defaults from complete-output comparisons rather than encoding this week's example companies or a fixed N. Any new setting requires one owner and documented effect, not a collection of exception flags.",
   "qualification_cases": [
     "Quiet current inputs: recognize limited new information and spend less without presenting old events as new.",
-    "Important group support with modest individual moves: assess the measured October 26\u201330 omissions, using only contemporaneously available data and sources. Avoid hardcoding the seven companies.",
+    "Important group support with modest individual moves: assess the measured October 26–30 omissions, using only contemporaneously available data and sources. Avoid hardcoding the seven companies.",
     "Heavy contradictory day: surface both declining high-weight names and offsetting groups; protect investigation depth and preserve the configurable event margin.",
     "Genuine and spurious grouping changes: inspect persistent breaks, stable groups, universe churn, incomplete histories and corporate actions.",
     "New consequential headline or macro release without a price anomaly: preserve a useful lead without reverting to headline frequency as the entire agenda.",
@@ -240,7 +240,7 @@
   "evaluation_policy": {
     "quality": "Primary agent personally reads full outputs and original evidence. Use held-out cases and compare substantive omissions, precision and useful mechanisms; deterministic tests check operational/data contracts only.",
     "cost": "Compare matched evidence, same models and price bands. Include all attempts, shared reuse, peak/off-peak effects, source acquisition and completion; unknown charges remain explicit. Do not extrapolate one peak catch-up as normal daily expense.",
-    "research_provider": "Owner authorized a new full-production-model DeepSeek verification exception up to $10 on October30 because suitable Lambda capacity was unavailable. One cumulative ledger includes every attempt and unknown maximum; no production writes.",
+    "research_provider": "Owner authorized the full-production-model DeepSeek verification exception on October30, initially10USD and extended to13USD then15USD. One cumulative ledger includes every attempt and unknown maximum; isolated storage and no production writes.",
     "acceptance_status": "Numerical preparation, common selection, focused investigations, reuse and materialization implemented;149 operational checks passed and50 focused shared-review checks pass. Public comparisons exposed an inherited reviewer objective that maximizes discovery even for Brief. Corrected in source; fresh qualitative comparison required before DEV. No deployment."
   },
   "recovery": {
@@ -263,13 +263,20 @@
   "qualification_authorization": {
     "instruction": "Approve up to $10",
     "pacific_day": "2026-10-30",
-    "maximum_new_total_usd": 13,
+    "maximum_new_total_usd": 15,
     "exception": "Existing DeepSeek API at full production capability, isolated storage, no production writes; Lambda suitable capacity empty at22:02UTC. Earlier API approvals remain closed.",
-    "continuation": {
-      "instruction": "Approve up to $3 more",
-      "same_cumulative_cap_usd": 13,
-      "original_costs_and_unknowns_preserved": true
-    }
+    "continuations": [
+      {
+        "instruction": "Approve up to $3 more",
+        "same_cumulative_cap_usd": 13,
+        "original_costs_and_unknowns_preserved": true
+      },
+      {
+        "instruction": "Approve up to $2 more",
+        "same_cumulative_cap_usd": 15,
+        "original_costs_and_unknowns_preserved": true
+      }
+    ]
   },
   "implementation": {
     "branch": "feature/market-first-research-20261030",

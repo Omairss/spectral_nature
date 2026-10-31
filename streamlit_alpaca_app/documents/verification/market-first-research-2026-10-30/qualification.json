@@ -72,7 +72,7 @@
     "index_attribution": "Unavailable: no dated benchmark membership and weights supplied to the production input. Covered-instrument group means are equal-weight, not official index returns."
   },
   "qualification": {
-    "provider": "Full production DeepSeek V4 Pro thinking/high, under the same explicit owner API exception capped at13USD. No GPU allocation.",
+    "provider": "Full production DeepSeek V4 Pro thinking/high, under the same explicit owner API exception capped at15USD. No GPU allocation.",
     "cutoff_utc": "2026-10-30T18:50:00Z",
     "current_market_snapshot_utc": "2026-10-30T18:35:00Z",
     "news_urls": 93,
@@ -130,17 +130,21 @@
     "limit": "Does not guarantee every missed company or prove a statistically established cluster regime change."
   },
   "cost": {
-    "approval_usd": 13,
+    "approval_usd": 15,
     "estimated_usage_usd": 10.325474,
     "unknown_maximum_usd": 2.29245,
     "upper_committed_usd": 12.617924,
     "pending_requests": 0,
     "all_attempts_and_unknown_maxima_included": true,
     "final_accounting": "Retained usage receipts and pinned prices; two ended requests lack receipts and retain original maximum bounds.",
-    "additional_approval": "Approve up to $3 more",
-    "remaining_upper_allowance_usd": 0.382076,
+    "remaining_upper_allowance_usd": 2.382076,
     "fresh_logical_case_estimate_usd": 1.891069,
-    "fresh_logical_case_scope": "Home-only retained-input verification, including its paid plan, paused requests and continuation; excludes other producers. Not a whole-system production savings estimate."
+    "fresh_logical_case_scope": "Home-only retained-input verification, including its paid plan, paused requests and continuation; excludes other producers. Not a whole-system production savings estimate.",
+    "additional_approvals": [
+      "Approve up to $3 more",
+      "Approve up to $2 more"
+    ],
+    "accounting_asof": "Before the newly approved headline-context comparison; live pending reservations remain in the private ledger."
   },
   "deployment": {
     "development": "Held: corrected planner context and source-attribution quality need fresh qualification",
