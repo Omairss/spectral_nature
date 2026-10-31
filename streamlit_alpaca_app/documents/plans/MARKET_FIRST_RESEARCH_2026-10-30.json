@@ -2,7 +2,7 @@
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
   "revision": 3,
-  "status": "implemented_fresh_whole_flow_qualification_pending",
+  "status": "implemented_headline_and_coverage_context_qualification_pending",
   "recorded_at_utc": "2026-10-31T00:33:30.067822+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
   "source_of_truth": "This named plan owns the implemented Market-First change and its remaining qualification. Existing release acceptance remains the authority for packaged runtime.",
@@ -258,7 +258,7 @@
     "release_acceptance": "../../infra/release_acceptance.json",
     "implementation_qualification": "../verification/market-first-research-2026-10-30/qualification.json"
   },
-  "next_action": "Qualify fresh common planning and all investigations with the updated shared writer/reviewer, not only controlled final-writing comparisons. Preserve all costs. Development remains held until local acceptance; production held for owner evaluation.",
+  "next_action": "Qualify the corrected common-planner headline/prior-coverage handoff and source-attribution review. Full market data and all originals remain available. Do not accept the earlier completed candidate from its reviewer grade; development stays held until personal acceptance and production stays held for the owner.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",

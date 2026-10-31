@@ -1545,3 +1545,7 @@ Structured final synthesis used a separate research-report instruction while Mar
 ### A completed answer needs one response contract — October 30, 2026
 
 The evidence reader wrapped final answers in a second control contract, even though each writer/reviewer already had a complete artifact schema. A paid review matched that artifact schema but was regenerated for envelope placement. Keep the provider-compatible outer object, place the artifact directly in its decision field, and remove the redundant action=answer/answer layer. Reads and context selection use that same field. Validate the complete requested schema without inventing review metadata. Check both evidence navigation and artifacts that themselves contain a decision field.
+
+### Give common planning coverage history, not every previous report — October 30, 2026
+
+The owner requested complete underlying observations plus headlines for common planning. Article excerpts and full prior reports exceed that role and repeat earlier attention. Supply a structured prior-question/asset/review index; retain complete findings and originals in the existing reader and give selected investigations the relevant complete research, review and limitations. Measure the actual producer input and preserve numerical/economic coverage and reader content before comparing fresh outputs. Do not call a lower input byte count a measured bill saving.

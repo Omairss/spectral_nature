@@ -338,7 +338,6 @@ def research_source_events(
             key: doc.get(key)
             for key in ("source_id", "title", "url", "published_at", "provider_symbols", "source_trace", "raw_text_origin")
         }
-        | {"text_preview": doc["text"][:1200]}
         for doc in documents
     ]
     access = os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", "")
@@ -362,7 +361,8 @@ def research_source_events(
             previous_nomination = None
         prior_investigations = [
             {key: artifact.get(key) for key in ("artifact_id", "subject", "task", "created_at_utc")}
-            | {"payload": (artifact.get("result") or {}).get("payload") or {},
+            | {"research_summary": {key: ((artifact.get("result") or {}).get("payload") or {}).get(key)
+                                    for key in ("event_title", "supporting_symbols", "cause_status")},
                "quality_review": ((artifact.get("result") or {}).get("agent_result") or {}).get("quality_review") or {},
                "limitations": ((artifact.get("result") or {}).get("agent_result") or {}).get("limitations") or [],
                "artifact_context": {key: value for key, value in ((artifact.get("result") or {}).get("artifact_context") or {}).items()
@@ -399,8 +399,7 @@ def research_source_events(
                  "previous_market_context": {key: value for key, value in (((previous_nomination or {}).get("artifact_context") or {}).get("market_context") or {}).items()
                                              if key not in {"observations", "columns", "previous_groups"}},
                  "previous_publication": {"asof_time_utc": (previous_publication or {}).get("asof_time_utc"),
-                    "brief": (previous_publication or {}).get("brief"),
-                    "stories": [{key: story.get(key) for key in ("headline", "event_title", "supporting_symbols", "what_changed_text")}
+                    "stories": [{key: story.get(key) for key in ("headline", "event_title", "supporting_symbols")}
                                 for story in (previous_publication or {}).get("stories", [])]},
                  "evidence_manifest": service.supplied_evidence_manifest,
                  "completed_research_context_status": context_status,
@@ -550,7 +549,9 @@ def research_source_events(
         ]
         company_prior_research = list(prior_research)
         prior_event = ({key: prior.get(key) for key in ("artifact_id", "subject", "created_at_utc")}
-                       | {"payload": prior["result"].get("payload") or {}}) if prior else None
+                       | {"payload": prior["result"].get("payload") or {},
+                          "quality_review": (prior["result"].get("agent_result") or {}).get("quality_review") or {},
+                          "limitations": (prior["result"].get("agent_result") or {}).get("limitations") or []}) if prior else None
         if prior_event:
             prior_research.insert(0, prior_event)
         related = {_normalize_symbol(symbol) for symbol in plan["related_symbols"]}

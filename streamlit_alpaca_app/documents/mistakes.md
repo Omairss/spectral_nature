@@ -1480,3 +1480,7 @@ Home-only instruction changes were insufficient because structured final synthes
 ### Do not repurchase a review for an unused wrapper — October 30, 2026
 
 Fresh common planning purchased a complete schema-valid review, then repeated the large input because the review appeared directly inside the navigation wrapper. Paused new paid calls and let admitted requests settle. Simplified the shared contract so the decision field contains the complete artifact or an evidence-navigation request, without an additional answer wrapper. The validation and original execution deadline remain authoritative; no missing verdict is defaulted to acceptance. The paused comparison is not a successful publication.
+
+### Finishing materialization does not finish the requested behavior — October 30, 2026
+
+The next complete comparison produced seven stories and46ticker profiles, but Brief still gave little prominence to the non-tech discoveries and cards repeated too much financial detail. Its Amazon explanation strengthened a source author's suggested connection into a confirmed earnings-miss explanation. Read the complete article before recording that issue. The common planner also still received article excerpts and full prior reports beyond the requested headlines. Corrected those owning inputs and the shared attribution instruction; the complete candidate is not accepted or deployed. Offline input capture must not load incomplete outputs from unreplayed stages; the fixture failure sent no inference.
