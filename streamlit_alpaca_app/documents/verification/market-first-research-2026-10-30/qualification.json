@@ -1,7 +1,7 @@
 {
   "name": "Market-First Research",
   "status": "implemented_headline_and_coverage_context_qualification_pending",
-  "source_revision": "bbf262361204613f4780c02f0a4a0dfa327de805",
+  "source_revision": "eaa5084a",
   "review_base_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
   "recorded_at_utc": "2026-10-31T02:15:58.604291+00:00",
   "runtime_review": {
@@ -108,7 +108,22 @@
       "source_review": "Read the complete3746character article. It compares net interest with the prior year and says the numerical match suggests an explanation; it provides no analyst interest-cost assumption.",
       "candidate_issue": "The public story and Brief say the EPS miss is explained by interest. A prior-year expense comparison does not by itself establish the variance against consensus. The issue is excessive certainty, not incorrect reported earnings figures."
     },
-    "clock": "The complete fresh-flow fixture uses the production115-minute window from its original first attempt; the earlier20-minute limit belonged to authoring-only comparisons. The original start and all costs remain counted. Production clocks are unchanged."
+    "clock": "The complete fresh-flow fixture uses the production115-minute window from its original first attempt; the earlier20-minute limit belonged to authoring-only comparisons. The original start and all costs remain counted. Production clocks are unchanged.",
+    "context_input_proof": {
+      "old_query_bytes": 768839,
+      "new_query_bytes": 581008,
+      "retained_inputs_unchanged": {
+        "market_context": true,
+        "economic_observations": true,
+        "evidence_manifest": true
+      },
+      "old_sources": 116,
+      "new_sources": 116,
+      "prior_index_rows": 20,
+      "new_provider_requests": 0,
+      "query_byte_reduction_fraction": 0.24430472439613493,
+      "meaning": "Actual producer query is24.4percent smaller by UTF8bytes. Numerical/economic context and full supplied-reader content are identical. This is not a measured token or bill saving."
+    }
   },
   "recall": {
     "observed": "The common agenda selected the regulated-utility versus merchant-power split and longer-horizon energy leadership, beyond the prior publication.",
