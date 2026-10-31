@@ -93,6 +93,8 @@ def test_publication_source_contract_is_stable_and_bound_to_reader(monkeypatch):
         assert 'source:saa_doc::first' in identities and 'source:saa_doc::second' in identities
         assert not any(identity.startswith('company-research:') for identity in identities)
         assert 'Complete first' in kwargs['service'].read_supplied_evidence(source_id='source:saa_doc::first')['text']
+        assert 'Original claim' in kwargs['service'].read_supplied_evidence(source_id='bundle:research')['text']
+        assert 'claims' not in kwargs['initial_evidence'][0]['completed_research_findings'][0]
         seen.append(set(identities))
         value = publication(['source:saa_doc::first'])
         value.update(market_summary={'summary_text': 'Current interpretation', 'confidence': 'medium', 'limitations': []}, issues=[])
@@ -103,7 +105,9 @@ def test_publication_source_contract_is_stable_and_bound_to_reader(monkeypatch):
     monkeypatch.setattr(home, 'complete_core_research', lambda *args: None)
     documents = [{'canonical_document_id': 'saa_doc::first', 'raw_text': 'Complete first'},
                  {'canonical_document_id': 'saa_doc::second', 'raw_text': 'Complete second'}]
+    bundles = {'research': {'findings_markdown': 'Complete findings',
+                           'claims': [{'claim_text': 'Original claim', 'evidence_role': 'reported_fact'}]}}
     for intake in (documents, list(reversed(documents))):
-        home._review_home_public_surface({}, {}, enrichment_rows=[{'research_origin': 'common_market_agenda'}],
+        home._review_home_public_surface({}, bundles, enrichment_rows=[{'research_origin': 'common_market_agenda'}],
             source_documents=intake, asof_time_utc='2026-10-30T18:50Z', timeout_seconds=10)
     assert seen[0] == seen[1]

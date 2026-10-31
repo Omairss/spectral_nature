@@ -1,11 +1,11 @@
 {
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
-  "revision": 2,
-  "status": "implemented_local_qualification_in_progress",
-  "recorded_at_utc": "2026-10-30T21:35:52.070592+00:00",
+  "revision": 3,
+  "status": "implemented_shared_reviewer_qualification_pending",
+  "recorded_at_utc": "2026-10-31T00:33:30.067822+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
-  "source_of_truth": "This named plan owns the proposed implementation. The earlier design audit and measured coverage/value/cost records are linked evidence. Existing release acceptance remains the authority for accepted runtime code.",
+  "source_of_truth": "This named plan owns the implemented Market-First change and its remaining qualification. Existing release acceptance remains the authority for packaged runtime.",
   "baseline": {
     "checkpoint_tag": "checkpoint/market-first-baseline-20261030",
     "code_head_before_plan_checkpoint": "6923419b57f885892d443b163863985343eba895",
@@ -240,8 +240,8 @@
   "evaluation_policy": {
     "quality": "Primary agent personally reads full outputs and original evidence. Use held-out cases and compare substantive omissions, precision and useful mechanisms; deterministic tests check operational/data contracts only.",
     "cost": "Compare matched evidence, same models and price bands. Include all attempts, shared reuse, peak/off-peak effects, source acquisition and completion; unknown charges remain explicit. Do not extrapolate one peak catch-up as normal daily expense.",
-    "research_provider": "Follow AGENTS.md Lambda-only research policy and shared 25USD Pacific-day approval threshold. Earlier scoped DeepSeek verification approvals are closed and do not authorize new comparison spending. No rental or paid inference in this checkpoint.",
-    "acceptance_status": "Not run for this redesign. Cost reduction, recall improvement and safe cluster-change detection remain hypotheses until complete-output evaluation."
+    "research_provider": "Owner authorized a new full-production-model DeepSeek verification exception up to $10 on October30 because suitable Lambda capacity was unavailable. One cumulative ledger includes every attempt and unknown maximum; no production writes.",
+    "acceptance_status": "Numerical preparation, common selection, focused investigations, reuse and materialization implemented;149 operational checks passed and50 focused shared-review checks pass. Public comparisons exposed an inherited reviewer objective that maximizes discovery even for Brief. Corrected in source; fresh qualitative comparison required before DEV. No deployment."
   },
   "recovery": {
     "source": "Use the annotated checkpoint in a new worktree/branch, preserving active work. A verified Git bundle and a separate fresh repository restore provide local recovery independent of working-tree edits.",
@@ -255,9 +255,10 @@
     "coverage": "../verification/event-adaptive-reliability-2026-10-28/weekly-attention-bias-20261030.json",
     "story_value": "../verification/event-adaptive-reliability-2026-10-28/weekly-story-value-cost-audit-20261030.json",
     "cost_operations": "../verification/event-adaptive-reliability-2026-10-28/event-company-research-cost-detail-20261030.json",
-    "release_acceptance": "../../infra/release_acceptance.json"
+    "release_acceptance": "../../infra/release_acceptance.json",
+    "implementation_qualification": "../verification/market-first-research-2026-10-30/qualification.json"
   },
-  "next_action": "Complete qualitative qualification of the implemented common agenda, prior-publication handoff and stable source-reference contract under the same approved $10 cap. Preserve all paid work and unknown charges. DEV only after local acceptance; production held.",
+  "next_action": "Qualify corrected existing review for briefing, focused research and complete retained knowledge, preserving original costs. Package and deploy DEV only after acceptance; production held.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",

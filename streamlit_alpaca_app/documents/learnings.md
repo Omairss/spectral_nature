@@ -1529,3 +1529,11 @@ Generate existing numerical anomaly features for the covered universe before gro
 ### Preserve review meaning through publication — October 30, 2026
 
 A prose-only handoff loses the distinction between reported facts and hypotheses and can lose reviewer corrections during compression. Pass those existing claim roles and corrections with the findings. One canonical public story carries placement, sources and body; the application owns technical IDs. Compose Attention first and its Brief afterward. A failed source lookup can coexist with a valid answer and publication, while aggregate research health remains partial.
+
+### Qualify public precision separately from research completion — October 30, 2026
+
+A completed, source-linked investigation and a high model review grade do not establish publication precision. In the Market-First comparison, the editor turned broad backlog timing and delivery milestones into a stronger financial-conversion schedule; the reviewer missed it. Inspect the actual public assertions against the original claims and sources, including quantifiers, accounting meaning and time horizons. A better numerical agenda can coexist with an unaccepted public writing regression.
+
+### The shared reviewer must serve the artifact purpose — October 30, 2026
+
+A universal high-recall discovery instruction caused the reviewer to expand a finished Brief with figures. It also missed a population/estimate mismatch while accepting overall plausibility. Correct the objective in the owning shared prompt: public explanation selects, research preserves useful hypotheses, and complete knowledge rewrites preserve original information. No additional writer, prose filter or final planner. The source correction needs fresh qualitative evidence.

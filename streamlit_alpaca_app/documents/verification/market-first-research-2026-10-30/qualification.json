@@ -1,0 +1,126 @@
+{
+  "name": "Market-First Research",
+  "status": "implementation_complete_shared_review_qualification_pending",
+  "source_revision": "f9ec96d5fd061a3f0cc628bb3ec55120792502a6",
+  "review_base_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+  "recorded_at_utc": "2026-10-31T00:51:49.403243+00:00",
+  "runtime_review": {
+    "compute/market_attention.py": "Full observed universe, adjusted completed-session return groups, fixed prior peers, common comparison coverage and session endpoints. Missing histories and unverified adjustment stay explicit. No exact index contribution without dated weights.",
+    "services/aql/pipeline.py": "Existing numerical production precedes common research selection and remains broad for ranking and macro consumers, including N=0. One shared agenda replaces independent Home investigations; existing graph, claims, economic datasets and serializers preserved.",
+    "services/aql/events.py": "One upfront Zopedia agenda, focused selected questions with access to wider originals, exact prior artifact selection and original research/source dates. Parallel workers retain shared allowance, original deadline and existing review. Current acquisition/review failures stay partial without discarding valid findings.",
+    "pipeline/jobs/attention_home_build.py": "Existing Home producer owns complete history, prior textual findings, stable source captures, same-research ticker projections and one canonical public story contract. Shared Zopedia writes Attention then its Brief; technical identities belong to the application. Existing charts, drilldowns, narration and optional page producers retained. Public writing receives findings once; complete reviewed claims and originals remain in the existing reader. A concise task request replaces accumulated instructions.",
+    "services/attention_home_1d.py": "Optional selected_symbols bypasses old name shortlist only when caller explicitly supplies it; default behavior remains unchanged for other callers.",
+    "services/attention_materialized.py": "Additive numerical context roundtrip and strict as-of history cutoff. Existing stored publication fields preserved; no database migration.",
+    "services/home_view.py": "API projects all selected published stories; removes hidden 16-story cutoff. Both client renderers already map the complete supplied list.",
+    "services/pipeline_store.py": "Task-specific research pointer filtering occurs before loading large unrelated artifacts. Real PostgreSQL listing checks cover task, subject and omitted task; financial ownership and publication contracts unchanged.",
+    "services/zopedia_agent.py": "Corrected the existing reviewer objective at source: artifact purpose controls selection and preservation. Removed unconditional high-recall competing-answer instructions; preserve source population, metric and comparison. Research retains useful hypotheses, complete knowledge rewrites preserve original detail. No new stage, gate, retry loop or response schema."
+  },
+  "operational_verification": {
+    "passed": 149,
+    "exit_code": 0,
+    "real_isolated_PostgreSQL": true,
+    "meaning": "Data, identity, cancellation, accounting and consumer contracts; no prose grades from software tests.",
+    "latest_shared_review_contract_checks": {
+      "passed": 50,
+      "seconds": 11.92
+    },
+    "latest_publication_checks": {
+      "passed": 4,
+      "seconds": 0.74
+    }
+  },
+  "numerical_verification": {
+    "observed_symbols": 999,
+    "relationship_eligible": 998,
+    "groups": 242,
+    "grouped_symbols": 810,
+    "pairs": 1679,
+    "group_sensitivity": {
+      "selected": {
+        "groups": 242,
+        "grouped_symbols": 810,
+        "member_pairs": 1679,
+        "seconds": 1.1990029170410708,
+        "pair_overlap_with_selected": 1.0
+      },
+      "nearby_window": {
+        "groups": 243,
+        "grouped_symbols": 810,
+        "member_pairs": 1717,
+        "seconds": 1.1568534160032868,
+        "pair_overlap_with_selected": 0.7623248572911261
+      },
+      "looser_groups": {
+        "groups": 243,
+        "grouped_symbols": 866,
+        "member_pairs": 2099,
+        "seconds": 1.2063887910917401,
+        "pair_overlap_with_selected": 0.7999047165316817
+      },
+      "tighter_groups": {
+        "groups": 242,
+        "grouped_symbols": 741,
+        "member_pairs": 1235,
+        "seconds": 1.1719432499958202,
+        "pair_overlap_with_selected": 0.7355568790946992
+      }
+    },
+    "index_attribution": "Unavailable: no dated benchmark membership and weights supplied to the production input. Covered-instrument group means are equal-weight, not official index returns."
+  },
+  "qualification": {
+    "provider": "Full production DeepSeek V4 Pro thinking/high; explicit new owner exception up to $10. No GPU allocation.",
+    "cutoff_utc": "2026-10-30T18:50:00Z",
+    "current_market_snapshot_utc": "2026-10-30T18:35:00Z",
+    "news_urls": 93,
+    "retained_prior_artifacts": 39,
+    "comparison_history": "Original ordered 20 prior investigations fixed; no rejected trial becomes historical knowledge.",
+    "storage": "Isolated PostgreSQL and immutable retained inputs; production connections read-only.",
+    "whole_flow": "Full local materialization completed six investigations, six stories,66ticker snapshots and five chart selections. Public output is not accepted.",
+    "changed_stage": "Fresh comparisons improved narrative focus and removed the unsupported backlog deadline, but still transferred an overall-user estimate miss to U.S. users. A further source-scope review left that error and added figures back into Brief. These outputs are rejected. The shared reviewer objective is now corrected in source and awaits fresh qualitative verification.",
+    "exclusions": [
+      "Narration, live intraday collection and independent optional page inference were not purchased for this comparison. Their existing adapters remain unchanged.",
+      "Quiet-day and semantic continuity checks are operational; a separate fresh quiet-day qualitative study has not been completed.",
+      "The current production baseline has an earlier cutoff; no matched whole-system cost savings ratio is claimed."
+    ],
+    "next_comparisons": [
+      "Attention/Brief and chart explanations: accurate source population and uncertainty.",
+      "Focused research: preserve useful unresolved hypotheses.",
+      "Complete retained knowledge: preserve original information rather than applying briefing concision."
+    ]
+  },
+  "recall": {
+    "observed": "The common agenda selected the regulated-utility versus merchant-power split and longer-horizon energy leadership, beyond the prior publication.",
+    "limit": "Does not guarantee every missed company or prove a statistically established cluster regime change."
+  },
+  "cost": {
+    "approval_usd": 10,
+    "estimated_usage_usd": 7.378783,
+    "unknown_maximum_usd": 2.29245,
+    "upper_committed_usd": 9.671233,
+    "pending_requests": 0,
+    "all_attempts_and_unknown_maxima_included": true,
+    "final_accounting": "Retained usage receipts and pinned prices; two ended requests lack receipts and retain original maximum bounds."
+  },
+  "deployment": {
+    "development": "Held: shared-review qualitative acceptance pending",
+    "production": "Held for owner evaluation",
+    "production_writes": false,
+    "schedule_provider_model_budget_changes": false,
+    "read_only_preflight": {
+      "consumers": 36,
+      "configuration_and_images_preserved": true
+    }
+  },
+  "recovery": {
+    "baseline": "checkpoint/market-first-baseline-20261030",
+    "implementation_branch": "feature/market-first-research-20261030",
+    "branch_pushed": true,
+    "private_baseline_bundle_verified": true
+  },
+  "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/operations/market-first-research-20261030",
+  "remaining_work": [
+    "Qualify corrected shared review across the three artifact purposes.",
+    "After acceptance, package committed source, verify exact worker/API images and deploy development.",
+    "Owner evaluates development before production."
+  ]
+}

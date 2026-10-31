@@ -1,6 +1,6 @@
 # Plans Index
 
-- [Market-First Research](MARKET_FIRST_RESEARCH_2026-10-30.json) — proposed data-first Home selection, focused context and research reuse; reviewed assumptions, preserved baseline and pending full-output qualification.
+- [Market-First Research](MARKET_FIRST_RESEARCH_2026-10-30.json) — implemented data-first Home selection, focused context and research reuse; numerical/operational checks passed, final qualitative verification in progress; production held.
 
 - [Alpaca paper portfolio and scientific sizing](TRADING_AGGREGATE_PORTFOLIO_2026-10-22.md) — active account integration; local verification and native/DEV acceptance.
 

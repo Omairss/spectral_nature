@@ -1464,3 +1464,11 @@ A retry initially included unaccepted trial findings in its prior-research conte
 ### Use one publication representation — October 30, 2026
 
 The next full replay completed reviewed stories, but the model assigned the same story IDs to several display lists. The duplicated selection/body contract rejected publication. Replaced it with one story object containing its sources, one section and complete prose; application-owned IDs derive from the immutable publication and position. The editor now receives reviewed claim roles and factual corrections, then summarizes the finished Attention list into Brief. No fuzzy identity repair, new publisher or extra planner was added. A source lookup timeout also exposed inaccurate aggregate health: valid text completion now retains a separate count of current acquisition/review failures; old reused errors do not become new failures.
+
+### Keep qualification ordering and financial unknowns explicit — October 30, 2026
+
+The isolated fixture imported historical artifacts with identical SQL update times, so an unordered tie changed which prior investigations entered the planner and defeated exact-input reuse. Fixed the study to use the original ordered artifact identities; runtime history was not rewritten. A later chart request was still active when the isolated process ended, so its full maximum remains unknown alongside the earlier interrupted request. No balance refresh or new comparison cleared either bound. The fresh public draft also remained too numerical and sharpened an unsupported financial timeline; it was not accepted or deployed.
+
+### Fix conflicting reviewer instructions at their owner — October 30, 2026
+
+Repeated Home-only instruction refinements improved readability but did not resolve a source-population error. The shared reviewer added statistics back into Brief because its global prompt demanded high-recall discovery and a competing answer for every task. Corrected that objective at source. Prior model grades did not grant acceptance; no candidate was deployed.
