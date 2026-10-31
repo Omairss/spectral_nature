@@ -1,10 +1,15 @@
-"""Loopback display fixture for the native carousel review; no broker or account credentials."""
+"""Loopback Home display fixture; no broker or account credentials."""
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import hashlib
 import json
+import argparse
 
-HOME = (Path(__file__).parent / "home-fixture.json").read_bytes()
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--fixture", type=Path, default=Path(__file__).parent / "home-fixture.json")
+parser.add_argument("--port", type=int, default=3191)
+args = parser.parse_args()
+HOME = args.fixture.read_bytes()
 ETAG = '"' + hashlib.sha256(HOME).hexdigest() + '"'
 
 class Handler(BaseHTTPRequestHandler):
@@ -32,4 +37,4 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
 if __name__ == "__main__":
-    ThreadingHTTPServer(("127.0.0.1", 3191), Handler).serve_forever()
+    ThreadingHTTPServer(("127.0.0.1", args.port), Handler).serve_forever()

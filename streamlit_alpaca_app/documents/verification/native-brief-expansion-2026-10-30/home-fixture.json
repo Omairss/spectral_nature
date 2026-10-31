@@ -1,0 +1,83 @@
+{
+  "status": "available",
+  "view_date": "2026-10-30",
+  "is_replay": false,
+  "as_of": "2026-10-30T22:45:00+00:00",
+  "run_id": "native-inline-brief-poc-20261030",
+  "summary": {
+    "headline": "Earnings set the tone",
+    "markdown": "Intel fell today after weak earnings, renewing doubts about its recovery.\n\nMicrosoft rose on strong cloud growth, while Meta slipped on higher spending.\n\nThe next test is the Fed decision.",
+    "audio_available": false,
+    "expandable_brief": {
+      "paragraphs": [
+        {
+          "id": "intel",
+          "segments": [
+            {
+              "id": "intro",
+              "text": "Intel fell today after "
+            },
+            {
+              "id": "earnings",
+              "text": "weak earnings",
+              "expansion": "revenue missed forecasts and higher factory costs squeezed margins"
+            },
+            {
+              "id": "ending",
+              "text": ", renewing doubts about its recovery."
+            }
+          ]
+        },
+        {
+          "id": "cloud",
+          "segments": [
+            {
+              "id": "intro",
+              "text": "Microsoft rose on "
+            },
+            {
+              "id": "growth",
+              "text": "strong cloud growth",
+              "expansion": "cloud growth that beat expectations as customers increased AI spending"
+            },
+            {
+              "id": "contrast",
+              "text": ", while Meta slipped on "
+            },
+            {
+              "id": "spending",
+              "text": "higher spending",
+              "expansion": "a higher investment outlook that pushed expected cash returns further out"
+            },
+            {
+              "id": "ending",
+              "text": "."
+            }
+          ]
+        },
+        {
+          "id": "rates",
+          "segments": [
+            {
+              "id": "intro",
+              "text": "The next test is "
+            },
+            {
+              "id": "decision",
+              "text": "the Fed decision",
+              "expansion": "whether the Fed signals that easing inflation leaves room for rate cuts"
+            },
+            {
+              "id": "ending",
+              "text": "."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "beats": [],
+  "daily_datapoints": [],
+  "daily_datapoints_as_of": null,
+  "graph": null
+}

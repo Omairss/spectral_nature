@@ -33,6 +33,7 @@ struct HomeSnapshot: Codable {
     let headline: String
     let markdown: String
     let audioAvailable: Bool
+    var expandableBrief: ExpandableBrief? = nil
   }
   struct Beat: Codable, Identifiable {
     let id: String
