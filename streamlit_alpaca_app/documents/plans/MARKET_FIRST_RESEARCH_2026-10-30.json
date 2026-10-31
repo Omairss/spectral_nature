@@ -1,7 +1,7 @@
 {
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
-  "revision": 4,
+  "revision": 5,
   "status": "implemented_fresh_output_rejected_no_deployment",
   "recorded_at_utc": "2026-10-31T03:18:50.047478+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
@@ -259,7 +259,7 @@
     "implementation_qualification": "../verification/market-first-research-2026-10-30/qualification.json",
     "latest_public_artifact": "../verification/market-first-research-2026-10-30/candidate-output.json"
   },
-  "next_action": "Resolve financial interpretation and the loss of meaningful ongoing coverage through the existing shared plan/research/publication flow. Separate the need for new paid work from current story relevance. Compare complete outputs with matched point-in-time inputs before claiming savings. Preserve all previous spending and unknown bounds; no candidate deployment.",
+  "next_action": "Implement the three existing-boundary corrections in remediation_design_2026_10_31, then personally qualify the complete output. The candidate remains unaccepted. Preserve all previous spending and unknown bounds; the completed API exception does not authorize another paid run or a deployment.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",
@@ -337,5 +337,36 @@
     "deployment": "No build or DEV/PROD deployment. All application changes remain on the separate feature branch.",
     "evidence": "../verification/market-first-research-2026-10-30/followup-2026-10-31.json",
     "result": "../verification/market-first-research-2026-10-30/matched-results-2026-10-31.json"
+  },
+  "remediation_design_2026_10_31": {
+    "status": "proposed_not_implemented_or_qualified",
+    "basis": "Read-only trace recorded in matched-results-2026-10-31.json/cause_followup. The final writer received the correct Reddit finding, introduced the category error, made no retained-report reads, and could not obtain a final review under the separate study guard.",
+    "changes": [
+      {
+        "boundary": "Research to final Zopedia editor",
+        "work": "Present substantive, dated, source-linked findings from retained and new research in the same representation. Use existing reviewed claims and report context instead of new full reports versus old title-only catalog entries. Keep the broad current numerical picture present and complete reports/originals accessible through the existing reader. Spending selection must not become publication eligibility.",
+        "cost_and_scale": "Do not copy every complete report into every investigation or add a separate recurring summarizer. Preserve complete claims and their qualifiers; do not truncate a financial category or silently reduce retained research to titles when context is full. Use the existing Zopedia context selection and report reader for larger bodies of evidence.",
+        "preserve": "No automatic republication, forced ticker coverage, sector quotas or extra final planner. Retained knowledge remains fallible and dated; current observations are not replaced with an older report's snapshot."
+      },
+      {
+        "boundary": "Finished artifact to existing shared reviewer",
+        "work": "Supply the actual Attention stories and Brief alongside the corresponding reviewed claims, original source passages and current observations. The existing reviewer owns source meaning, chronology, coverage and writing corrections and returns the complete corrected public artifact. Preserve the existing direct adoption of that artifact, with no later model rewrite.",
+        "cost_and_scale": "Expand evidence for the proposed stories through existing source associations and readers, not another retrieval service or an unlimited archive dump. Ambiguous or conflicting originals remain available; a research statement is not an independent primary source.",
+        "preserve": "No financial phrase rules, ticker exceptions, deterministic NLP grades, compulsory K-attempt gate or assumption that a completed model review guarantees factual accuracy. Source and story identities remain separate; two stories may legitimately use the same research."
+      },
+      {
+        "boundary": "Admission of optional work versus completion",
+        "work": "Extend existing application completion protection to the bounded evidence reading needed for writing and review, rather than protecting only answer-generation requests. Protect both time and money before optional investigations, account for the actual growing context, and stop optional work early enough to finish on the original deadline. Separately project those completion obligations into the strict study guard before admitting either comparison case; application reservations cannot override an owner-approved study cap.",
+        "cost_and_scale": "Use one atomic accounting authority per budget, stable work identities and explicit transfer from future obligations to admitted requests so money is not reserved twice. Bound evidence navigation so it cannot consume the funds reserved for the actual answer and review. Preserve genuine unknown charges, retries and prior spending. Production's configurable margin and best-effort behavior remain distinct from the hard verification cap.",
+        "preserve": "No reset of the logical clock, new allowance on retry, invented credit, silent model downgrade or unbounded core-spending exemption. If a complete comparison cannot fit, report that before purchasing the optional work."
+      }
+    ],
+    "failure_behavior": [
+      "Keep completed investigations when another investigation fails. Preserve the existing current-result and explicit failed-review health behavior; retaining an artifact is not claiming successful review or release acceptance.",
+      "Resume valid completed stages only when their input identity still matches. Changed observations require a current assessment; neither a retry nor reuse makes an older observation current.",
+      "Publish Attention and its Brief consistently from the same final artifact. If no valid artifact can be formed, preserve the previous publication with its real date; do not invent a fresh report or launch a second composition path."
+    ],
+    "qualification": "First inspect exact inputs, artifact adoption, budget reservations and failure/resume behavior without paid inference. Then, under a new explicit study authorization, personally read complete outputs on matched current inputs and a distinct quiet/heavy or contradictory case. Inspect source meaning, continuing relevance, discoveries outside headline attention, dates, writing, full costs and consumer consistency. The named companies diagnose defects; they are not a required ticker list. No release based only on successful execution, source availability or a model's own review verdict.",
+    "unchanged_order": "Raw stock/economic data -> anomalies/movers -> numerical groups and relationship changes -> one upfront Zopedia planner -> shared Zopedia research/review -> Zopedia Attention and Brief. No new agent, retrieval system or publication gate."
   }
 }
