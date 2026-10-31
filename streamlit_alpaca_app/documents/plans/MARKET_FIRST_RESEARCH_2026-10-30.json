@@ -264,7 +264,7 @@
   "qualification_authorization": {
     "instruction": "Approve up to $10",
     "pacific_day": "2026-10-30",
-    "maximum_new_total_usd": 25,
+    "maximum_new_total_usd": 30,
     "exception": "Existing DeepSeek API at full production capability, isolated storage, no production writes; Lambda suitable capacity empty at22:02UTC. Earlier API approvals remain closed.",
     "continuations": [
       {
@@ -283,6 +283,12 @@
         "same_cumulative_cap_usd": 25,
         "original_costs_and_unknowns_preserved": true,
         "pacific_day": "2026-10-31"
+      },
+      {
+        "instruction": "Approve up to $5 more",
+        "question_id": "call_cca264bcfeb94f109af7a263b9c76350",
+        "same_cumulative_cap_usd": 30,
+        "original_costs_and_unknowns_preserved": true
       }
     ]
   },
@@ -321,7 +327,7 @@
     ],
     "baseline_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
     "input_cutoff_utc": "2026-10-30T18:50:00Z",
-    "spending": "Approved same cumulative cap $25; original costs and unresolved bounds preserved. Separate local databases and the same cumulative request guard cover both complete core flows.",
+    "spending": "Same cumulative $30 cap approved. All earlier usage, setup costs and genuine unknown charge bounds preserved.",
     "deployment": "Production unchanged. Local quality acceptance remains required before development deployment.",
     "evidence": "../verification/market-first-research-2026-10-30/followup-2026-10-31.json"
   }

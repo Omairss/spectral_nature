@@ -1496,3 +1496,11 @@ Restoring reports alone would leave companies outside the new agenda without cur
 ### Bootstrap frozen retrieval before paid comparison — October 31, 2026
 
 The matched replay copied pre-run research but omitted the existing retained-search tables and source index. Searches returned database errors, so the first attempt cannot establish comparable product quality. Paused new transport, preserved its $2.347911 cost and original clocks, then initialized the normal application index from 100 captured originals and checked search plus full-document reads in both revisions before restarting. This was a verification setup error, not a production failure.
+
+### Preserve acquired originals with retained research — October 31, 2026
+
+The retained publication reader copied only artifact_context.source_documents. Older investigations often kept acquired captures in agent_result.tool_calls instead, leaving reports readable but their underlying originals absent. Project those saved captures through the existing shared evidence adapter with the original research date; do not expose execution traces or repurchase research to recover already-held material.
+
+### Queue before transport accounting in verification — October 31, 2026
+
+The study throttled requests inside Session.send, after application transport accounting began. Exact gateway receipts show several local queue timeouts and cap rejections were never sent, yet the isolated run held their maximum costs as unknown. Move study queue admission ahead of the provider adapter; settle only explicitly proven local rejections at zero, retaining all genuine network failures and the original cumulative study ledger. The resulting constrained draft failed financial precision and its required-field contract; it is not accepted output.

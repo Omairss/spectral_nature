@@ -10,11 +10,12 @@
     "Require concrete developments and practical business consequences with distinct public fields in the existing shared writer."
   ],
   "source_file_sha256": {
-    "pipeline/jobs/attention_home_build.py": "7a2a0df607fb611677e168733f4ff53681707982e8452e0e8849553ea02ef655",
+    "pipeline/jobs/attention_home_build.py": "78126dda707824a4b7216af91c0f40f48813069769fc1184be70d00e4271b83a",
     "services/aql/constants.py": "bb19f843b4294d2d7f932691165cf740cc6a1419ad7fc94fcc9ff78e6eacd9ff",
     "services/aql/events.py": "59e55fe0313acd1ca4b0194c9a69e06bcbc8cb7f28b487e143f8d9a69dc173d7",
     "services/aql/pipeline.py": "69259ce2e9731fa23df4247f299d3eb3be814977f98cf9bb08dab9d1139f1b6e",
-    "services/zopedia_agent.py": "6d9e4028639b732bd9bdff6146d7cd8e0d6dba97663e3334afc5a90818c9b1f1"
+    "services/zopedia_agent.py": "6d9e4028639b732bd9bdff6146d7cd8e0d6dba97663e3334afc5a90818c9b1f1",
+    "services/llm_execution.py": "a43fddf9dd402ef5e83c0ca195e0267c06918002b1ea2b8f13bac12f79361dd3"
   },
   "offline_handoff": {
     "new_provider_requests": 0,
@@ -26,7 +27,7 @@
     "meaning": "Input availability and provenance only; no new model output or quality acceptance."
   },
   "operational_checks": {
-    "result": "20 passed in 1.26s",
+    "result": "21 passed in 1.16s",
     "scope": "Numerical, current observation, date, source preservation, reader and provider contracts; no prose grades."
   },
   "legacy_suite": {
@@ -61,5 +62,27 @@
     "Runtime defaults changed; no fresh quality claim is made from operational checks."
   ],
   "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/operations/market-first-research-20261030/matched-comparison-20261031",
-  "publication_boundary": "Expose complete canonical research, semantic review corrections and original source captures to the reader/publication, excluding internal agent execution traces."
+  "publication_boundary": "Expose complete canonical research, semantic review corrections and original source captures to the reader/publication, excluding internal agent execution traces.",
+  "retained_capture_followup": {
+    "issue": "Older research stores acquisitions in saved tool results; artifact_context.source_documents alone was incomplete.",
+    "change": "Project acquisitions using existing materialize_research_artifacts, retain original research dates, keep private execution traces excluded and keep current direct-capture indexing intact.",
+    "offline_readback": {
+      "retained_reports": 36,
+      "projected_captures": 289,
+      "workhorse": 66,
+      "rivian": 7,
+      "servicenow": 14,
+      "alphabet": 1,
+      "meaning": "Availability/provenance only; not a prose-quality score."
+    },
+    "source_revision": "25e4b168",
+    "model_output": "Fresh final-reader verification still pending. Running candidate was loaded before this follow-up."
+  },
+  "budget_followup": {
+    "runtime_change": "Exclude expired unspent core obligations from run admission, retaining the records and all actual/unknown request costs. Account-level future-work already applied the same deadline rule.",
+    "study_correction": "Move local queueing before application provider admission. Settle only gateway receipts explicitly proving local queue timeout/cap rejection before physical transport; no genuine unknown charge is cleared.",
+    "rejected_output": "Prior b8b9fd8c draft retains unsupported Amazon variance attribution, Reddit category/component conflation and older article observations, and missed a required public field. No canonical candidate feed exists from that attempt.",
+    "authorization": "Owner approved same cumulative cap $30 via call_cca264bcfeb94f109af7a263b9c76350; previous charges and unknown bounds preserved.",
+    "next": "Finish unchanged-source current replay using paid checkpoints and qualify the corrected candidate against the same captured inputs."
+  }
 }

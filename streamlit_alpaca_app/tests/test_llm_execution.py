@@ -585,3 +585,18 @@ def test_audio_reuses_text_voice_model_and_format(store, monkeypatch):
                          session=SimpleNamespace(post=post))
     assert c.synthesize("Same text") == c.synthesize("Same text") == b"audio-bytes"
     assert len(calls) == 1 and store[1][0]["operation"] == "audio"
+
+
+def test_expired_unspent_core_releases_headroom_without_clearing_unknown_charges(monkeypatch):
+    from copy import deepcopy
+    monkeypatch.setattr(execution.time, "time", lambda: 100)
+    state = {"cap_microusd": 10_000_000, "attempts": {
+        "paid": {"status": "settled", "charged_microusd": 2_000_000},
+        "unknown": {"status": "unknown", "maximum_microusd": 1_000_000}},
+        "core_obligations": {
+            "expired": {"remaining_microusd": 4_000_000, "deadline_at": 99},
+            "live": {"remaining_microusd": 2_000_000, "deadline_at": 101},
+            "legacy_without_expiry": {"remaining_microusd": 500_000}}}
+    original = deepcopy(state)
+    assert execution._run_remaining(state) == 4_500_000
+    assert state == original

@@ -298,7 +298,8 @@ def _run_remaining(state: dict[str, Any], *, for_admission: bool = False) -> int
     return cap - sum(
         value["charged_microusd"] if value["status"] == "settled" else value["maximum_microusd"]
         for value in state["attempts"].values()) - sum(
-            value["remaining_microusd"] for value in state.get("core_obligations", {}).values())
+            value["remaining_microusd"] for value in state.get("core_obligations", {}).values()
+            if value.get("deadline_at", float("inf")) > time.time())
 
 
 def _provider_unreserved_microusd(state: dict[str, Any]) -> int:

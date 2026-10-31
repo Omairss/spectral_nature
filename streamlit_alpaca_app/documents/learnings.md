@@ -1565,3 +1565,11 @@ The latest 20 investigations did not include still-relevant earlier reports. Sep
 ### A frozen replay includes working source readers — October 31, 2026
 
 Identical dataset hashes and historical reports are insufficient if retained-search reads point at an uninitialized database. Before paid verification, bootstrap the existing schema, index the same captured originals and exercise both search and full-document retrieval without inference. Keep failed setup costs separate from measured flow costs while retaining both under the original cumulative spending cap.
+
+### Retained research includes its acquisition — October 31, 2026
+
+Check both supplied context and the shared engine's acquired captures when carrying prior reports forward. Use the existing pure evidence adapter to expose the captures inside the report reader, preserving original dates and provenance. Keep them separate from new raw-source index entries so a retained chunk cannot overwrite a complete current capture.
+
+### Expired planned work is different from an unknown request — October 31, 2026
+
+Unused core-work funding should stop withholding run headroom after its original deadline, matching the existing account-level future-work rule. Retain the original reservation record and every actual or unknown request charge. Source checking and review need available execution resources; a completed transport is not a completed, reviewed artifact.
