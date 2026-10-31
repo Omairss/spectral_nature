@@ -111,3 +111,39 @@ def test_publication_source_contract_is_stable_and_bound_to_reader(monkeypatch):
         home._review_home_public_surface({}, bundles, enrichment_rows=[{'research_origin': 'common_market_agenda'}],
             source_documents=intake, asof_time_utc='2026-10-30T18:50Z', timeout_seconds=10)
     assert seen[0] == seen[1]
+
+
+def test_retained_reports_remain_readable_without_new_research_or_stale_prices(monkeypatch):
+    from pipeline.jobs import attention_home_build as home
+    past = {"artifact_id": "past", "created_at_utc": "2026-10-29T20:00Z", "result": {
+        "agent_result": {"private_execution_trace": "Internal diagnostic"},
+        "payload": {"event_title": "Existing investigation", "findings_markdown": "Complete retained report",
+                    "supporting_symbols": ["EXAMPLE"]},
+        "artifact_context": {"asof_time_utc": "2026-10-29T18:50Z", "source_documents": [
+            {"source_id": "original", "url": "https://example.com/report", "raw_text": "Complete original"}]}}}
+    future = {**past, "artifact_id": "future", "created_at_utc": "2026-10-31T20:00Z"}
+    def run(**kwargs):
+        visible = kwargs["initial_evidence"][0]
+        assert visible["completed_research_findings"] == []
+        assert "Complete retained report" not in str(visible)
+        index = {row["source_id"]: row for row in visible["source_index"]}
+        assert "retained-research:past" in index
+        assert "retained-research:future" not in index
+        read = kwargs["service"].read_supplied_evidence(source_id="retained-research:past")
+        assert "Complete retained report" in read["text"]
+        assert "private_execution_trace" not in read["text"]
+        value = publication(["retained-research:past"])
+        value.update(market_summary={"summary_text": "Current explanation", "confidence": "medium", "limitations": []}, issues=[])
+        value["stories"][0]["time_basis"] = {"current_observation": "2026-10-30T18:50Z", "background_events": [], "report_dates": "Original"}
+        return {"status": "completed", "payload": value}
+    monkeypatch.setattr(home, "run_aql_zopedia_structured_agent", run)
+    monkeypatch.setattr(home, "complete_core_research", lambda *args: None)
+    payload, bundles, _ = home._review_home_public_surface(
+        {"event_candidates_1d": [{"symbol": "EXAMPLE", "change_pct": 7}]}, {}, enrichment_rows=[],
+        retained_research=[past, future], asof_time_utc="2026-10-30T18:50Z", timeout_seconds=10)
+    story = payload["top_events"][0]
+    assert story["change_pct"] == 7
+    assert story["evidence"][0]["raw_text"] == "Complete original"
+    assert story["research_evidence"][0]["payload"] == past["result"]["payload"]
+    assert story["research_evidence"][0]["artifact_id"] == "past"
+    assert story["research_source_ids"] == ["retained-research:past"]

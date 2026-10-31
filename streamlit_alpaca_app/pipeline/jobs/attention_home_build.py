@@ -1817,6 +1817,9 @@ def _apply_home_surface_quality_items(
             bundle_id = "event::" + event_id
             documents = [record["content"] for record in records
                          if record.get("metadata", {}).get("kind") == "source_document"]
+            documents.extend(doc for record in records
+                if record.get("metadata", {}).get("kind") == "retained_research"
+                for doc in record["content"].get("source_documents") or [])
             evidence = [entry for identity in research_bundle_ids for entry in bundle_map[identity].get("evidence") or []]
             evidence.extend({**doc, "headline": doc.get("title", ""),
                              "source": doc.get("source_provider", ""),
@@ -1871,10 +1874,11 @@ def _review_home_public_surface(
     timeout_seconds: int,
     source_documents: list[dict[str, Any]] | None = None,
     market_research: list[dict[str, Any]] | None = None,
+    retained_research: list[dict[str, Any]] | None = None,
 ) -> tuple[dict[str, Any], dict[str, dict[str, Any]], dict[str, Any]]:
     review_items = _home_surface_quality_items(payload, bundle_map)
     intake = list(source_documents or [])
-    if not review_items and not intake and not market_research:
+    if not review_items and not intake and not market_research and not retained_research:
         return payload, bundle_map, {"status": "skipped", "reason": "no public Home items"}
     limits = {
         "top_events": _attention_home_top_events_display_limit(),
@@ -1883,6 +1887,33 @@ def _review_home_public_surface(
     }
     records = {}
     findings = []
+    for artifact in retained_research or []:
+        result = artifact.get("result") or {}
+        context = result.get("artifact_context") or {}
+        dates = [pd.to_datetime(value, utc=True, errors="coerce") for value in (
+            artifact.get("created_at_utc"), context.get("asof_time_utc") or artifact.get("created_at_utc"))]
+        if not artifact.get("artifact_id") or not all(
+            pd.notna(date) and date <= pd.to_datetime(asof_time_utc, utc=True) for date in dates
+        ):
+            continue
+        research = result.get("payload") or {}
+        agent = result.get("agent_result") or {}
+        records["retained-research:" + artifact["artifact_id"]] = {
+            "title": research.get("event_title") or artifact.get("subject") or artifact["artifact_id"],
+            "metadata": {"kind": "retained_research", "artifact_id": artifact["artifact_id"],
+                         "created_at_utc": artifact.get("created_at_utc"),
+                         "research_asof_time_utc": context.get("asof_time_utc"),
+                         "symbols": research.get("supporting_symbols") or []},
+            "content": to_jsonable({
+                **{key: artifact.get(key) for key in ("artifact_id", "subject", "created_at_utc")},
+                "research_asof_time_utc": context.get("asof_time_utc"), "payload": research,
+                "quality_review": {key: (agent.get("quality_review") or {}).get(key) for key in (
+                    "status", "verdict", "critique_summary", "unsupported_claims", "evidence_gaps", "research_requests")},
+                "limitations": agent.get("limitations") or [],
+                "source_documents": context.get("source_documents") or [],
+            }),
+        }
+        intake.extend(context.get("source_documents") or [])
     for bundle_id, bundle in bundle_map.items():
         source_id = "bundle:" + bundle_id
         records[source_id] = {
@@ -1936,15 +1967,22 @@ def _review_home_public_surface(
         f"As of {_zopedia_asof_text(asof_time_utc)}, explain the consequential current developments to an investor. "
         "Write Attention first as distinct stories, each placed in one section; then summarize those finished "
         "stories as the Brief. Section capacities are ceilings, not quotas. "
-        "Start from the common research agenda and the broad numerical picture: what changed, what supports "
+        "Start from the broad numerical picture and common research assessment: what changed, what supports "
         "or contradicts the apparent market direction, and what deserves attention beyond the headlines? "
         "Measured groups and multi-day leadership are observations, not proof of a common cause or investor flows. "
-        "Choose useful independent developments without forcing one explanation across different businesses. "
-        "For each story, explain the change, its business mechanism and why it matters. The reader should "
+        "The paid research agenda is not a publication shortlist. Assess retained-research entries alongside "
+        "new findings and current observations; read the complete retained report when it remains consequential. "
+        "Its original date stays intact. A lack of new research or a fresh headline does not make it irrelevant, "
+        "and prior publication alone does not make it relevant. Show important continuing developments alongside "
+        "new discoveries without automatically repeating the old feed. Choose useful independent developments "
+        "without forcing one explanation across different businesses. "
+        "For each story, name the concrete development, the affected business and its practical consequence. "
+        "An abstract market label cannot substitute for that explanation. The reader should "
         "understand the investment question without wading through an earnings release. The research and "
         "charts retain financial quantities; public prose selects only a quantity essential to the explanation. "
         "Explain beats, misses and guidance in words. Develop one connected account across the public fields; "
-        "leave a field empty if it adds nothing distinct. Headlines and summaries must carry the same degree "
+        "leave a field empty if it adds nothing distinct. Do not repeat a conclusion or caveat across fields. "
+        "Headlines and summaries must carry the same degree "
         "of certainty as the explanation. Useful unresolved observations belong in the feed. "
         "Research is fallible. Preserve its reviewer corrections and check substantive assertions against the "
         "claims and originals in the supplied reader. Preserve the source relationship, financial meaning, "
@@ -2278,6 +2316,7 @@ def build_attention_home_output_frames(
                 {key: row.get(key) for key in ("run_id", "asof_time_utc", "status", "market_context_text", "research_agenda_json", "error")}
                 for row in artifacts.frames.get("attention_market_research", pd.DataFrame()).to_dict("records")
             ],
+            retained_research=artifacts.retained_research,
         )
     except Exception as exc:
         # An execution/contract failure cannot supply a new canonical artifact.

@@ -1,0 +1,56 @@
+{
+  "status": "implemented_operationally_checked_fresh_output_comparison_pending_authorization",
+  "date_pacific": "2026-10-31",
+  "changes": [
+    "Carry the existing bounded retained-research catalog through the AQL artifact handoff to the final Zopedia evidence reader, including quiet or disabled optional-investigation runs.",
+    "Separate the configurable inline history size from readable reports: the store catalog is bounded at 100, while 20 recent summaries remain inline by default. No complete retained report is inserted inline.",
+    "Preserve source captures, original research dates and artifact identities when a retained finding supports a published story. Reject future-dated artifacts at the input boundary.",
+    "Preserve current candidate observations across the observed universe so publication outside the new investigation list can use current ticker metadata.",
+    "Clarify issuer/segment, category/component, period and forecast comparison reasoning in shared research/review, and allow source-grounded corrections to a fallible writing outline.",
+    "Require concrete developments and practical business consequences with distinct public fields in the existing shared writer."
+  ],
+  "source_file_sha256": {
+    "pipeline/jobs/attention_home_build.py": "7a2a0df607fb611677e168733f4ff53681707982e8452e0e8849553ea02ef655",
+    "services/aql/constants.py": "bb19f843b4294d2d7f932691165cf740cc6a1419ad7fc94fcc9ff78e6eacd9ff",
+    "services/aql/events.py": "59e55fe0313acd1ca4b0194c9a69e06bcbc8cb7f28b487e143f8d9a69dc173d7",
+    "services/aql/pipeline.py": "69259ce2e9731fa23df4247f299d3eb3be814977f98cf9bb08dab9d1139f1b6e",
+    "services/zopedia_agent.py": "6d9e4028639b732bd9bdff6146d7cd8e0d6dba97663e3334afc5a90818c9b1f1"
+  },
+  "offline_handoff": {
+    "new_provider_requests": 0,
+    "retained_reports": 36,
+    "original_retained_reports": 36,
+    "inline_retained_report_bodies": false,
+    "current_findings": 5,
+    "publication_request_sha256": "a7582a42e282dd08a1c6266c999f2c8a2bdddbec805be04a79b35b969f8f1746",
+    "meaning": "Input availability and provenance only; no new model output or quality acceptance."
+  },
+  "operational_checks": {
+    "result": "20 passed in 1.26s",
+    "scope": "Numerical, current observation, date, source preservation, reader and provider contracts; no prose grades."
+  },
+  "legacy_suite": {
+    "before": "26 failed, 26 passed",
+    "after": "26 failed, 27 passed",
+    "identical_failure_names": true,
+    "meaning": "The 26 older agent tests fail on unchanged pre-fix Git source too. They include removed helper names and obsolete prompt/behavior expectations. They were not changed to manufacture acceptance."
+  },
+  "comparison_protocol": {
+    "current_source": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+    "cutoff_utc": "2026-10-30T18:50:00Z",
+    "inputs": "Pin the same recorded dataset versions, completed pre-run artifacts and captured source content for both complete flows. Preserve each source implementation’s own planner and writer. No rejected experiment becomes historical knowledge.",
+    "model": "Full production Pro with the same reasoning setting and provider price band.",
+    "same_exclusions": "No new live intraday collection, narration or independent optional page generation in either comparison. Do not call these core-flow costs the whole production bill.",
+    "inspection": "Personally inspect complete Briefs and all stories, financial scope/comparison, continuing useful coverage, numerical discoveries, concrete explanation and omissions. Do not force example-company inclusion.",
+    "accounting": "All baseline, candidate, failed and interrupted requests count in the same original study ledger; preserve the earlier $12.203458 estimate and $2.292450 unresolved maximum.",
+    "authorization": "Additional $10 API exception requested to raise the existing cap from $15 to $25. No new paid request or cap mutation before explicit approval.",
+    "current_worker_image_verified": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48"
+  },
+  "deployment": "No build or development/production deployment. Local output acceptance is still pending.",
+  "qualification_limits": [
+    "The readback proves retained reports are available, not that the model selects or interprets them correctly.",
+    "Runtime defaults changed; no fresh quality claim is made from operational checks."
+  ],
+  "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/operations/market-first-research-20261030/matched-comparison-20261031",
+  "publication_boundary": "Expose complete canonical research, semantic review corrections and original source captures to the reader/publication, excluding internal agent execution traces."
+}

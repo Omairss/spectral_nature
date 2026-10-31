@@ -1553,3 +1553,11 @@ The owner requested complete underlying observations plus headlines for common p
 ### Expose what a retained capture actually contains — October 30, 2026
 
 A source title and URL do not distinguish a search snippet from a complete page capture. Preserve every version and expose its existing origin, source kind and captured text length in the source index, so the shared reader can select the relevant original. Do not treat opening a referenced capture as proof of reading the full underlying article, or use a longest-text rule as a substitute for research. Added source context alone did not establish correct financial interpretation; a year-over-year expense change is not, by itself, a variance against consensus.
+
+### New research allocation and current relevance are different decisions — October 31, 2026
+
+An unchanged question can still matter to the current feed without another full investigation. Keep that distinction inside existing Zopedia planning/reuse/writing; do not make a smaller paid agenda silently define all relevant coverage. Audit exact input availability and later omissions. Distinguish consolidated issuer EPS, segment operating performance, year-over-year changes and consensus variances when evaluating earnings explanations.
+
+### Keep a readable research catalog beyond the inline history — October 31, 2026
+
+The latest 20 investigations did not include still-relevant earlier reports. Separate prompt-size limits from the bounded catalog available through the existing reader. Carry that catalog to final writing even when no new investigation is selected, and preserve current numerical metadata for any selected company. A source-availability readback establishes access, not model selection or quality.

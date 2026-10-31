@@ -258,6 +258,9 @@ def build_bottom_up_attention_artifacts(
         must_read_limit=must_read_limit, unresolved_limit=unresolved_limit,
         macro_release_bundles=[], macro_release_force_limit=0, relationship_checks_frame=checks,
         hypotheses_frame=hypotheses)
+    # Final writing can select retained or original-source developments beyond
+    # the new investigation list; their ticker metadata must still be current.
+    home["event_candidates_1d"] = to_jsonable(candidates.to_dict("records"))
     home["market_context"] = numerical
     home["homepage_graph"] = build_homepage_attention_graph_payload(selected_candidates, graph, clusters,
         universe_frame=topology_universe_frame if isinstance(topology_universe_frame, pd.DataFrame) else entity_rows)
@@ -278,7 +281,8 @@ def build_bottom_up_attention_artifacts(
         "macro_relationship_checks_1d": checks, "attention_hypotheses_1d": hypotheses,
         "attention_home_snapshots_1d": serialize_attention_home_payload(home),
         "attention_bundle_snapshots": serialize_attention_research_bundles(bundle_map, generated_at_utc=asof)}
-    return AgenticAttentionArtifacts(home_payload=home, bundle_map=bundle_map, frames=frames)
+    return AgenticAttentionArtifacts(home_payload=home, bundle_map=bundle_map, frames=frames,
+                                     retained_research=selected.get("retained_research", []))
 
 
 def build_bottom_up_attention_home(

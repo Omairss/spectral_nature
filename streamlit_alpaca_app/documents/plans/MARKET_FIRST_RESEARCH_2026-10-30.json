@@ -259,7 +259,7 @@
     "implementation_qualification": "../verification/market-first-research-2026-10-30/qualification.json",
     "latest_public_artifact": "../verification/market-first-research-2026-10-30/candidate-output.json"
   },
-  "next_action": "Resolve the retained factual/causal interpretation and editorial coverage/concision failures at the shared owning handoff, then qualify the complete updated flow. Paid verification is stopped after the documented negative results; all costs and unknown maxima are retained. No build or development/production deployment is authorized by a model reviewer grade.",
+  "next_action": "Resolve financial interpretation and the loss of meaningful ongoing coverage through the existing shared plan/research/publication flow. Separate the need for new paid work from current story relevance. Compare complete outputs with matched point-in-time inputs before claiming savings. Preserve all previous spending and unknown bounds; no candidate deployment.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",
@@ -290,5 +290,32 @@
     "latest_source_revision": "d188f7ddb51b6f707b1d4b4f803c22952759bbc9",
     "capture_provenance": "Existing final-editor source index exposes raw_text_origin, source_kind and captured text length. Complete and snippet captures remain separate; no longest-text heuristic or added retrieval path.",
     "schema_order": "The shared provider presents artifact fields in declared order, including stories before Brief. Canonical fingerprints remain sorted. Actual fresh writing/review followed that order; source precision remains unaccepted."
+  },
+  "owner_review": "../verification/market-first-research-2026-10-30/owner-review-2026-10-31.json",
+  "owner_followup_2026_10_31": {
+    "request": "Implement retained coverage, financial reasoning and concrete writing fixes; provide matched current versus proposed outputs.",
+    "tasks": [
+      {
+        "item": "Carry retained research through the existing pipeline to the final Zopedia reader, indexed rather than copied inline. Preserve originals and current observations independently of new research selection.",
+        "status": "implemented_operational_checks_and_actual_input_readback_passed"
+      },
+      {
+        "item": "Correct issuer/segment, category/component and financial-baseline reasoning in shared research and review.",
+        "status": "implemented_pending_qualitative_verification"
+      },
+      {
+        "item": "Use concrete developments, business consequences and distinct public fields in shared writing.",
+        "status": "implemented_pending_qualitative_verification"
+      },
+      {
+        "item": "Run accepted current Git source and proposed source against the same cutoff, datasets and pre-run memory; read complete outputs and provide side-by-side text with attempt-inclusive costs.",
+        "status": "prepared_pending_inference_authorization"
+      }
+    ],
+    "baseline_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+    "input_cutoff_utc": "2026-10-30T18:50:00Z",
+    "spending": "Requested an additional $10 under the same verification ledger, raising its cap from $15 to $25. No new paid inference before explicit approval. All earlier costs and unresolved bounds remain counted.",
+    "deployment": "Production unchanged. Local quality acceptance remains required before development deployment.",
+    "evidence": "../verification/market-first-research-2026-10-30/followup-2026-10-31.json"
   }
 }

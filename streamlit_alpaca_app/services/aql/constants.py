@@ -4,7 +4,7 @@ AQL constants — all module-level constants, schemas, type aliases, and the dat
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -405,3 +405,4 @@ class AgenticAttentionArtifacts:
     home_payload: dict[str, Any]
     bundle_map: dict[str, dict[str, Any]]
     frames: dict[str, pd.DataFrame]
+    retained_research: list[dict[str, Any]] = field(default_factory=list)

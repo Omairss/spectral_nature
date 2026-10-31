@@ -77,7 +77,7 @@ _P_PRIOR_EVENT_LIMIT = register_config_param(
     "Source event prior investigation context limit",
     group="AQL / Zopedia Engine",
     default=20,
-    description="Recent completed source investigations supplied to current allocation; retained originals remain available in shared research memory.",
+    description="Recent completed investigation summaries included inline; the bounded retained catalog and complete reports remain readable.",
 )
 
 _NOMINATION_PROMPT = register_narrative_prompt(
@@ -95,14 +95,19 @@ _NOMINATION_PROMPT = register_narrative_prompt(
         "private-company or policy developments can deserve research before prices move. Provider tags do not "
         "restrict affected businesses. Use the supplied evidence reader and existing research tools for the "
         "original observations and sources when needed. Do not launch separate mover, macro or news agendas. "
-        "Choose N focused questions across this common agenda using usefulness, available allowance and the "
+        "Choose N focused questions needing investigation across this common agenda using usefulness, available allowance and the "
         "original deadline; limits are ceilings, not quotas. Reserve completion resources for core review and "
         "publication. On a quiet run choose fewer investigations, while still assessing current conditions. "
-        "Compare dated retained research and the prior publication. Prior attention is not evidence of importance. "
+        "Compare dated retained research and the prior publication against the current observations. Decide what "
+        "needs new work separately from what remains important to explain now. Completed research remains available "
+        "to final writing even when it needs no new investigation; the paid agenda is not the whole current market. "
+        "Prior attention is not evidence of importance. "
         "For each question choose investigate, update or reuse. Reuse only sound, source-backed findings whose "
         "question and explanation still hold against current observations; explain that assessment in rationale. "
         "For update or reuse select the exact prior_artifact_id, even if new articles use different URLs. "
-        "Unchanged headlines do not establish unchanged conditions. New uncertainty, contrary evidence or "
+        "Unchanged headlines do not establish unchanged conditions. A compatible price move does not validate a "
+        "retained causal explanation: read its decisive original when the comparison or attribution is uncertain. "
+        "New uncertainty, contrary evidence or "
         "unexplained behavior can require fresh investigation. Never re-date an old disclosure as new. "
         "Keep each investigation's context focused: select related_symbols, relevant group_ids and economic "
         "series IDs; broader observations remain accessible. Plan decisive follow-ups rather than checklists. "
@@ -244,6 +249,46 @@ def research_source_events(
         "source_id", "document_id", "title", "url", "published_at", "text",
         "source_kind", "raw_text_origin", "source_provider", "provider_symbols", "source_trace",
     )
+    access = os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", "")
+    previous_nomination = None
+    prior_investigations = []
+    retained = []
+    context_status = "available" if access else "unconfigured"
+    try:
+        previous_nomination = latest_research_artifact(access_scope=access,
+            subject="attention:source_event_nomination", task="source_event_nomination") if access else None
+        # Read completed work independently of the last nomination. A quiet
+        # nomination with zero new events must not erase the research context.
+        # The inline history limit controls prompt size, not which completed
+        # reports remain readable. Use the store's bounded catalog for readers.
+        retained = pipeline_store.list_research_artifacts(
+            namespace=f"research_artifact:{llm_settings_scope()}:{access}", task="source_event_research",
+            limit=100) if access else []
+        retained = [artifact for artifact in retained
+                    if all(pd.notna(date) and date <= asof for date in (
+                        pd.to_datetime(artifact.get("created_at_utc"), utc=True, errors="coerce"),
+                        pd.to_datetime(((artifact.get("result") or {}).get("artifact_context") or {}).get("asof_time_utc")
+                                       or artifact.get("created_at_utc"), utc=True, errors="coerce")))]
+        if previous_nomination and not all(pd.notna(date) and date <= asof for date in (
+            pd.to_datetime(previous_nomination.get("created_at_utc"), utc=True, errors="coerce"),
+            pd.to_datetime((previous_nomination.get("artifact_context") or {}).get("asof_time_utc")
+                           or previous_nomination.get("created_at_utc"), utc=True, errors="coerce"))):
+            previous_nomination = None
+        prior_investigations = [
+            {key: artifact.get(key) for key in ("artifact_id", "subject", "task", "created_at_utc")}
+            | {"research_summary": {key: ((artifact.get("result") or {}).get("payload") or {}).get(key)
+                                    for key in ("event_title", "supporting_symbols", "cause_status")},
+               "quality_review": ((artifact.get("result") or {}).get("agent_result") or {}).get("quality_review") or {},
+               "limitations": ((artifact.get("result") or {}).get("agent_result") or {}).get("limitations") or [],
+               "artifact_context": {key: value for key, value in ((artifact.get("result") or {}).get("artifact_context") or {}).items()
+                                    if key != "source_documents"}}
+            for artifact in retained[:max(int(get_config_param(_P_PRIOR_EVENT_LIMIT)), 1)]
+        ]
+    except WorkCancelled:
+        raise
+    except Exception as exc:
+        context_status = "unavailable"
+        record_execution_issue("event_allocation_history", exc)
     empty = {
         "bundles": [],
         "plans": [],
@@ -251,6 +296,7 @@ def research_source_events(
         "documents": documents,
         "input_count": len(documents),
         "market_research": [],
+        "retained_research": retained,
         "status": "no_sources",
     }
     if llm_client is None:
@@ -340,40 +386,6 @@ def research_source_events(
         }
         for doc in documents
     ]
-    access = os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", "")
-    previous_nomination = None
-    prior_investigations = []
-    retained = []
-    context_status = "available" if access else "unconfigured"
-    try:
-        previous_nomination = latest_research_artifact(access_scope=access,
-            subject="attention:source_event_nomination", task="source_event_nomination") if access else None
-        # Read completed work independently of the last nomination. A quiet
-        # nomination with zero new events must not erase the research context.
-        retained = pipeline_store.list_research_artifacts(
-            namespace=f"research_artifact:{llm_settings_scope()}:{access}", task="source_event_research",
-            limit=max(int(get_config_param(_P_PRIOR_EVENT_LIMIT)), 1)) if access else []
-        retained = [artifact for artifact in retained
-                    if pd.to_datetime(((artifact.get("result") or {}).get("artifact_context") or {}).get("asof_time_utc")
-                                      or artifact.get("created_at_utc"), utc=True) <= asof]
-        if previous_nomination and pd.to_datetime((previous_nomination.get("artifact_context") or {}).get("asof_time_utc")
-                                                  or previous_nomination["created_at_utc"], utc=True) > asof:
-            previous_nomination = None
-        prior_investigations = [
-            {key: artifact.get(key) for key in ("artifact_id", "subject", "task", "created_at_utc")}
-            | {"research_summary": {key: ((artifact.get("result") or {}).get("payload") or {}).get(key)
-                                    for key in ("event_title", "supporting_symbols", "cause_status")},
-               "quality_review": ((artifact.get("result") or {}).get("agent_result") or {}).get("quality_review") or {},
-               "limitations": ((artifact.get("result") or {}).get("agent_result") or {}).get("limitations") or [],
-               "artifact_context": {key: value for key, value in ((artifact.get("result") or {}).get("artifact_context") or {}).items()
-                                    if key != "source_documents"}}
-            for artifact in retained
-        ]
-    except WorkCancelled:
-        raise
-    except Exception as exc:
-        context_status = "unavailable"
-        record_execution_issue("event_allocation_history", exc)
     source_records = {doc["source_id"]: {"title": doc["title"],
         "metadata": {"kind": "source_document", "url": doc["url"], "published_at": doc["published_at"],
                      "provider_symbols": doc.get("provider_symbols", [])},
@@ -385,7 +397,9 @@ def research_source_events(
         "previous-publication": {"title": "Previous publication with original dated sources", "metadata": {},
                                  "content": to_jsonable(previous_publication or {})}})
     source_records.update({"retained-research:" + artifact["artifact_id"]: {
-        "title": artifact["subject"], "metadata": {"kind": "prior_model_analysis", "created_at_utc": artifact["created_at_utc"]},
+        "title": ((artifact.get("result") or {}).get("payload") or {}).get("event_title") or artifact["subject"],
+        "metadata": {"kind": "prior_model_analysis", "created_at_utc": artifact["created_at_utc"],
+                     "research_asof_time_utc": ((artifact.get("result") or {}).get("artifact_context") or {}).get("asof_time_utc")},
         "content": to_jsonable(artifact)} for artifact in retained})
     service = QueryService.from_environment().with_supplied_evidence(source_records)
     nomination = run_aql_zopedia_structured_agent(
@@ -819,5 +833,6 @@ def research_source_events(
         "bundles": sorted(bundles, key=lambda bundle: bundle["research_priority"]),
         "documents": documents,
         "market_research": market_research,
+        "retained_research": retained,
         "input_count": empty["input_count"],
     }

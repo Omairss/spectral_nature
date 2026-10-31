@@ -83,6 +83,7 @@ def test_one_agenda_dispatches_only_selected_questions_with_focused_context(monk
         generated_at_utc="2026-10-30T18:50Z", run_id="contract")
     assert [call["task"] for call in calls] == ["source_event_nomination", "source_event_research"]
     assert set(result.frames["attention_candidates_1d"].symbol) == {"A", "UNRELATED"}
+    assert {row["symbol"] for row in result.home_payload["event_candidates_1d"]} == {"A", "UNRELATED"}
     assert result.home_payload["market_context"]["coverage"]["observed_symbols"] == 2
     assert len(result.bundle_map) == 1
 
