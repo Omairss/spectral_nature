@@ -2,7 +2,7 @@
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
   "revision": 4,
-  "status": "implemented_verified_execution_public_quality_hold",
+  "status": "implemented_fresh_output_rejected_no_deployment",
   "recorded_at_utc": "2026-10-31T03:18:50.047478+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
   "source_of_truth": "This named plan owns the implemented Market-First change and its remaining qualification. Existing release acceptance remains the authority for packaged runtime.",
@@ -228,7 +228,7 @@
   "configuration_policy": "Reuse centrally owned configuration for allowance, event margin, deadlines and concurrency. Numerical horizon/grouping choices and the amount/depth of selected work remain adaptable. Choose defaults from complete-output comparisons rather than encoding this week's example companies or a fixed N. Any new setting requires one owner and documented effect, not a collection of exception flags.",
   "qualification_cases": [
     "Quiet current inputs: recognize limited new information and spend less without presenting old events as new.",
-    "Important group support with modest individual moves: assess the measured October 26\u201330 omissions, using only contemporaneously available data and sources. Avoid hardcoding the seven companies.",
+    "Important group support with modest individual moves: assess the measured October 26–30 omissions, using only contemporaneously available data and sources. Avoid hardcoding the seven companies.",
     "Heavy contradictory day: surface both declining high-weight names and offsetting groups; protect investigation depth and preserve the configurable event margin.",
     "Genuine and spurious grouping changes: inspect persistent breaks, stable groups, universe churn, incomplete histories and corporate actions.",
     "New consequential headline or macro release without a price anomaly: preserve a useful lead without reverting to headline frequency as the entire agenda.",
@@ -300,7 +300,7 @@
     "dispatch": "One upfront shared Zopedia agenda replaces independent Home company, group, macro and ticker-enrichment inference. Relevant observations and chosen groups accompany focused questions; complete originals remain in the existing evidence reader.",
     "reuse": "Planner selects an exact existing artifact to reuse or extend after comparing current observations. Current assessment and original research/source dates are separate. Question-execution and public-story identities remain distinct from source identity.",
     "invariants": "Existing financial ledger, original clock, protected full-model publication, shared research review, schedules, news producer and other research workloads unchanged. New runtime is not yet release-accepted.",
-    "latest_source_revision": "b8b9fd8c",
+    "latest_source_revision": "f89e13e878196d0cd2a2d37ad773406cc90d43fa",
     "capture_provenance": "Existing final-editor source index exposes raw_text_origin, source_kind and captured text length. Complete and snippet captures remain separate; no longest-text heuristic or added retrieval path.",
     "schema_order": "The shared provider presents artifact fields in declared order, including stories before Brief. Canonical fingerprints remain sorted. Actual fresh writing/review followed that order; source precision remains unaccepted."
   },
@@ -310,25 +310,32 @@
     "tasks": [
       {
         "item": "Carry retained research through the existing pipeline to the final Zopedia reader, indexed rather than copied inline. Preserve originals and current observations independently of new research selection.",
-        "status": "implemented_operational_checks_and_actual_input_readback_passed"
+        "status": "implemented_reader_availability_verified_coverage_behavior_not_accepted"
       },
       {
         "item": "Correct issuer/segment, category/component and financial-baseline reasoning in shared research and review.",
-        "status": "implemented_pending_qualitative_verification"
+        "status": "not_accepted_financial_category_error_remains"
       },
       {
         "item": "Use concrete developments, business consequences and distinct public fields in shared writing.",
-        "status": "implemented_pending_qualitative_verification"
+        "status": "partially_improved_complete_output_not_accepted"
       },
       {
         "item": "Run accepted current Git source and proposed source against the same cutoff, datasets and pre-run memory; read complete outputs and provide side-by-side text with attempt-inclusive costs.",
-        "status": "running_under_approved_cap"
+        "status": "finished_complete_unedited_comparison_baseline_publication_failed_candidate_review_failed"
       }
     ],
     "baseline_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
     "input_cutoff_utc": "2026-10-30T18:50:00Z",
-    "spending": "Same cumulative $30 cap approved. All earlier usage, setup costs and genuine unknown charge bounds preserved.",
-    "deployment": "Production unchanged. Local quality acceptance remains required before development deployment.",
-    "evidence": "../verification/market-first-research-2026-10-30/followup-2026-10-31.json"
+    "spending": {
+      "approved_cumulative_cap_usd": 30,
+      "estimated_usage_usd": 25.220081,
+      "unresolved_max_usd": 4.470776,
+      "pending_requests": 0,
+      "maximum_total_usd": 29.690857
+    },
+    "deployment": "No build or DEV/PROD deployment. All application changes remain on the separate feature branch.",
+    "evidence": "../verification/market-first-research-2026-10-30/followup-2026-10-31.json",
+    "result": "../verification/market-first-research-2026-10-30/matched-results-2026-10-31.json"
   }
 }

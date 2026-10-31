@@ -1573,3 +1573,7 @@ Check both supplied context and the shared engine's acquired captures when carry
 ### Expired planned work is different from an unknown request — October 31, 2026
 
 Unused core-work funding should stop withholding run headroom after its original deadline, matching the existing account-level future-work rule. Retain the original reservation record and every actual or unknown request charge. Source checking and review need available execution resources; a completed transport is not a completed, reviewed artifact.
+
+### Read actual execution before accepting the comparison — October 31, 2026
+
+A readable catalog is not proof that final writing used it. The matched candidate had 36 retained reports available but made no final-reader calls; it retained a financial category error and lost useful earlier coverage. It materialized a valid current artifact while correctly recording its failed final model review as degraded. Preserve that output for inspection without granting release acceptance. Verify actual model receipts too: the baseline retained 11 Flash calls despite a Pro primary configuration. The cost comparison is not an equivalent-quality savings result.

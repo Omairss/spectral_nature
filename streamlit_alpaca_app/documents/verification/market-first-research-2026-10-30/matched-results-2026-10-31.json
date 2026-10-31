@@ -1,0 +1,146 @@
+{
+  "status": "verification_finished_candidate_not_accepted",
+  "recorded_at_utc": "2026-10-31T21:09:31.736390+00:00",
+  "source_revision": "f89e13e878196d0cd2a2d37ad773406cc90d43fa",
+  "baseline_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+  "deployment": "No build or DEV/PROD deployment. All application changes remain on the separate feature branch.",
+  "comparison": {
+    "cutoff_utc": "2026-10-30T18:50:00Z",
+    "same_input_checks": [
+      "22 dataset hashes",
+      "39 pre-run artifacts, including 36 retained reports",
+      "100 captured originals and normal 275-chunk index",
+      "Prompt-override snapshot; revision-specific defaults remained active",
+      "Source access, reasoning setting and exclusions"
+    ],
+    "frozen_corpus_sha256": "495ac961bf7d1b967296f9ddb8542c6a0679c794bb87ed09aa870936a747919c",
+    "scope": "Home core replay; captured sources only. No live-discovery, whole-application cost or isolated speed claim. Previous production cost of supplied research is excluded.",
+    "actual_model_mix": {
+      "current": {
+        "deepseek-v4-pro": 96,
+        "deepseek-flash": 11
+      },
+      "proposed": {
+        "deepseek-v4-pro": 45
+      }
+    },
+    "model_control_limit": "Both final writers used Pro. Baseline retained 11 existing Flash routes; this is not an all-calls same-model ablation.",
+    "clock": "Original 115-minute windows retained. Baseline used paid checkpoints after approval pauses; reported seconds are last-invocation duration, not whole-run speed. Three shared transport slots also constrain timing."
+  },
+  "current": {
+    "stories": 9,
+    "publication": "failed",
+    "reason": "Six selected source references were absent from the current reader index; three references were reused across stories. Existing publication validation rejected the generated artifact.",
+    "display": "Complete unedited stage-28 public draft, clearly marked unpublished; no source identity repaired and no canonical output fabricated.",
+    "personal_review": [
+      "Still turns a year-over-year Amazon interest-expense change into an explanation of the EPS variance against consensus.",
+      "Alphabet chronology places results after the October29 close although the supplied report predates that time.",
+      "Health-care and Mastercard coverage is useful, but detailed financial inventories and generic explanations remain."
+    ]
+  },
+  "proposed": {
+    "stories": 10,
+    "sections": {
+      "top_events": 3,
+      "must_read_movers": 3,
+      "unresolved_large_moves": 4
+    },
+    "publication": "materialized_isolated_storage",
+    "research_health": "degraded",
+    "source_events_completed": 9,
+    "source_events_total": 10,
+    "failed_investigation": "Roblox; study guard could not admit another complete request.",
+    "model_answer_review": {
+      "status": "failed",
+      "reason": "StudyGuardRejected: Approved study cap cannot fund another complete attempt",
+      "meaning": "Valid current artifact was retained; the operational health record explicitly records the failed review. This is not qualitative acceptance."
+    },
+    "retained_source_handoff": {
+      "reports_available": 36,
+      "projected_captures_available": 289,
+      "final_reader_calls": 0,
+      "observation": "Final synthesis had the evidence-navigation schema and routing available but returned the artifact directly. Its only tool record is supplied_context. Availability does not establish actual reading or corrected interpretation."
+    },
+    "personal_review": {
+      "improvements": [
+        "Broad data selected energy/defensive strength, crypto, precious-metals miners and previously unexplained movers. ExxonMobil and General Dynamics now receive company-specific treatment.",
+        "Public Intel and energy prose uses fewer unnecessary financial quantities; several redundant context fields remain empty.",
+        "One investigation failure did not erase the other findings or the materialized feed."
+      ],
+      "unmet": [
+        "Reddit still labels growth of the broader other-revenue category as data-licensing growth. The complete captured CNBC article does not support that substitution.",
+        "Reddit time_basis uses a 16:35 observation despite the current 18:35 data being available.",
+        "ServiceNow, Workhorse and Rivian retained reports were available but not read or covered. Alphabet appears mainly as general AI-spending context; continuing-coverage quality is not demonstrated.",
+        "Four unresolved stories contain repetitive source-absence wording and some stronger causal claims than their supporting observations.",
+        "Final model review and later daily-market-datapoint selection could not finish under the study cap."
+      ],
+      "acceptance": false
+    }
+  },
+  "costs": {
+    "current": {
+      "calls": 107,
+      "estimated_usd": 4.959472,
+      "unknown_max_usd": 0.821822,
+      "elapsed_seconds": 1268.5553836670006,
+      "input_tokens": 9131680,
+      "cached_input_tokens": 2982272,
+      "output_tokens": 527564,
+      "actual_model_calls": {
+        "deepseek-v4-pro": 96,
+        "deepseek-flash": 11
+      }
+    },
+    "proposed": {
+      "calls": 45,
+      "estimated_usd": 2.657148,
+      "unknown_max_usd": 0.732034,
+      "elapsed_seconds": 1460.5504882499808,
+      "input_tokens": 3700574,
+      "cached_input_tokens": 273408,
+      "output_tokens": 196555,
+      "actual_model_calls": {
+        "deepseek-v4-pro": 45
+      }
+    }
+  },
+  "development_and_study": {
+    "failed_index_setup_usd": 2.347911,
+    "superseded_candidate_estimated_usd": 3.052092,
+    "superseded_candidate_unresolved_max_usd": 0.62447,
+    "cumulative_study": {
+      "approved_cap_usd": 30.0,
+      "estimated_usage_usd": 25.220081,
+      "unresolved_max_usd": 4.470776
+    }
+  },
+  "accounting": {
+    "approved_cumulative_cap_usd": 30,
+    "estimated_usage_usd": 25.220081,
+    "unresolved_max_usd": 4.470776,
+    "pending_requests": 0,
+    "maximum_total_usd": 29.690857
+  },
+  "budget_correction_limit": "Expired unspent core obligations no longer reduce run admission after their recorded deadline. Actual readback shows the two remaining candidate obligations have the original global 21:35 deadline, not the elapsed 600-second investigation deadline. This bookkeeping correction is not established as a cause or cure of this draft quality failure.",
+  "artifacts": {
+    "html": "/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/output/visualizations/market-first-current-vs-proposed-20261031.html",
+    "html_sha256": "6b1815d52a4520f2ef801e1c84aaed1c3edecd5bea38eeb6d46b82ea463837fc",
+    "public_json_sha256": "cc118a532f02ecf870a96719f3e24ce9115c8c9de305a4f2de0249c459830d78",
+    "current_output_sha256": "515a1e313a37de276289fc3a927045ab904aa785820711da126f6bf54842ae63",
+    "current_draft_sha256": "620fe332b96f3ada0153afecfc222da9effd87161d81a0351bd4d319276764d4",
+    "proposed_output_sha256": "b157e4dbc19093a24dce18b3d1aa3ba2df2d6b9b9f3ce7d6343dbd65098613ca"
+  },
+  "validation": {
+    "operational_checks": "21 passed in 1.16s; no prose grades.",
+    "public_text": "Both Briefs and all 19 stories preserve generated text; JSON roundtrip and every displayed public field checked.",
+    "visual": "Chrome desktop inspected; both columns, all story text and explicit failure states visible. Phone visual inspection not claimed.",
+    "databases": "Both isolated databases stopped and postmaster.pid absence verified. Read-only telemetry export also stopped.",
+    "paid_transport": "STOP marker installed; no pending requests and no further paid verification started.",
+    "gpus": "No GPU instance allocated in this API-exception comparison."
+  },
+  "remaining_work": [
+    "Correct shared financial interpretation and source use; do not patch the saved prose or named companies.",
+    "Demonstrate relevance assessment and preservation of useful continuing coverage through the existing reader and final Zopedia writer.",
+    "Complete final full-model review and personally qualify complete outputs before any release. A future study needs an explicit provider/spending authorization under repository policy."
+  ]
+}

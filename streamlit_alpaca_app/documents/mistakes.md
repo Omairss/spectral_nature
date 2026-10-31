@@ -1504,3 +1504,7 @@ The retained publication reader copied only artifact_context.source_documents. O
 ### Queue before transport accounting in verification — October 31, 2026
 
 The study throttled requests inside Session.send, after application transport accounting began. Exact gateway receipts show several local queue timeouts and cap rejections were never sent, yet the isolated run held their maximum costs as unknown. Move study queue admission ahead of the provider adapter; settle only explicitly proven local rejections at zero, retaining all genuine network failures and the original cumulative study ledger. The resulting constrained draft failed financial precision and its required-field contract; it is not accepted output.
+
+### Separate completed writing from accepted quality — October 31, 2026
+
+The corrected candidate produced 10 stories, but its final reviewer could not fit the remaining study cap. Personal review still found the Reddit category error, an older price observation and missing continuing coverage. The baseline generated nine stories but failed publication on unknown and repeated source references. Show both complete outputs with those states intact, retain every charge, and hold deployment. The core-expiry correction is a separate bookkeeping invariant: these remaining obligations had the original global deadline, so it is not established as the cure for this quality failure.
