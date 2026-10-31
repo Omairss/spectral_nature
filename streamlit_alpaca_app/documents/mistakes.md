@@ -1476,3 +1476,7 @@ Repeated Home-only instruction refinements improved readability. A later audit i
 ### Trace the complete writing path before tuning local prose — October 30, 2026
 
 Home-only instruction changes were insufficient because structured final synthesis selected a different system instruction from ordinary shared writing. The fresh whole-assembly comparison exposed repeated financial transcription again. Removed that format-based writer fork at the shared synthesis source; no candidate gained acceptance from schema checks or the reviewer grade alone.
+
+### Do not repurchase a review for an unused wrapper — October 30, 2026
+
+Fresh common planning purchased a complete schema-valid review, then repeated the large input because the review appeared directly inside the navigation wrapper. Paused new paid calls and let admitted requests settle. Simplified the shared contract so answers use their own schema directly and only evidence navigation has a wrapper. The validation and original execution deadline remain authoritative; no missing verdict is defaulted to acceptance. The paused comparison is not a successful publication.

@@ -63,6 +63,43 @@ def test_full_passages_and_source_refs_reach_writer_and_judge():
         assert "https://example.com/source" in prompt
 
 
+@pytest.mark.parametrize("artifact,schema", [
+    (_review(), {**zopedia_agent._JUDGE_SCHEMA,
+                 "properties": {**zopedia_agent._JUDGE_SCHEMA["properties"], "answer_markdown": {"type": "string"}},
+                 "required": [*zopedia_agent._JUDGE_SCHEMA["required"], "answer_markdown"]}),
+    ({"decision": "hold"}, {"type": "object", "properties": {"decision": {"type": "string"}},
+                            "required": ["decision"], "additionalProperties": False}),
+])
+def test_evidence_read_then_complete_artifact_needs_no_format_repurchase(monkeypatch, artifact, schema):
+    from data_access.query_service import QueryService
+    from jsonschema import Draft202012Validator
+
+    service = QueryService.from_environment().with_supplied_evidence({
+        "original": {"title": "Original", "metadata": {}, "content": "complete-source-tail"}})
+    replies = iter([
+        {"decision": {"action": "read", "tool_name": "research.read_supplied_evidence",
+                      "tool_arguments": json.dumps({"source_id": "original"})}},
+        artifact,
+    ])
+    prompts = []
+
+    def generate(**kwargs):
+        reply = next(replies)  # A third purchase is an execution failure.
+        assert not list(Draft202012Validator(kwargs["schema"]).iter_errors(reply))
+        prompts.append(kwargs["user_prompt"])
+        return reply
+
+    monkeypatch.setattr(zopedia_agent, "generate_json_via_aql_zopedia_gateway", generate)
+    result = zopedia_agent._run_evidence_model_step(
+        llm_client=SimpleNamespace(), service=service, tool_calls=[], context_state={},
+        prompt=lambda calls: zopedia_agent._tool_history_prompt(calls, full_evidence=True),
+        system_prompt="", schema_name="artifact", schema=schema, surface="test", purpose="test",
+        deadline_monotonic=time.monotonic() + 3, metadata={}, progress_callback=None)
+    assert result == artifact
+    assert len(prompts) == 2
+    assert "complete-source-tail" in prompts[1]
+
+
 @pytest.mark.parametrize("provider", ["deepseek", "openai", "azure_openai", "local"])
 @pytest.mark.parametrize("first_attempt", ["repair", "retry", "expired"])
 def test_provider_attempts_share_one_remaining_budget(monkeypatch, provider, first_attempt):

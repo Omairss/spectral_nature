@@ -1184,13 +1184,10 @@ def _run_evidence_model_step(
             schema=schema, deadline_monotonic=min(deadline_monotonic, time.monotonic() + model_timeout_seconds)
             if model_timeout_seconds is not None else deadline_monotonic, metadata=metadata,
         )
-    step_schema = {
+    navigation_schema = {
         "type": "object", "additionalProperties": False,
         "properties": {
             "decision": {"anyOf": [
-                {"type": "object", "additionalProperties": False,
-                 "properties": {"action": {"type": "string", "enum": ["answer"]}, "answer": schema},
-                 "required": ["action", "answer"]},
                 {"type": "object", "additionalProperties": False,
                  "properties": {"action": {"type": "string", "enum": ["read"]}, "tool_name": {"type": "string"},
                                 "tool_arguments": {"type": "string", "description": "JSON-encoded evidence tool arguments."}},
@@ -1204,6 +1201,10 @@ def _run_evidence_model_step(
         },
         "required": ["decision"],
     }
+    # The requested artifact has one representation. Only evidence navigation
+    # needs a control envelope; wrapping answers added a second, conflicting
+    # output contract to writing and review.
+    step_schema = {"anyOf": [schema, navigation_schema]}
     feedback = capacity_feedback
     from .inference_policy import is_core_task
     protected_step = bool(_CALL.get().get("core_work_id")) and is_core_task(surface=surface, purpose=purpose)
@@ -1253,9 +1254,7 @@ def _run_evidence_model_step(
             "history_catalog": history_catalog, "supplied_sources": reader.supplied_evidence_manifest,
             "tools": read_tools, "context_feedback": feedback,
         })
-        active_schema = step_schema
-        if answer_only:
-            active_schema = {**step_schema, "properties": {"decision": step_schema["properties"]["decision"]["anyOf"][0]}}
+        active_schema = schema if answer_only else step_schema
         try:
             with model_call_context(discretionary_core_step=protected_step and not answer_only and funded_core_research()):
                 step = generate_json_via_aql_zopedia_gateway(
@@ -1263,9 +1262,9 @@ def _run_evidence_model_step(
                     system_prompt=system_prompt + (
                         "\nOptional research is complete. Return the current answer from the evidence already available."
                         if answer_only else
-                        "\nEvidence remains readable during this step. Put the selected action and its fields inside decision. "
-                        "Return action=answer with the requested result in answer, "
-                        "or action=read with an evidence tool and its JSON arguments. Use select_context to choose which "
+                        "\nEvidence remains readable during this step. Return the requested artifact directly, "
+                        "without an answer or decision wrapper. To read evidence instead, put action=read, the evidence "
+                        "tool and its JSON arguments inside decision. Use select_context inside decision to choose which "
                         "tool results stay in working context. Read any omitted result through its history source_id."
                     ),
                     user_prompt=user_prompt, schema_name=schema_name + "_evidence_step", schema=active_schema,
@@ -1293,9 +1292,6 @@ def _run_evidence_model_step(
             feedback = str(exc) + " Choose working-context tool_call_ids or read specific sections. Originals are retained."
             continue
         public_step = {key: value for key, value in step.items() if not key.startswith("__")}
-        # An existing caller may request the artifact directly in its query.
-        # Preserve that valid paid answer rather than regenerate it to obtain
-        # an unused tool-control envelope.
         if not list(Draft202012Validator(schema).iter_errors(public_step)):
             return step
         errors = list(Draft202012Validator(active_schema).iter_errors(public_step))
@@ -1313,8 +1309,6 @@ def _run_evidence_model_step(
                 continue
             context_state["tool_call_ids"] = keep
         action = navigation["action"]
-        if action == "answer":
-            return {**navigation["answer"], **{key: value for key, value in step.items() if key.startswith("__")}}
         if action == "select_context":
             catalog_only = False
             feedback = ""

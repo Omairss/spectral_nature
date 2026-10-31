@@ -2,7 +2,7 @@
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
   "revision": 3,
-  "status": "implemented_shared_reviewer_qualification_pending",
+  "status": "implemented_fresh_whole_flow_qualification_pending",
   "recorded_at_utc": "2026-10-31T00:33:30.067822+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
   "source_of_truth": "This named plan owns the implemented Market-First change and its remaining qualification. Existing release acceptance remains the authority for packaged runtime.",
@@ -228,7 +228,7 @@
   "configuration_policy": "Reuse centrally owned configuration for allowance, event margin, deadlines and concurrency. Numerical horizon/grouping choices and the amount/depth of selected work remain adaptable. Choose defaults from complete-output comparisons rather than encoding this week's example companies or a fixed N. Any new setting requires one owner and documented effect, not a collection of exception flags.",
   "qualification_cases": [
     "Quiet current inputs: recognize limited new information and spend less without presenting old events as new.",
-    "Important group support with modest individual moves: assess the measured October 26–30 omissions, using only contemporaneously available data and sources. Avoid hardcoding the seven companies.",
+    "Important group support with modest individual moves: assess the measured October 26\u201330 omissions, using only contemporaneously available data and sources. Avoid hardcoding the seven companies.",
     "Heavy contradictory day: surface both declining high-weight names and offsetting groups; protect investigation depth and preserve the configurable event margin.",
     "Genuine and spurious grouping changes: inspect persistent breaks, stable groups, universe churn, incomplete histories and corporate actions.",
     "New consequential headline or macro release without a price anomaly: preserve a useful lead without reverting to headline frequency as the entire agenda.",
@@ -258,7 +258,7 @@
     "release_acceptance": "../../infra/release_acceptance.json",
     "implementation_qualification": "../verification/market-first-research-2026-10-30/qualification.json"
   },
-  "next_action": "Qualify corrected existing review for briefing, focused research and complete retained knowledge, preserving original costs. Package and deploy DEV only after acceptance; production held.",
+  "next_action": "Qualify fresh common planning and all investigations with the updated shared writer/reviewer, not only controlled final-writing comparisons. Preserve all costs. Development remains held until local acceptance; production held for owner evaluation.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",

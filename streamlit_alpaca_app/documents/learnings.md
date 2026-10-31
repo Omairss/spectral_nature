@@ -1541,3 +1541,7 @@ A universal high-recall discovery instruction caused the reviewer to expand a fi
 ### Output format must not choose a different writer — October 30, 2026
 
 Structured final synthesis used a separate research-report instruction while Markdown used the shared reader-focused writing prompt. That made Home prose inconsistent despite a correct common agenda and reviewer. Use the same writing owner for both formats, adding only the JSON schema/serialization requirement and respecting the artifact purpose. No additional model call or publication layer is needed.
+
+### A completed answer needs one response contract — October 30, 2026
+
+The evidence reader wrapped final answers in a second control contract, even though each writer/reviewer already had a complete artifact schema. A paid review matched that artifact schema but was regenerated for envelope placement. Return the artifact directly; reserve the control envelope for reads and context selection. Validate the complete requested schema without inventing review metadata. Check both evidence navigation and artifacts that themselves contain a decision field.
