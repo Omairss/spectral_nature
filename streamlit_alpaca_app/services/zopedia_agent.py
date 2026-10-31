@@ -1184,10 +1184,11 @@ def _run_evidence_model_step(
             schema=schema, deadline_monotonic=min(deadline_monotonic, time.monotonic() + model_timeout_seconds)
             if model_timeout_seconds is not None else deadline_monotonic, metadata=metadata,
         )
-    navigation_schema = {
+    step_schema = {
         "type": "object", "additionalProperties": False,
         "properties": {
             "decision": {"anyOf": [
+                schema,
                 {"type": "object", "additionalProperties": False,
                  "properties": {"action": {"type": "string", "enum": ["read"]}, "tool_name": {"type": "string"},
                                 "tool_arguments": {"type": "string", "description": "JSON-encoded evidence tool arguments."}},
@@ -1201,10 +1202,6 @@ def _run_evidence_model_step(
         },
         "required": ["decision"],
     }
-    # The requested artifact has one representation. Only evidence navigation
-    # needs a control envelope; wrapping answers added a second, conflicting
-    # output contract to writing and review.
-    step_schema = {"anyOf": [schema, navigation_schema]}
     feedback = capacity_feedback
     from .inference_policy import is_core_task
     protected_step = bool(_CALL.get().get("core_work_id")) and is_core_task(surface=surface, purpose=purpose)
@@ -1254,7 +1251,7 @@ def _run_evidence_model_step(
             "history_catalog": history_catalog, "supplied_sources": reader.supplied_evidence_manifest,
             "tools": read_tools, "context_feedback": feedback,
         })
-        active_schema = schema if answer_only else step_schema
+        active_schema = ({**step_schema, "properties": {"decision": schema}} if answer_only else step_schema)
         try:
             with model_call_context(discretionary_core_step=protected_step and not answer_only and funded_core_research()):
                 step = generate_json_via_aql_zopedia_gateway(
@@ -1262,8 +1259,8 @@ def _run_evidence_model_step(
                     system_prompt=system_prompt + (
                         "\nOptional research is complete. Return the current answer from the evidence already available."
                         if answer_only else
-                        "\nEvidence remains readable during this step. Return the requested artifact directly, "
-                        "without an answer or decision wrapper. To read evidence instead, put action=read, the evidence "
+                        "\nEvidence remains readable during this step. Put the complete requested artifact directly "
+                        "inside decision, without an additional action=answer or answer wrapper. To read evidence instead, put action=read, the evidence "
                         "tool and its JSON arguments inside decision. Use select_context inside decision to choose which "
                         "tool results stay in working context. Read any omitted result through its history source_id."
                     ),
@@ -1294,6 +1291,11 @@ def _run_evidence_model_step(
         public_step = {key: value for key, value in step.items() if not key.startswith("__")}
         if not list(Draft202012Validator(schema).iter_errors(public_step)):
             return step
+        # Keep the provider-compatible root object, with one artifact layer.
+        # The complete review schema is validated before any answer is adopted.
+        artifact = public_step.get("decision")
+        if isinstance(artifact, dict) and not list(Draft202012Validator(schema).iter_errors(artifact)):
+            return {**artifact, **{key: value for key, value in step.items() if key.startswith("__")}}
         errors = list(Draft202012Validator(active_schema).iter_errors(public_step))
         if errors:
             if answer_only:

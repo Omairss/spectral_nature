@@ -79,12 +79,13 @@ def test_evidence_read_then_complete_artifact_needs_no_format_repurchase(monkeyp
     replies = iter([
         {"decision": {"action": "read", "tool_name": "research.read_supplied_evidence",
                       "tool_arguments": json.dumps({"source_id": "original"})}},
-        artifact,
+        {"decision": artifact},
     ])
     prompts = []
 
     def generate(**kwargs):
         reply = next(replies)  # A third purchase is an execution failure.
+        assert kwargs["schema"].get("type") == "object"
         assert not list(Draft202012Validator(kwargs["schema"]).iter_errors(reply))
         prompts.append(kwargs["user_prompt"])
         return reply
