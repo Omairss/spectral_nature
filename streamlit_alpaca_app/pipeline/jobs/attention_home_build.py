@@ -19,6 +19,7 @@ import pandas as pd
 from data_access.query_service import QueryService
 from services.json_utils import frame_to_records, to_jsonable, to_list
 from services.aql.pipeline import build_bottom_up_attention_artifacts
+from services.aql.evidence_pack import materialize_research_artifacts
 from services.aql.summarizer import build_market_stories
 from services.aql_zopedia_engine import (
     attach_aql_zopedia_summary_audio as attach_attention_home_summary_audio,
@@ -1910,7 +1911,10 @@ def _review_home_public_surface(
                 "quality_review": {key: (agent.get("quality_review") or {}).get(key) for key in (
                     "status", "verdict", "critique_summary", "unsupported_claims", "evidence_gaps", "research_requests")},
                 "limitations": agent.get("limitations") or [],
-                "source_documents": context.get("source_documents") or [],
+                "source_documents": [*(context.get("source_documents") or []),
+                    *materialize_research_artifacts(agent, candidate_id="retained-research:" + artifact["artifact_id"],
+                        subject=artifact.get("subject") or "", run_id=agent.get("run_id") or artifact["artifact_id"],
+                        asof_time_utc=dates[1])["documents"]],
             }),
         }
         intake.extend(context.get("source_documents") or [])

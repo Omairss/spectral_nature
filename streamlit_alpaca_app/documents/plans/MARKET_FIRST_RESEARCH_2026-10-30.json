@@ -228,7 +228,7 @@
   "configuration_policy": "Reuse centrally owned configuration for allowance, event margin, deadlines and concurrency. Numerical horizon/grouping choices and the amount/depth of selected work remain adaptable. Choose defaults from complete-output comparisons rather than encoding this week's example companies or a fixed N. Any new setting requires one owner and documented effect, not a collection of exception flags.",
   "qualification_cases": [
     "Quiet current inputs: recognize limited new information and spend less without presenting old events as new.",
-    "Important group support with modest individual moves: assess the measured October 26–30 omissions, using only contemporaneously available data and sources. Avoid hardcoding the seven companies.",
+    "Important group support with modest individual moves: assess the measured October 26\u201330 omissions, using only contemporaneously available data and sources. Avoid hardcoding the seven companies.",
     "Heavy contradictory day: surface both declining high-weight names and offsetting groups; protect investigation depth and preserve the configurable event margin.",
     "Genuine and spurious grouping changes: inspect persistent breaks, stable groups, universe churn, incomplete histories and corporate actions.",
     "New consequential headline or macro release without a price anomaly: preserve a useful lead without reverting to headline frequency as the entire agenda.",
@@ -264,7 +264,7 @@
   "qualification_authorization": {
     "instruction": "Approve up to $10",
     "pacific_day": "2026-10-30",
-    "maximum_new_total_usd": 15,
+    "maximum_new_total_usd": 25,
     "exception": "Existing DeepSeek API at full production capability, isolated storage, no production writes; Lambda suitable capacity empty at22:02UTC. Earlier API approvals remain closed.",
     "continuations": [
       {
@@ -276,6 +276,13 @@
         "instruction": "Approve up to $2 more",
         "same_cumulative_cap_usd": 15,
         "original_costs_and_unknowns_preserved": true
+      },
+      {
+        "instruction": "Approve up to $10 more",
+        "question_id": "call_adc5ecb36128450dbdf3c7ce28e1ad6c",
+        "same_cumulative_cap_usd": 25,
+        "original_costs_and_unknowns_preserved": true,
+        "pacific_day": "2026-10-31"
       }
     ]
   },
@@ -287,7 +294,7 @@
     "dispatch": "One upfront shared Zopedia agenda replaces independent Home company, group, macro and ticker-enrichment inference. Relevant observations and chosen groups accompany focused questions; complete originals remain in the existing evidence reader.",
     "reuse": "Planner selects an exact existing artifact to reuse or extend after comparing current observations. Current assessment and original research/source dates are separate. Question-execution and public-story identities remain distinct from source identity.",
     "invariants": "Existing financial ledger, original clock, protected full-model publication, shared research review, schedules, news producer and other research workloads unchanged. New runtime is not yet release-accepted.",
-    "latest_source_revision": "d188f7ddb51b6f707b1d4b4f803c22952759bbc9",
+    "latest_source_revision": "b8b9fd8c",
     "capture_provenance": "Existing final-editor source index exposes raw_text_origin, source_kind and captured text length. Complete and snippet captures remain separate; no longest-text heuristic or added retrieval path.",
     "schema_order": "The shared provider presents artifact fields in declared order, including stories before Brief. Canonical fingerprints remain sorted. Actual fresh writing/review followed that order; source precision remains unaccepted."
   },
@@ -309,12 +316,12 @@
       },
       {
         "item": "Run accepted current Git source and proposed source against the same cutoff, datasets and pre-run memory; read complete outputs and provide side-by-side text with attempt-inclusive costs.",
-        "status": "prepared_pending_inference_authorization"
+        "status": "running_under_approved_cap"
       }
     ],
     "baseline_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
     "input_cutoff_utc": "2026-10-30T18:50:00Z",
-    "spending": "Requested an additional $10 under the same verification ledger, raising its cap from $15 to $25. No new paid inference before explicit approval. All earlier costs and unresolved bounds remain counted.",
+    "spending": "Approved same cumulative cap $25; original costs and unresolved bounds preserved. Separate local databases and the same cumulative request guard cover both complete core flows.",
     "deployment": "Production unchanged. Local quality acceptance remains required before development deployment.",
     "evidence": "../verification/market-first-research-2026-10-30/followup-2026-10-31.json"
   }

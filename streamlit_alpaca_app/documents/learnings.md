@@ -1561,3 +1561,7 @@ An unchanged question can still matter to the current feed without another full 
 ### Keep a readable research catalog beyond the inline history — October 31, 2026
 
 The latest 20 investigations did not include still-relevant earlier reports. Separate prompt-size limits from the bounded catalog available through the existing reader. Carry that catalog to final writing even when no new investigation is selected, and preserve current numerical metadata for any selected company. A source-availability readback establishes access, not model selection or quality.
+
+### A frozen replay includes working source readers — October 31, 2026
+
+Identical dataset hashes and historical reports are insufficient if retained-search reads point at an uninitialized database. Before paid verification, bootstrap the existing schema, index the same captured originals and exercise both search and full-document retrieval without inference. Keep failed setup costs separate from measured flow costs while retaining both under the original cumulative spending cap.

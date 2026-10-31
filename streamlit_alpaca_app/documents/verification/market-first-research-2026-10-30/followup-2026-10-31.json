@@ -1,5 +1,5 @@
 {
-  "status": "implemented_operationally_checked_fresh_output_comparison_pending_authorization",
+  "status": "implemented_matched_full_flow_verification_running",
   "date_pacific": "2026-10-31",
   "changes": [
     "Carry the existing bounded retained-research catalog through the AQL artifact handoff to the final Zopedia evidence reader, including quiet or disabled optional-investigation runs.",
@@ -38,13 +38,22 @@
   "comparison_protocol": {
     "current_source": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
     "cutoff_utc": "2026-10-30T18:50:00Z",
-    "inputs": "Pin the same recorded dataset versions, completed pre-run artifacts and captured source content for both complete flows. Preserve each source implementation’s own planner and writer. No rejected experiment becomes historical knowledge.",
+    "inputs": "Pin the same recorded dataset versions, completed pre-run artifacts and captured source content for both complete flows. Preserve each source implementation\u2019s own planner and writer. No rejected experiment becomes historical knowledge.",
     "model": "Full production Pro with the same reasoning setting and provider price band.",
     "same_exclusions": "No new live intraday collection, narration or independent optional page generation in either comparison. Do not call these core-flow costs the whole production bill.",
     "inspection": "Personally inspect complete Briefs and all stories, financial scope/comparison, continuing useful coverage, numerical discoveries, concrete explanation and omissions. Do not force example-company inclusion.",
     "accounting": "All baseline, candidate, failed and interrupted requests count in the same original study ledger; preserve the earlier $12.203458 estimate and $2.292450 unresolved maximum.",
-    "authorization": "Additional $10 API exception requested to raise the existing cap from $15 to $25. No new paid request or cap mutation before explicit approval.",
-    "current_worker_image_verified": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48"
+    "authorization": "Owner approved up to $10 more via call_adc5ecb36128450dbdf3c7ce28e1ad6c, raising the same study cap from $15 to $25. Earlier $12.203458 estimated and $2.292450 unresolved maximum remain counted.",
+    "current_worker_image_verified": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+    "source_access": "Identical captured source inputs and pre-run memory; new external source acquisition disabled in both complete core-flow replays. This isolates reasoning and handoff behavior; it does not qualify live discovery.",
+    "frozen_retained_search": {
+      "original_documents": 100,
+      "indexed_chunks": 275,
+      "corpus_sha256": "495ac961bf7d1b967296f9ddb8542c6a0679c794bb87ed09aa870936a747919c",
+      "actual_storage_readers": "Search and full original reads checked on both revisions before restart.",
+      "initial_setup_failure_usd": 2.347911,
+      "accounting": "Initial setup attempt preserved and excluded from product quality/cost conclusions; charges remain in the same original study ledger. Original 115-minute clocks retained."
+    }
   },
   "deployment": "No build or development/production deployment. Local output acceptance is still pending.",
   "qualification_limits": [

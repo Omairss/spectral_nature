@@ -1492,3 +1492,7 @@ Quoted a 69 percent cost difference between a 13-story production sample and a 5
 ### Trace candidate metadata as well as retained prose — October 31, 2026
 
 Restoring reports alone would leave companies outside the new agenda without current ticker observations in the publication payload. Preserve the observed candidate universe through final writing; never borrow old report prices. The fresh output comparison remains pending its requested provider exception, so neither code checks nor restored reader entries establish that the qualitative failures are fixed.
+
+### Bootstrap frozen retrieval before paid comparison — October 31, 2026
+
+The matched replay copied pre-run research but omitted the existing retained-search tables and source index. Searches returned database errors, so the first attempt cannot establish comparable product quality. Paused new transport, preserved its $2.347911 cost and original clocks, then initialized the normal application index from 100 captured originals and checked search plus full-document reads in both revisions before restarting. This was a verification setup error, not a production failure.

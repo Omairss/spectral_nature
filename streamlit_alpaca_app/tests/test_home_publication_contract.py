@@ -2,6 +2,7 @@
 from copy import deepcopy
 
 import pytest
+import pandas as pd
 
 from pipeline.jobs.attention_home_build import (
     AttentionHomeBuildError,
@@ -116,7 +117,12 @@ def test_publication_source_contract_is_stable_and_bound_to_reader(monkeypatch):
 def test_retained_reports_remain_readable_without_new_research_or_stale_prices(monkeypatch):
     from pipeline.jobs import attention_home_build as home
     past = {"artifact_id": "past", "created_at_utc": "2026-10-29T20:00Z", "result": {
-        "agent_result": {"private_execution_trace": "Internal diagnostic"},
+        "agent_result": {"private_execution_trace": "Internal diagnostic", "run_id": "old-investigation",
+            "tool_calls": [{"tool_call_id": "read-original", "tool_name": "research.read_evidence",
+                "status": "completed", "result_summary": {"source_documents": [
+                    {"title": "Previously acquired original", "url": "https://example.com/primary",
+                     "text": "Complete captured source from the investigation",
+                     "published_at": "2026-10-29T16:00Z", "source_kind": "company_release"}]}}]},
         "payload": {"event_title": "Existing investigation", "findings_markdown": "Complete retained report",
                     "supporting_symbols": ["EXAMPLE"]},
         "artifact_context": {"asof_time_utc": "2026-10-29T18:50Z", "source_documents": [
@@ -132,6 +138,7 @@ def test_retained_reports_remain_readable_without_new_research_or_stale_prices(m
         read = kwargs["service"].read_supplied_evidence(source_id="retained-research:past")
         assert "Complete retained report" in read["text"]
         assert "private_execution_trace" not in read["text"]
+        assert "Complete captured source from the investigation" in read["text"]
         value = publication(["retained-research:past"])
         value.update(market_summary={"summary_text": "Current explanation", "confidence": "medium", "limitations": []}, issues=[])
         value["stories"][0]["time_basis"] = {"current_observation": "2026-10-30T18:50Z", "background_events": [], "report_dates": "Original"}
@@ -144,6 +151,9 @@ def test_retained_reports_remain_readable_without_new_research_or_stale_prices(m
     story = payload["top_events"][0]
     assert story["change_pct"] == 7
     assert story["evidence"][0]["raw_text"] == "Complete original"
+    acquired = next(row for row in story["evidence"] if row.get("url") == "https://example.com/primary")
+    assert acquired["raw_text"] == "Complete captured source from the investigation"
+    assert pd.Timestamp(acquired["asof_time_utc"]) == pd.Timestamp("2026-10-29T18:50Z")
     assert story["research_evidence"][0]["payload"] == past["result"]["payload"]
     assert story["research_evidence"][0]["artifact_id"] == "past"
     assert story["research_source_ids"] == ["retained-research:past"]
