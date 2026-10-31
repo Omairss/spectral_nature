@@ -133,6 +133,33 @@ def test_provider_attempts_share_one_remaining_budget(monkeypatch, provider, fir
     assert llm._REQUEST_DEADLINE.get() is None
 
 
+def test_model_visible_schema_preserves_declared_field_order(monkeypatch):
+    monkeypatch.setattr(llm, "apply_narrative_style", lambda prompt: prompt)
+    requests_sent = []
+    schema = {"type": "object", "properties": {
+        "findings": {"type": "array", "items": {"type": "string"}},
+        "brief": {"type": "string"},
+    }, "required": ["findings", "brief"], "additionalProperties": False}
+
+    class Session:
+        def post(self, url, **kwargs):
+            requests_sent.append(kwargs["json"])
+            return SimpleNamespace(status_code=200, text="", json=lambda: {
+                "choices": [{"message": {"content": '{"findings": [], "brief": ""}'}}]})
+
+    config = llm.LLMConfig(provider="deepseek", api_key="test", model="test",
+                           base_url="https://example.com", timeout_seconds=480)
+    llm.DeepSeekChatJSONClient(config, session=Session()).generate_json(
+        system_prompt="", user_prompt="", schema_name="ordered_artifact", schema=schema)
+    assert len(requests_sent) == 1
+    visible = json.loads(requests_sent[0]["messages"][-1]["content"].split("JSON Schema:\n")[-1])
+    repair = llm._json_repair_messages(schema_name="ordered_artifact", schema=schema, raw_content="invalid")
+    repair_schema = json.loads(repair[1]["content"].split("JSON Schema:\n")[1].split("\n\nOriginal request context:")[0])
+    for presented in (visible, repair_schema):
+        assert presented == schema
+        assert list(presented["properties"]) == list(schema["properties"])
+
+
 def test_public_run_retains_review_state_without_review_prose():
     from api.main import ResearchRunResultResponse
     safe = research_runs._safe_result({"status": "completed", "answer_markdown": "draft", "answer_status": "draft",

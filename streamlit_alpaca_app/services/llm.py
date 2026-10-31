@@ -591,7 +591,8 @@ def _json_repair_messages(
     raw_content: str,
     original_messages: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, str]]:
-    schema_text = json.dumps(schema, sort_keys=True)
+    # Model-visible field order follows the artifact; canonical hashes are separate.
+    schema_text = json.dumps(schema)
     raw_text = str(raw_content or "").strip()
     parser_diagnostics = ""
     try:
@@ -992,7 +993,7 @@ class DeepSeekChatJSONClient:
         json_instruction = (
             f"Return only one valid JSON object for schema `{schema_name}`. "
             "Do not wrap it in markdown. The JSON object must match this JSON Schema:\n"
-            f"{json.dumps(schema, sort_keys=True)}"
+            f"{json.dumps(schema)}"
         )
         payload: dict[str, Any] = {
             "model": self.config.model,
