@@ -1911,7 +1911,9 @@ def _review_home_public_surface(
         identity = doc.get("canonical_document_id") or build_canonical_document_fields(doc)["canonical_document_id"]
         records["source:" + identity] = {"title": doc.get("title") or identity,
             "metadata": {"kind": "source_document", "original_source_id": doc.get("source_id"), "url": doc.get("url"),
-                         "published_at": doc.get("published_at"), "provider_symbols": doc.get("provider_symbols")},
+                         "published_at": doc.get("published_at"), "provider_symbols": doc.get("provider_symbols"),
+                         "raw_text_origin": doc.get("raw_text_origin"), "source_kind": doc.get("source_kind"),
+                         "capture_characters": len(str(doc.get("raw_text") or doc.get("text") or ""))},
             "content": to_jsonable(doc)}
     records["market-observations"] = {"title": "Complete market observations",
         "metadata": {"kind": "market_observations", "asof_time_utc": str(asof_time_utc)},
