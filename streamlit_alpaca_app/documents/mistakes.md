@@ -1471,4 +1471,8 @@ The isolated fixture imported historical artifacts with identical SQL update tim
 
 ### Fix conflicting reviewer instructions at their owner — October 30, 2026
 
-Repeated Home-only instruction refinements improved readability but did not resolve a source-population error. The shared reviewer added statistics back into Brief because its global prompt demanded high-recall discovery and a competing answer for every task. Corrected that objective at source. Prior model grades did not grant acceptance; no candidate was deployed.
+Repeated Home-only instruction refinements improved readability. A later audit incorrectly flagged the Reddit U.S. estimate miss from the research summary; the complete CNBC capture explicitly confirms a separate U.S. estimate. Read the original before declaring a factual error. The shared reviewer added statistics back into Brief because its global prompt demanded high-recall discovery and a competing answer for every task. Corrected that objective at source. Prior model grades did not grant acceptance; no candidate was deployed.
+
+### Trace the complete writing path before tuning local prose — October 30, 2026
+
+Home-only instruction changes were insufficient because structured final synthesis selected a different system instruction from ordinary shared writing. The fresh whole-assembly comparison exposed repeated financial transcription again. Removed that format-based writer fork at the shared synthesis source; no candidate gained acceptance from schema checks or the reviewer grade alone.

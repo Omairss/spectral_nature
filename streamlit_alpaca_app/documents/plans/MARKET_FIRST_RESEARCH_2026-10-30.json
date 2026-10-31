@@ -263,8 +263,13 @@
   "qualification_authorization": {
     "instruction": "Approve up to $10",
     "pacific_day": "2026-10-30",
-    "maximum_new_total_usd": 10,
-    "exception": "Existing DeepSeek API at full production capability, isolated storage, no production writes; Lambda suitable capacity empty at22:02UTC. Earlier API approvals remain closed."
+    "maximum_new_total_usd": 13,
+    "exception": "Existing DeepSeek API at full production capability, isolated storage, no production writes; Lambda suitable capacity empty at22:02UTC. Earlier API approvals remain closed.",
+    "continuation": {
+      "instruction": "Approve up to $3 more",
+      "same_cumulative_cap_usd": 13,
+      "original_costs_and_unknowns_preserved": true
+    }
   },
   "implementation": {
     "branch": "feature/market-first-research-20261030",

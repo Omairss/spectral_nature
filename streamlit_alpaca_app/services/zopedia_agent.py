@@ -3900,13 +3900,12 @@ def _execute_zopedia_agent_loop(
                         progress_callback=progress_callback,
                         surface=_clean(surface) or "zopedia.chat",
                         purpose="agent.final_synthesis",
-                        system_prompt=(
-                            "You are the shared AQL/Zopedia research synthesis engine. Use the collected sources and supplied context. "
-                            "Return only the requested artifact JSON matching its schema. Preserve reported facts, business context and "
-                            "useful hypotheses at their actual evidence strength. Do not wrap the artifact in answer_markdown, "
-                            "confidence or limitations unless those fields belong to the artifact schema."
-                            if response_schema
-                            else get_prompt(_AGENT_FINAL_SYSTEM_PROMPT)
+                        system_prompt=get_prompt(_AGENT_FINAL_SYSTEM_PROMPT) + (
+                            " Return only the requested artifact JSON matching its schema. The format does not change "
+                            "the requested purpose: select for a briefing, preserve original information for a complete "
+                            "knowledge replacement. Do not add answer_markdown, confidence or limitations wrappers "
+                            "unless those fields belong to the artifact schema."
+                            if response_schema else ""
                         ),
                         prompt=lambda visible: _final_user_prompt(
                             query=agent_query,

@@ -1536,4 +1536,8 @@ A completed, source-linked investigation and a high model review grade do not es
 
 ### The shared reviewer must serve the artifact purpose — October 30, 2026
 
-A universal high-recall discovery instruction caused the reviewer to expand a finished Brief with figures. It also missed a population/estimate mismatch while accepting overall plausibility. Correct the objective in the owning shared prompt: public explanation selects, research preserves useful hypotheses, and complete knowledge rewrites preserve original information. No additional writer, prose filter or final planner. The source correction needs fresh qualitative evidence.
+A universal high-recall discovery instruction caused the reviewer to expand a finished Brief with figures. Correct the objective in the owning shared prompt: public explanation selects, research preserves useful hypotheses, and complete knowledge rewrites preserve original information. No additional writer, prose filter or final planner. The source correction needs fresh qualitative evidence.
+
+### Output format must not choose a different writer — October 30, 2026
+
+Structured final synthesis used a separate research-report instruction while Markdown used the shared reader-focused writing prompt. That made Home prose inconsistent despite a correct common agenda and reviewer. Use the same writing owner for both formats, adding only the JSON schema/serialization requirement and respecting the artifact purpose. No additional model call or publication layer is needed.

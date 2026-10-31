@@ -13,7 +13,7 @@
     "services/attention_materialized.py": "Additive numerical context roundtrip and strict as-of history cutoff. Existing stored publication fields preserved; no database migration.",
     "services/home_view.py": "API projects all selected published stories; removes hidden 16-story cutoff. Both client renderers already map the complete supplied list.",
     "services/pipeline_store.py": "Task-specific research pointer filtering occurs before loading large unrelated artifacts. Real PostgreSQL listing checks cover task, subject and omitted task; financial ownership and publication contracts unchanged.",
-    "services/zopedia_agent.py": "Corrected the existing reviewer objective at source: artifact purpose controls selection and preservation. Removed unconditional high-recall competing-answer instructions; preserve source population, metric and comparison. Research retains useful hypotheses, complete knowledge rewrites preserve original detail. No new stage, gate, retry loop or response schema."
+    "services/zopedia_agent.py": "Corrected the existing reviewer objective at source: artifact purpose controls selection and preservation. Removed unconditional high-recall competing-answer instructions; preserve source population, metric and comparison. Research retains useful hypotheses, complete knowledge rewrites preserve original detail. No new stage, gate, retry loop or response schema. Final synthesis now uses the existing shared writing prompt for both JSON and Markdown; only output serialization differs. This removes the separate research-report writer instruction without adding a model call."
   },
   "operational_verification": {
     "passed": 149,
@@ -76,7 +76,7 @@
     "comparison_history": "Original ordered 20 prior investigations fixed; no rejected trial becomes historical knowledge.",
     "storage": "Isolated PostgreSQL and immutable retained inputs; production connections read-only.",
     "whole_flow": "Full local materialization completed six investigations, six stories,66ticker snapshots and five chart selections. Public output is not accepted.",
-    "changed_stage": "Fresh comparisons improved narrative focus and removed the unsupported backlog deadline, but still transferred an overall-user estimate miss to U.S. users. A further source-scope review left that error and added figures back into Brief. These outputs are rejected. The shared reviewer objective is now corrected in source and awaits fresh qualitative verification.",
+    "changed_stage": "Earlier public drafts repeated financial statement detail and inferred an unsupported post-2028 revenue schedule. Simplifying the task and keeping complete claims in the reader improved the narrative and removed that deadline. The shared reviewer still expanded Brief with figures, so its unconditional discovery objective was corrected at source. Current purpose comparisons are in progress.",
     "exclusions": [
       "Narration, live intraday collection and independent optional page inference were not purchased for this comparison. Their existing adapters remain unchanged.",
       "Quiet-day and semantic continuity checks are operational; a separate fresh quiet-day qualitative study has not been completed.",
@@ -86,20 +86,32 @@
       "Attention/Brief and chart explanations: accurate source population and uncertainty.",
       "Focused research: preserve useful unresolved hypotheses.",
       "Complete retained knowledge: preserve original information rather than applying briefing concision."
-    ]
+    ],
+    "source_audit_correction": {
+      "finding": "Reddit U.S. user miss is supported, not a population transfer. The complete CNBC capture states U.S. daily users50.7million against a53.5millionestimate, separately from the global user estimate.",
+      "source_capture": "saa_doc::9675a3f5ac9ec6f3f05321d8",
+      "audit_error": "The initial audit checked the research summary rather than the complete original."
+    },
+    "purpose_comparisons": {
+      "brief": "Fresh review stayed selective; supported Reddit U.S. estimate statement preserved.",
+      "research": "Utility and defense investigations retained substantive hypotheses and contrary evidence.",
+      "knowledge": "Restored the complete Moderna article, including pipeline failure, legal conditions, policy, workforce detail and original questions."
+    },
+    "final_assembly": "The next complete fresh authoring still transcribed financial line items. Source inspection found a separate research-synthesis instruction for structured artifacts, bypassing the shared human writing instruction. Unified that existing writer path; new complete comparison pending."
   },
   "recall": {
     "observed": "The common agenda selected the regulated-utility versus merchant-power split and longer-horizon energy leadership, beyond the prior publication.",
     "limit": "Does not guarantee every missed company or prove a statistically established cluster regime change."
   },
   "cost": {
-    "approval_usd": 10,
+    "approval_usd": 13,
     "estimated_usage_usd": 7.378783,
     "unknown_maximum_usd": 2.29245,
     "upper_committed_usd": 9.671233,
     "pending_requests": 0,
     "all_attempts_and_unknown_maxima_included": true,
-    "final_accounting": "Retained usage receipts and pinned prices; two ended requests lack receipts and retain original maximum bounds."
+    "final_accounting": "Retained usage receipts and pinned prices; two ended requests lack receipts and retain original maximum bounds.",
+    "additional_approval": "Approve up to $3 more"
   },
   "deployment": {
     "development": "Held: shared-review qualitative acceptance pending",
