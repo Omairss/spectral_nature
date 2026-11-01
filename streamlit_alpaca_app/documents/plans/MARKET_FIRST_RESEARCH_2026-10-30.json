@@ -1,7 +1,7 @@
 {
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
-  "revision": 6,
+  "revision": 7,
   "status": "implemented_fresh_output_rejected_no_deployment",
   "recorded_at_utc": "2026-10-31T03:18:50.047478+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
@@ -259,7 +259,7 @@
     "implementation_qualification": "../verification/market-first-research-2026-10-30/qualification.json",
     "latest_public_artifact": "../verification/market-first-research-2026-10-30/candidate-output.json"
   },
-  "next_action": "The owner narrowed the task to an unchanged funded-final-review probe. It completed and corrected the Reddit category error, but coverage, old observation use and writing defects remain. Protect existing completion allocation; do not infer a need for a replacement reviewer from an unreviewed draft. The broader remediation remains proposed, with no runtime changes or deployment from this probe.",
+  "next_action": "Generate the actual DeepSeek writer-and-review result from the saved criticized publication input, personally compare complete before/after outputs, and show the unedited result. Retain the original study cap and every earlier charge. No deployment during this isolated verification.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",
@@ -384,6 +384,24 @@
     "estimated_new_cost_usd": 0.129956,
     "maximum_cumulative_usd": 29.820813,
     "original_runtime_unchanged": true,
+    "deployment": false
+  },
+  "editorial_verification_2026_11_01": {
+    "status": "implemented_pending_fresh_deepseek_output",
+    "owner_request": "I want to see the deepseek fix",
+    "scope": "Existing public writer and reviewer over the saved five-investigation publication input; no new planning or investigations, unchanged full model, isolated storage. Show complete generated text without hand edits.",
+    "runtime_changes": [
+      "Carry existing recorded claims and review status alongside findings, preserving original source identities and interpretation roles.",
+      "Give the shared writer and reviewer a reader-facing explanatory objective; preserve research discovery and complete knowledge fidelity.",
+      "Clarify existing public field purposes: business consequence without invented cause, optional fields empty when unhelpful, material observable follow-up instead of a research task list."
+    ],
+    "constraints": [
+      "No ticker-specific examples, phrase blacklist, new agent, new retrieval system, additional mandatory model stage or handwritten candidate prose.",
+      "Existing cumulative cap remains 33 dollars with all prior actual and unknown costs preserved. The new owner request explicitly authorizes DeepSeek verification; it does not raise the cap.",
+      "Protect final review in the study guard before optional evidence navigation.",
+      "No release acceptance from parser/schema checks; personally read the complete fresh output and the supporting originals."
+    ],
+    "source_case": "qualification/attempt-19-authored-order-publication/publication-call-inputs.json",
     "deployment": false
   }
 }

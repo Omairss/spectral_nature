@@ -506,10 +506,10 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
                 "event_title": {"type": "string", "description": "The substantive development, with chronology and strength of explanation intact. A hypothesized cause remains a hypothesis in the headline; a caveat later in the story cannot correct an asserted cause."},
                 "surface_summary_text": {"type": "string", "description": "The development's essential meaning for an investor, without duplicating the headline or detailed account."},
                 "what_happened_text": {"type": "string", "description": "Explain what changed in the business, policy or market. Describe reported beats, misses and guidance changes in words; retain an exact quantity only when it explains the scale or a consequential distinction. Do not transcribe actual-versus-estimate pairs or financial statement line items into prose."},
-                "why_happened_text": {"type": "string", "description": "Explain the supported mechanism and worthwhile competing interpretations. Distinguish inference from reported explanation; develop the reasoning rather than repeat the observations."},
+                "why_happened_text": {"type": "string", "description": "Explain the business consequence and the mechanism where supported. Preserve worthwhile hypotheses as hypotheses; an observed move does not require an invented cause. Empty is appropriate when the other fields already explain the meaning."},
                 "affected_assets_summary_text": {"type": "string", "description": "Explain useful related exposures or counterexamples, without turning simultaneous price moves into causes. Empty is appropriate when there is no useful additional connection."},
                 "business_context_text": {"type": "string", "description": "Add the standing business or economic context needed to understand this change. Do not repeat facts already explained in this story. Empty is appropriate when no additional context is needed."},
-                "watch_next_text": {"type": "string", "description": "Identify the unresolved question or next development that could change the interpretation, rather than a generic list of disclosures to collect."},
+                "watch_next_text": {"type": "string", "description": "Name an observable next development and how it could change the investment interpretation. Leave empty when there is no distinct material point; research tasks belong in internal issues."},
                 "cause_status": {"type": "string", "enum": ["supported", "partial", "unresolved"]},
             },
             "required": [
@@ -1931,8 +1931,9 @@ def _review_home_public_surface(
         answer = bundle.get("findings_markdown") or bundle.get("research_result")
         if answer:
             findings.append({"source_id": source_id, "findings": answer,
+                "recorded_claims": bundle.get("claims") or [],
                 "research_review": {key: (bundle.get("quality_review") or {}).get(key)
-                                    for key in ("critique_summary", "unsupported_claims", "evidence_gaps")}})
+                                    for key in ("status", "verdict", "critique_summary", "unsupported_claims", "evidence_gaps")}})
     for index, row in enumerate(enrichment_rows or []):
         if row.get("research_origin") == "common_market_agenda":
             continue
@@ -1980,18 +1981,15 @@ def _review_home_public_surface(
         "and prior publication alone does not make it relevant. Show important continuing developments alongside "
         "new discoveries without automatically repeating the old feed. Choose useful independent developments "
         "without forcing one explanation across different businesses. "
-        "For each story, name the concrete development, the affected business and its practical consequence. "
-        "An abstract market label cannot substitute for that explanation. The reader should "
-        "understand the investment question without wading through an earnings release. The research and "
-        "charts retain financial quantities; public prose selects only a quantity essential to the explanation. "
-        "Explain beats, misses and guidance in words. Develop one connected account across the public fields; "
-        "leave a field empty if it adds nothing distinct. Do not repeat a conclusion or caveat across fields. "
-        "Headlines and summaries must carry the same degree "
-        "of certainty as the explanation. Useful unresolved observations belong in the feed. "
-        "Research is fallible. Preserve its reviewer corrections and check substantive assertions against the "
-        "claims and originals in the supplied reader. Preserve the source relationship, financial meaning, "
-        "scope and time horizon: neither compression nor plausible business knowledge establishes a new "
-        "quantifier, schedule or current cause. Read decisive originals when these distinctions are unclear. "
+        "Explain each development to an investor who has not read the research. Make the action, business "
+        "and practical consequence understandable. Use the shared writer's editorial objective across the "
+        "stories and Brief; leave a field empty when it adds no distinct insight. Supporting quantities "
+        "remain in research and charts unless essential to the explanation. A useful unexplained observation "
+        "can remain a story with business context and a hypothesis; it does not require a claimed cause. "
+        "Treat findings as fallible interpretation alongside their recorded claims and reviewer corrections. "
+        "Preserve the financial metric, scope, comparator and time horizon when explaining a result. "
+        "Use the original evidence reader to resolve consequential ambiguities instead of strengthening "
+        "a conclusion while shortening it. "
         "Use exact source IDs from the index. Existing captures, complete research, reviewed claims and wider "
         "numerical observations remain accessible there; do not treat repeated interpretations as confirmation. "
         "Keep current observation time, original event date and report date distinct in time_basis and prose. "
