@@ -1969,33 +1969,8 @@ def _review_home_public_surface(
                                "items": {"type": "string", "enum": list(records)}}}}},
     }}
     query = (
-        f"As of {_zopedia_asof_text(asof_time_utc)}, explain the consequential current developments to an investor. "
-        "Write Attention first as distinct stories, each placed in one section; then summarize those finished "
-        "stories as the Brief. Section capacities are ceilings, not quotas. "
-        "Start from the broad numerical picture and common research assessment: what changed, what supports "
-        "or contradicts the apparent market direction, and what deserves attention beyond the headlines? "
-        "Measured groups and multi-day leadership are observations, not proof of a common cause or investor flows. "
-        "The paid research agenda is not a publication shortlist. Assess retained-research entries alongside "
-        "new findings and current observations; read the complete retained report when it remains consequential. "
-        "Its original date stays intact. A lack of new research or a fresh headline does not make it irrelevant, "
-        "and prior publication alone does not make it relevant. Show important continuing developments alongside "
-        "new discoveries without automatically repeating the old feed. Choose useful independent developments "
-        "without forcing one explanation across different businesses. "
-        "Explain each development to an investor who has not read the research. Make the action, business "
-        "and practical consequence understandable. Use the shared writer's editorial objective across the "
-        "stories and Brief; leave a field empty when it adds no distinct insight. Supporting quantities "
-        "remain in research and charts unless essential to the explanation. A useful unexplained observation "
-        "can remain a story with business context and a hypothesis; it does not require a claimed cause. "
-        "Treat findings as fallible interpretation alongside their recorded claims and reviewer corrections. "
-        "Preserve the financial metric, scope, comparator and time horizon when explaining a result. "
-        "Use the original evidence reader to resolve consequential ambiguities instead of strengthening "
-        "a conclusion while shortening it. "
-        "Use exact source IDs from the index. Existing captures, complete research, reviewed claims and wider "
-        "numerical observations remain accessible there; do not treat repeated interpretations as confirmation. "
-        "Keep current observation time, original event date and report date distinct in time_basis and prose. "
-        "A bar timestamp labels its interval; a collection timestamp is not the event date. Reused findings "
-        "retain their original dates. Operational limitations belong in issues, not investor prose. "
-        "Review this actual Brief and these actual stories for explanatory value and faithfulness to the sources."
+        (f"As of {_zopedia_asof_text(asof_time_utc)}. "
+        'Assess current stock and economic data, numerical groups, headlines and dated research together. Find consequential developments beyond headline attention. Group movement does not establish common causes or investor flows. New research spending does not determine relevant coverage. Assess continuing relevance without automatically repeating or discarding older research. Preserve original dates. Write distinct Attention stories first, then summarize them as Brief. Section limits are ceilings, not quotas. Explain the business change and consequence. Unexplained observations can still matter. Leave redundant fields empty. Include follow-ups only when they could change the investment interpretation.')
     )
     initial_evidence = [{
         "numerical_overview": {key: value for key, value in (payload.get("market_context") or {}).items()

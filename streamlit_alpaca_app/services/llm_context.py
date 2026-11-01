@@ -10,52 +10,21 @@ from .json_utils import to_jsonable
 
 
 RESEARCH_TIMELINE_GUIDANCE = (
-    "Distinguish when an event happened, when a source reported it, and when we observed it. "
-    "A newly published recap does not make its underlying event new. When older developments matter to the "
-    "current briefing, date them and explain the current continuation or reaction. Do not imply a statement "
-    "was repeated today unless a source supports a new statement. Apply this chronology to titles and summaries "
-    "as well as the body: lead with the current observed "
-    "development, and date an older cause or statement when it is material. Attribute the assessment to the "
-    "speaker rather than presenting it as an independently established market fact. An article's publication "
-    "or capture date alone does not establish an event date. Preserve explicit historical as-of constraints. "
-    "When a task has a historical information cutoff, compare source timestamps with that exact cutoff: "
-    "later announcements, revisions and details were not yet known. A later recap can establish an older "
-    "event's date, but cannot make its newly disclosed information available at the earlier instant."
-    " For a current scheduled briefing, assess the observations supplied for this run first. Previous investigations "
-    "are dated background, not evidence that a development happened again. Produce the best useful current answer "
-    "within the available resources; do not carry an unfinished news story into a future run as a new event."
-    " A market observation is a snapshot with a measurement time and a source period. A provider field named close "
-    "can be the latest value of a still-updating bar; the field name or bar's date alone does not establish a final "
-    "session close. Read the actual observation time, as-of constraint and any session-finality information together. "
-    "Describe an intraday or unfinalized value as the observed/traded price at that time, and reserve closing-price "
-    "claims for evidence of a completed session."
-    " Keep company-specific factual background distinct from economic reasoning. Product ownership, licensing, "
-    "commercial counterparties, regulatory status and reported financial figures require a supplied or acquired "
-    "source that identifies the same entity and relationship. Do not fill a missing named relationship from memory "
-    "or transfer it from a similar company or product. Previously generated analysis is a research lead, not independent "
-    "source confirmation. You can explain economic mechanisms and infer connections from established observations; "
-    "do not invent a contract, product history or financial fact to complete that explanation."
+    (
+        'Respect source permissions and the information cutoff. Distinguish event, report and observation dates. '
+        'Reused research remains dated; an updating bar is not a confirmed close. Read originals for material '
+        'ambiguities.'
+    )
 )
 
 
 RESEARCH_ANALYSIS_GUIDANCE = (
-    "Explain what the consequential developments change for the reader, using the specific observations, business "
-    "mechanisms, constraints and competing interpretations in the research. Headline results and price moves are "
-    "starting observations, not an explanation of underlying performance. Preserve the findings that resolve that "
-    "question; do not replace them with a generic industry description or a checklist of future research. "
-    "Connect relevant standing economic and business conditions to new developments, keeping their original dates. "
-    "Assess the current information agenda and useful upcoming developments independently of large price moves. "
-    "Do not invent an upcoming result or force unrelated events into one theme. "
-    "Keep reported facts, management expectations and your own inferences distinct throughout titles, summaries "
-    "and explanations. Preserve worthwhile indirect connections at their actual strength; co-movement alone does "
-    "not establish a cause. Lead with meaning in plain language. Use a number when its magnitude, comparison or "
-    "threshold changes the interpretation; qualitative direction is often enough. When several measurements make "
-    "the same point, explain that point and keep the decisive comparison. Supporting figures remain in the source records. "
-    "Do not reproduce a data table in prose. "
-    "Review whether the complete answer delivers the requested depth and retains the important findings, not only "
-    "whether individual facts match sources. Correct the public answer itself. Keep source inventories, missing-capture "
-    "commentary, editing instructions and execution diagnostics in internal fields. Match the requested format and "
-    "length without a fixed number of facts, sources or paragraphs."
+    (
+        'Research and sources are fallible. Separate facts, attributed expectations and your inference. Preserve '
+        'entity, metric, scope, comparator, units and certainty. Check whether evidence supports the claimed '
+        'connection; retain useful hypotheses at their actual strength. Explain consequential changes and their '
+        'practical meaning.'
+    )
 )
 
 

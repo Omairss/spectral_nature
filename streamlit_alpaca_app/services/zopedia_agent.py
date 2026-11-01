@@ -221,27 +221,12 @@ _AGENT_FINAL_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        "Write an explanation for the person who asked the question, using the supplied facts, sources and research. "
-        "The reader has not read the research. Make the actual action or change understandable, then explain its "
-        "practical consequence. An abbreviated product label or a familiar market label does not explain either. "
-        "Lead with the development or answer itself; introduce comparisons when they help explain it. "
-        "A research outline is fallible interpretation. Compare its conclusions with the recorded claims and "
-        "original evidence, preserving what was reported separately from attributed explanations and your own "
-        "inferences. Do not supply an asserted cause merely because the requested format has a why field. "
-        "Useful business context and a clearly expressed hypothesis can explain why an observation matters. "
-        "Select the points this reader needs rather than compressing the whole research outline. Preserve the "
-        "meaning, numbers and certainty of the included facts. Explain specialist shorthand in ordinary words. "
-        "A typical question needs two to four short paragraphs; follow the requested format when it differs. "
-        "Each paragraph or structured field should add a distinct point; avoid repeating the same conclusion or "
-        "uncertainty. Keep supporting quantities in the research unless they change the reader's understanding. "
-        "If a technical term is needed, explain it when you introduce it. Give useful source-title citations inline. "
-        "Use a Markdown link only when the index provides a complete URL; otherwise write the title as plain text. "
-        "Follow the active global writing style and the user's source scope. Keep research notes and process commentary private. "
-        "An open question belongs in a public explanation only when it identifies a material consequence and "
-        "what observable development would change the interpretation. Other follow-ups remain research work. "
-        "Keep the explanation focused on this request. A retrieved passage is useful only if it helps answer the question; "
-        "omit unrelated examples and analogies from other domains. When one example is requested, develop that example. "
-        "Attribute an execution failure only to events for that specific attempt, never to carried evidence from another run."
+        (
+        'Explain the answer and its practical consequence to a reader unfamiliar with the research. Select useful '
+        'distinct points rather than compressing every finding. A complete knowledge replacement must preserve the '
+        'original information, including useful uncertain leads. Use source-title links only for supplied complete '
+        'URLs.'
+    )
     ),
 )
 
@@ -261,67 +246,17 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        "You are the Spectral Nature Zopedia research editor. Judge the draft against the user's actual request "
-        "and the artifact's purpose. Discovery can retain noisy leads, indirect connections and reasonable "
-        "hypotheses; a public briefing selects the explanation its reader needs; a knowledge rewrite preserves "
-        "the original information. Do not maximize coverage for every task or turn a briefing into a research report. "
-        "Review the complete reader-facing artifact for factual fidelity and for whether it actually explains "
-        "the development to someone unfamiliar with the research. A factually plausible draft still needs editing "
-        "when its product labels, financial shorthand or abstract market explanations conceal the business meaning. "
-        "Revise the affected prose directly, including the opening and summary. Keep useful analysis; move "
-        "research work and process limitations to the existing internal fields. A public follow-up should name "
-        "a material consequence and an observable development that could change the interpretation. "
-        "Review is refinement, not certification or permission to publish. Independently compare the evidence "
-        "with the draft's facts, framing and consequential omissions. Put the source-grounded corrections and "
-        "reasoning in answer_points; they are review support, not a competing answer to expand into the artifact. "
-        "Treat earlier planning narratives as working hypotheses; new evidence can overturn their organizing theme. "
-        "Use established business knowledge to "
-        "explain connections; respect any user-imposed evidence scope. Exact ticker attribution, complete source "
-        "coverage and proven causality are not prerequisites for useful analysis. "
-        "Correct material factual errors, contradictions and incoherent reasoning. Check the logic of each claimed connection, "
-        "not just whether its individual facts appear in a source. An author asserting an explanation is evidence of "
-        "that author's interpretation, not proof of the explanation. Explain the relationship in the underlying system or "
-        "business; related observations alone do not establish the direction of an effect. Check numerical meaning: an amount versus "
-        "a change, the units, the denominator and the time period. Keep an issuer distinct from its segments and a "
-        "reported category distinct from its components. For a beat, miss or surprise, compare the same metric "
-        "against the stated expectation. A change from a prior period cannot explain a variance against a forecast "
-        "without the corresponding forecast comparison. Check this reasoning before compressing it into a headline "
-        "or summary, and preserve attribution when the explanation remains an interpretation. Preserve the population, metric and comparator "
-        "of each observation; a matching figure does not support transferring an estimate or attribute to a "
-        "related observation. Distinguish reported observations from a source author's interpretation, established "
-        "context and your own inference. A source's suggestion is not a confirmed explanation. Check whether the "
-        "comparison actually supports the conclusion against its stated baseline; matching arithmetic alone does "
-        "not establish a causal bridge. Preserve attribution and uncertainty when reusing summaries. Do not invent "
-        "reports, observations or completed research. Use actual dates for observed developments. "
-        "When evidence is incomplete, retain useful business context and distinguish a worthwhile hypothesis "
-        "from an established cause. Record additional research needs in research_requests. "
-        "Do not replace substantive analysis with missing-evidence paragraphs or generic caveats. "
-        "If the draft is useful as written, accept it. Otherwise return an improved answer that preserves its "
-        "valuable connections. Use insufficient only when you cannot form a substantive answer, and still "
-        "return the best useful analysis available. Keep process limitations internal where the schema allows. "
-        "Use research_requests for a few specific information needs when a missing angle could materially improve the answer. "
-        "Do not request proof, a source-provided causal ranking or complete citations for every reasonable inference. "
-        "Return the best useful answer even when further work would help. Apply the active global writing style: human, clear "
-        "prose that explains meaning, with useful source links and intact paragraph breaks. Keep process diagnostics internal. "
-        "Match the user's requested length and format. Cut extra examples, repeated facts, unrequested next steps and "
-        "section-heavy prose. A simple question usually needs a short explanation, not a report. Remove jargon or explain "
-        "the underlying idea in familiar words. A useful draft can still need revision for clarity and relevance. "
-        "Carry every material correction into the actual final answer and its answer_points. Preserve useful "
-        "passages that need no correction; do not add facts or figures merely because they are available. "
-        "Fix malformed Markdown tables before accepting or revising the answer."
-        "\n\nWhen rewriting retained knowledge, the complete replacement has a fidelity objective that"
-        " differs from a short answer. Compare the actual replacement text and stored fields against the complete"
-        " originals. Preserve distinct useful observations, including quantities, units, periods, dates and times,"
-        " conditions, counterevidence and uncertain leads. Repetition can be removed; unique useful information"
-        " cannot disappear silently. Treat content accounting as claims to verify, not proof of preservation. Trace"
-        " every claimed retained observation to where it actually survives in the replacement. If an observation"
-        " claimed as retained is absent, correct the replacement or explicitly account for its removal and judge"
-        " whether that removal is justified. A correct original figure must not become unknown merely because it is"
-        " buried inside repetitive material. Do not apply story-length cuts to a complete memory article. Later"
-        " readers must be able to use that article without depending on hidden task context. Use available original"
-        " readers before claiming an original is missing. Do not invent facts or settle conflicting observations"
-        " just to make the rewrite consistent."
-    ),
+        (
+        'Review the complete answer against original evidence and the reader’s request. Check causal logic, '
+        'financial meaning, dates, material omissions and clarity. Correct errors directly while preserving useful '
+        'analysis and hypotheses. REMOVE UNEXPLAINED JARGON; EXPLAIN ITS MEANING IN PLAIN ENGLISH. Remove '
+        'repetition, unnecessary figures and research commentary. Add information only when it improves the '
+        'explanation. Use accept for sound drafts, revise for corrections, and insufficient only when no '
+        'substantive answer is possible; retain useful analysis. Put consequential corrections in answer_points '
+        'and further research needs in research_requests. For a complete knowledge replacement, verify that every '
+        'unique useful original observation, qualifier and date survives; explain justified removals. A source '
+        'author’s explanation remains attributed unless the evidence establishes it.'
+    ) ),
 )
 
 _JUDGE_SCHEMA: dict[str, Any] = {
@@ -2112,34 +2047,13 @@ def _final_user_prompt(
             "Use ordinary words and useful source-title links. Follow the requested length and format."
         )
     return (
-        f"{evidence_block}"
-        "Tool evidence:\n"
+        f"{evidence_block}Tool evidence:\n"
         f"{_tool_history_prompt(tool_calls, full_evidence=True, selected_source_ids=selected_source_ids)}\n\n"
-        f"{history_block}"
-        f"Task: {_clean(task) or 'agent_answer'}\n"
-        f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
-        f"User question:\n{query}\n\n"
-        + "Research outline:\n" + json.dumps(answer_points or [], ensure_ascii=False)
-        + "\n\nAvailable draft:\n" + draft_answer + "\n\n"
-        + (
-            f"Return the artifact JSON for {response_schema_name}, using its requested fields and format. "
-            if response_schema_name
-            else "Write the most useful answer from this evidence and established context, including reasonable inferences. "
-        )
-        + "When the user question contains typed Context JSON, source_acquisition_rows, supplied source text, or inline datasets, treat that supplied context as evidence too, especially when the tool budget is zero. "
-        + (
-            "Use concise plain prose in public text fields, without headings or process commentary. "
-            if response_schema_name
-            else "Match the requested format. Use clear connected prose and short paragraphs with blank lines between them. "
-        )
-        + "If you use a Markdown table, it must have a header row, separator row, and one row per line; use bullets if a table would be cramped. "
-        "Treat the user's premise as unverified unless the evidence supports it; if evidence contradicts the premise, say so plainly. "
-        "If you use Zopedia memory, cite the relevant page title. Keep internal IDs out of public prose. "
-        "Use source-title links for supporting reports, including retained sources; keep source dependencies distinct from generated interpretation. "
-        "Do not claim that live search, recent search, or a source-reading tool failed or returned no results unless the tool history shows that exact attempt. "
-        "For current questions, respect the dates of supplied and retained evidence; supplied current reports count even without a live tool call. "
-        "Do not turn the answer into a citation list. "
-        "Incomplete evidence should guide interpretation and follow-up, not erase a useful connection. Respect the user's evidence scope."
+        f"{history_block}Task: {_clean(task) or 'agent_answer'}\n"
+        f"Surface: {_clean(surface) or 'zopedia.chat'}\n\nUser question:\n{query}\n\n"
+        "Research outline:\n" + json.dumps(answer_points or [], ensure_ascii=False)
+        + "\n\nAvailable draft:\n" + draft_answer
+        + f"\n\nReturn the complete {response_schema_name} artifact using its schema and supplied evidence."
     )
 
 
@@ -2162,43 +2076,15 @@ def _judge_user_prompt(
     if prefetched_context:
         evidence_block = f"{prefetched_context}\n\n"
     return (
-        f"{evidence_block}"
-        "Tool evidence:\n"
-        f"{_tool_history_prompt(tool_calls, full_evidence=True)}\n\n"
-        f"{history_block}"
-        f"Task: {_clean(task) or 'agent_answer'}\n"
-        f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
-        f"User question:\n{query}\n\n"
-        "Draft answer:\n"
-        f"{draft_answer}\n\n"
-        + ("Application-assembled publication preview (execution errors here require correcting the artifact):\n"
+        f"{evidence_block}Tool evidence:\n{_tool_history_prompt(tool_calls, full_evidence=True)}\n\n"
+        f"{history_block}Task: {_clean(task) or 'agent_answer'}\n"
+        f"Surface: {_clean(surface) or 'zopedia.chat'}\n\nUser question:\n{query}\n\n"
+        f"Draft answer:\n{draft_answer}\n\n"
+        + ("Application-assembled publication preview:\n"
            + json.dumps(artifact_preview, ensure_ascii=False, default=str) + "\n\n"
            if artifact_preview is not None else "")
-        +
-        "Edit the actual public text for this reader as well as checking its claims against the sources. "
-        "The revised artifact must explain what happened and why it matters without requiring the reader "
-        "to decode research shorthand or work through the researcher's unfinished task list. "
-        "Use answer_points for "
-        "consequential corrections and their source-grounded reasoning, including evidence that challenges an "
-        "earlier narrative. Correct factual scope, useful discovery, relevance and explanatory depth without "
-        "expanding a short explanation into an inventory of available information. "
-        "When the original user question contains typed Context JSON, source_acquisition_rows, supplied source text, or inline datasets, treat that supplied context as part of the evidence even if no tool calls were made. "
-        "Use verdict='accept' when the draft is useful, coherent and expresses facts and hypotheses appropriately. "
-        "Use verdict='revise' when the answer should be corrected or made more precise. "
-        "Use verdict='insufficient' only when you cannot form a substantive answer; retain whatever useful analysis is available. "
-        "Correct false descriptions of tool activity without discarding the investigation. "
-        "Use established business context and reasonable inference to explain indirect relationships. Missing exact source "
-        "matches or price data do not exclude useful leads. Keep observations dated and do not invent current facts. "
-        "Review temporal framing in titles and opening summaries independently of dates in the body. A correctly "
-        "dated body does not make a headline that presents an old statement as new acceptable. Lead with the actual "
-        "current observation or continuation; if a title leads with an older event or statement, include its original "
-        "date there. Reconcile any time_basis fields with the sources and apply the correction to the public prose. "
-        + (
-            "Return the corrected artifact in answer_payload. Keep its field schema and use plain public prose."
-            if structured_response
-            else "Return the complete reader-facing answer in answer_markdown, ready to publish in the requested length and format. "
-                 "Apply your corrections directly to that prose. Keep editing instructions, critique and the supporting answer_points outline in their own fields."
-        )
+        + ("Return the complete corrected artifact in answer_payload, preserving its schema."
+           if structured_response else "Return the complete corrected reader-facing answer in answer_markdown.")
     )
 
 
