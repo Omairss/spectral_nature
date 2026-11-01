@@ -908,5 +908,55 @@
       "Group returns are equal-weight observations, not official capitalization-weighted sector indexes.",
       "Reddit and a few market observations have unresolved source captures; the interpretation remains fallible."
     ]
+  },
+  "software_paragraph_trace": {
+    "owner_question": "Why did it print the supplied-evidence / high-multiple software de-rating paragraph under Why it matters?",
+    "upstream_findings": "At the 18:35 UTC observation on October 30, 2026, the latest 04:00 UTC bar showed Datadog down 12.4% to $232.78, Fastly down 12.1% to $22.55, and Cloudflare down 11.1% to $275.85. These are snapshot values, not confirmed closing prices. The drop is broad and simultaneous.\n\nThe supplied evidence reviewed for this question contains no same-day company-specific catalyst. An October 16 [Cloud Stocks Retreat as AI Financing Worries Spread](https://247wallst.com/investing/2026/10/16/cloud-stocks-retreat-as-ai-financing-worries-spread-snowflake-and-cloudflare-tumble-7-datadog-drops-6/) report said cloud stocks retreated on AI financing worries, with Cloudflare down 7% and Datadog down 6%. An October 30 [Running Scared: Amazon, Intel Put Tech on Defense](https://www.google.com/goto?url=CAESdgHrOzAVUzheNx58bYffT8FTx-GMH7jX8CHDLr3E6dI-ONfRPWjhj5KQPL-kB89WKkptqxVpVEqkyob8mj-b8E9cms0S72z0M3T42qoRynSMlVg1FgXvjh3JJ6pxyv8FLX0CW4IK576aBSa9S3Unqnv1ugYFQk4) update captured same-day broad tech pressure after Amazon and Intel results and guidance disappointed. Today's move looks like a continuation of that de-rating.\n\nThese are long-duration cloud, edge, and observability businesses. Datadog sells cloud monitoring and observability software; Fastly runs an edge cloud and content delivery network; Cloudflare provides network security and edge services. Their revenue arrives far in the future, so a higher discount rate lowers the present value. The 10-year Treasury yield was 5.05% on October 28, and the 20-session excess returns were also negative: DDOG -13.7pp, NET -18.3pp, FSLY -9.8pp. That means the pressure began before today and is not a one-day company shock. But shared price moves alone do not prove a shared operating cause.\n\nAlternative explanation: one or more of these companies could have a private or not-yet-captured company-specific item. A current company disclosure or analyst action would separate that from the broad sector move. Until then, the most likely reading is broad high-multiple software de-rating with no confirmed operating change.",
+    "upstream_review": {
+      "status": "completed",
+      "verdict": "revise",
+      "critique_summary": "The draft is useful, but it misdates the Running Scared article: that source is an October 30 same-day update, while the September 8 date belongs to a separate Tickeron Datadog item. I corrected that date and clarified that 18:35 UTC is the observation time for the 04:00 UTC price bar.",
+      "confidence": "high",
+      "limitations": [],
+      "unsupported_claims": [],
+      "evidence_gaps": [],
+      "revised_answer_applied": true,
+      "research_requests": [
+        "Search for any October 30 company-specific disclosure, guidance change, or analyst rating change for Datadog, Fastly, or Cloudflare."
+      ]
+    },
+    "upstream_claim_roles": [
+      {
+        "claim_text": "At the 18:35 UTC observation on Oct 30, 2026, the latest 04:00 UTC bar showed DDOG -12.4% to $232.78, FSLY -12.1% to $22.55, and NET -11.1% to $275.85.",
+        "evidence_role": "reported_fact"
+      },
+      {
+        "claim_text": "The supplied evidence reviewed for this question contains no same-day company-specific catalyst for any of the three names.",
+        "evidence_role": "reported_fact"
+      },
+      {
+        "claim_text": "An Oct 16, 2026 247wallst.com report described a cloud stock retreat on AI financing worries, with Cloudflare down 7% and Datadog down 6%.",
+        "evidence_role": "reported_fact"
+      },
+      {
+        "claim_text": "An Oct 30, 2026 Running Scared: Amazon, Intel Put Tech on Defense update captured same-day broad tech pressure after Amazon and Intel results and guidance disappointed.",
+        "evidence_role": "reported_fact"
+      },
+      {
+        "claim_text": "The 10-year Treasury yield was 5.05% on Oct 28, 2026 in the latest supplied observation.",
+        "evidence_role": "reported_fact"
+      },
+      {
+        "claim_text": "20-session excess returns were DDOG -13.7pp, NET -18.3pp, FSLY -9.8pp, so the pressure predates today.",
+        "evidence_role": "reported_fact"
+      }
+    ],
+    "actual_writer_paragraph": "The supplied evidence contains no same-day company-specific catalyst for any of the three. An October 16 report had already described cloud stocks retreating on AI financing worries, and an October 30 update captured broad tech pressure after Amazon and Intel results and guidance disappointed. A likely reading is broad high-multiple software de-rating, but shared price moves alone do not prove a shared operating cause. The 10-year Treasury yield was 5.05% on October 28, and their 20-session excess returns were also negative before today.",
+    "actual_reviewed_paragraph": "The supplied evidence contains no same-day company-specific catalyst for any of the three. An October 16 report had already described cloud stocks retreating on AI financing worries, and an October 30 update captured broad tech pressure after Amazon and Intel results and guidance disappointed. A likely reading is broad high-multiple software de-rating, but shared price moves alone do not prove a shared operating cause. The 10-year Treasury yield was 5.05% on October 28, and their 20-session excess returns were also negative before today.",
+    "unchanged_by_final_reviewer": true,
+    "confirmed_path": "The prior investigation already contains the missing-catalyst comment, older cloud-stock article, valuation theory, yield level and longer-horizon underperformance. The writer recomposed those notes into the public why field. The final reviewer called the unresolved software de-rating coherent and left the paragraph unchanged.",
+    "assessment": "Evidence-coverage notes and a plausible valuation hypothesis were presented instead of a clear investment explanation. The older report, yield level and prior underperformance supply context but do not establish the cause of this day’s decline. Preserve the current shared decline as a useful data observation without implying that company-specific research found a cause or publishing the research checklist.",
+    "contract": "The actual writing instructions put process commentary in internal fields and allow an empty why field. This paragraph was not forced by schema or a lack of review funding. Both existing research review and final public review need to distinguish chronology/consistency from explanatory usefulness.",
+    "new_inference_requests": 0
   }
 }
