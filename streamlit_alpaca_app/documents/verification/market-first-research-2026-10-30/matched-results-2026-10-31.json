@@ -166,5 +166,11 @@
       "failure": "Earlier experiments, setup and actual attempts left insufficient strict study headroom for the complete final review quote. Application core reservations did not allocate funds inside that separate guard.",
       "scope": "This identifies a verification-allocation error; it does not demonstrate production account exhaustion."
     }
+  },
+  "funded_review_followup": {
+    "date_pacific": "2026-11-01",
+    "result": "funded-review-2026-11-01.json",
+    "meaning": "Funding the existing reviewer would have corrected the known revenue-category error in this case. It is useful and should be protected, but it does not by itself solve coverage, observation freshness or the broader writing defects. This result does not establish general factual reliability or release acceptance.",
+    "historical_comparison_preserved": true
   }
 }

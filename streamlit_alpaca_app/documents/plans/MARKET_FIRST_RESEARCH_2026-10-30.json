@@ -1,7 +1,7 @@
 {
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
-  "revision": 5,
+  "revision": 6,
   "status": "implemented_fresh_output_rejected_no_deployment",
   "recorded_at_utc": "2026-10-31T03:18:50.047478+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
@@ -259,12 +259,12 @@
     "implementation_qualification": "../verification/market-first-research-2026-10-30/qualification.json",
     "latest_public_artifact": "../verification/market-first-research-2026-10-30/candidate-output.json"
   },
-  "next_action": "Implement the three existing-boundary corrections in remediation_design_2026_10_31, then personally qualify the complete output. The candidate remains unaccepted. Preserve all previous spending and unknown bounds; the completed API exception does not authorize another paid run or a deployment.",
+  "next_action": "The owner narrowed the task to an unchanged funded-final-review probe. It completed and corrected the Reddit category error, but coverage, old observation use and writing defects remain. Protect existing completion allocation; do not infer a need for a replacement reviewer from an unreviewed draft. The broader remediation remains proposed, with no runtime changes or deployment from this probe.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",
     "pacific_day": "2026-10-30",
-    "maximum_new_total_usd": 30,
+    "maximum_new_total_usd": 33,
     "exception": "Existing DeepSeek API at full production capability, isolated storage, no production writes; Lambda suitable capacity empty at22:02UTC. Earlier API approvals remain closed.",
     "continuations": [
       {
@@ -289,6 +289,15 @@
         "question_id": "call_cca264bcfeb94f109af7a263b9c76350",
         "same_cumulative_cap_usd": 30,
         "original_costs_and_unknowns_preserved": true
+      },
+      {
+        "instruction": "Approve up to $3 more",
+        "question_id": "call_7072ff99e4f94e288a6f15e324e09412",
+        "same_cumulative_cap_usd": 33,
+        "pacific_day": "2026-11-01",
+        "scope": "Existing final reviewer only; saved draft and original evidence; no planning, new investigations or production writes.",
+        "original_costs_and_unknowns_preserved": true,
+        "status": "completed_closed"
       }
     ]
   },
@@ -368,5 +377,13 @@
     ],
     "qualification": "First inspect exact inputs, artifact adoption, budget reservations and failure/resume behavior without paid inference. Then, under a new explicit study authorization, personally read complete outputs on matched current inputs and a distinct quiet/heavy or contradictory case. Inspect source meaning, continuing relevance, discoveries outside headline attention, dates, writing, full costs and consumer consistency. The named companies diagnose defects; they are not a required ticker list. No release based only on successful execution, source availability or a model's own review verdict.",
     "unchanged_order": "Raw stock/economic data -> anomalies/movers -> numerical groups and relationship changes -> one upfront Zopedia planner -> shared Zopedia research/review -> Zopedia Attention and Brief. No new agent, retrieval system or publication gate."
+  },
+  "funded_review_2026_11_01": {
+    "status": "review_useful_partial_quality_result_candidate_still_unaccepted",
+    "result": "../verification/market-first-research-2026-10-30/funded-review-2026-11-01.json",
+    "estimated_new_cost_usd": 0.129956,
+    "maximum_cumulative_usd": 29.820813,
+    "original_runtime_unchanged": true,
+    "deployment": false
   }
 }
