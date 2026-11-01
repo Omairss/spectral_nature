@@ -1,7 +1,7 @@
 {
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
-  "revision": 7,
+  "revision": 8,
   "status": "implemented_fresh_output_rejected_no_deployment",
   "recorded_at_utc": "2026-10-31T03:18:50.047478+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
@@ -257,9 +257,10 @@
     "cost_operations": "../verification/event-adaptive-reliability-2026-10-28/event-company-research-cost-detail-20261030.json",
     "release_acceptance": "../../infra/release_acceptance.json",
     "implementation_qualification": "../verification/market-first-research-2026-10-30/qualification.json",
-    "latest_public_artifact": "../verification/market-first-research-2026-10-30/candidate-output.json"
+    "latest_public_artifact": "../verification/market-first-research-2026-10-30/candidate-output.json",
+    "latest_editorial_verification": "../verification/market-first-research-2026-10-30/deepseek-editorial-2026-11-01.json"
   },
-  "next_action": "Generate the actual DeepSeek writer-and-review result from the saved criticized publication input, personally compare complete before/after outputs, and show the unedited result. Retain the original study cap and every earlier charge. No deployment during this isolated verification.",
+  "next_action": "Show the unedited fresh DeepSeek before/after. The writer-and-review change failed local quality acceptance; keep deployment held. The confirmed next boundary is source interpretation becoming a reported fact and being accepted by the existing reviewer. Do not claim another prompt edit or a new review stage is proven to solve it.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",
@@ -387,7 +388,7 @@
     "deployment": false
   },
   "editorial_verification_2026_11_01": {
-    "status": "implemented_pending_fresh_deepseek_output",
+    "status": "fresh_deepseek_completed_quality_rejected_no_deployment",
     "owner_request": "I want to see the deepseek fix",
     "scope": "Existing public writer and reviewer over the saved five-investigation publication input; no new planning or investigations, unchanged full model, isolated storage. Show complete generated text without hand edits.",
     "runtime_changes": [
@@ -402,6 +403,11 @@
       "No release acceptance from parser/schema checks; personally read the complete fresh output and the supporting originals."
     ],
     "source_case": "qualification/attempt-19-authored-order-publication/publication-call-inputs.json",
-    "deployment": false
+    "deployment": false,
+    "result": "../verification/market-first-research-2026-10-30/deepseek-editorial-2026-11-01.json",
+    "estimated_new_cost_usd": 0.22045,
+    "maximum_cumulative_usd": 30.041263,
+    "pending_requests": 0,
+    "assessment": "Brief shortened, but Amazon causality, unclear shorthand, jargon, unnecessary figures and a misleading software explanation survived the funded review. No handwritten corrections or deployment."
   }
 }
