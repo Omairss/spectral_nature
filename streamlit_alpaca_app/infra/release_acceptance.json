@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Source/data contracts accepted for local packaging; native/web visual and exact-image development verification precede deployment.",
-  "source_revision": "ba77d94dd13b24ec95cce3ca6074e9d80968dd54",
+  "source_revision": "94fc2a4a4eeef7b5c62700af47cd8065605e8917",
   "review_base_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -533,7 +533,15 @@
     "services/zopedia_runtime.py": "c5f6a8c9f6e9a8baab3aeab15429f7f028475dabe1cf22ba3b4e1e51b24ad188",
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
-  "reviewed_changes": {},
+  "reviewed_changes": {
+    "pipeline/jobs/market_calendar_refresh.py": "Reviewed source and preserved behavior in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
+    "services/alpha_vantage.py": "Reviewed source and preserved behavior in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
+    "services/market_calendar.py": "Reviewed source and preserved behavior in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
+    "services/market_calendar_reactions.py": "Reviewed source and preserved behavior in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
+    "web/components/market-event-calendar.module.css": "Reviewed source and preserved behavior in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
+    "web/components/market-event-calendar.tsx": "Reviewed source and preserved behavior in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
+    "web/lib/types.ts": "Reviewed source and preserved behavior in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md"
+  },
   "retired_files": [
     "scripts/eval_critique_harness.py",
     "services/analytics.py",
@@ -630,7 +638,15 @@
     {
       "name": "calendar_history_consolidated_next_day_reactions",
       "status": "accepted",
-      "files": [],
+      "files": [
+        "pipeline/jobs/market_calendar_refresh.py",
+        "services/alpha_vantage.py",
+        "services/market_calendar.py",
+        "services/market_calendar_reactions.py",
+        "web/components/market-event-calendar.module.css",
+        "web/components/market-event-calendar.tsx",
+        "web/lib/types.ts"
+      ],
       "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md"
     }
   ],
