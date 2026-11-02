@@ -1,5 +1,13 @@
 # Mistakes — Active Guidelines
 
+## Validate quote coverage before reaction color — 2026-11-02
+
+The first calendar preview reused IEX-only adjusted closes and described them too broadly as a market reaction. The owner questioned Microsoft's color. The issuer's official lookup and a fresh consolidated SIP probe agreed on −0.16%, versus the cached IEX −0.35%; the opening gap was positive but the next close was negative. Calendar observations now explicitly fetch SIP, expose the exact close dates and retain no IEX fallback. Verify the feed as well as arithmetic before accepting a reaction percentage.
+
+## Reuse the complete provider adapter — 2026-11-01
+
+The first calendar-reaction probe found a duplicate `get_market_calendar` definition with a different calling convention. I had read only part of the existing adapter. Removed the duplicate and reused the existing keyword-based API; a real provider replay then measured all completed past events. Search the complete adapter and its callers before adding a provider capability.
+
 ## Peak-priced catch-up included in normal cost forecast — 2026-10-29
 
 The initial $43–$58 weekday projection mixed the evening catch-up’s double-price tokens with normal scheduled off-peak runs. Its $9.25 recorded estimate remains correct, but the same tokens price at $4.63 off-peak. The normalized recent-run extrapolation is approximately $38–$46 per scheduled weekday, with unresolved charges and abnormal failures separate. Compare price bands and input/output/cache usage before attributing a cost increase to a release. [Corrected evidence](verification/event-adaptive-reliability-2026-10-28/workload-cost-recheck-20261029.json).

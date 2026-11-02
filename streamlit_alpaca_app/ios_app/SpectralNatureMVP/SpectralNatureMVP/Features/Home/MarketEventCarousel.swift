@@ -1,6 +1,18 @@
 import SwiftUI
 
 struct MarketEventCalendar: Codable {
+  struct Reaction: Codable {
+    let symbol: String
+    let returnPct: Double
+    let startSession: String
+    let endSession: String
+    let windowLabel: String
+
+    var color: Color {
+      returnPct == 0 ? Theme.text : (returnPct > 0 ? Theme.gain : Theme.loss)
+    }
+  }
+
   struct Event: Codable, Identifiable {
     let id: String
     let name: String
@@ -19,6 +31,7 @@ struct MarketEventCalendar: Codable {
     var timingLabel: String? = nil
     var timingPrecision: String? = nil
     var sourceAsOf: String? = nil
+    var marketReaction: Reaction? = nil
 
     var label: String { ticker ?? shortLabel ?? name }
   }
@@ -82,7 +95,9 @@ struct MarketEventCarousel: View {
   }
 
   private var height: CGFloat {
-    expanded ? 44 + CGFloat(min(calendar.days.map { $0.events.count }.max() ?? 0, 7)) * 40 : 104
+    let index = calendar.days.firstIndex { $0.id == position } ?? 0
+    let visible = calendar.days.enumerated().filter { abs($0.offset - index) <= 2 }
+    return expanded ? 44 + CGFloat(min(visible.map { $0.element.events.count }.max() ?? 0, 7)) * 40 : 104
   }
 
   private var animation: Animation? {
@@ -218,7 +233,7 @@ struct MarketEventCarousel: View {
               Text(event.label)
                 .font(.system(size: 12 + CGFloat(min(1, max(0, event.importance))) * 2,
                               weight: selection?.event == event.id ? .semibold : .medium))
-                .foregroundStyle(selection?.event == event.id ? Theme.teal : Theme.text)
+                .foregroundStyle(event.marketReaction?.color ?? Theme.text)
                 .lineLimit(2).minimumScaleFactor(0.7).multilineTextAlignment(.center)
                 .frame(width: width, height: expanded ? 40 : 30)
                 .contentShape(Rectangle())
@@ -256,6 +271,15 @@ struct MarketEventCarousel: View {
       }
       if event.confirmationStatus == "expected" {
         Text("Expected date").font(.caption).foregroundStyle(Theme.secondaryText)
+      }
+      if let reaction = event.marketReaction {
+        VStack(alignment: .leading, spacing: 4) {
+          Text("\(reaction.symbol) \(reaction.returnPct > 0 ? "+" : "")\(String(format: "%.2f", reaction.returnPct))%")
+            .font(.subheadline.weight(.semibold).monospacedDigit())
+            .foregroundStyle(reaction.color)
+          Text("\(reaction.windowLabel) · \(reaction.startSession) → \(reaction.endSession) close")
+            .font(.caption2).foregroundStyle(Theme.secondaryText)
+        }
       }
       if let summary = event.summary, !summary.isEmpty {
         Text(summary).font(.subheadline)

@@ -1,5 +1,9 @@
 # Learnings — Active Guidelines
 
+## Calendar history and reaction windows — 2026-11-01
+
+Expected earnings calendars cannot backfill reported dates. Retain actual company earnings history separately and share the free provider request allowance across environments. Use publisher trading sessions and one explicitly chosen reaction convention. The owner selected only the next trading day’s close-to-close return for this carousel. Consolidated SIP prices match official issuer closes; IEX-only closes can differ and must not silently determine a consolidated-market reaction. A missing close is unavailable data, not a holiday. Share-price reaction is distinct from an earnings surprise. Keep colors neutral until the required sessions are complete, and expose the measured dates on expansion. See [the calendar design](plans/CALENDAR_HISTORY_REACTIONS_2026-11-01.md).
+
 ## Normalize inference prices before projecting costs — 2026-10-29
 
 Separate scheduled off-peak usage from exceptional peak-priced catch-ups before extrapolating a daily cost. The same latest Home tokens cost $9.25 at peak and $4.63 off-peak. Provider prefix caching reduces input cost, while artifact reuse avoids complete repeated calls; they are different mechanisms. Preserve output-token costs and unknown attempts when estimating savings. A model-preserving cache-only counterfactual does not establish achievable cache hits or unchanged qualitative coverage. See [cost evidence](verification/event-adaptive-reliability-2026-10-28/workload-cost-recheck-20261029.json).

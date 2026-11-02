@@ -13,7 +13,9 @@
 .events.expanded button span { line-height: 17px; }
 .events.expanded { height: 280px; overflow-y: auto; scrollbar-width: none; }
 .expanded button { height: 40px; }
-.events button.selected { color: var(--teal); }
+.events button.selected { font-weight: 600; }
+.reaction { display: grid; gap: .3rem; margin: .8rem 0; }
+.reaction span { color: var(--muted); font-size: 11px; }
 .footer { display: flex; align-items: center; justify-content: center; gap: .5rem; color: var(--muted); font-size: 11px; padding-top: .5rem; }
 .footer button { font-size: 20px; min-width: 44px; min-height: 32px; }
 .detail { border-top: 1px solid var(--line); padding: 1rem 0 0; margin-top: .8rem; font-size: 12px; }

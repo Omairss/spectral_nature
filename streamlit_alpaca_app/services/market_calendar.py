@@ -15,7 +15,7 @@ from lxml import html
 import pandas as pd
 import requests
 
-from services.alpha_vantage import earnings_calendar
+from services.alpha_vantage import AlphaVantageClient, AlphaVantageQuotaError, earnings_calendar
 from services.fred import FREDClient
 
 DATASET = "market_event_calendar"
@@ -174,9 +174,64 @@ def parse_earnings(rows: list[dict], ranks: dict[str, float] | None = None) -> l
             date.fromisoformat(row["reportDate"]), url="https://www.alphavantage.co/documentation/#earnings-calendar",
             type="earnings", ticker=symbol, short_label=symbol, fiscal_period=period,
             confirmation_status="expected", timing_precision="session" if session else "date", timing_label=session,
+            report_session=row.get("timeOfTheDay") or None,
+            source_observed_at=row.get("_fetched_at"),
             importance=(ranks or {}).get(symbol, 0.5),
             facts=[["Fiscal period", period]] + ([["EPS estimate", row["estimate"] + " " + row.get("currency", "")]] if row.get("estimate") else [])))
     return events
+
+
+def collect_reported_earnings(api_key: str, *, now: datetime, start: date, end: date,
+                              companies: dict[str, str], ranks: dict[str, float],
+                              previous_events: list[dict], priorities: dict[str, float] | None = None,
+                              batch_size: int = 4) -> SourceResult:
+    """Progressive free backfill; verified reports supersede expected dates."""
+    if not api_key:
+        return SourceResult("alpha_vantage_history", status="not_configured")
+    client = AlphaVantageClient(api_key, now=now)
+    snapshots = client.history_snapshot(list(companies))
+    today = now.astimezone(NY).date().isoformat()
+    reported = {e["id"] for e in previous_events if e.get("confirmation_status") == "reported"}
+    pending = {e["ticker"] for e in previous_events if e.get("type") == "earnings" and e["id"] not in reported
+               and e.get("confirmation_status") != "reported" and start.isoformat() <= e["date"] < today}
+    due = [s for s in companies
+           if now.timestamp() - float(snapshots.get(s, {}).get("last_attempt_at", 0)) >= 86400
+           and (not snapshots.get(s, {}).get("fetched_at") or
+                now.timestamp() - float(snapshots[s]["fetched_at"]) >= (86400 if s in pending else 30 * 86400))]
+    due.sort(key=lambda s: (-(priorities or ranks).get(s, 0), s not in pending,
+                           float(snapshots.get(s, {}).get("fetched_at", 0)), s))
+    attempted, failures, limited = 0, {}, False
+    for symbol in due[:batch_size]:
+        try:
+            attempted += 1
+            snapshots[symbol] = client.history(symbol)
+        except AlphaVantageQuotaError:
+            limited = True
+            break
+        except Exception as exc:
+            failures[symbol] = type(exc).__name__
+    events = []
+    for symbol, snapshot in snapshots.items():
+        if not snapshot.get("fetched_at"):
+            continue
+        checked = datetime.fromtimestamp(snapshot["fetched_at"], timezone.utc).isoformat()
+        for row in snapshot.get("rows", []):
+            if not start.isoformat() <= row["reportedDate"] <= min(end.isoformat(), today):
+                continue
+            event = parse_earnings([{"symbol": symbol, "name": companies[symbol],
+                "reportDate": row["reportedDate"], "fiscalDateEnding": row["fiscalDateEnding"],
+                "timeOfTheDay": row.get("reportTime", ""), "estimate": row.get("estimatedEPS", ""),
+                "_fetched_at": checked}], ranks)[0]
+            event.update(confirmation_status="reported", source_url="https://www.alphavantage.co/documentation/#earnings")
+            event["facts"] = [["Fiscal period", row["fiscalDateEnding"]]] + [
+                [label, row[key]] for key, label in [("reportedEPS", "Reported EPS"), ("estimatedEPS", "EPS estimate")]
+                if row.get(key) not in (None, "None", "", "NaN")]
+            events.append(event)
+    coverage = {"companies": len(companies), "cached_companies": sum(bool(v.get("fetched_at")) for v in snapshots.values()),
+                "attempted": attempted, "pending_companies": max(0, len(due) - attempted),
+                "request_allowance_reached": limited, "failures": failures}
+    return SourceResult("alpha_vantage_history", events, status="available" if events or not failures else "failed",
+                        error="Partial company history unavailable" if failures else "", coverage=coverage)
 
 
 def fetch(url: str) -> bytes:
@@ -268,10 +323,16 @@ def merge_calendar(previous: dict, sources: list[SourceResult], *, now: datetime
             continue
         for event in source.events:
             old = events.get(event["id"], {})
+            if old.get("confirmation_status") == "reported" and event.get("confirmation_status") == "expected":
+                continue
             history = list(old.get("previous_dates", []))
             if old and old.get("date") != event["date"]:
                 history.append({"date": old["date"], "scheduled_at_utc": old.get("scheduled_at_utc"), "revised_at": observed})
-            events[event["id"]] = {**event, "previous_dates": history, "last_seen_at": observed}
+            events[event["id"]] = {**event, "previous_dates": history,
+                                   "last_seen_at": event.get("source_observed_at") or observed}
+            if old.get("market_reaction") and all(old.get(k) == event.get(k) for k in
+                    ("date", "scheduled_at_utc", "report_session", "type", "ticker", "confirmation_status", "cancelled")):
+                events[event["id"]]["market_reaction"] = old["market_reaction"]
     return {"schema_version": 1, "as_of": observed, "window_start": start.isoformat(), "window_end": end.isoformat(),
             "sources": status, "events": sorted(events.values(), key=lambda e: (e["date"], e.get("scheduled_at_utc") or "", e["id"]))}
 
@@ -282,7 +343,7 @@ def calendar_from_frame(frame: pd.DataFrame) -> dict:
     return json.loads(str(frame.iloc[-1]["calendar_json"]))
 
 
-def project_calendar(state: dict, *, reference: date, past_days: int = 7, future_days: int = 90) -> dict | None:
+def project_calendar(state: dict, *, reference: date, past_days: int = 30, future_days: int = 90) -> dict | None:
     if not state:
         return None
     start, end = reference - timedelta(days=past_days), reference + timedelta(days=future_days)
@@ -305,6 +366,7 @@ def project_calendar(state: dict, *, reference: date, past_days: int = 7, future
             "source_name": row["source"], "confirmation_status": row["confirmation_status"],
             "timing_label": row.get("timing_label"), "timing_precision": row["timing_precision"],
             "facts": row.get("facts", []), "source_as_of": row.get("last_seen_at"),
+            "market_reaction": row.get("market_reaction"),
         })
     for day in days.values():
         day["events"].sort(key=lambda e: (-e["importance"], e.get("time") or "99:99", e["name"], e["id"]))

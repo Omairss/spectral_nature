@@ -78,7 +78,7 @@ def test_empty_days_remain_continuous_and_all_same_day_earnings_survive():
     events = [source_event("alpha_vantage", str(i), "Issuer earnings", date(2026, 11, 5), url="https://www.alphavantage.co", ticker=str(i)) for i in range(20)]
     state = merge_calendar({}, [SourceResult("alpha_vantage", events)], now=NOW, start=START, end=END)
     public = project_calendar(state, reference=NOW.date())
-    assert len(public["days"]) == 98
+    assert len(public["days"]) == 121
     assert len(next(day for day in public["days"] if day["id"] == "2026-11-05")["events"]) == 20
 
 
