@@ -32,3 +32,6 @@ Native `MarketEventCarousel.swift` decodes the optional numeric DTO and uses sem
 Fresh ARM readback contains38application consumers. Only the existing DEV calendar worker/API/web are development targets; production counterparts are the existing calendar worker/API and both Next gateways. All other images, managed identities, configuration, schedules, secrets and namespaces are retained. Previous complete-image proofs remain linked in the consumer acceptance. Application trees are removed from dependency images before accepted Git files are copied. No extracted application tree supplies release source.
 
 The owner's preceding instruction explicitly requests the production calendar job and phone update. This follow-up extends that same calendar delivery, after local and DEV acceptance. Exact-image qualification, deployed job execution, publication readback and native verification are recorded alongside this review as they finish.
+
+
+Native Simulator build19 is visually accepted. Microsoft expands in place with red−0.16% and October28→29 closes; Lilly shows green+3.19% and October29→30 closes. The five-date fade and stacked events remain, and the attention network stays below the calendar. Both screenshots are retained. No modal or new window is introduced.
