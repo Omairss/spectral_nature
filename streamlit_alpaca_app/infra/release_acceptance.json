@@ -1496,5 +1496,15 @@
   "production_authorization": {
     "owner_instruction": "Add explicit instructions to not use financial jargon, especially for the reviewer. Push this system to prod for an end-to-end trial this week; iterate writing afterwards and update prod only if better.",
     "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-2026-11-01.json"
+  },
+  "development_acceptance": {
+    "status": "accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:93fa79e3ff3936300f7dc6e47b4f2c055a1a5eb0367367f58b2ac834071906e1"
+    },
+    "source_inventory_sha256": "3da9d79f2eadf94a36161cfe2f6a962c562cfacbda7cabde2f74969216611a92",
+    "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-development-2026-11-01.json"
   }
 }
