@@ -1,0 +1,96 @@
+{
+  "recorded_at": "2026-11-02T02:35:27.906424+00:00",
+  "status": "source_contract_review_complete_visual_and_image_review_pending",
+  "data_namespace": "development",
+  "retained_events": 61,
+  "retained_sources": {
+    "bea": {
+      "status": "available",
+      "attempted_at": "2026-11-02T01:56:49.344557+00:00",
+      "last_success_at": "2026-11-02T01:56:49.344557+00:00",
+      "event_count": 19,
+      "error": "",
+      "coverage": {}
+    },
+    "fed": {
+      "status": "available",
+      "attempted_at": "2026-11-02T01:56:49.344557+00:00",
+      "last_success_at": "2026-11-02T01:56:49.344557+00:00",
+      "event_count": 8,
+      "error": "",
+      "coverage": {
+        "monthly_schedules": {
+          "2026-10": "available",
+          "2026-11": "available",
+          "2026-12": "available",
+          "2027-01": "unavailable"
+        }
+      }
+    },
+    "bls": {
+      "status": "failed",
+      "attempted_at": "2026-11-02T01:56:49.344557+00:00",
+      "last_success_at": null,
+      "event_count": 0,
+      "error": "HTTP 403",
+      "coverage": {}
+    },
+    "alpha_vantage": {
+      "status": "not_configured",
+      "attempted_at": "2026-11-02T01:56:49.344557+00:00",
+      "last_success_at": null,
+      "event_count": 0,
+      "error": "",
+      "coverage": {}
+    },
+    "fred_bls": {
+      "status": "available",
+      "attempted_at": "2026-11-02T01:56:49.344557+00:00",
+      "last_success_at": "2026-11-02T01:56:49.344557+00:00",
+      "event_count": 34,
+      "error": "",
+      "coverage": {}
+    }
+  },
+  "home_status": "available",
+  "home_run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+  "calendar_date_count": 98,
+  "calendar_coverage": [
+    "2026-10-25",
+    "2027-01-30"
+  ],
+  "data_review": {
+    "bea_nov25_same_day_releases": [
+      "GDP",
+      "Personal Income and Outlays"
+    ],
+    "bea_nov25_clock": "08:30 ET",
+    "bls_via_fred_clock": null,
+    "fed_dec9_meeting_clock": "14:00 ET",
+    "fed_dec9_conference_clock": "14:30 ET",
+    "authored_prototype_events_migrated": false
+  },
+  "source_captures": {
+    "fred-bls.json": "078025f1484a1f9b73d7f313b844a4e4452224e799609c5834015ce914a2cb11",
+    "fed-december.html": "25eb1b7a49000ec2ffb01bc05eb8d780483a1d5f4e7c2a66aa58be0545554db8",
+    "fed-monthly.html": "4d62bd784694e9ee00bdea0f984a04a0879cbe6954f3ee0d5e1a28b75930792b",
+    "fed-annual.html": "8e4685b23aa50d34df01b43b3550d7cd101b6e0909ba864551e3953407ca9de2",
+    "alpha-demo.csv": "a556ba80cb0a4b99c9733fea9b789d0d4920b3f8951b88d719747f00f24fcbb8",
+    "bea.ics": "81be5c35e43d4a5209536a542012ef406b66a20db7d4e065cf0f73f8d5e6a81d",
+    "fed-october.html": "58411b971bfa94e010f5208e61880df5d9e1923d0e9ea2ebe9142855a1a2f0f8"
+  },
+  "verification": {
+    "calendar_and_home_checks": 16,
+    "existing_fred_checks": 12,
+    "web_gateway_auth_checks": 16,
+    "typecheck": "passed",
+    "native_visual": "pending",
+    "web_visual": "pending",
+    "cloud_exact_image": "pending"
+  },
+  "limits": [
+    "Alpha Vantage owner key is not configured; no earnings records are enabled in shared serving.",
+    "Direct BLS access returned403 locally; FRED fallback provides dates without invented times.",
+    "No model invocation, production promotion or physical-phone update."
+  ]
+}

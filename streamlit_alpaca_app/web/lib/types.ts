@@ -101,6 +101,17 @@ export type HomeTickerSnapshot = {
 export type TrendPoint = { date: string; value: number; period?: string };
 export type DailyDatapoint = { id: string; title: string; significance: string; label: string; kind: string; symbol: string; series_id: string; unit: string; date: string; value: number; period: string; points: TrendPoint[] };
 
+export type MarketEventCalendar = {
+  reference_date: string;
+  as_of: string;
+  days: Array<{ id: string; label: string; events: Array<{
+    id: string; name: string; ticker: string | null; short_label: string | null;
+    type: string; time: string | null; importance: number; confirmation_status: string;
+    timing_label: string | null; timing_precision: string; source_url: string; source_as_of: string | null;
+    facts: string[][];
+  }> }>;
+};
+
 export type HomeView = {
   status: "available" | "unavailable";
   view_date: string;
@@ -116,6 +127,7 @@ export type HomeView = {
     audio_mime_type: string;
   };
   graph: VisualizationArtifact | null;
+  calendar?: MarketEventCalendar | null;
   beats: HomeBeat[];
   daily_datapoints: DailyDatapoint[];
   daily_datapoints_as_of?: string;

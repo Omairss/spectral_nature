@@ -13,6 +13,12 @@ struct MarketEventCalendar: Codable {
     let context: String?
     let reaction: String?
     let facts: [[String]]?
+    var sourceUrl: String? = nil
+    var sourceName: String? = nil
+    var confirmationStatus: String? = nil
+    var timingLabel: String? = nil
+    var timingPrecision: String? = nil
+    var sourceAsOf: String? = nil
 
     var label: String { ticker ?? shortLabel ?? name }
   }
@@ -76,7 +82,7 @@ struct MarketEventCarousel: View {
   }
 
   private var height: CGFloat {
-    expanded ? 44 + CGFloat(min(calendar.days.map { $0.events.count }.max() ?? 0, 7)) * 40 : 94
+    expanded ? 44 + CGFloat(min(calendar.days.map { $0.events.count }.max() ?? 0, 7)) * 40 : 104
   }
 
   private var animation: Animation? {
@@ -213,12 +219,12 @@ struct MarketEventCarousel: View {
                 .font(.system(size: 12 + CGFloat(min(1, max(0, event.importance))) * 2,
                               weight: selection?.event == event.id ? .semibold : .medium))
                 .foregroundStyle(selection?.event == event.id ? Theme.teal : Theme.text)
-                .lineLimit(1).minimumScaleFactor(0.7)
-                .frame(width: width, height: expanded ? 40 : 22)
+                .lineLimit(2).minimumScaleFactor(0.7).multilineTextAlignment(.center)
+                .frame(width: width, height: expanded ? 40 : 30)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("\(event.name), \(event.time.map { $0 + " ET" } ?? "time unconfirmed")")
+            .accessibilityLabel("\(event.name), \(event.time.map { $0 + " ET" } ?? event.timingLabel ?? "time unconfirmed")")
             .accessibilityIdentifier("calendar-event-\(event.id)")
           }
         }
@@ -244,7 +250,12 @@ struct MarketEventCarousel: View {
         Spacer()
         if let time = event.time {
           Text(time + " ET").font(.caption.monospacedDigit()).foregroundStyle(Theme.secondaryText)
+        } else if let timing = event.timingLabel {
+          Text(timing).font(.caption).foregroundStyle(Theme.secondaryText)
         }
+      }
+      if event.confirmationStatus == "expected" {
+        Text("Expected date").font(.caption).foregroundStyle(Theme.secondaryText)
       }
       if let summary = event.summary, !summary.isEmpty {
         Text(summary).font(.subheadline)
@@ -265,6 +276,17 @@ struct MarketEventCarousel: View {
       }
       if let reaction = event.reaction, !reaction.isEmpty {
         Text(reaction).font(.caption).foregroundStyle(Theme.secondaryText)
+      }
+      if let source = event.sourceUrl, let url = URL(string: source),
+         ["https", "http"].contains(url.scheme?.lowercased() ?? "") {
+        HStack {
+          Link("Source", destination: url).font(.caption).foregroundStyle(Theme.teal)
+          Spacer()
+          if let checked = event.sourceAsOf, let date = Format.date(checked) {
+            Text("Checked " + date.formatted(date: .abbreviated, time: .omitted))
+              .font(.caption2).foregroundStyle(Theme.secondaryText)
+          }
+        }
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)

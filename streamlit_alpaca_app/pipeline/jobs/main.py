@@ -42,6 +42,7 @@ from pipeline.jobs.attention_ticker_snapshot_build import (
     run_attention_ticker_snapshot_build as run_attention_ticker_snapshot_build_job,
 )
 from pipeline.jobs.daily_market_datapoints_build import run_daily_market_datapoints_build
+from pipeline.jobs.market_calendar_refresh import run_market_calendar_refresh as run_market_calendar_refresh_job
 from services.attention_home_1d import resolve_macro_anchor_symbols
 from services.attention_context_llm import (
     build_attention_context_narratives,
@@ -2741,6 +2742,11 @@ def run_daily_datapoints(ctx: JobContext, conn: Any | None = None) -> None:
 
 
 
+def run_market_calendar_refresh(ctx: JobContext, conn: Any | None = None) -> dict:
+    return run_market_calendar_refresh_job(ctx, conn, persist_dataset_fn=_persist_dataset,
+                                           load_materialized_frame_fn=_load_latest_materialized_frame)
+
+
 def run_trading_call_tracking(ctx: JobContext, conn: Any | None = None, *, api: AlpacaAPI | None = None) -> None:
     """Price refresh for approved calls; never waits for or starts inference."""
     from services import trading_call_tracking as tracking
@@ -3538,6 +3544,7 @@ def main() -> None:
         "universe-builder": run_universe_builder,
         "equities-intraday-preload": run_equities,
         "macro-fred-daily": run_fred,
+        "market-calendar-refresh": run_market_calendar_refresh,
         "commodities-regime": run_commodities,
         "options-liquid-universe": run_options,
         "news-ingest-and-features": run_news,

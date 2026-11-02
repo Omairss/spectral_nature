@@ -1,0 +1,31 @@
+# Live calendar source and preservation review — November 1, 2026
+
+The authorized change connects the approved event carousel to real retained schedules, with one independent producer and shared Home payload. Development implementation is authorized; production promotion is not. The source is the actual Git worktree `feature/live-market-calendar-20261101`, based on `d3cad0cf`, whose server inventory is the accepted October29 runtime. The original IDE checkout and ongoing Market-First research are preserved separately.
+
+## Read-only source and operational review
+
+Personally inspected real Fed annual/monthly entries, BEA iCalendar and Alpha Vantage's documented public-demo CSV. The existing authenticated FRED integration supplied BLS release dates after direct BLS requests returned403. The CSV's missing company name is retained under its actual symbol; missing a display name does not invalidate thousands of usable date records. Rate/entitlement JSON is rejected as a calendar. No public-demo key is allowed in the application's production transport or default configuration.
+
+The actual background handler published61real agency events into the `development` materialized namespace. A separate process read back its immutable dataset version and projected the complete Home DTO:98continuous dates, optional calendar, existing brief and graph. The publication is recorded in `retained-calendar.json`; the operator readback is summarized in `LOCAL.json`. November25 retains both GDP and Personal Income/Outlays at08:30ET; November6 jobs and November10 CPI from FRED retain unknown times. December9 FOMC meeting and press conference are separate14:00/14:30ET records from the official monthly calendar. No authored October prototype event was migrated.
+
+Calendar/Home operational checks pass16cases; the unchanged existing FRED behavior passes12focused cases. Web type checking and16existing Home/gateway/auth checks pass. These establish date/publication contracts and preservation, not the quality of any generated narrative. No model was invoked. Native/web visual inspection and exact-image development qualification remain required before deployment.
+
+## Changed source review
+
+| Files | Review and preserved behavior |
+|---|---|
+| `services/alpha_vantage.py` | Owner-key resolution through existing secret infrastructure, structured bulk CSV, no embedded demo key, safe error categories and explicit expected/session timing. No client-side provider call. |
+| `services/market_calendar.py` | Proper iCalendar parsing, publisher HTML date fields, FRED fallback, source IDs, revision history, cancellations, failed/missing-source retention, complete same-day event arrays and continuous dates. No client NLP, recurring-date guesses, fabricated outcomes or sentiment. |
+| `services/fred.py` | Adds publisher release/date methods to its existing owner; existing observation, retry, authentication and dashboard paths are unchanged and checked. Calendar dates are filtered independently of FRED observation-vintage parameters. |
+| `pipeline/jobs/market_calendar_refresh.py`, `pipeline/jobs/main.py` | Adds one handler/dispatch entry. Uses the existing dataset publication/fencing and namespace machinery without changes to them. The handler performs no inference or broker access; public numerical market-cap ranks, with retained universe liquidity as a fallback, inform earnings prominence without a company shortlist. |
+| `services/home_view.py` | Adds optional retained calendar only. Existing summary, complete story/ticker fields, audio identity, graph and Highlights remain on their previous paths. A calendar read failure is optional; replay selects its historical calendar version. |
+| `web/components/market-event-calendar.tsx`, its CSS module, `web/lib/types.ts`, `web/components/home-workspace.tsx` | Same shared field; five-position scrolling/fade, inline expansion, all events and source detail. The graph moves immediately below the calendar when present; the old placement remains when absent. Audio, replay, polling, pending-publication behavior and full graph interactions remain. Removed the graph's redundant plumbing caption/count. Native-client source is separately reviewed below. |
+| `Dockerfile.runtime`, `requirements.txt` | Add pinned iCalendar/timezone dependencies while retaining the source-clearing build boundary and all inherited pinned dependencies. Fresh local installation exposed PyArrow26 requiring NumPy2 despite this application's NumPy<2 contract; constrain fresh PyArrow resolution below26. Local Parquet publication then passes with25.0.1. Existing runtime dependencies are not refreshed by that requirements bound. |
+
+Native `MarketEventCarousel.swift` keeps the approved horizontal geometry, inline expansion and graph placement. Optional source/timing/confirmation fields reveal provenance in the expanded detail. Two-line labels support actual long agency names; compact height grows by10points to104. Actual dates and multiple earnings stay separate. Native source is excluded from the backend source gate, and its signed Simulator build and interaction review are separate evidence.
+
+## Consumers and remaining qualification
+
+Read all36current Azure app/job definitions without mutation. The selected delivery is the existing DEV API/frontend and a new dedicated DEV calendar worker. Keep all21production consumers, all other DEV applications, all existing schedules and every unrelated configuration unchanged. Carry forward the existing immutable image/package proofs for retained consumers and compare the unchanged shared database/publication contracts. Do not treat an old Git checkpoint or a copied hash as a behavior review.
+
+The initial local writer's CLI identity lacked Blob write permission. Reused the application's already-supported storage-account-key operator authentication for the development-only verification; no role, firewall or application authorization was changed. Cloud execution must use its ordinary managed identity. No key is written to source or evidence. An Alpha Vantage owner key remains absent; its adapter is implemented and locally exercised with the external public-demo capture, but shared serving must wait for the owner's key. Do not report earnings ingestion as enabled until that live request succeeds.
