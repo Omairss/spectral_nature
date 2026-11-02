@@ -1,0 +1,852 @@
+{
+  "status": "full_data_first_execution_completed_degraded_quality_rejected_no_deployment",
+  "recorded_at_utc": "2026-11-02T01:36:58.078666+00:00",
+  "owner_authorization": {
+    "question_id": "call_17225840710643a5aaad01726c02013e",
+    "answer": "Approve up to $5 more",
+    "same_cumulative_cap_usd": 38,
+    "prior_charges_and_unknowns_preserved": true
+  },
+  "source_revision": "36f246fe7d9538c6630ee50e712c9a501842e3e8",
+  "engine_revision": "bb76bfa00e1e826241a4",
+  "protocol": {
+    "actual_production_baseline": true,
+    "baseline_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+    "baseline_run_id": "897f8072-05b5-4f11-89de-792daa2093cb",
+    "asof": "2026-10-30T20:50:40.507732+00:00",
+    "publication_only": false,
+    "fresh_numerical_preparation": true,
+    "fresh_common_planner": true,
+    "fresh_investigations": true,
+    "older_candidate_answers_replayed": false,
+    "model": "deepseek-v4-pro",
+    "thinking": "enabled",
+    "reasoning_effort": "high",
+    "sources": "Frozen original captures and pre-run retained research via the actual shared Zopedia reader; no new live discovery. Initial input reconstructed, not claimed an identical original producer invocation.",
+    "manual_prose_edits": false,
+    "production_writes": false,
+    "build": false,
+    "deployment": false
+  },
+  "execution": {
+    "observed_instruments": 999,
+    "numerical_groups": 242,
+    "current_news_rows": 89,
+    "retained_artifacts": 52,
+    "retained_source_captures": 912,
+    "selected_questions": 6,
+    "returned_findings": 4,
+    "completed_research_reviews": 2,
+    "blocked_research_reviews": 2,
+    "public_stories": 13,
+    "production_stories": 11,
+    "final_public_review": "completed",
+    "highlights": "failed_timeout",
+    "research_health": "degraded",
+    "elapsed_seconds": 1954.1183135829633,
+    "stages": [
+      {
+        "ordinal": 1,
+        "task": "source_event_nomination",
+        "question": null,
+        "status": "completed",
+        "review_status": "completed",
+        "error": null
+      },
+      {
+        "ordinal": 2,
+        "task": "source_event_research",
+        "question": "Does Regeneron's Q3 report and Sanofi expansion explain the broad large-cap pharma advance, or are the other group members moving on separate pipelines, Medicare pricing, and rate hedging?",
+        "status": "completed",
+        "review_status": "completed",
+        "error": null
+      },
+      {
+        "ordinal": 3,
+        "task": "source_event_research",
+        "question": "What drove the one-week and twenty-day losses across crypto, miner and brokerage groups, and how much is Coinbase's reported revenue miss versus a Bitcoin/miner-wide repricing?",
+        "status": "no_returned_artifact",
+        "review_status": null,
+        "error": null
+      },
+      {
+        "ordinal": 4,
+        "task": "source_event_research",
+        "question": "Are the AI-infrastructure, cloud and networking losses a continuation of Amazon's Q4 posture and Intel spillover, or are elevated real rates and a pending Microsoft bond/funding step changing the group's discount rate?",
+        "status": "completed",
+        "review_status": "failed",
+        "error": null
+      },
+      {
+        "ordinal": 5,
+        "task": "source_event_research",
+        "question": "What explains the broad regulated-utility advance and related defensive strength while SPY declined—rate protection, macro defensiveness, or electric-power demand—and why did independent power producers lag?",
+        "status": "completed",
+        "review_status": "failed",
+        "error": null
+      },
+      {
+        "ordinal": 6,
+        "task": "source_event_research",
+        "question": "Is the energy group's multi-week strength sufficiently explained by Exxon's refining-led beat and tight product markets, or does today's Tehran/Qatar diplomacy add a geopolitical premium that could reverse?",
+        "status": "completed",
+        "review_status": "completed",
+        "error": null
+      },
+      {
+        "ordinal": 7,
+        "task": "source_event_research",
+        "question": "How far does the prior Intel memory/PC reset explanation carry across today's broad semiconductor, memory and PC-equipment clusters, and which parts require company-specific pricing or AI-demand evidence rather than a single Intel cause?",
+        "status": "no_returned_artifact",
+        "review_status": null,
+        "error": null
+      },
+      {
+        "ordinal": 8,
+        "task": "attention_home_public_surface_quality",
+        "question": null,
+        "status": "completed",
+        "review_status": "completed",
+        "error": null
+      },
+      {
+        "ordinal": 9,
+        "task": "daily_market_datapoints",
+        "question": null,
+        "status": "failed",
+        "review_status": null,
+        "error": "TimeoutError: Final synthesis exceeded its remaining phase budget."
+      }
+    ]
+  },
+  "personal_assessment": {
+    "method": "Read all 11 actual production stories and Brief, the candidate Brief and all 13 stories, all four completed research findings, planner decisions and reviewer edits; trace the Binance original in the supplied public reader. No software prose score or generated acceptance grade.",
+    "useful_change": [
+      "The fresh common planner selected regulated utility versus independent-power divergence, energy and large-cap pharma alongside technology and crypto.",
+      "Utilities and the independent-power contrast now have a dedicated Attention story and appear in Brief. This is an actual gain in discovery from numerical observations.",
+      "The candidate separates some additional company developments including FedEx Freight, Capri and Gilead; more items do not establish complete recall.",
+      "Final public review corrected the overstatement that every large-cap pharma gain had an individually established cause."
+    ],
+    "failures": [
+      "Brief asserts that money rotated into regulated utilities despite no fund-flow data. The research described an interpretation; public writing strengthened it into a statement.",
+      "The crypto story calls the Binance disruption maintenance and omits the reported 6.3 billion dollar breach. The original IREN report describing that breach is readable as source:saa_doc::5e4965ab76eae36f9313319e in the final public reader. Final review did not read it or correct the omission.",
+      "The Amazon business paragraph repeats an unqualified link between the EPS shortfall and interest expense without establishing expected versus actual expense.",
+      "Jargon and process commentary remain: de-rating, payoff calculus, regulated rate-base growth, merchant exposure and demands for tick-level attribution. The capitalized plain-English instruction did not establish compliance.",
+      "Current production has Rivian and a distinct Lilly story that this candidate omits or dilutes. New numerical recall does not guarantee preservation of other consequential coverage."
+    ],
+    "conclusion": "The numerical discovery improvement is real, but this candidate is not sufficiently accurate, clear or reliable for release. The final reviewer was funded and completed; its high-confidence endorsement is not acceptance. A fully successful latest end-to-end qualification remains outstanding."
+  },
+  "verification_failures": {
+    "investigation_failures": "Two selected investigations did not return typed findings after study guard refusals; four returned, with two research reviews blocked by worst-case concurrent reservations.",
+    "mechanical_repair_guard": "Study harness incorrectly rejected two native Pro mechanical JSON-repair calls because their existing mode is non-thinking. These were definitely not sent. This is a study setup defect, not proof of a production defect or a cheaper research model.",
+    "repair_correction": "Keep Pro mandatory. Enforce thinking/high for research and review; allow the existing mechanical schema-repair mode without changing native requests.",
+    "correction_requalified": false,
+    "pending_reservation_handling": "The independent study guard declined rather than waiting for other pending maximums to settle; this is not evidence that production had exhausted credit.",
+    "highlights": "Optional daily datapoint selection timed out after the completed feed. It left one unknown maximum charge; the current Attention and Brief were preserved.",
+    "interpretation": "These execution limitations prevent a whole-system reliability or same-quality savings claim. Keep study defects separate from observed model quality failures."
+  },
+  "costs": {
+    "candidate": {
+      "status": "complete_closed_no_further_paid_work",
+      "known_new_usd": 4.672672,
+      "unknown_new_max_usd": 0.611258,
+      "maximum_new_usd": 5.283930000000001,
+      "native_requests": 33,
+      "known_cumulative_usd": 30.504667,
+      "unknown_cumulative_max_usd": 5.082034,
+      "maximum_cumulative_usd": 35.586701000000005,
+      "cumulative_cap_usd": 38,
+      "pending_requests": 0,
+      "database_stopped": true,
+      "gpu_allocated": false,
+      "production_writes": false,
+      "deployment": false,
+      "review_obligations": {
+        "matched-20261031-full-candidate-20261101:agent.final_synthesis": {
+          "case": "matched-20261031-full-candidate-20261101",
+          "purpose": "agent.final_synthesis",
+          "status": "complete_artifact_retained",
+          "maximum_microusd": 1643644,
+          "basis": "Full 1048576-token context and unchanged 65536-token thinking/high output. Peak multiplier reserved through the original bounded 115-minute run. Only a complete valid public artifact releases this obligation.",
+          "declared_at_utc": "2026-11-02T00:57:57.328974+00:00",
+          "completed_at_utc": "2026-11-02T01:16:34.192884+00:00"
+        },
+        "matched-20261031-full-candidate-20261101:agent.answer_judge": {
+          "case": "matched-20261031-full-candidate-20261101",
+          "purpose": "agent.answer_judge",
+          "status": "complete_artifact_retained",
+          "maximum_microusd": 1643644,
+          "basis": "Full 1048576-token context and unchanged 65536-token thinking/high output. Peak multiplier reserved through the original bounded 115-minute run. Only a complete valid public artifact releases this obligation.",
+          "declared_at_utc": "2026-11-02T00:57:57.328974+00:00",
+          "completed_at_utc": "2026-11-02T01:20:14.912222+00:00"
+        }
+      }
+    },
+    "production": {
+      "production_run_id": "897f8072-05b5-4f11-89de-792daa2093cb",
+      "scope": "Recorded DeepSeek Home core, including source-event research, mover research, group writing, ticker enrichment, public writing/review and Highlights. Excludes optional independent page summaries, audio and embedding charges.",
+      "recorded_attempt_rows": 141,
+      "known_estimated_usd": 6.905194688,
+      "sent_requests_without_charge_receipt": 2,
+      "definitely_not_sent_attempts": 7,
+      "missing_receipt_attempt_ids": [
+        "llmhttp_9aa799aab2564f4cbde1a4b1d6039ea9",
+        "llmhttp_a7eba3b21c7a4049b5dd20c10d10c15d"
+      ],
+      "cost_basis": "Existing native usage receipts and request-time prices; not reconciled billing or a complete total. No new baseline inference purchased."
+    },
+    "comparison_limit": "Both measured cost scopes include Home core/Highlights and exclude audio/embeddings/independent optional pages. Source acquisition was frozen in the candidate; production has two sent DeepSeek requests without cost receipts. Do not present a percentage as demonstrated same-quality savings."
+  },
+  "render_validation": {
+    "displayed_story_fields_checked": 168,
+    "briefs_checked": 2,
+    "actual_production_stories": 11,
+    "candidate_stories": 13,
+    "generated_candidate_matches_embedded_json": true,
+    "canonical_publication_matches_generated_prose": true,
+    "manual_prose_edits": false,
+    "desktop_visual_verified": true,
+    "mobile_visual_verified": false
+  },
+  "actual_public_artifact": {
+    "stories": [
+      {
+        "section": "top_events",
+        "question": "What drove Friday's AI-infrastructure losses and how do Amazon, Intel and Microsoft signals differ?",
+        "source_ids": [
+          "bundle:event::question-0eb7a072c784f7a096f9",
+          "retained-research:d1587b09d54799653e1e72eb95ea3411c357e4ec715cf58ff2311bbc8e14bfbe",
+          "source:saa_doc::1b7db4bc8a04ed9756fa8b3a",
+          "retained-research:f49fac29ef61082bbb0ca4c6df0d27583e8bc9190d65834f570d426c30860e96",
+          "source:saa_doc::f04d92c774c47bab85e6a63e"
+        ],
+        "supporting_symbols": [
+          "AMZN",
+          "INTC",
+          "MSFT",
+          "DELL",
+          "HPE",
+          "CSCO",
+          "ANET",
+          "NTAP",
+          "SMCI",
+          "AMD",
+          "MU",
+          "VRT"
+        ],
+        "time_basis": {
+          "current_observation": "On 2026-10-30, the Nasdaq fell 2.36% and Amazon-linked supplier stocks fell sharply; the evidence was captured by 20:50 UTC.",
+          "background_events": [
+            {
+              "event": "Amazon reported Q3 revenue slightly below consensus and guided Q4 revenue modestly below the prior estimate; it also showed negative free cash flow of $42.4 billion.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "source:saa_doc::1b7db4bc8a04ed9756fa8b3a",
+                "source:saa_doc::f04d92c774c47bab85e6a63e"
+              ]
+            },
+            {
+              "event": "Intel gave weak Q4 guidance, flagged a deepening PC slump and memory shortages, and analysts lowered targets; Dell and HPE fell.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "retained-research:f49fac29ef61082bbb0ca4c6df0d27583e8bc9190d65834f570d426c30860e96"
+              ]
+            },
+            {
+              "event": "Microsoft priced $25 billion of senior notes and lowered calendar 2026 capex to about $170 billion from $175 billion on delayed capacity, while Azure demand still exceeds capacity.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "bundle:event::question-0eb7a072c784f7a096f9"
+              ]
+            }
+          ],
+          "report_dates": "2026-10-29 through 2026-10-30, with Benzinga movers published 2026-10-30 13:39 UTC."
+        },
+        "event_title": "Amazon's modest Q3 miss and Intel's weak Q4 guidance drove Friday's AI-infrastructure losses; Microsoft's $25 billion bond and $5 billion capex cut were funding and supply-timing signals, not the trigger.",
+        "surface_summary_text": "A capital-intensity and demand test, not a rate spike, hit AI hardware and cloud suppliers.",
+        "what_happened_text": "Amazon's Q3 revenue was a little below consensus and Q4 revenue guidance was modestly below estimates, while the company reported negative free cash flow of $42.4 billion even as 2026 capex stayed unchanged. Intel's weak fourth-quarter guidance pointed to a deepening PC slump and memory shortages, and Dell and HPE fell in sympathy. Microsoft separately priced $25 billion of senior notes for general corporate purposes including AI investment and reduced calendar 2026 capex by $5 billion because some third-party capacity deliveries were delayed; Microsoft said Azure demand still exceeds available capacity. The combination repriced cloud, hardware, networking and electrical names, with Amazon suppliers that have direct exposure falling more than Amazon itself.",
+        "why_happened_text": "The same-day decline was an earnings and guidance event. Amazon's light top line plus heavy AI investment without upside caused investors to reprice server, storage and networking suppliers. Intel's weak guide transmitted to PC- and memory-exposed enterprise hardware. Microsoft's bond was financing, not financial stress, and its capex cut was a capacity-timing change rather than a demand cut. Elevated real yields are a slower discount-rate headwind already visible in 20-day losses.",
+        "affected_assets_summary_text": "Dell, HPE, Cisco, Arista, NetApp, Super Micro and Vertiv moved down with the AI-infrastructure group. Amazon itself fell only about 1.4%, while supplier and memory names fell much more.",
+        "business_context_text": "The 10-year Treasury yield was about 5.05% and the 10-year real yield about 2.67% in late October, raising the discount rate for long-duration AI infrastructure. Amazon's earnings shortfall was nearly matched by its new debt interest bill, making financing costs an earnings item.",
+        "watch_next_text": "Watch Intel, Dell and HPE supplier commentary, Amazon AWS capex disclosures, and the final Microsoft bond 8-K after Nov 4.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "top_events",
+        "question": "Why did Alphabet's historic market-value loss renew AI-spending and index-concentration fears?",
+        "source_ids": [
+          "retained-research:e0652deab771dc89e78b029edfd172c1f8679afc87f6537704d7822c4cf75e2c",
+          "source:saa_doc::8af026860902d4786211e1ac",
+          "market-groups"
+        ],
+        "supporting_symbols": [
+          "GOOGL",
+          "GOOG",
+          "QQQ"
+        ],
+        "time_basis": {
+          "current_observation": "On 2026-10-30, Alphabet's loss was reported as $482 billion in one day, while QQQ exposure concerns circulated; evidence captured by 20:50 UTC.",
+          "background_events": [
+            {
+              "event": "Alphabet reported Q3 Search growth slowed despite the fastest query growth in five years, reopening the AI monetization debate.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "retained-research:e0652deab771dc89e78b029edfd172c1f8679afc87f6537704d7822c4cf75e2c"
+              ]
+            },
+            {
+              "event": "Benzinga reported Alphabet's $482B wipeout and asked whether QQQ's big-tech exposure is becoming a risk.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::8af026860902d4786211e1ac"
+              ]
+            }
+          ],
+          "report_dates": "2026-10-29 to 2026-10-30."
+        },
+        "event_title": "Alphabet's $482 billion one-day loss renewed AI-spending and QQQ big-tech concentration fears after Q3 Search growth slowed.",
+        "surface_summary_text": "Investors re-rated a dominant consumer-internet asset because fast query growth did not translate into faster Search revenue.",
+        "what_happened_text": "Alphabet's Q3 results showed slower Search revenue growth despite the fastest query-volume growth in five years. The stock's one-day market-value decline was reported at about $482 billion, and exchange-traded fund commentary raised the issue that cap-weighted QQQ remains heavily exposed to mega-cap technology. The move added to the day's AI-infrastructure selling pressure.",
+        "why_happened_text": "Slower Search monetization reopened the AI monetization debate: if more queries are answered by AI features that generate less advertising, the company's largest profit engine may compound slower than expected. The index-concentration concern is a portfolio-risk read-through, not proof of a new fundamental development at other large tech companies.",
+        "affected_assets_summary_text": "GOOGL and GOOG were the direct assets; QQQ and other mega-cap technology names had psychological spillover. The record does not establish that Alphabet caused the broader Nasdaq decline.",
+        "business_context_text": "Alphabet is a benchmark for AI consumer platforms, so its monetization signal is treated as a read-through for search and advertising peers.",
+        "watch_next_text": "Watch Alphabet's next-quarter Search revenue and AI query monetization commentary, and QQQ flows or breadth as a test of concentration risk.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "top_events",
+        "question": "Why did regulated utilities advance while AI/tech fell and independent power producers lagged on 2026-10-30?",
+        "source_ids": [
+          "bundle:event::question-a28e0103c11233925fd8",
+          "market-observations",
+          "market-groups",
+          "source:saa_doc::44dcae4f63a9760f312e19b9",
+          "source:saa_doc::eff9023eeac0e440c1bfa343"
+        ],
+        "supporting_symbols": [
+          "AEE",
+          "AEP",
+          "DUK",
+          "SO",
+          "XEL",
+          "CEG",
+          "TLN",
+          "NRG",
+          "VST"
+        ],
+        "time_basis": {
+          "current_observation": "As of 2026-10-30, the regulated utility group had 22 of 24 members advancing with a 0.72% mean daily return, while the IPP group was down 1.40% with all four members down.",
+          "background_events": [
+            {
+              "event": "AEP announced a $4 billion fuel cell investment backed by a long-term Google deal.",
+              "event_date": "unknown",
+              "source_ids": [
+                "source:saa_doc::44dcae4f63a9760f312e19b9"
+              ]
+            },
+            {
+              "event": "The Ratepayers Protection Act passed the House 417-3, shifting data-center grid upgrade costs to the centers themselves.",
+              "event_date": "unknown",
+              "source_ids": [
+                "source:saa_doc::eff9023eeac0e440c1bfa343"
+              ]
+            }
+          ],
+          "report_dates": "2026-10-30 through 2026-10-30; market observations at 20:50 UTC."
+        },
+        "event_title": "Regulated utility stocks advanced defensively and on data-center electrification as AI/tech sold off, while independent power producers lagged on merchant exposure.",
+        "surface_summary_text": "The utility bid favored regulated rate-base growth over merchant AI power prices.",
+        "what_happened_text": "Regulated utilities moved up as the Nasdaq fell sharply. The regulated group recorded a mean daily return of 0.72% with 22 of 24 members rising, and a 20-day mean return of about 10.5%; independent power producers fell 1.40% on the day with all four members down. AEP disclosed a $4 billion fuel cell investment backed by a long-term Google deal, and the House passed the Ratepayers Protection Act by 417-3 to shift data-center grid upgrade costs to the centers themselves.",
+        "why_happened_text": "The best-supported interpretation is rotation out of AI and tech into regulated utilities as defensive income-plus-growth exposure. Regulated utilities have visible data-center infrastructure demand and lower regulatory risk if large users pay for their own grid upgrades, while IPPs are more exposed to merchant power prices, project financing and AI capex concerns. Same-day moves alone do not prove fund flows.",
+        "affected_assets_summary_text": "Regulated utilities such as AEE, AEP, DUK, SO and XEL benefited; IPPs CEG, TLN, NRG and VST diverged, a useful counterexample to a broad utility-sector rally.",
+        "business_context_text": "Kalshi showed about 71% probability of a 25bp Fed hike in December, which normally pressures dividend utilities, making the advance more consistent with defensive rotation than falling yields.",
+        "watch_next_text": "Track utility capex and guidance, power prices, Treasury yields, and any IPP data-center contract or financing announcements.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "top_events",
+        "question": "What was behind ExxonMobil's Q3 beat and the energy group advance, and what is the Tehran/Qatar diplomatic risk?",
+        "source_ids": [
+          "bundle:event::question-5f187ea9edffa9465493",
+          "retained-research:1334af7dace69866078ed44854cac876c2a420aa87a7ba5c01f23c4a912e95a5",
+          "source:saa_doc::becd6ef1f6d938c6edbe5368",
+          "source:saa_doc::91bac3bff979cd29e1a37e36",
+          "source:saa_doc::ccae609748ed19bc7b6c6e8f"
+        ],
+        "supporting_symbols": [
+          "XOM",
+          "VLO",
+          "PSX",
+          "MPC",
+          "PBF",
+          "DINO",
+          "COP",
+          "FANG",
+          "APA",
+          "CVX",
+          "OXY",
+          "LNG"
+        ],
+        "time_basis": {
+          "current_observation": "On 2026-10-30, Exxon shares rose about 2.2% after Q3 results, refiners rose 2.8% to 4.0%, and energy groups showed broad strength; evidence captured by 20:50 UTC.",
+          "background_events": [
+            {
+              "event": "ExxonMobil reported Q3 adjusted EPS above consensus on stronger refining, raised its dividend, and announced a $20 billion 2027 buyback target.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "retained-research:1334af7dace69866078ed44854cac876c2a420aa87a7ba5c01f23c4a912e95a5",
+                "source:saa_doc::becd6ef1f6d938c6edbe5368"
+              ]
+            },
+            {
+              "event": "Exxon's CEO said diesel is the key crunch point and the company plans more than $100 billion in capital expenses through 2030.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::91bac3bff979cd29e1a37e36"
+              ]
+            },
+            {
+              "event": "Qatari negotiators have been in Tehran for 12 hours with ongoing talks, and Qatari mediators stayed in regular contact with the White House.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::ccae609748ed19bc7b6c6e8f"
+              ]
+            }
+          ],
+          "report_dates": "2026-10-30, with Benzinga results published 2026-10-30 and Tehran report at 19:59 UTC."
+        },
+        "event_title": "ExxonMobil's refining-led Q3 beat raised shareholder returns and lifted energy peers, while Tehran/Qatar talks are a two-sided geopolitical reversal risk.",
+        "surface_summary_text": "Refining strength, not broad crude-price gains, anchored Exxon's beat; the energy group's multi-week advance is a separate geopolitical supply-risk premium.",
+        "what_happened_text": "Exxon's adjusted earnings and revenue came in above consensus, with Energy Products earnings more than doubling as refining margins tightened. Management raised the quarterly dividend, announced a $20 billion 2027 buyback target, and said the company expects about 350,000 oil-equivalent barrels per day to remain offline from Middle East disruptions if current conditions persist. Refiners and integrated oil names rose, and the E&P group had a 20-day excess return of about 16.8 percentage points. Separately, Qatari negotiators were in Tehran for ongoing talks while Qatari mediators were in contact with the White House.",
+        "why_happened_text": "Benzinga linked the stronger refining margins to the U.S.-Israeli conflict with Iran and Ukrainian strikes on Russian refineries, reducing fuel-making capacity especially in diesel. Exxon's beat explains meaningful refiner and integrated strength, but the much larger E&P and integrated multi-week gains point to a shared crude-supply-risk premium. The Tehran talks are a process update: de-escalation could reverse the premium, failure could extend it.",
+        "affected_assets_summary_text": "Refiners VLO, PSX, MPC, PBF and DINO bounced in line with the refining beat; E&P and integrated peers such as COP, FANG, APA, CVX and OXY reflected multi-week crude-supply-risk pricing. LNG also gained.",
+        "business_context_text": "The refining group had a one-week excess return of about -1.6 percentage points before today, so today's refiner bounce is more consistent with catch-up to Exxon's refining beat than with a fresh geopolitical premium.",
+        "watch_next_text": "Watch whether the Tehran talks produce a ceasefire or agreement, regional refining margins and distillate inventory data, and any Rovuma final investment decision.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Why did Regeneron jump and what does its Q3 report mean for large-cap pharma?",
+        "source_ids": [
+          "bundle:event::question-cb0a2bfdc39bdd96613c",
+          "retained-research:4a0838d423943daf0fb9c71d5082e42293fa0370568f9f790665661fd0f9d6ea",
+          "source:saa_doc::43d6ae1996c51c7a39d156b9"
+        ],
+        "supporting_symbols": [
+          "REGN",
+          "LLY",
+          "GILD",
+          "AZN",
+          "VRTX",
+          "BMY",
+          "AMGN",
+          "NVS",
+          "JNJ"
+        ],
+        "time_basis": {
+          "current_observation": "At about 20:35 UTC on 2026-10-30, REGN was observed at $927.63, up about 13.5% from the prior close.",
+          "background_events": [
+            {
+              "event": "Regeneron reported Q3 revenue up 36% to $5,116 million, GAAP diluted EPS up 35%, and non-GAAP diluted EPS up 70%; Sanofi collaboration revenue rose 68%.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::43d6ae1996c51c7a39d156b9"
+              ]
+            },
+            {
+              "event": "Regeneron expanded its Sanofi collaboration with a $1.0 billion upfront payment to be recognized in Q4 2026 and up to $7.0 billion in future milestones.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::43d6ae1996c51c7a39d156b9"
+              ]
+            }
+          ],
+          "report_dates": "2026-10-30 06:30 ET press release; Q3 release captured 2026-10-30 19:03 UTC; quote observed 20:35 UTC."
+        },
+        "event_title": "Regeneron's Q3 revenue growth and Sanofi expansion explain its own 13.5% jump, but large-cap pharma breadth lacks a single established driver.",
+        "surface_summary_text": "Company-specific pipeline and collaboration news moved Regeneron; peer gains have separate or unestablished catalysts.",
+        "what_happened_text": "Regeneron reported total revenue of $5,116 million, up 36% from a year earlier, with Sanofi collaboration revenue up 68% to $2,724 million. Dupixent global net sales recorded by Sanofi rose 35%, EYLEA HD U.S. sales rose 62%, and Libtayo global sales rose 51%. The company updated full-year guidance by raising R&D and capex ranges while lowering SG&A ranges and raising gross-margin guidance, and announced a $1.0 billion Sanofi upfront payment to be recognized in Q4. Regeneron shares rose about 13.5% in the same session.",
+        "why_happened_text": "The move is directly tied to Regeneron's Q3 report, Sanofi expansion and pipeline progress. For the broader large-cap pharma group, the evidence identifies separate analyst actions or company news for several names, but it does not establish a common Regeneron-driven cause or isolate which item dominated Regeneron's move.",
+        "affected_assets_summary_text": "AZN, GILD, LLY, VRTX and AMGN rose in the same snapshot. Separate catalysts are available for several of them, but no supplied evidence establishes that group breadth came from Regeneron.",
+        "business_context_text": "Regeneron has about 50 product candidates in clinical development and expects an FDA decision for cemdisiran in generalized myasthenia gravis next month.",
+        "watch_next_text": "Watch consensus estimate comparisons and closing prints, and company-specific catalysts for other pharma names.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Why did FedEx Freight gain sharply after its first standalone results?",
+        "source_ids": [
+          "retained-research:1cfe1c61e9ff85e0b21a0c14c8ffef9c2fb31fa622b824c235553c0df8a7f8da",
+          "source:saa_doc::3a10423d1ca285eb3da80b9f"
+        ],
+        "supporting_symbols": [
+          "FDXF",
+          "FDX"
+        ],
+        "time_basis": {
+          "current_observation": "FedEx Freight gained about 14.8% intraday on 2026-10-30 after its first standalone quarterly report.",
+          "background_events": [
+            {
+              "event": "FedEx Freight Holding Company filed its first standalone 10-Q and held a Q1 2027 earnings call.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "source:saa_doc::3a10423d1ca285eb3da80b9f"
+              ]
+            }
+          ],
+          "report_dates": "2026-10-29 to 2026-10-30."
+        },
+        "event_title": "FedEx Freight gained about 14.8% intraday after its first standalone results explained the new reporting structure.",
+        "surface_summary_text": "The market rewarded the first look at the freight business as a standalone company.",
+        "what_happened_text": "FedEx Freight, which reports separately from FedEx, produced its first standalone results. The stock rose about 14.8% intraday on 2026-10-30 after the initial report and earnings call became available.",
+        "why_happened_text": "The first standalone disclosure gives investors a cleaner view of the freight segment's economics, and the positive price response is consistent with that information resolving favorably. The evidence does not include a detailed forecast or consensus comparisons, so the move is not fully attributable to a single metric.",
+        "affected_assets_summary_text": "Freight and ground peers such as XPO, SAIA and Old Dominion could be comparables if the standalone results establish a valuation benchmark.",
+        "business_context_text": "FedEx Freight's separation creates a new standalone reporting entity, making its margins and growth more transparent.",
+        "watch_next_text": "Watch subsequent FedEx Freight guidance and peer valuation reactions.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "What drove CareDx's sharp gain after Q3 results?",
+        "source_ids": [
+          "retained-research:106ddebbc66903db4b53ba623dd628b8672cda6a81fa13a5337f1bb4b278db99",
+          "source:saa_doc::8a66efc10223ec58c8ccaa37"
+        ],
+        "supporting_symbols": [
+          "CDNA"
+        ],
+        "time_basis": {
+          "current_observation": "CareDx was observed up about 19.8% intraday on 2026-10-30 after its Q3 report.",
+          "background_events": [
+            {
+              "event": "CareDx reported Q3 2026 results and raised guidance.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "source:saa_doc::8a66efc10223ec58c8ccaa37"
+              ]
+            }
+          ],
+          "report_dates": "2026-10-29 to 2026-10-30."
+        },
+        "event_title": "CareDx rose about 19.8% after Q3 results and raised guidance.",
+        "surface_summary_text": "A diagnostics company's updated outlook drove a one-day rerating.",
+        "what_happened_text": "CareDx reported Q3 2026 financial results and raised its guidance. The stock was observed up about 19.8% intraday on 2026-10-30.",
+        "why_happened_text": "The gain is consistent with a company-specific earnings and guidance event, but the evidence does not include consensus comparisons or tick-level attribution, so the magnitude cannot be isolated from position unwinds or group trading.",
+        "affected_assets_summary_text": "No direct peer linkage is established in the supplied evidence.",
+        "business_context_text": "CareDx operates in organ-transplant diagnostics; guidance raises are high-impact for small-cap healthcare.",
+        "watch_next_text": "Watch whether the raised guidance is reflected in analyst estimates and whether volume confirms the move.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "What sent Global Payments higher, and what is the status of the takeover report?",
+        "source_ids": [
+          "retained-research:71b8eeca7cd66859a160b269e2c466a3355ac73c00d3a8bb54666c9cf00d97b8",
+          "source:saa_doc::35ed620e7c689d665fdad5ca"
+        ],
+        "supporting_symbols": [
+          "GPN",
+          "UBER",
+          "CPAY"
+        ],
+        "time_basis": {
+          "current_observation": "Global Payments jumped on 2026-10-30 after a report of takeover interest from CD&R and GTCR.",
+          "background_events": [
+            {
+              "event": "A report said CD&R and GTCR were pursuing a takeover of Global Payments.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::35ed620e7c689d665fdad5ca"
+              ]
+            }
+          ],
+          "report_dates": "2026-10-30."
+        },
+        "event_title": "Global Payments jumped after a report said CD&R and GTCR were pursuing a takeover, with terms unconfirmed.",
+        "surface_summary_text": "Unconfirmed deal interest, not operating news, drove the stock.",
+        "what_happened_text": "Global Payments shares rose after a media report that private equity firms CD&R and GTCR were pursuing a takeover. The company had not confirmed the terms, and no binding agreement was in evidence.",
+        "why_happened_text": "Takeover reports reprice a company for potential control premium. Because the interest is unconfirmed, the move reflects speculative deal probability rather than a change in business fundamentals.",
+        "affected_assets_summary_text": "Merchant-acquiring and payments peers can trade on M&A read-through, but no official process is established in the record.",
+        "business_context_text": "Global Payments has been the subject of consolidation interest in the payments sector.",
+        "watch_next_text": "Watch whether the company confirms or denies discussions and whether a formal offer is filed.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Why did Capri shares rise about 15% intraday after its Q2 report?",
+        "source_ids": [
+          "retained-research:d3d774668855e48da2156575c40b112c6398fe20140bf16ded49d8efca9c9e83",
+          "source:saa_doc::020e45722ea97d8dc5580634",
+          "source:saa_doc::74f84eed61fba0b2e0176692"
+        ],
+        "supporting_symbols": [
+          "CPRI"
+        ],
+        "time_basis": {
+          "current_observation": "Capri shares rose about 15% intraday on 2026-10-30 after Q2 FY2027 results.",
+          "background_events": [
+            {
+              "event": "Capri Holdings reported Q2 FY2027 revenue above estimates and raised its FY2027 adjusted EPS outlook; GAAP EPS missed expectations.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::020e45722ea97d8dc5580634",
+                "source:saa_doc::74f84eed61fba0b2e0176692"
+              ]
+            }
+          ],
+          "report_dates": "2026-10-30."
+        },
+        "event_title": "Capri Holdings rose about 15% intraday after a Q2 revenue beat and a raised full-year profit outlook.",
+        "surface_summary_text": "The market focused on the raised outlook despite a mixed GAAP result.",
+        "what_happened_text": "Capri reported Q2 FY2027 revenue above estimates and raised its full-year adjusted EPS outlook, while GAAP EPS missed expectations. The shares rose about 15% intraday on 2026-10-30.",
+        "why_happened_text": "The positive response is consistent with the raised outlook outweighing the GAAP miss. The evidence does not isolate how much came from the revenue beat, the guidance raise, or short covering.",
+        "affected_assets_summary_text": "No direct peer transmission is established in the supplied evidence.",
+        "business_context_text": "Capri owns Versace, Jimmy Choo and Michael Kors, so the raised outlook may signal stronger demand or margin execution in accessible luxury.",
+        "watch_next_text": "Watch whether the raised outlook is mirrored by accessible-luxury peers and whether the gain holds through close.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "What did Gilead's Q3 report and 2028 Medicare price disclosure mean for the stock?",
+        "source_ids": [
+          "retained-research:fe0ee398bc544ddea4fdb2fae59bdbc33462e9dfdae5b51db4915e669de6ad98",
+          "source:saa_doc::7a5ec68304eb5ff44abb67b0"
+        ],
+        "supporting_symbols": [
+          "GILD"
+        ],
+        "time_basis": {
+          "current_observation": "Gilead's Q3 report and Medicare price impact disclosure were available on 2026-10-30; the stock rose with large-cap pharma.",
+          "background_events": [
+            {
+              "event": "Gilead reported Q3 2026 earnings that beat estimates and raised guidance, and disclosed a 2028 Biktarvy Medicare price impact.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "retained-research:fe0ee398bc544ddea4fdb2fae59bdbc33462e9dfdae5b51db4915e669de6ad98"
+              ]
+            },
+            {
+              "event": "TD Cowen maintained Buy on Gilead and raised the price target to $175.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::7a5ec68304eb5ff44abb67b0"
+              ]
+            }
+          ],
+          "report_dates": "2026-10-30."
+        },
+        "event_title": "Gilead's Q3 beat, raised guidance and 2028 Biktarvy Medicare price disclosure support the stock but leave the Medicare impact as a future offset.",
+        "surface_summary_text": "Strong near-term operating results coexist with a known 2028 pricing headwind.",
+        "what_happened_text": "Gilead reported Q3 results that beat estimates and raised guidance, while also disclosing the expected Medicare price impact on Biktarvy beginning in 2028. The stock moved higher in the session along with several large-cap pharmaceutical names.",
+        "why_happened_text": "The beat and raised guidance are positive near-term earnings news. The disclosed Medicare price impact is a delayed but concrete revenue headwind, so investors must weigh near-term momentum against a multiyear policy effect.",
+        "affected_assets_summary_text": "Other large-cap pharma names rose on separate catalysts, so Gilead's move should not be treated as a read-through to peers.",
+        "business_context_text": "Gilead's Biktarvy is a major HIV franchise, making direct Medicare price negotiation a material long-term earnings risk.",
+        "watch_next_text": "Watch 2028 formulary and pricing disclosures, and whether Gilead's pipeline offsets the expected Medicare impact.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "unresolved_large_moves",
+        "question": "Why did Reddit and Snap fall sharply, and is the cause company-specific or platform-wide?",
+        "source_ids": [
+          "retained-research:b003cbd7a5e5b024907aa98c3abfb398c8cb12472404543a4524200cf8a28087",
+          "source:saa_doc::9675a3f5ac9ec6f3f05321d8",
+          "market-groups"
+        ],
+        "supporting_symbols": [
+          "RDDT",
+          "SNAP"
+        ],
+        "time_basis": {
+          "current_observation": "The RDDT/SNAP return-correlation group was down about 17.5% on 2026-10-30 and about 26.1% over the week.",
+          "background_events": [
+            {
+              "event": "Reddit beat Q3 EPS but guided Q4 revenue below estimates, missed U.S. user growth, and announced a login test as Google search referrals shrink.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "retained-research:b003cbd7a5e5b024907aa98c3abfb398c8cb12472404543a4524200cf8a28087",
+                "source:saa_doc::9675a3f5ac9ec6f3f05321d8"
+              ]
+            }
+          ],
+          "report_dates": "2026-10-29 to 2026-10-30."
+        },
+        "event_title": "Reddit's weak Q4 guide and U.S. user miss accompany a sharp Reddit-Snap drawdown, but a common platform cause is not established.",
+        "surface_summary_text": "Company-specific guidance disappointed; group-wide selling may have amplified it.",
+        "what_happened_text": "Reddit reported Q3 EPS above estimates but guided Q4 revenue below expectations, missed U.S. user growth, and said it will test a login requirement as Google search referrals shrink. The return-correlation group containing Reddit and Snap fell about 17.5% on the day. Snap did not disclose a matching company-specific event in the supplied evidence.",
+        "why_happened_text": "Reddit's own guide and user-growth miss support a company-specific negative rerating. The presence of Snap in a large same-day decline remains unresolved: it could be shared social-platform selling, but no Snap disclosure establishes that.",
+        "affected_assets_summary_text": "Social and digital-advertising peers sensitive to referral traffic could face similar questions, but the record does not prove spillover.",
+        "business_context_text": "Reddit's dependence on Google search traffic makes a login test a structural response to declining referrals, with possible engagement trade-offs.",
+        "watch_next_text": "Watch Snap's next disclosure and Reddit's user/referral metrics for confirmation of a shared or isolated cause.",
+        "cause_status": "unresolved"
+      },
+      {
+        "section": "unresolved_large_moves",
+        "question": "Why did crypto and crypto-adjacent equities fall sharply on 2026-10-30?",
+        "source_ids": [
+          "market-groups",
+          "market-observations",
+          "source:saa_doc::2467722b90bbe1ac659c9be6",
+          "source:saa_doc::612350fea4dc1e1c424d806a"
+        ],
+        "supporting_symbols": [
+          "COIN",
+          "MSTR",
+          "HOOD",
+          "MARA",
+          "RIOT",
+          "IREN",
+          "CORZ",
+          "BTCUSD"
+        ],
+        "time_basis": {
+          "current_observation": "The Coinbase-linked group was down about 8.8% today and 20.8% over 20 days; the miner group was down about 8.7% today and 34.4% over 20 days.",
+          "background_events": [
+            {
+              "event": "Binance said its tech team targets resuming withdrawal service within about 34 hours.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::2467722b90bbe1ac659c9be6"
+              ]
+            },
+            {
+              "event": "Technical commentary asked whether Bitcoin can hold after the selloff.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::612350fea4dc1e1c424d806a"
+              ]
+            }
+          ],
+          "report_dates": "2026-10-30."
+        },
+        "event_title": "Crypto and crypto-adjacent equities fell double digits on 2026-10-30, but whether the cause is Coinbase-specific or Bitcoin and miner-wide remains unresolved.",
+        "surface_summary_text": "A broad crypto-equity drawdown lacks a single established catalyst.",
+        "what_happened_text": "The Coinbase-linked return-correlation group fell about 8.8% on the day, and the bitcoin-miner group fell about 8.7%. Binance announced that withdrawals were still disabled with resumption targeted in about 34 hours. Technical commentary questioned whether Bitcoin could hold after the selloff. No fresh company-specific earnings disclosure for Coinbase or the miners is included in the supplied evidence.",
+        "why_happened_text": "Binance withdrawal maintenance and Bitcoin technical weakness are dated today, but neither proves group-wide selling. A Bitcoin/miner-wide repricing remains an unresolved alternative to a Coinbase-specific explanation.",
+        "affected_assets_summary_text": "Coinbase-linked names COIN, MSTR, HOOD and miners MARA, RIOT, IREN, CORZ all fell together, but simultaneous moves do not establish a common cause.",
+        "business_context_text": "Crypto equities are high-beta and sensitive to exchange operations and Bitcoin momentum; Binance withdrawal disruptions can create short-term selling pressure.",
+        "watch_next_text": "Watch whether Binance withdrawals resume on schedule and whether Bitcoin price stabilizes, separating exchange-specific from market-wide pressure.",
+        "cause_status": "unresolved"
+      },
+      {
+        "section": "unresolved_large_moves",
+        "question": "Does the current semiconductor and memory cluster decline reflect Intel's PC reset, broader memory weakness, or AI demand?",
+        "source_ids": [
+          "market-groups",
+          "retained-research:f49fac29ef61082bbb0ca4c6df0d27583e8bc9190d65834f570d426c30860e96",
+          "source:saa_doc::8da4e24b3df3a0ae75c34bb5"
+        ],
+        "supporting_symbols": [
+          "AMD",
+          "AXTI",
+          "DOCN",
+          "INTC",
+          "UMC",
+          "MU",
+          "SNDK",
+          "STX",
+          "WDC"
+        ],
+        "time_basis": {
+          "current_observation": "The semiconductor cluster containing AMD, AXTI, DOCN, INTC and UMC was down 13.4% on 2026-10-30 and 34.7% over 20 days; memory and storage groups were down roughly 20% to 30% over 20 days.",
+          "background_events": [
+            {
+              "event": "Intel's weak Q4 guidance showed a memory-driven PC reset lasting into 2027, while data-center AI stays supply-limited.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "retained-research:f49fac29ef61082bbb0ca4c6df0d27583e8bc9190d65834f570d426c30860e96"
+              ]
+            },
+            {
+              "event": "Intel earnings commentary highlighted memory chip shortage impact on Micron.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::8da4e24b3df3a0ae75c34bb5"
+              ]
+            }
+          ],
+          "report_dates": "2026-10-30."
+        },
+        "event_title": "A broad semiconductor and memory cluster has fallen 30% to 35% over 20 days, but the current group's membership has shifted and Intel's PC reset may not explain all of it.",
+        "surface_summary_text": "Intel's guidance is a supported contributor, but the breadth requires testing of a common memory or AI-demand cause.",
+        "what_happened_text": "The current semiconductor cluster containing AMD, AXTI, DOCN, INTC and UMC is down 13.4% on the day and 34.7% over 20 days. Memory, storage, analog and equipment groups are also down roughly 20% to 30% over 20 days. Intel's weak guidance and memory-shortage commentary provide one supported driver, but current group membership has shifted from the prior AMD/INTC cluster and now adds memory-adjacent names.",
+        "why_happened_text": "Intel's PC/memory reset is a supported contributor, but the breadth of the current cluster means the decline cannot be assumed to be a single Intel cause. Whether PC and memory weakness is separable from AI demand remains unresolved.",
+        "affected_assets_summary_text": "AMD, INTC, MU, SNDK, STX and WDC are the most direct exposures; the group's changing composition is a caution against treating it as a stable economic theme.",
+        "business_context_text": "Memory and PC are supply/demand cycles distinct from AI accelerator demand, but the two meet in semiconductor equipment and foundry capacity.",
+        "watch_next_text": "Watch memory pricing and inventory data, and PC OEM guidance, to see whether memory weakness stabilizes independently of AI demand.",
+        "cause_status": "partial"
+      }
+    ],
+    "market_summary": {
+      "summary_text": "The biggest investment shift is the de-rating of capital-intensive AI infrastructure as earnings and guidance, not a rate shock, changed the payoff calculus. Amazon's modest Q3 miss and unchanged heavy capex, alongside Intel's weak Q4 guidance and a PC/memory reset, hit server, storage, networking and electrical suppliers. Microsoft's $25 billion bond and $5 billion capex cut were financing and supply-timing signals, not demand cuts. Alphabet's $482 billion loss added AI monetization and index-concentration risk. Money rotated into regulated utilities, which have data-center electrification and lower regulatory risk after the Ratepayers Protection Act, while IPPs lagged on merchant exposure. Energy strengthened on ExxonMobil's refining-led beat and shareholder returns, but the group's multi-week gains also reflect Middle East supply risk that could reverse if Tehran talks progress. Among single names, Regeneron, FedEx Freight, CareDx, Global Payments, Capri and Gilead had company-specific catalysts. Unresolved moves remain in crypto and crypto-adjacent equities and in the broad semiconductor/memory cluster.",
+      "confidence": "medium",
+      "limitations": [
+        "Same-day price moves do not prove causes; fund-flow data are absent.",
+        "The exact contribution of Amazon versus Intel to each supplier decline cannot be isolated.",
+        "The crypto drawdown cannot be separated between Coinbase-specific and Bitcoin/miner-wide causes.",
+        "No tick-level event studies or consensus comparisons are available for several company moves.",
+        "Return-correlation group membership has shifted, so groups are not permanent economic themes."
+      ]
+    },
+    "issues": [
+      "OpenAI's exact contribution to Microsoft's remaining performance obligation and Azure growth is not disclosed.",
+      "No fund-flow data establishes the utility-to-IPP rotation.",
+      "No fresh IPP-specific source establishes a contract or hedging cause for IPP divergence.",
+      "No consensus estimates or tick-level event study isolate which Regeneron item dominated its move.",
+      "Whether the crypto decline is exchange-specific or Bitcoin/miner-wide remains unresolved.",
+      "Whether PC and memory weakness is separable from AI demand remains unresolved."
+    ]
+  },
+  "actual_final_review": {
+    "status": "completed",
+    "verdict": "revise",
+    "critique_summary": "The draft is high quality and well-sourced. Minor correction: the Regeneron story asserted that every other large-cap pharma gain had a separate reported catalyst, but the evidence only supplies separate headline leads for some names. I softened this to note that separate catalysts exist for several but no common Regeneron-driven cause is established. Source IDs are valid and the other facts are supported. No new research is required because the supplied context is sufficient.",
+    "confidence": "high",
+    "limitations": [],
+    "unsupported_claims": [],
+    "evidence_gaps": [],
+    "revised_answer_applied": true,
+    "research_requests": []
+  },
+  "comparison_html": "/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/output/visualizations/deepseek-vs-current-prod-20261101.html",
+  "remaining_work": [
+    "Correct the private verification guard before further paid execution: native Pro mechanical conversion must retain its existing mode, and pending worst-case holds must not be mistaken for a settled lack of study funds. The first correction is prepared but not paid-qualified.",
+    "Qualify all selected research and review within a genuinely funded complete allocation, with the original ledger and clock.",
+    "Improve shared source assessment and public explanation so meaningful available evidence is used, interpretations remain interpretations and plain-English writing survives review.",
+    "Repeat qualitative qualification on the complete latest candidate; no DEV or production release is accepted by this run."
+  ],
+  "production_readback": {
+    "checked_at_utc": "2026-11-02T01:34:55.278653+00:00",
+    "latest_production_home_dataset": "attention_home_snapshots_1d__20261030T205040Z__897f8072__78f03168d87c46d3890567cce4682e70",
+    "asof": "2026-10-30 20:50:40.507732+00:00",
+    "ingested": "2026-10-30 21:55:17.354951+00:00",
+    "worker_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+    "baseline_still_current": true
+  },
+  "production_public_attempts": [
+    {
+      "purpose": "agent.final_synthesis",
+      "status": "success",
+      "requested_model": "deepseek-v4-pro"
+    },
+    {
+      "purpose": "agent.answer_judge",
+      "status": "not_sent",
+      "requested_model": "deepseek-v4-pro"
+    },
+    {
+      "purpose": "agent.answer_judge",
+      "status": "success",
+      "requested_model": "deepseek-v4-pro"
+    }
+  ],
+  "actual_model_mix": {
+    "production_recorded_deepseek_attempts": {
+      "deepseek-v4-pro": 144,
+      "deepseek-flash": 17
+    },
+    "candidate_sent_requests": {
+      "deepseek-v4-pro": 33
+    },
+    "limit": "The production root includes separate optional page producers and cheaper mechanical routes; no same-model ablation or identical acquired-source comparison is claimed."
+  }
+}

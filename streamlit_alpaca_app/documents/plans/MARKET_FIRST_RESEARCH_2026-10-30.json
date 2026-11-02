@@ -1,8 +1,8 @@
 {
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
-  "revision": 11,
-  "status": "preparing_complete_latest_candidate_against_actual_production",
+  "revision": 12,
+  "status": "complete_data_first_attempt_degraded_quality_rejected_no_deployment",
   "recorded_at_utc": "2026-10-31T03:18:50.047478+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
   "source_of_truth": "This named plan owns the implemented Market-First change and its remaining qualification. Existing release acceptance remains the authority for packaged runtime.",
@@ -260,7 +260,7 @@
     "latest_public_artifact": "../verification/market-first-research-2026-10-30/candidate-output.json",
     "latest_editorial_verification": "../verification/market-first-research-2026-10-30/compressed-current-production-2026-11-01.json"
   },
-  "next_action": "Verify complete candidate input and source access offline; wait for requested spending approval before paid execution; personally inspect all generated research and publication against actual production.",
+  "next_action": "Owner reviews the complete actual-production versus new data-first output. Candidate remains unaccepted. Fix recorded verification admission and shared interpretation/source-use failures before another paid qualification or release.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",
@@ -432,8 +432,18 @@
     "inputs": "Read-only reconstruction of pre-cutoff production inputs and research, original captured sources; isolated database and no new live web discovery. Record limitations rather than claim an identical original producer invocation.",
     "model": "Unchanged full DeepSeek v4 Pro, thinking/high, full context and literal output allowance.",
     "completion": "Protect final writing and review in both application accounting and the independent cumulative verification cap before planning.",
-    "spending": "Original $33 cap retains $30.302771 committed maximum, leaving $2.697229. Pending owner request for up to $5 additional, cumulative $38. No new inference until approval.",
+    "spending": "Owner approved up to $5 more via call_17225840710643a5aaad01726c02013e: cumulative ceiling $38; every prior known charge and unknown maximum remains counted. $3.287288 reserved for complete public writing/review before planning.",
     "deployment": false,
-    "status": "unpaid_input_preparation"
+    "status": "full_data_first_execution_completed_degraded_quality_rejected_no_deployment",
+    "result": "../verification/market-first-research-2026-10-30/full-candidate-vs-current-production-2026-11-01.json",
+    "known_new_usd": 4.672672,
+    "unknown_new_max_usd": 0.611258,
+    "maximum_cumulative_usd": 35.586701000000005,
+    "pending_requests": 0,
+    "selected_questions": 6,
+    "returned_findings": 4,
+    "public_stories": 13,
+    "final_public_review": "completed",
+    "highlights": "failed_timeout"
   }
 }

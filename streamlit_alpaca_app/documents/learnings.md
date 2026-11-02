@@ -1599,3 +1599,7 @@ A fresh full-Pro writer and reviewer over the currently published production run
 ### Keep the candidate architecture when changing the baseline — November 1, 2026
 
 A request to compare against actual production changes the baseline, not the candidate execution path. Writer/reviewer-only replays isolate editorial behavior but do not fulfill full-flow verification. Preserve numerical preparation, the common planner, selected investigations and review in the candidate; record each executed stage. Earlier October 30–31 full-flow experiments remain part of execution history even when the latest editorial comparison did not use that path.
+
+### Fresh data-first selection improves discovery, not automatically publication — November 1, 2026
+
+The full current candidate prepared 999 observations and 242 groups before its new common planner. It selected six investigations, including regulated utilities versus independent power; four returned findings and that contrast reached Attention and Brief. The funded final reviewer still accepted a money-flow assertion without flow evidence and omitted a reported Binance breach despite its original being in the public reader. Preserve observed discovery gains separately from precision, source use, readability and completion. The $4.672672 estimate plus $0.611258 unknown maximum is a degraded whole-core attempt, not an equivalent-quality saving. See verification/market-first-research-2026-10-30/full-candidate-vs-current-production-2026-11-01.json.
