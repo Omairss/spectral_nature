@@ -2,11 +2,7 @@ import SwiftUI
 
 struct MarketEventCalendar: Codable {
   struct Reaction: Codable {
-    let symbol: String
     let returnPct: Double
-    let startSession: String
-    let endSession: String
-    let windowLabel: String
 
     var color: Color {
       returnPct == 0 ? Theme.text : (returnPct > 0 ? Theme.gain : Theme.loss)
@@ -271,15 +267,6 @@ struct MarketEventCarousel: View {
       }
       if event.confirmationStatus == "expected" {
         Text("Expected date").font(.caption).foregroundStyle(Theme.secondaryText)
-      }
-      if let reaction = event.marketReaction {
-        VStack(alignment: .leading, spacing: 4) {
-          Text("\(reaction.symbol) \(reaction.returnPct > 0 ? "+" : "")\(String(format: "%.2f", reaction.returnPct))%")
-            .font(.subheadline.weight(.semibold).monospacedDigit())
-            .foregroundStyle(reaction.color)
-          Text("\(reaction.windowLabel) · \(reaction.startSession) → \(reaction.endSession) close")
-            .font(.caption2).foregroundStyle(Theme.secondaryText)
-        }
       }
       if let summary = event.summary, !summary.isEmpty {
         Text(summary).font(.subheadline)

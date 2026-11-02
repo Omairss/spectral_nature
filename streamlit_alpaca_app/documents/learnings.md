@@ -2,7 +2,7 @@
 
 ## Calendar history and reaction windows — 2026-11-01
 
-Expected earnings calendars cannot backfill reported dates. Retain actual company earnings history separately and share the free provider request allowance across environments. Use publisher trading sessions and one explicitly chosen reaction convention. The owner selected only the next trading day’s close-to-close return for this carousel. Consolidated SIP prices match official issuer closes; IEX-only closes can differ and must not silently determine a consolidated-market reaction. A missing close is unavailable data, not a holiday. Share-price reaction is distinct from an earnings surprise. Keep colors neutral until the required sessions are complete, and expose the measured dates on expansion. See [the calendar design](plans/CALENDAR_HISTORY_REACTIONS_2026-11-01.md).
+Expected earnings calendars cannot backfill reported dates. Retain actual company earnings history separately and share the free provider request allowance across environments. Use publisher trading sessions and one explicitly chosen reaction convention. The owner selected only the next trading day’s close-to-close return for this carousel. Consolidated SIP prices match official issuer closes; IEX-only closes can differ and must not silently determine a consolidated-market reaction. A missing close is unavailable data, not a holiday. Share-price reaction is distinct from an earnings surprise. Keep colors neutral until the required sessions are complete, and keep measurement metadata internal when the requested UI is color only. See [the calendar design](plans/CALENDAR_HISTORY_REACTIONS_2026-11-01.md).
 
 ## Normalize inference prices before projecting costs — 2026-10-29
 

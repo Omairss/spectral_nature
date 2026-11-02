@@ -1,5 +1,9 @@
 # Mistakes — Active Guidelines
 
+## Added unrequested detail to a minimal calendar — 2026-11-02
+
+The owner asked for red/green labels. I added percentage and closing-date text in expanded details, despite the established minimal design. Removed those blocks from both clients. Keep calculation/provenance metadata internal unless the owner asks to display it; an expandable surface is not permission to add analytics.
+
 ## Release preparation must fail fast and use the Git root — 2026-11-02
 
 Operator metadata preparation used repository-relative paths while running inside the application directory. A failed step was followed by later shell commands, and an unresolved acceptance record was temporarily committed. The source gate rejected it before any build or deployment. Corrected the metadata, made dependent operator sequences fail fast, anchored Git path filters to the actual root, and passed all three complete source gates before packaging. A failed preparation step must stop its dependent sequence.

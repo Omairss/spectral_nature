@@ -80,12 +80,6 @@ export function MarketEventCalendar({ calendar }: { calendar: Calendar }) {
     {event && <article className={styles.detail}>
       <header><strong>{event.name}</strong><span>{event.time ? event.time + " ET" : event.timing_label}</span></header>
       {event.confirmation_status === "expected" && <p>Expected date</p>}
-      {event.market_reaction && <div className={styles.reaction}>
-        <strong style={{ color: event.market_reaction.return_pct === 0 ? "inherit" : `var(--${event.market_reaction.return_pct > 0 ? "good" : "danger"})` }}>
-          {event.market_reaction.symbol} {event.market_reaction.return_pct > 0 ? "+" : ""}{event.market_reaction.return_pct.toFixed(2)}%
-        </strong>
-        <span>{event.market_reaction.window_label} · {event.market_reaction.start_session} → {event.market_reaction.end_session} close</span>
-      </div>}
       {event.facts?.map(([label, value], index) => <div key={index} className={styles.fact}><span>{label}</span><span>{value}</span></div>)}
       <a href={event.source_url} target="_blank" rel="noreferrer">Source ↗</a>
     </article>}
