@@ -7,5 +7,14 @@
     "after_configuration_sha256": "2883e0abb815896beb49e8d2c93e55b514b3300bceecfabb0d026b3f10b69075",
     "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
     "effective_settings_changed": false
+  },
+  {
+    "status": "accepted",
+    "name": "market-calendar-refresh",
+    "change": "Remove the empty-string ephemeralStorage metadata before image promotion; every other configuration field and the current image are identical.",
+    "before_configuration_sha256": "cedc52abc916dddf6bfa6849b91a64301a26093996f5f225c0301291da0c1140",
+    "after_configuration_sha256": "30bab0b60534d0c56819e6f6a6fdbb0a8ed9ef937466c250624c3e0696cbe853",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+    "effective_settings_changed": false
   }
 ]
