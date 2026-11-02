@@ -1,0 +1,75 @@
+[
+  {
+    "status": "passed",
+    "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
+    "runtime_files": 199,
+    "runtime_inventory_sha256": "01728b71ee7a629ef67010bee64df2d9b8970fb173215de257fbe6c12950b132",
+    "all_packaged_files_checked": true,
+    "checks": [
+      "complete Git package",
+      "API imports/OpenAPI",
+      "worker and broker imports",
+      "retained native performance API",
+      "flat account zero return and undefined Sharpe",
+      "numerical grouping with complete adjusted history",
+      "canonical story/source identity",
+      "Parquet roundtrip and 20-story public API projection",
+      "pinned calendar parser retained",
+      "explicit no-financial-jargon writer and reviewer defaults"
+    ],
+    "external_requests": 0,
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+    "role": "worker",
+    "source_inventory_sha256": "3da9d79f2eadf94a36161cfe2f6a962c562cfacbda7cabde2f74969216611a92",
+    "qualification_run": "cj1dw"
+  },
+  {
+    "status": "passed",
+    "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
+    "runtime_files": 199,
+    "runtime_inventory_sha256": "01728b71ee7a629ef67010bee64df2d9b8970fb173215de257fbe6c12950b132",
+    "all_packaged_files_checked": true,
+    "checks": [
+      "complete Git package",
+      "API imports/OpenAPI",
+      "worker and broker imports",
+      "retained native performance API",
+      "unauthenticated Trading read/write rejection",
+      "flat account zero return and undefined Sharpe",
+      "numerical grouping with complete adjusted history",
+      "canonical story/source identity",
+      "Parquet roundtrip and 20-story public API projection",
+      "pinned calendar parser retained",
+      "explicit no-financial-jargon writer and reviewer defaults"
+    ],
+    "external_requests": 0,
+    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15",
+    "role": "api-next",
+    "source_inventory_sha256": "3da9d79f2eadf94a36161cfe2f6a962c562cfacbda7cabde2f74969216611a92",
+    "qualification_run": "cj1dx"
+  },
+  {
+    "status": "passed",
+    "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
+    "runtime_files": 199,
+    "runtime_inventory_sha256": "01728b71ee7a629ef67010bee64df2d9b8970fb173215de257fbe6c12950b132",
+    "all_packaged_files_checked": true,
+    "checks": [
+      "complete Git package",
+      "API imports/OpenAPI",
+      "worker and broker imports",
+      "retained native performance API",
+      "flat account zero return and undefined Sharpe",
+      "numerical grouping with complete adjusted history",
+      "canonical story/source identity",
+      "Parquet roundtrip and 20-story public API projection",
+      "pinned calendar parser retained",
+      "explicit no-financial-jargon writer and reviewer defaults"
+    ],
+    "external_requests": 0,
+    "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:93fa79e3ff3936300f7dc6e47b4f2c055a1a5eb0367367f58b2ac834071906e1",
+    "role": "broker",
+    "source_inventory_sha256": "3da9d79f2eadf94a36161cfe2f6a962c562cfacbda7cabde2f74969216611a92",
+    "qualification_run": "cj1dv"
+  }
+]
