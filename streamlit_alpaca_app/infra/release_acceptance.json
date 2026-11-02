@@ -846,7 +846,7 @@
           "role": "worker",
           "environment": "development",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "ceee1951e7d748240c81b56d126e0a2758e192d5314cf26eb980668eaf6af0ce",
+          "configuration_sha256": "2883e0abb815896beb49e8d2c93e55b514b3300bceecfabb0d026b3f10b69075",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
           "preservation_review": {

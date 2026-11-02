@@ -1,0 +1,11 @@
+[
+  {
+    "status": "accepted",
+    "name": "market-calendar-refresh-dev",
+    "change": "Azure removed resources.ephemeralStorage with an empty string; the field had no requested storage amount. Every other configuration field is identical.",
+    "before_configuration_sha256": "ceee1951e7d748240c81b56d126e0a2758e192d5314cf26eb980668eaf6af0ce",
+    "after_configuration_sha256": "2883e0abb815896beb49e8d2c93e55b514b3300bceecfabb0d026b3f10b69075",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+    "effective_settings_changed": false
+  }
+]
