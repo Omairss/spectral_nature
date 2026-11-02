@@ -1,0 +1,64 @@
+{
+  "environment": "development",
+  "source_inventory_sha256": "d635767c0c166150fbb048f0e0b528994803e0b07841325355fc284030e561ac",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113"
+  },
+  "targets": [
+    {
+      "name": "market-calendar-refresh-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5064584ad0d3a5bf0bb4de4e7862a381d065b4f748de5a64a591fa75155d45ae",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
+      "configuration_sha256": "2883e0abb815896beb49e8d2c93e55b514b3300bceecfabb0d026b3f10b69075",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-api-next-dev",
+      "kind": "containerApps",
+      "role": "api-next",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
+      "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "kind": "containerApps",
+      "role": "web",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:dcc2774980652e5b67877fd5de1577ceaf6e9ef71a5eb89836a8ed2b73fc2a32",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+      "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "recorded_at": "2026-11-02T22:51:06.812213+00:00",
+  "job_executions_started": 0,
+  "status": "accepted",
+  "gateway": "https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io",
+  "checks": {
+    "calendar_as_of": "2026-11-02T22:53:38.143821+00:00",
+    "continuous_days": 121,
+    "observed_events": 20,
+    "consolidated_prices": true,
+    "attention_graph_retained": true,
+    "conditional_home_http": 304,
+    "reaction_display": "event label color only",
+    "expanded_percentage_or_close_dates": false,
+    "native_minimal_screenshots": [
+      "native-minimal-compact.jpg",
+      "native-minimal-expanded.jpg"
+    ],
+    "web_minimal_screenshot": "dev-minimal-expanded.jpg",
+    "all_consumer_configurations_preserved": 38
+  },
+  "execution": {
+    "name": "market-calendar-refresh-dev-kg6dhnp",
+    "status": "Succeeded",
+    "start": "2026-11-02T22:52:44+00:00",
+    "end": "2026-11-02T22:53:57+00:00"
+  }
+}

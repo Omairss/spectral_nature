@@ -1617,12 +1617,19 @@
     "base_budgets_and_schedules_preserved": true
   },
   "production_authorization": {
-    "owner_instruction": "Is the real earnings scan deployed in prod as a job? If not, deploy it. Then update the phone with this app. Follow-up: Include past events. For those events, use reaction as red/green. Use only the next days reaction.",
+    "owner_instruction": "Is the real earnings scan deployed in prod as a job? If not, deploy it. Then update the phone with this app. Follow-up: Include past events. For those events, use reaction as red/green. Use only the next days reaction. Presentation correction: I just want it to show red or green. This is supposed to be minimal.",
     "scope": "Calendar job and clients; after local and exact-image DEV acceptance. Preserve other jobs and configuration.",
     "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md"
   },
   "development_acceptance": {
-    "status": "pending"
+    "status": "accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113"
+    },
+    "source_inventory_sha256": "d635767c0c166150fbb048f0e0b528994803e0b07841325355fc284030e561ac",
+    "evidence": "documents/verification/calendar-history-reactions-2026-11-01/DEVELOPMENT.json"
   },
   "production_acceptance": {
     "status": "accepted",
