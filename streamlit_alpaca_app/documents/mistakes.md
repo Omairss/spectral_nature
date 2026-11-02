@@ -10,7 +10,7 @@ Operator metadata preparation used repository-relative paths while running insid
 
 ## Validate quote coverage before reaction color — 2026-11-02
 
-The first calendar preview reused IEX-only adjusted closes and described them too broadly as a market reaction. The owner questioned Microsoft's color. The issuer's official lookup and a fresh consolidated SIP probe agreed on −0.16%, versus the cached IEX −0.35%; the opening gap was positive but the next close was negative. Calendar observations now explicitly fetch SIP, expose the exact close dates and retain no IEX fallback. Verify the feed as well as arithmetic before accepting a reaction percentage.
+The first calendar preview reused IEX-only adjusted closes and described them too broadly as a market reaction. The owner questioned Microsoft's color. The issuer's official lookup and a fresh consolidated SIP probe agreed on −0.16%, versus the cached IEX −0.35%; the opening gap was positive but the next close was negative. Calendar observations now explicitly fetch SIP, retain measurement dates internally and allow no IEX fallback. Verify the feed as well as arithmetic before accepting a reaction color.
 
 ## Reuse the complete provider adapter — 2026-11-01
 

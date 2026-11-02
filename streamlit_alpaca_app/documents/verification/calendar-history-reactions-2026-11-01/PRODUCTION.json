@@ -1,0 +1,84 @@
+{
+  "environment": "production",
+  "source_inventory_sha256": "d635767c0c166150fbb048f0e0b528994803e0b07841325355fc284030e561ac",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113"
+  },
+  "targets": [
+    {
+      "name": "market-calendar-refresh",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
+      "configuration_sha256": "30bab0b60534d0c56819e6f6a6fdbb0a8ed9ef937466c250624c3e0696cbe853",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-api-next",
+      "kind": "containerApps",
+      "role": "api-next",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
+      "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-streamlit-ui",
+      "kind": "containerApps",
+      "role": "web",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+      "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-next-ui",
+      "kind": "containerApps",
+      "role": "web",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+      "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "recorded_at": "2026-11-02T23:04:30.449907+00:00",
+  "job_executions_started": 1,
+  "status": "accepted",
+  "public_gateways": [
+    {
+      "origin": "https://spectral-nature.com",
+      "http": 200,
+      "calendar_as_of": "2026-11-02T23:05:56.502389+00:00",
+      "continuous_days": 121,
+      "observed_events": 20,
+      "conditional_home_http": 304,
+      "attention_graph_retained": true
+    },
+    {
+      "origin": "https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io",
+      "http": 200,
+      "calendar_as_of": "2026-11-02T23:05:56.502389+00:00",
+      "continuous_days": 121,
+      "observed_events": 20,
+      "conditional_home_http": 304,
+      "attention_graph_retained": true
+    }
+  ],
+  "execution": {
+    "name": "market-calendar-refresh-dwi8t5r",
+    "status": "Succeeded",
+    "start": "2026-11-02T23:05:21+00:00",
+    "end": "2026-11-02T23:06:17+00:00"
+  },
+  "all_consumer_configurations_preserved": 38,
+  "other_consumers_preserved": 31,
+  "reaction_display": "label color only",
+  "iphone_build": 19,
+  "native_installation": "NATIVE_INSTALLATION.json",
+  "native_production_screenshot": "native-production-minimal.jpg",
+  "web_production_screenshot": "production-minimal-expanded.jpg",
+  "phone_launch_status": "blocked_by_device_lock"
+}

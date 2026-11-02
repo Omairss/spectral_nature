@@ -1,0 +1,20 @@
+{
+  "status": "installed",
+  "version": "1.0.0",
+  "build": "19",
+  "bundle_identifier": "com.torrescapital.spectralnature",
+  "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
+  "gateway": "https://spectral-nature.com",
+  "local_signature_verified": true,
+  "team_identifier": "44J3R74SJ9",
+  "profile_expiration_utc": "2026-11-09T02:43:50Z",
+  "registered_owner_phone": true,
+  "binary_sha256": "bccdbfb5d4ea9270accff0bbf676123c100d549f103ab51347ba80c82fbe1645",
+  "independent_installed_build_readback": "19",
+  "launch": {
+    "status": "blocked_by_device_lock",
+    "detail": "iOS rejected launch because the phone is locked"
+  },
+  "physical_screen_inspected": false,
+  "simulator_production_screen": "native-production-minimal.jpg"
+}
