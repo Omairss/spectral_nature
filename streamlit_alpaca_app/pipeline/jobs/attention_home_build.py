@@ -1969,8 +1969,7 @@ def _review_home_public_surface(
                                "items": {"type": "string", "enum": list(records)}}}}},
     }}
     query = (
-        (f"As of {_zopedia_asof_text(asof_time_utc)}. "
-        'Assess current stock and economic data, numerical groups, headlines and dated research together. Find consequential developments beyond headline attention. Group movement does not establish common causes or investor flows. New research spending does not determine relevant coverage. Assess continuing relevance without automatically repeating or discarding older research. Preserve original dates. Write distinct Attention stories first, then summarize them as Brief. Section limits are ceilings, not quotas. Explain the business change and consequence. Unexplained observations can still matter. Leave redundant fields empty. Include follow-ups only when they could change the investment interpretation.')
+        ((f"As of {_zopedia_asof_text(asof_time_utc)}. " 'Use current stock and economic observations, numerical groups, headlines and dated research to find consequential developments beyond headline attention. Groups do not prove flows or common causes. New research spending does not define publication eligibility; assess continuing relevance without automatic repetition or removal. Write distinct Attention stories first, then their Brief summary. Section limits are ceilings. Explain the business change and consequence. Unexplained observations can matter. Leave redundant fields empty. Include only material follow-ups. Use exact source IDs and valid source-title links.'))
     )
     initial_evidence = [{
         "numerical_overview": {key: value for key, value in (payload.get("market_context") or {}).items()

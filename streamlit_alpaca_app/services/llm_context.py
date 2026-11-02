@@ -11,19 +11,14 @@ from .json_utils import to_jsonable
 
 RESEARCH_TIMELINE_GUIDANCE = (
     (
-        'Respect source permissions and the information cutoff. Distinguish event, report and observation dates. '
-        'Reused research remains dated; an updating bar is not a confirmed close. Read originals for material '
-        'ambiguities.'
+        'Respect source scope and cutoff. Distinguish event, report and observation dates; old research stays dated and price bars may be unfinished.'
     )
 )
 
 
 RESEARCH_ANALYSIS_GUIDANCE = (
     (
-        'Research and sources are fallible. Separate facts, attributed expectations and your inference. Preserve '
-        'entity, metric, scope, comparator, units and certainty. Check whether evidence supports the claimed '
-        'connection; retain useful hypotheses at their actual strength. Explain consequential changes and their '
-        'practical meaning.'
+        'Separate facts, attributed expectations and inference. Preserve entity, metric, scope, comparator, units and certainty; verify claimed connections.'
     )
 )
 

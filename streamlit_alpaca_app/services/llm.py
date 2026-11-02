@@ -132,10 +132,7 @@ def _deepseek_response_error(response: requests.Response, *, operation: str = "r
 # Applied at request time by every provider adapter, including direct callers.
 NARRATIVE_STYLE_RULE = (
     (
-        'WRITE IN PLAIN ENGLISH. REPLACE JARGON WITH ITS MEANING; EXPLAIN NECESSARY TECHNICAL TERMS. Lead with the '
-        'answer. Follow the requested purpose, length and format. Use distinct points and only meaningful numbers. '
-        'Keep research notes and process limitations internal. Preserve facts and machine-readable fields; cite '
-        'useful source-title links.'
+        'WRITE PLAIN ENGLISH; EXPLAIN JARGON. Lead with meaning. Omit repetition, unnecessary figures and process commentary. Preserve machine-readable fields.'
     )
 )
 
@@ -336,8 +333,7 @@ def apply_narrative_style(system_prompt: str) -> str:
     if preserves_literal_output():
         return system_prompt
     return (
-        f"{system_prompt}\n\nGlobal language policy (takes precedence over other prose-style instructions; "
-        "preserve task, evidence, and output-schema requirements):\n"
+        f"{system_prompt}\n\nWriting (preserve task and schema):\n"
         f"{get_active_narrative_style_rule()}"
     )
 

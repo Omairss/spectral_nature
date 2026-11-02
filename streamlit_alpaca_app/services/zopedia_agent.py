@@ -222,10 +222,7 @@ _AGENT_FINAL_SYSTEM_PROMPT = register_narrative_prompt(
     group="Zopedia",
     prompt=(
         (
-        'Explain the answer and its practical consequence to a reader unfamiliar with the research. Select useful '
-        'distinct points rather than compressing every finding. A complete knowledge replacement must preserve the '
-        'original information, including useful uncertain leads. Use source-title links only for supplied complete '
-        'URLs.'
+        'Explain the requested answer and its consequence. Cite source titles using supplied URLs. Complete knowledge replacements preserve all unique original information.'
     )
     ),
 )
@@ -247,16 +244,7 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
     group="Zopedia",
     prompt=(
         (
-        'Review the complete answer against original evidence and the reader’s request. Check causal logic, '
-        'financial meaning, dates, material omissions and clarity. Correct errors directly while preserving useful '
-        'analysis and hypotheses. REMOVE UNEXPLAINED JARGON; EXPLAIN ITS MEANING IN PLAIN ENGLISH. Remove '
-        'repetition, unnecessary figures and research commentary. Add information only when it improves the '
-        'explanation. Use accept for sound drafts, revise for corrections, and insufficient only when no '
-        'substantive answer is possible; retain useful analysis. Put consequential corrections in answer_points '
-        'and further research needs in research_requests. For a complete knowledge replacement, verify that every '
-        'unique useful original observation, qualifier and date survives; explain justified removals. A source '
-        'author’s explanation remains attributed unless the evidence establishes it.'
-    ) ),
+        'Check facts, causal logic, financial meaning, dates, material omissions and clarity against original evidence and the request. REMOVE UNEXPLAINED JARGON; EXPLAIN ITS MEANING IN PLAIN ENGLISH. Correct the final text; preserve useful analysis and qualified hypotheses. Remove repetition, unnecessary figures and research commentary. Accept sound drafts, revise errors, use insufficient only without a substantive answer. Record corrections in answer_points and research needs in research_requests. Complete knowledge replacements preserve every unique useful original observation and qualifier.'   ) ),
 )
 
 _JUDGE_SCHEMA: dict[str, Any] = {
@@ -1216,10 +1204,7 @@ def _run_evidence_model_step(
                     system_prompt=system_prompt + (
                         "\nOptional research is complete. Return the current answer from the evidence already available."
                         if answer_only else
-                        "\nEvidence remains readable during this step. Put the complete requested artifact directly "
-                        "inside decision, without an additional action=answer or answer wrapper. To read evidence instead, put action=read, the evidence "
-                        "tool and its JSON arguments inside decision. Use select_context inside decision to choose which "
-                        "tool results stay in working context. Read any omitted result through its history source_id."
+                        '\nReturn the artifact inside decision. To read, use action=read with tool_name and tool_arguments inside decision. select_context manages working context; originals remain readable.'
                     ),
                     user_prompt=user_prompt, schema_name=schema_name + "_evidence_step", schema=active_schema,
                     deadline_monotonic=min(deadline_monotonic, time.monotonic() + model_timeout_seconds)
@@ -2171,8 +2156,7 @@ def _run_answer_judge(
                 system_prompt=(
                     get_prompt(_AGENT_JUDGE_SYSTEM_PROMPT)
                     + (
-                        " The draft is a structured artifact. Return the corrected artifact in answer_payload, preserving its schema. "
-                        "Review the facts, sources and business reasoning. Keep process limitations out of public text fields."
+                        ' Return the complete corrected artifact in answer_payload, preserving its schema.'
                         if response_schema
                         else ""
                     )
@@ -3811,10 +3795,7 @@ def _execute_zopedia_agent_loop(
                         surface=_clean(surface) or "zopedia.chat",
                         purpose="agent.final_synthesis",
                         system_prompt=get_prompt(_AGENT_FINAL_SYSTEM_PROMPT) + (
-                            " Return only the requested artifact JSON matching its schema. The format does not change "
-                            "the requested purpose: select for a briefing, preserve original information for a complete "
-                            "knowledge replacement. Do not add answer_markdown, confidence or limitations wrappers "
-                            "unless those fields belong to the artifact schema."
+                            ' Return only the requested artifact JSON, with no extra wrappers.'
                             if response_schema else ""
                         ),
                         prompt=lambda visible: _final_user_prompt(
