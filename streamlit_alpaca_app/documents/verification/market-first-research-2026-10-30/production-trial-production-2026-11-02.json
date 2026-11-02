@@ -408,5 +408,12 @@
     "observed_publication": "Oct30,8:50PMUTC",
     "home_calendar_brief_audio_chart_and_feed_present": true,
     "new_trial_output_published": false
+  },
+  "editorial_followup": {
+    "evidence": "writing-iterations-2026-11-02.json",
+    "isolated_requests": 12,
+    "estimated_cost_usd": 0.401074,
+    "production_writes": 0,
+    "candidate_promoted": false
   }
 }

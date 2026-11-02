@@ -1,6 +1,6 @@
 {
-  "status": "accepted_locally",
-  "scope": "Owner-authorized Market-First production trial preserving accepted live calendar and Trading",
+  "status": "held_editorial_experiment",
+  "scope": "Unaccepted further writing experiment; production remains on the separately accepted trial source",
   "source_revision": "f960d945e677e2be51014d040558ac9cb676027b",
   "review_base_revision": "63a19ac7146c3da58b6338fd71e80dd027a80b1b",
   "files": {
@@ -1445,7 +1445,7 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": true,
+  "production_authorized": false,
   "consumer_contract_reviews": {
     "database_lifecycle": {
       "status": "accepted",

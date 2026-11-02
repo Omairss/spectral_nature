@@ -586,16 +586,21 @@
       },
       {
         "task": "Narrow native writer/reviewer iteration over retained inputs",
-        "status": "in_progress"
+        "status": "completed_six_rounds_candidate_rejected"
       },
       {
         "task": "Promote further writing changes only after qualitative improvement",
-        "status": "conditional_on_results"
+        "status": "withheld_quality_condition_not_satisfied"
       },
       {
         "task": "Observe normal end-to-end runs during the production trial",
         "status": "scheduled_from_2026-11-02_06:50_Pacific"
       }
-    ]
+    ],
+    "writing_followup": {
+      "status": "iterated_further_candidate_held",
+      "evidence": "documents/verification/market-first-research-2026-10-30/writing-iterations-2026-11-02.json",
+      "reason": "Not reliably better: a fully funded Pro reviewer still changed financial meaning. The initial owner-authorized trial remains live."
+    }
   }
 }

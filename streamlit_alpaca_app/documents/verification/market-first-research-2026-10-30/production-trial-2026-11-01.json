@@ -10,8 +10,8 @@
     "Preserve accepted calendar, Trading, frontend, native and all current consumer configurations"
   ],
   "remaining_work": [
-    "Narrow writer/reviewer iteration over retained evidence, compared with the released writing before any further promotion",
-    "Observe normal scheduled trial runs this week; first Home execution is November2 at06:50Pacific"
+    "Observe normal scheduled executions during the authorized production trial; first Home run starts November2 at06:50Pacific.",
+    "Further writing improvement remains open: six funded scoped comparisons did not establish a reliably better candidate."
   ],
   "preservation": {
     "live_consumer_count": 38,
@@ -24,5 +24,11 @@
     "new_paid_requests_this_release": 0,
     "no_historical_output_republication": true
   },
-  "production_evidence": "documents/verification/market-first-research-2026-10-30/production-trial-production-2026-11-02.json"
+  "production_evidence": "documents/verification/market-first-research-2026-10-30/production-trial-production-2026-11-02.json",
+  "writing_followup": {
+    "status": "six_funded_rounds_completed_further_candidate_not_accepted",
+    "evidence": "documents/verification/market-first-research-2026-10-30/writing-iterations-2026-11-02.json",
+    "additional_inference_estimate_usd": 0.401074,
+    "additional_production_writing_promotion": false
+  }
 }

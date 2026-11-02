@@ -1572,3 +1572,7 @@ Simulator exposed expandable paragraphs as single accessibility elements, and re
 ### Read the public contract when checking retained features — November 2, 2026
 
 The initial release receipt checked a nonexistent summary.audio_url and incorrectly recorded audio absent. The shared public DTO exposes audio_available. Read back that actual field and correct the receipt; both development and production retained audio. No audio or UI code change was needed.
+
+### Keep the qualification contract faithful — November2,2026
+
+The two-report writing sample initially allowed arbitrary strings in source_ids and admitted source URLs. The real public schema enumerates supplied source handles. The final sample now uses those same identity constraints; this is a reference contract check, not a prose-quality test. All writing outputs remain recorded, including material reviewer errors. No further writing candidate was promoted.

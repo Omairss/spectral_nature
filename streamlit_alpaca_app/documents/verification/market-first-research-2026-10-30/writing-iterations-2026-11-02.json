@@ -1,0 +1,262 @@
+{
+  "status": "held_not_accepted_for_promotion",
+  "recorded_at_utc": "2026-11-02T08:59:56.171220+00:00",
+  "production_trial": "production-trial-production-2026-11-02.json",
+  "owner_condition": "Promote further writing changes only if better than the released version.",
+  "scope": "Six small two-company writing/review comparisons over complete retained ExxonMobil and Regeneron source reports. Existing shared writer/reviewer, full Pro high, isolated PostgreSQL, no planning, new research, acquisitions or production writes.",
+  "same_original_article_texts": true,
+  "source_handle_contract": "The final sample uses the actual publication contract approach: source handles are enumerated from the supplied catalog. Earlier open string fields admitted URLs; that fixture weakness is recorded, not treated as prose acceptance.",
+  "personal_assessment": {
+    "decision": "Do not promote these further writing changes. Some versions were shorter and clearer, but the final fully funded reviewer still introduced material financial errors.",
+    "examples": [
+      {
+        "candidate_claim": "Sanofi profit share rose68% to2.724billion",
+        "source_fact": "Total Sanofi collaboration revenue rose68% to2.724billion. The share of commercialization profits was2.575billion versus1.456billion.",
+        "why_material": "Different financial measures and growth rates were merged."
+      },
+      {
+        "candidate_claim": "Profit excluding one-time items",
+        "source_fact": "The source reports adjusted/non-GAAP measures, including non-cash and other items; these are not all one-time costs.",
+        "why_material": "A supposedly simple explanation changed the accounting meaning."
+      },
+      {
+        "candidate_claim": "Disruptions let Exxon charge more for fuel",
+        "source_fact": "The source reports stronger refining margins and operating performance; that does not alone establish the absolute movement in fuel prices.",
+        "why_material": "The rewriting sometimes strengthened a reported relationship into an unsupported outcome."
+      }
+    ],
+    "further_observations": [
+      "Explanations became shorter in some rounds, and some versions found the Sanofi development-cost repayment effect.",
+      "Other rounds returned generic source headlines, secondary metric lists or new ambiguous qualifiers.",
+      "The reviewer completed in every case; these failures were not caused by Flash, missing funding, missing original reports or a skipped review."
+    ]
+  },
+  "cases": [
+    {
+      "case": "casual-reader-trial-check-20261102",
+      "status": "completed",
+      "model": "deepseek-v4-pro",
+      "thinking": "enabled",
+      "reasoning_effort": "high",
+      "provider_requests": 2,
+      "estimated_cost_usd": 0.065228,
+      "unknown_new_requests": 0,
+      "instruction_sha256": {
+        "zopedia_agent_final_answer_markdown_response_to_user": "b8aba4c2077a2dc12e0c04e7ba2a2f7b86e36ee61cf807cf3bc45294bb404dbd",
+        "zopedia_agent_answer_judge_evidence_sufficiency_review": "fc365a1462ab7a9170c34d7769b12584b0d5728e4cbaf67a9bf7e69f86989f31",
+        "writing_style": "c0cc0a362655a67e86dd92eb4da029dc6f7236ddfe8cfb286a4af8ad6d12890d"
+      },
+      "payload": {
+        "reports": [
+          {
+            "headline": "ExxonMobil’s refining boom lifts profit, dividend and buyback plans",
+            "explanation": "ExxonMobil beat analyst forecasts on profit and revenue. Profit per share under the company's preferred measure, which leaves out certain non-cash or one-time costs, was $4.23, above the $4.08 expected, and revenue was $113.16 billion, above the $103.10 billion expected. The business that turns crude oil into fuels more than doubled its adjusted profit to $9 billion from $4.1 billion in the prior quarter, as the gap between what Exxon pays for crude oil and what it charges for fuels widened while global fuel supplies were tight. The company also raised its quarterly dividend from $1.03 to $1.07 per share and set a target to buy back $20 billion of its own shares in 2027. That shows Exxon is converting the strong fuel market into higher cash payments for shareholders.",
+            "source_ids": [
+              "saa_doc::becd6ef1f6d938c6edbe5368"
+            ]
+          },
+          {
+            "headline": "Regeneron’s key drugs push revenue up 36%; Sanofi deal builds future pipeline",
+            "explanation": "Regeneron’s third-quarter revenue rose 36% to $5.1 billion from $3.75 billion a year earlier. Profit per share under the company's preferred measure, which leaves out certain non-cash and other items, rose 70% to $20.07 from $11.83. Sales of key medicines grew: Dupixent, recorded by partner Sanofi, rose 35% to $6.5 billion; EYLEA HD U.S. sales rose 62% to $699 million; and Libtayo global sales rose 51% to $550 million. The company also expanded its partnership with Sanofi to add new long-acting antibody programs, receiving $1 billion upfront with up to $7 billion more possible from future milestones. Separately, the FDA approved Pasatru for a rare condition that causes unwanted bone growth. The sales gains and new approval show the medicine portfolio is strengthening and creating more future growth options.",
+            "source_ids": [
+              "saa_doc::43d6ae1996c51c7a39d156b9"
+            ]
+          }
+        ]
+      },
+      "review_status": "completed",
+      "review_verdict": "revise"
+    },
+    {
+      "case": "casual-reader-story-check-20261102",
+      "status": "completed",
+      "model": "deepseek-v4-pro",
+      "thinking": "enabled",
+      "reasoning_effort": "high",
+      "provider_requests": 2,
+      "estimated_cost_usd": 0.063903,
+      "unknown_new_requests": 0,
+      "instruction_sha256": {
+        "zopedia_agent_final_answer_markdown_response_to_user": "b8aba4c2077a2dc12e0c04e7ba2a2f7b86e36ee61cf807cf3bc45294bb404dbd",
+        "zopedia_agent_answer_judge_evidence_sufficiency_review": "523af5a1d34c1ee69aeadbf8e7789c02b9ba4c162c90835c432f8f378f872ddc",
+        "writing_style": "f3304a4918422a4da5552af1a2bc165efda724ee40abb0c25f2fb1e5e015b7b4"
+      },
+      "payload": {
+        "reports": [
+          {
+            "headline": "ExxonMobil Cashes In on Refining Boom, Raises Dividend",
+            "explanation": "ExxonMobil beat analyst forecasts for the third quarter. Profit per share was $4.23, above the $4.08 estimate, and revenue was $113.2 billion, above the $103.1 billion estimate. Its fuel-making business earned $9 billion, more than double the $4.1 billion from the previous quarter, because Middle East conflict and strikes on Russian refineries cut world fuel supplies, letting Exxon earn more on each barrel. Oil and gas production profit fell as commodity prices dropped. The company raised its quarterly dividend to $1.07 per share from $1.03 and plans to buy back $20 billion of its own stock in 2027. The stock rose to a new 52-week high.",
+            "source_ids": [
+              "saa_doc::becd6ef1f6d938c6edbe5368"
+            ]
+          },
+          {
+            "headline": "Regeneron Reports Third Quarter 2026 Financial and Operating Results",
+            "explanation": "Regeneron's total quarterly revenue grew 36% to $5.1 billion. Much of the gain came from Dupixent, an allergy and inflammation drug that Sanofi sells and Regeneron helps profit from: global Dupixent sales rose 35% to $6.5 billion. Regeneron's newer eye medicine EYLEA HD grew 62% to $699 million in U.S. sales, while older EYLEA fell as patients switched, so total U.S. eye drug sales were about flat. Cancer drug Libtayo grew 51% to $550 million. Profit per share excluding one-time items reached $20.07, up 70%. The company also added a $1 billion upfront Sanofi partnership, with up to $7 billion more possible, and won U.S. approval for Pasatru, a medicine for a rare bone condition. Strong demand for its medicines drove the gains.",
+            "source_ids": [
+              "saa_doc::43d6ae1996c51c7a39d156b9"
+            ]
+          }
+        ]
+      },
+      "review_status": "completed",
+      "review_verdict": "revise"
+    },
+    {
+      "case": "casual-reader-editor-check-20261102",
+      "status": "completed",
+      "model": "deepseek-v4-pro",
+      "thinking": "enabled",
+      "reasoning_effort": "high",
+      "provider_requests": 2,
+      "estimated_cost_usd": 0.074492,
+      "unknown_new_requests": 0,
+      "instruction_sha256": {
+        "zopedia_agent_final_answer_markdown_response_to_user": "b8aba4c2077a2dc12e0c04e7ba2a2f7b86e36ee61cf807cf3bc45294bb404dbd",
+        "zopedia_agent_answer_judge_evidence_sufficiency_review": "a3b24305e83e395945ecb246a36aa32b3e2c6b37525fbed61da0fc963cd740d9",
+        "writing_style": "bf7b13f57e532afdb9ba11a2629ed1c96ac1deab2bf6f4f19bdd8360ad62c1b3"
+      },
+      "payload": {
+        "reports": [
+          {
+            "headline": "ExxonMobil’s fuel-making profit more than doubled as supply tightened",
+            "explanation": "ExxonMobil's profit per share, excluding special costs, was $4.23; analysts had expected $4.08. Total sales were $113.16 billion, above the $103.10 billion forecast. The main reason for the stronger result was its fuel-making unit: profit there climbed to $9 billion from $4.1 billion in the prior quarter because supply problems in the Middle East and attacks on Russian refineries widened the gap between what Exxon paid for crude oil and what it could charge for fuel. Oil and gas production earned less, down to $7.3 billion from $9.2 billion, as oil and gas prices fell. With the extra fuel profit, ExxonMobil raised its quarterly cash payment to shareholders to $1.07 per share from $1.03 and set a plan to buy back $20 billion of its own shares in 2027.",
+            "source_ids": [
+              "saa_doc::becd6ef1f6d938c6edbe5368"
+            ]
+          },
+          {
+            "headline": "Regeneron’s top medicines hit record sales and profit surged",
+            "explanation": "Regeneron brought in $5.1 billion in total revenue, up 36% from $3.75 billion a year earlier, and a key profit measure, excluding special costs, rose 70% to $20.07 per share. Sales of its biggest medicines hit records: Dupixent, which partner Sanofi sells, reached $6.5 billion worldwide, up 35%; the newer eye medicine EYLEA HD reached $699 million in U.S. sales, up 62%; and cancer drug Libtayo reached $550 million worldwide, up 51%. Regeneron also kept more of its Sanofi profit because it has paid off an earlier development advance, so fewer deductions reduced its profit. In addition, Regeneron received $1 billion upfront from Sanofi to bring in several new Regeneron-invented antibody programs, with up to $7 billion more if they succeed. That payment will appear in Regeneron's fourth-quarter revenue, not in this quarter. The result is a third straight quarter of double-digit revenue and profit growth, strengthening both its medicine lineup and its Sanofi alliance.",
+            "source_ids": [
+              "saa_doc::43d6ae1996c51c7a39d156b9"
+            ]
+          }
+        ]
+      },
+      "review_status": "completed",
+      "review_verdict": "revise"
+    },
+    {
+      "case": "casual-reader-explanation-first-20261102",
+      "status": "completed",
+      "model": "deepseek-v4-pro",
+      "thinking": "enabled",
+      "reasoning_effort": "high",
+      "provider_requests": 2,
+      "estimated_cost_usd": 0.070185,
+      "unknown_new_requests": 0,
+      "instruction_sha256": {
+        "zopedia_agent_final_answer_markdown_response_to_user": "b8aba4c2077a2dc12e0c04e7ba2a2f7b86e36ee61cf807cf3bc45294bb404dbd",
+        "zopedia_agent_answer_judge_evidence_sufficiency_review": "6036db95487d5657b15e93ccf2f4543f40b620d8125328334edcd2c5cf6219d6",
+        "writing_style": "98710574645ddd0e2cd6a1c2cda5539d34d9de7d6e55de4fac4874ca8e874e99"
+      },
+      "payload": {
+        "reports": [
+          {
+            "headline": "ExxonMobil Cashes In on Refining Boom, Raises Dividend",
+            "explanation": "Exxon's fuel-making business earned much more because conflict-related supply disruptions left less fuel available, pushing prices and profit per barrel higher. The fuel-making unit's quarterly profit more than doubled to $9 billion from $4.1 billion in the prior quarter. Total revenue reached $113.16 billion, above the $103.10 billion analysts expected. The company raised its dividend to $1.07 a share and set a $20 billion stock buyback for 2027.",
+            "source_ids": [
+              "saa_doc::becd6ef1f6d938c6edbe5368"
+            ]
+          },
+          {
+            "headline": "Regeneron Reports Third Quarter 2026 Financial and Operating Results | Regeneron Pharmaceuticals Inc.",
+            "explanation": "Regeneron's main drugs sold much more, and its share of partner Sanofi's profits from Dupixent grew. Global Dupixent sales, recorded by Sanofi, rose 35% to $6.5 billion; EYLEA HD U.S. sales rose 62% to $699 million; and Libtayo sales rose 51% to $550 million. Company revenue rose 36% to $5.1 billion, and its preferred profit-per-share measure rose 70%. Regeneron also received $1 billion up front for expanding its Sanofi collaboration, with up to $7 billion more possible.",
+            "source_ids": [
+              "saa_doc::43d6ae1996c51c7a39d156b9"
+            ]
+          }
+        ]
+      },
+      "review_status": "completed",
+      "review_verdict": "revise"
+    },
+    {
+      "case": "casual-reader-precision-check-20261102",
+      "status": "completed",
+      "model": "deepseek-v4-pro",
+      "thinking": "enabled",
+      "reasoning_effort": "high",
+      "provider_requests": 2,
+      "estimated_cost_usd": 0.058455,
+      "unknown_new_requests": 0,
+      "instruction_sha256": {
+        "zopedia_agent_final_answer_markdown_response_to_user": "b8aba4c2077a2dc12e0c04e7ba2a2f7b86e36ee61cf807cf3bc45294bb404dbd",
+        "zopedia_agent_answer_judge_evidence_sufficiency_review": "192cdb654b2c721f585a221268bd716e55d25e4f77a758e3c1fe2bb72068ec04",
+        "writing_style": "947bda3b10ae9a295930e451a049694932e6fe10178bdfac0956aecb7cb4f1f5"
+      },
+      "payload": {
+        "reports": [
+          {
+            "headline": "ExxonMobil Cashes In on Refining Boom, Raises Dividend",
+            "explanation": "ExxonMobil's fuel-making business earned much more because global fuel supplies tightened during the Middle East conflict and Ukrainian strikes on Russian refineries. On the company's preferred measure, income from that business more than doubled to $9 billion, up from $4.1 billion in the prior quarter. Total revenue reached $113.16 billion, above the $103.10 billion analysts expected. The company raised its quarterly payment to investors from $1.03 to $1.07 per share and set a $20 billion stock-buyback target for 2027.",
+            "source_ids": [
+              "https://www.benzinga.com/markets/earnings/26/10/62737913/exxonmobil-cashes-in-on-refining-boom-raises-dividend"
+            ]
+          },
+          {
+            "headline": "Regeneron Reports Third Quarter 2026 Financial and Operating Results",
+            "explanation": "Regeneron's total revenue grew 36% to $5.1 billion, mainly because the company received a larger share of profits from partner Sanofi's sales of Dupixent. Dupixent's global sales rose 35% to $6.5 billion, and Regeneron no longer had to subtract a repayment obligation from that profit share. On the company's preferred measure, earnings rose 70% to $20.07 per share. Regeneron also expanded its Sanofi alliance, receiving $1.0 billion up front and the chance to receive up to $7.0 billion more later.",
+            "source_ids": [
+              "https://investor.regeneron.com/news-releases/news-release-details/regeneron-reports-third-quarter-2026-financial-and-operating"
+            ]
+          }
+        ]
+      },
+      "review_status": "completed",
+      "review_verdict": "revise"
+    },
+    {
+      "case": "casual-reader-final-check-20261102",
+      "status": "completed",
+      "model": "deepseek-v4-pro",
+      "thinking": "enabled",
+      "reasoning_effort": "high",
+      "provider_requests": 2,
+      "estimated_cost_usd": 0.068811,
+      "unknown_new_requests": 0,
+      "instruction_sha256": {
+        "zopedia_agent_final_answer_markdown_response_to_user": "b8aba4c2077a2dc12e0c04e7ba2a2f7b86e36ee61cf807cf3bc45294bb404dbd",
+        "zopedia_agent_answer_judge_evidence_sufficiency_review": "192cdb654b2c721f585a221268bd716e55d25e4f77a758e3c1fe2bb72068ec04",
+        "writing_style": "7c16c2370d6435be29fafd9ad63903fd76c8c75d4c47bec0f564f479ed100277"
+      },
+      "payload": {
+        "reports": [
+          {
+            "headline": "ExxonMobil's fuel business more than doubles while raising shareholder payouts",
+            "explanation": "Conflict-related supply disruptions let ExxonMobil charge more for fuel, and its U.S. Gulf Coast refineries ran at full capacity. Profit from fuel products more than doubled to $9 billion from $4.1 billion in the prior quarter. Total sales reached $113.16 billion, beating the $103.10 billion expected, and profit excluding one-time items was $4.23 a share, beating the $4.08 expected. The company increased its quarterly shareholder payment to $1.07 a share from $1.03 and plans to buy back $20 billion of its own shares in 2027. Higher fuel profit matters because oil and gas production profit fell to $7.3 billion from $9.2 billion; the fuel business made up for that.",
+            "source_ids": [
+              "saa_doc::becd6ef1f6d938c6edbe5368"
+            ]
+          },
+          {
+            "headline": "Regeneron's newer drugs and Deals keep sales and profit growing fast",
+            "explanation": "Regeneron's newer medicines drove sales up 36% to $5.1 billion. Dupixent, the Sanofi-sold medicine, rose 35% to $6.5 billion, lifting Regeneron's profit share from Sanofi 68% to $2.724 billion. The newer eye medicine EYLEA HD rose 62% in the U.S., and the cancer medicine Libtayo rose 51%. The older eye medicine EYLEA fell 41% as patients moved to the newer version, but the two together stayed almost flat in the U.S. Profit excluding one-time items rose 70% to $20.07 a share. Regeneron also widened its Sanofi partnership, receiving $1 billion up front and up to $7 billion more later to develop longer-acting antibodies. The newer products and partnership income are replacing older sales and keeping growth strong.",
+            "source_ids": [
+              "saa_doc::43d6ae1996c51c7a39d156b9"
+            ]
+          }
+        ]
+      },
+      "review_status": "completed",
+      "review_verdict": "revise"
+    }
+  ],
+  "costs": {
+    "new_estimated_usd": 0.401074,
+    "new_provider_requests": 12,
+    "new_unknown_requests": 0,
+    "same_cumulative_api_cap_usd": 40,
+    "all_previous_unknown_costs_retained": true,
+    "cumulative_maximum_counted_usd": 37.78156
+  },
+  "operations": {
+    "all_six_local_databases_stopped": true,
+    "no_rented_gpu_instances": true,
+    "production_trial_images_retained": true,
+    "further_writing_deployment": false
+  },
+  "held_candidate_source": "feature/market-first-writing-20261102",
+  "released_source": "feature/market-first-research-20261030"
+}

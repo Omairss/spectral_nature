@@ -1639,3 +1639,7 @@ An inline explanation must be authored as a replacement that fits the same prefi
 ### Production trial source preservation — November 2, 2026
 
 Integrate separately accepted deployments from their immutable Git application source before packaging a trial. Verify all consumer pages, not only the first Azure jobs page. An ARM image update may remove empty storage metadata; preserve its exact before/after record and reconcile only the observed empty field without weakening full configuration checks. The Market-First trial retains all38 consumers, the accepted calendar/native features and existing settings.
+
+### Judge meaning as well as fluency — November2,2026
+
+Six funded full-Pro writing/reviewer checks sometimes shortened explanations but still changed financial meaning. Judge original source relationships and metric identity personally, alongside casual-reader clarity. A revised answer and positive reviewer verdict are not acceptance. Preserve the accepted production trial and hold further prompt changes when improvement is inconsistent.
