@@ -1635,3 +1635,7 @@ An inline explanation must be authored as a replacement that fits the same prefi
 
 - FRED release dates include future schedules; realtime start/end describe vintages. Keep date-only fallback records date-only. Publisher monthly pages need an explicit requested-period check, and annual/monthly Fed meeting identities must match.
 - Bulk earnings produce hundreds of events on busy dates. Preserve all records, rank each day from shared data, and render visible carousel rows lazily. A live owner-key request establishes access; the public demo does not.
+
+### Production trial source preservation — November 2, 2026
+
+Integrate separately accepted deployments from their immutable Git application source before packaging a trial. Verify all consumer pages, not only the first Azure jobs page. An ARM image update may remove empty storage metadata; preserve its exact before/after record and reconcile only the observed empty field without weakening full configuration checks. The Market-First trial retains all38 consumers, the accepted calendar/native features and existing settings.

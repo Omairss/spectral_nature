@@ -1,5 +1,5 @@
 {
-  "status": "authorized_preparing_release",
+  "status": "deployed_and_read_back",
   "recorded_at_utc": "2026-11-02T07:38:45.621038+00:00",
   "owner_instruction": "Add explicit instructions to not use financial jargon - specially for the reviewer. Test out this system end-to-end this week. Push this to prod. Then iterate on the writing with feedback; update prod if better.",
   "acceptance": "Owner accepts the current data-first system for a production trial. This does not claim the known writing issues are resolved.",
@@ -10,10 +10,8 @@
     "Preserve accepted calendar, Trading, frontend, native and all current consumer configurations"
   ],
   "remaining_work": [
-    "Inspect exact integrated source and package",
-    "Development verification of exact images before production",
-    "Production readback and rollback record",
-    "Narrow writer/reviewer iteration over retained evidence, compared with released version before any further promotion"
+    "Narrow writer/reviewer iteration over retained evidence, compared with the released writing before any further promotion",
+    "Observe normal scheduled trial runs this week; first Home execution is November2 at06:50Pacific"
   ],
   "preservation": {
     "live_consumer_count": 38,
@@ -25,5 +23,6 @@
   "inference": {
     "new_paid_requests_this_release": 0,
     "no_historical_output_republication": true
-  }
+  },
+  "production_evidence": "documents/verification/market-first-research-2026-10-30/production-trial-production-2026-11-02.json"
 }

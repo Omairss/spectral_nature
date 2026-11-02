@@ -568,8 +568,34 @@
     "current_comparison_predates_change": true
   },
   "current_production_trial": {
-    "status": "owner_authorized",
-    "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-2026-11-01.json",
-    "writing_acceptance": "Trial accepted; further improvements remain conditional on comparison."
+    "status": "deployed_and_read_back",
+    "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-production-2026-11-02.json",
+    "first_scheduled_home_run_pacific": "2026-11-02T06:50:00-08:00",
+    "tasks": [
+      {
+        "task": "Explicit no-financial-jargon instructions, especially reviewer",
+        "status": "done"
+      },
+      {
+        "task": "Preserve accepted calendar/Trading and qualify integrated release in development",
+        "status": "done"
+      },
+      {
+        "task": "Promote exact qualified images and verify all38consumers",
+        "status": "done"
+      },
+      {
+        "task": "Narrow native writer/reviewer iteration over retained inputs",
+        "status": "in_progress"
+      },
+      {
+        "task": "Promote further writing changes only after qualitative improvement",
+        "status": "conditional_on_results"
+      },
+      {
+        "task": "Observe normal end-to-end runs during the production trial",
+        "status": "scheduled_from_2026-11-02_06:50_Pacific"
+      }
+    ]
   }
 }

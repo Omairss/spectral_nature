@@ -340,8 +340,8 @@
       "calendar_days": 98,
       "calendar_events": 3502,
       "summary_present": true,
-      "audio_present": false,
-      "body_sha256": "126d8d35cd34ceeebb550f30a3906985962a0ec6adbc8a329a2027c62a18e19a"
+      "body_sha256": "126d8d35cd34ceeebb550f30a3906985962a0ec6adbc8a329a2027c62a18e19a",
+      "audio_available": true
     }
   ],
   "new_inference_requests": 0,

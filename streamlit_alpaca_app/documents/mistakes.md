@@ -1568,3 +1568,7 @@ Simulator exposed expandable paragraphs as single accessibility elements, and re
 
 - The first local publication hit PyArrow26's NumPy2 requirement against the application's NumPy<2 constraint. Bound PyArrow below26 and verified a normal materialized publication with25.
 - Sparse mock calendars concealed clipping and eager rendering on busy days. Review the full provider dataset before release; fixed inner-text clamping and lazy event rows globally.
+
+### Read the public contract when checking retained features — November 2, 2026
+
+The initial release receipt checked a nonexistent summary.audio_url and incorrectly recorded audio absent. The shared public DTO exposes audio_available. Read back that actual field and correct the receipt; both development and production retained audio. No audio or UI code change was needed.
