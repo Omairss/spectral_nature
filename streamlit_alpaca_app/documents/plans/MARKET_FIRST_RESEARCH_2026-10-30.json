@@ -1,7 +1,7 @@
 {
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
-  "revision": 9,
+  "revision": 10,
   "status": "implemented_fresh_output_rejected_no_deployment",
   "recorded_at_utc": "2026-10-31T03:18:50.047478+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
@@ -258,9 +258,9 @@
     "release_acceptance": "../../infra/release_acceptance.json",
     "implementation_qualification": "../verification/market-first-research-2026-10-30/qualification.json",
     "latest_public_artifact": "../verification/market-first-research-2026-10-30/candidate-output.json",
-    "latest_editorial_verification": "../verification/market-first-research-2026-10-30/deepseek-editorial-2026-11-01.json"
+    "latest_editorial_verification": "../verification/market-first-research-2026-10-30/compressed-current-production-2026-11-01.json"
   },
-  "next_action": "Show the unedited fresh DeepSeek before/after. The writer-and-review change failed local quality acceptance; keep deployment held. The confirmed next boundary is source interpretation becoming a reported fact and being accepted by the existing reviewer. Do not claim another prompt edit or a new review stage is proven to solve it.",
+  "next_action": "Show the complete actual current-production versus compact-prompt candidate. Both stages are funded and completed, but plain-language and explanatory failures remain. Preserve the unedited output and keep deployment held; do not treat emphasis or compression as a verified cure.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",
@@ -411,7 +411,7 @@
     "assessment": "Brief shortened, but Amazon causality, unclear shorthand, jargon, unnecessary figures and a misleading software explanation survived the funded review. No handwritten corrections or deployment."
   },
   "compressed_production_comparison_2026_11_01": {
-    "status": "preparing_fresh_publication_only_comparison",
+    "status": "fresh_output_completed_quality_rejected_no_deployment",
     "owner_instruction": "Bold or capitalize the missed instruction and retry; compare against current production, not the unpromoted predecessor.",
     "source_changes": "Compress existing shared writing, review, timing and language instructions at their owners. Capitalize plain-English/jargon correction. Keep complete-knowledge fidelity, evidence navigation and JSON contracts.",
     "production_image": "sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
@@ -419,6 +419,10 @@
     "baseline": "Fresh read-only capture of the actual currently published production feed; 11 stories, run 897f8072-05b5-4f11-89de-792daa2093cb, cutoff 2026-10-30T20:50:40.507732+00:00.",
     "candidate_scope": "Existing Zopedia public writer and reviewer over that publication’s retained research, observations and captures, no new investigations. Reconstruction from persisted production inputs is recorded; not claimed as an identical original pre-publication request or full Market-First replay.",
     "spending": "Current owner retry request authorizes this DeepSeek comparison within the existing cumulative 33-dollar cap; preserve 25.570487 known and 4.470776 unresolved maximum. No cap increase.",
-    "deployment": false
+    "deployment": false,
+    "result": "../verification/market-first-research-2026-10-30/compressed-current-production-2026-11-01.json",
+    "estimated_new_cost_usd": 0.261508,
+    "baseline_stories": 11,
+    "candidate_stories": 20
   }
 }
