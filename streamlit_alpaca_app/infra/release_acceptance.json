@@ -1558,14 +1558,15 @@
   },
   "production_authorization": {},
   "development_acceptance": {
-    "status": "pending_runtime_qualification",
+    "status": "accepted",
     "images": {
       "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
       "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
       "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d"
     },
     "source_inventory_sha256": "bd0f4040e86a0d92d802818686734ed1f7b349a4b9556a565882ce2ab91647b6",
-    "evidence": "documents/verification/live-market-calendar-2026-11-01/DEVELOPMENT.json"
+    "evidence": "documents/verification/live-market-calendar-2026-11-01/DEVELOPMENT.json",
+    "recorded_at": "2026-11-02T03:29:36.907852+00:00"
   },
   "production_acceptance": {}
 }

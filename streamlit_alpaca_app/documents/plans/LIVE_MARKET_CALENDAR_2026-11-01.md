@@ -2,6 +2,8 @@
 
 The owner approved implementing Alpha Vantage earnings discovery plus official Fed, BLS and BEA schedules. Replace authored timeline events with retained real source records. Preserve the approved native carousel, inline expansion and attention graph. Production promotion is not authorized by this request.
 
+Status: implemented and accepted on DEV. The first managed-identity cloud run published 3,454 expected earnings and 61 agency events; native Simulator and web read the deployed publication. See [development verification](../verification/live-market-calendar-2026-11-01/DEVELOPMENT.json).
+
 ## Ownership and publication
 
 The calendar has one shared background producer and one retained dataset, independent of brief inference. Provider adapters return source identities, dates, timing precision and provenance. The producer merges source refreshes with last-known events and publishes one versioned artifact through the existing materialized-dataset store. The existing public Home contract projects that artifact into its optional calendar field. API reads never fetch a provider or invoke a model. Historical Home requests use the calendar publication available at the selected date; a later schedule must not leak into replay.
@@ -22,8 +24,14 @@ Implementation worktree: `/Users/omairs/Documents/code/spectral_nature_calendar_
 
 Read-only live source captures are kept under `documents/verification/live-market-calendar-2026-11-01/raw/`; authored October calendar examples must never be merged into the live dataset. Inspect real multi-event days, date changes, empty days, source outage retention, DST, replay and the actual native/web display. Use operational contract tests for parsing/publication reliability, and personal review for display usefulness. Do not treat tests as evidence of LLM quality.
 
-Alpha Vantage key is absent from process configuration and Key Vault metadata. Asked the owner to save an existing key as `AlphaVantage`; do not paste secrets in chat, create an account or buy a subscription. The documented public demo may be used for local read-only verification, but must never become a default key or a public serving feed.
+The owner authorized storing the supplied key as `AlphaVantage` in the existing Key Vault. Live ingestion uses that secret. The public demo remains verification evidence only, and is rejected as a serving key.
 
 ## Owner-key activation
 
-The owner explicitly authorized saving AlphaVantage in the existing Key Vault. A live request succeeded with3,454 earnings rows and the normal producer published them alongside61 agency events in the development namespace. Calendar refreshes remain independent of brief generation. Busy-date review exposed eager rendering; the clients now create visible event rows as needed. Shared ordering uses event importance without a fixed company shortlist. Production remains unchanged; exact-image development qualification is next.
+The owner explicitly authorized saving AlphaVantage in the existing Key Vault. A live request succeeded with 3,454 earnings rows and the normal producer published them alongside 61 agency events in the development namespace. Calendar refreshes remain independent of brief generation. Busy-date review exposed eager rendering; the clients now create visible event rows as needed. Shared ordering uses event importance without a fixed company shortlist. Exact-image development qualification and the first scheduled-worker execution passed. Production remains unchanged.
+
+## Delivery and source integration
+
+Only the existing DEV API and Next.js images changed. The new `market-calendar-refresh-dev` job runs at 00:00/06:00/12:00/18:00UTC, with a 300-second deadline and the existing managed identity. All 36 existing configurations, all 21 production images and the other 13 existing DEV images were read back unchanged. Conditional Home reads include the calendar in the response fingerprint; an unchanged body returns 304. Replay before the first retained calendar does not receive the later live schedule.
+
+Scoped changes were also applied to the original IDE checkout with a clean patch check, preserving its concurrent jobs/types changes. That checkout remains unaccepted release source. Build/release only the committed `feature/live-market-calendar-20261101` worktree. Issuer-confirmation ingestion remains future work; Alpha Vantage entries are explicitly expected.
