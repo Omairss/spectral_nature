@@ -1,0 +1,30 @@
+{
+  "recorded_at": "2026-11-02T06:57:38.621105+00:00",
+  "owner_instruction": "Is the real earnings scan deployed in prod as a job? If not, deploy it. Then update the phone with this app",
+  "scope": [
+    "production scheduled calendar job",
+    "exact DEV-qualified API and both Next.js entry points",
+    "native Release build18 installation and launch"
+  ],
+  "images": {
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d"
+  },
+  "development_evidence": "documents/verification/live-market-calendar-2026-11-01/DEVELOPMENT.json",
+  "source_inventory_sha256": "bd0f4040e86a0d92d802818686734ed1f7b349a4b9556a565882ce2ab91647b6",
+  "job": {
+    "name": "market-calendar-refresh",
+    "namespace": "production",
+    "cron": "0 0,6,12,18 * * *",
+    "timeout_seconds": 300,
+    "resources": {
+      "cpu": 1.0,
+      "ephemeralStorage": "",
+      "memory": "2Gi"
+    },
+    "configuration_sha256": "cedc52abc916dddf6bfa6849b91a64301a26093996f5f225c0301291da0c1140"
+  },
+  "other_existing_production_workers_and_broker": "retained",
+  "new_credentials_or_access_grants": false
+}

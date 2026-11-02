@@ -656,7 +656,38 @@
           }
         }
       ],
-      "production_targets": [],
+      "production_targets": [
+        {
+          "name": "market-calendar-refresh",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "new_resource": true,
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "cedc52abc916dddf6bfa6849b91a64301a26093996f5f225c0301291da0c1140",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+            "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+            "evidence": "documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
+            "package_evidence": "documents/verification/live-market-calendar-2026-11-01/PACKAGE_ACCEPTANCE.json"
+          },
+          "execution_binding": {
+            "name": "market-calendar-refresh",
+            "role": "worker",
+            "pipeline_job": "market-calendar-refresh",
+            "dataset_namespace": "production",
+            "trigger": "Schedule",
+            "cron": "0 0,6,12,18 * * *",
+            "environment": {
+              "ALPHA_VANTAGE_SECRET_NAME": "AlphaVantage",
+              "PIPELINE_JOB_MAX_DURATION_SECONDS": "300"
+            }
+          }
+        }
+      ],
       "accepted_images": {
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d": {
           "status": "passed",
@@ -707,7 +738,25 @@
           "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7"
         }
       ],
-      "production_targets": [],
+      "production_targets": [
+        {
+          "name": "sn-api-next",
+          "kind": "containerApps",
+          "role": "api-next",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
+            "package_evidence": "documents/verification/live-market-calendar-2026-11-01/retained-package-proofs.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7"
+        }
+      ],
       "accepted_images": {
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16": {
           "status": "passed",
@@ -759,7 +808,42 @@
           "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
         }
       ],
-      "production_targets": [],
+      "production_targets": [
+        {
+          "name": "sn-streamlit-ui",
+          "kind": "containerApps",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
+            "package_evidence": "documents/verification/live-market-calendar-2026-11-01/retained-package-proofs.json"
+          },
+          "role": "web",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
+        },
+        {
+          "name": "sn-next-ui",
+          "kind": "containerApps",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
+            "package_evidence": "documents/verification/live-market-calendar-2026-11-01/retained-package-proofs.json"
+          },
+          "role": "web",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
+        }
+      ],
       "accepted_images": {
         "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9": {
           "status": "passed",
@@ -894,57 +978,6 @@
     }
   },
   "untouched_consumers": [
-    {
-      "name": "sn-streamlit-ui",
-      "kind": "containerApps",
-      "environment": "production",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
-        "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
-        "evidence": "documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-        "package_evidence": "documents/verification/live-market-calendar-2026-11-01/retained-package-proofs.json"
-      },
-      "role": "web",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
-    },
-    {
-      "name": "sn-next-ui",
-      "kind": "containerApps",
-      "environment": "production",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
-        "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
-        "evidence": "documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-        "package_evidence": "documents/verification/live-market-calendar-2026-11-01/retained-package-proofs.json"
-      },
-      "role": "web",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
-    },
-    {
-      "name": "sn-api-next",
-      "kind": "containerApps",
-      "role": "api-next",
-      "environment": "production",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
-        "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
-        "evidence": "documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-        "package_evidence": "documents/verification/live-market-calendar-2026-11-01/retained-package-proofs.json"
-      },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7"
-    },
     {
       "name": "universe-builder",
       "kind": "jobs",
@@ -1509,7 +1542,7 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": false,
+  "production_authorized": true,
   "consumer_contract_reviews": {
     "database_lifecycle": {
       "status": "accepted",
@@ -1556,7 +1589,11 @@
     "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-configuration.json",
     "base_budgets_and_schedules_preserved": true
   },
-  "production_authorization": {},
+  "production_authorization": {
+    "owner_instruction": "Is the real earnings scan deployed in prod as a job? If not, deploy it. Then update the phone with this app",
+    "recorded_at": "2026-11-02T06:57:38.621105+00:00",
+    "evidence": "documents/verification/live-market-calendar-2026-11-01/PRODUCTION_AUTHORIZATION.json"
+  },
   "development_acceptance": {
     "status": "accepted",
     "images": {
@@ -1568,5 +1605,7 @@
     "evidence": "documents/verification/live-market-calendar-2026-11-01/DEVELOPMENT.json",
     "recorded_at": "2026-11-02T03:29:36.907852+00:00"
   },
-  "production_acceptance": {}
+  "production_acceptance": {
+    "status": "pending_readback"
+  }
 }
