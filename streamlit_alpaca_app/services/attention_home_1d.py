@@ -1012,6 +1012,7 @@ def build_attention_event_candidates_1d(
     context_payloads: dict[str, dict[str, Any]] | None = None,
     entity_master: pd.DataFrame | None = None,
     holdings: list[str] | None = None,
+    selected_symbols: list[str] | None = None,
     asof_time_utc: datetime | pd.Timestamp | None = None,
 ) -> pd.DataFrame:
     movers = daily_movers.copy() if isinstance(daily_movers, pd.DataFrame) else pd.DataFrame()
@@ -1036,7 +1037,8 @@ def build_attention_event_candidates_1d(
         attention["severity_score"] = pd.to_numeric(attention.get("severity_score"), errors="coerce")
         attention = attention.sort_values(["attention_score", "severity_score"], ascending=[False, False], na_position="last")
 
-    symbols = shortlist_attention_symbols_1d(movers, holdings=holdings, attention_rows=attention)
+    symbols = (list(dict.fromkeys(_normalize_symbol(symbol) for symbol in selected_symbols if _normalize_symbol(symbol)))
+               if selected_symbols is not None else shortlist_attention_symbols_1d(movers, holdings=holdings, attention_rows=attention))
     if entity_master is None:
         entity_master = build_attention_entity_master(symbols)
     macro_anchor_symbols = {
@@ -1219,7 +1221,7 @@ def build_attention_event_candidates_1d(
     out["dollar_volume"] = pd.to_numeric(out["dollar_volume"], errors="coerce")
     out["change_pct"] = pd.to_numeric(out["change_pct"], errors="coerce")
     out = out.sort_values(["candidate_score", "dollar_volume", "change_pct"], ascending=[False, False, False], na_position="last").reset_index(drop=True)
-    if _normalized_scoring_mode() == "anomaly_v2":
+    if selected_symbols is None and _normalized_scoring_mode() == "anomaly_v2":
         out = out.head(max(int(attention_candidate_policy().shortlist_default_max_count), 1)).reset_index(drop=True)
     return out[CANDIDATE_COLUMNS].copy()
 

@@ -1518,6 +1518,119 @@ The 41.8448USD historical Home event/company subtotal spans 974 successful price
 
 Name the design separately from accepted source. Preserve the exact accepted application, complete live image/configuration references and a recoverable Git checkpoint before implementing. The measured index support is retrospective; dated holdings and taxonomy are not proof of real-time planner discovery. A data-first sequence is insufficient if it retains a pre-group name cut, mistakes sector labels for changing clusters, suppresses news without price movement or narrows evidence irreversibly. Complete-run costs and full outputs must establish recall and savings. See plans/MARKET_FIRST_RESEARCH_2026-10-30.json.
 
+### Keep numerical coverage and focused research context separate — October 30, 2026
+
+Market-First preparation retains the complete observed universe before selecting questions. Return groups use adjusted completed-session histories; current partial bars and raw snapshot returns keep separate time/basis labels. A group hash identifies its exact members, not a permanent economic theme. Selected investigations receive relevant observations with access to all originals through the existing evidence reader. Reused findings retain their original dates, and two questions may reference one prior artifact without overwriting their execution or publication identities. Operational checks do not establish model quality or savings.
+
+### Carry dated knowledge through the existing research flow — October 30, 2026
+
+A data-first planner alone does not protect discoveries: investigations need relevant prior findings and original captures, while retaining access to wider observations. Missing a fresh headline does not prove a factor cause. Reader IDs must name stable captured sources, and response schemas should enumerate those exact IDs. A projected ticker view is not independent research confirmation. Peer comparisons must state which fixed peer set is compared; covered-instrument means are not official index returns.
+
+### Research selection must not truncate numerical production — October 30, 2026
+
+Generate existing numerical anomaly features for the covered universe before grouping and planning. Preserve that complete dataset for ranking and macro consumers when the planner buys few or no investigations. A focused Home display is a projection of those same observations. Qualitative comparisons must freeze historical memory as well as market inputs; exact-input caches and immutable paid artifacts may remain without promoting rejected trials into prior knowledge. Public prose explains business meaning while the existing ticker rows and charts carry quantities; uncertainty belongs at the causal claim, including its headline.
+
+### Preserve review meaning through publication — October 30, 2026
+
+A prose-only handoff loses the distinction between reported facts and hypotheses and can lose reviewer corrections during compression. Pass those existing claim roles and corrections with the findings. One canonical public story carries placement, sources and body; the application owns technical IDs. Compose Attention first and its Brief afterward. A failed source lookup can coexist with a valid answer and publication, while aggregate research health remains partial.
+
+### Qualify public precision separately from research completion — October 30, 2026
+
+A completed, source-linked investigation and a high model review grade do not establish publication precision. In the Market-First comparison, the editor turned broad backlog timing and delivery milestones into a stronger financial-conversion schedule; the reviewer missed it. Inspect the actual public assertions against the original claims and sources, including quantifiers, accounting meaning and time horizons. A better numerical agenda can coexist with an unaccepted public writing regression.
+
+### The shared reviewer must serve the artifact purpose — October 30, 2026
+
+A universal high-recall discovery instruction caused the reviewer to expand a finished Brief with figures. Correct the objective in the owning shared prompt: public explanation selects, research preserves useful hypotheses, and complete knowledge rewrites preserve original information. No additional writer, prose filter or final planner. The source correction needs fresh qualitative evidence.
+
+### Output format must not choose a different writer — October 30, 2026
+
+Structured final synthesis used a separate research-report instruction while Markdown used the shared reader-focused writing prompt. That made Home prose inconsistent despite a correct common agenda and reviewer. Use the same writing owner for both formats, adding only the JSON schema/serialization requirement and respecting the artifact purpose. No additional model call or publication layer is needed. Preserve the schema author's field order in the actual model-visible request as well: canonical alphabetical ordering belongs in fingerprints, not the writing contract. A declaration of stories before their summary is ineffective if the transport reverses it. Fresh output followed that order, but the financial interpretation errors remained. Preserve the structural correction without treating it as proof of reasoning quality.
+
+### A completed answer needs one response contract — October 30, 2026
+
+The evidence reader wrapped final answers in a second control contract, even though each writer/reviewer already had a complete artifact schema. A paid review matched that artifact schema but was regenerated for envelope placement. Keep the provider-compatible outer object, place the artifact directly in its decision field, and remove the redundant action=answer/answer layer. Reads and context selection use that same field. Validate the complete requested schema without inventing review metadata. Check both evidence navigation and artifacts that themselves contain a decision field.
+
+### Give common planning coverage history, not every previous report — October 30, 2026
+
+The owner requested complete underlying observations plus headlines for common planning. Article excerpts and full prior reports exceed that role and repeat earlier attention. Supply a structured prior-question/asset/review index; retain complete findings and originals in the existing reader and give selected investigations the relevant complete research, review and limitations. Measure the actual producer input and preserve numerical/economic coverage and reader content before comparing fresh outputs. Do not call a lower input byte count a measured bill saving.
+
+### Expose what a retained capture actually contains — October 30, 2026
+
+A source title and URL do not distinguish a search snippet from a complete page capture. Preserve every version and expose its existing origin, source kind and captured text length in the source index, so the shared reader can select the relevant original. Do not treat opening a referenced capture as proof of reading the full underlying article, or use a longest-text rule as a substitute for research. Added source context alone did not establish correct financial interpretation; a year-over-year expense change is not, by itself, a variance against consensus.
+
+### New research allocation and current relevance are different decisions — October 31, 2026
+
+An unchanged question can still matter to the current feed without another full investigation. Keep that distinction inside existing Zopedia planning/reuse/writing; do not make a smaller paid agenda silently define all relevant coverage. Audit exact input availability and later omissions. Distinguish consolidated issuer EPS, segment operating performance, year-over-year changes and consensus variances when evaluating earnings explanations.
+
+### Keep a readable research catalog beyond the inline history — October 31, 2026
+
+The latest 20 investigations did not include still-relevant earlier reports. Separate prompt-size limits from the bounded catalog available through the existing reader. Carry that catalog to final writing even when no new investigation is selected, and preserve current numerical metadata for any selected company. A source-availability readback establishes access, not model selection or quality.
+
+### A frozen replay includes working source readers — October 31, 2026
+
+Identical dataset hashes and historical reports are insufficient if retained-search reads point at an uninitialized database. Before paid verification, bootstrap the existing schema, index the same captured originals and exercise both search and full-document retrieval without inference. Keep failed setup costs separate from measured flow costs while retaining both under the original cumulative spending cap.
+
+### Retained research includes its acquisition — October 31, 2026
+
+Check both supplied context and the shared engine's acquired captures when carrying prior reports forward. Use the existing pure evidence adapter to expose the captures inside the report reader, preserving original dates and provenance. Keep them separate from new raw-source index entries so a retained chunk cannot overwrite a complete current capture.
+
+### Expired planned work is different from an unknown request — October 31, 2026
+
+Unused core-work funding should stop withholding run headroom after its original deadline, matching the existing account-level future-work rule. Retain the original reservation record and every actual or unknown request charge. Source checking and review need available execution resources; a completed transport is not a completed, reviewed artifact.
+
+### Read actual execution before accepting the comparison — October 31, 2026
+
+A readable catalog is not proof that final writing used it. The matched candidate had 36 retained reports available but made no final-reader calls; it retained a financial category error and lost useful earlier coverage. It materialized a valid current artifact while correctly recording its failed final model review as degraded. Preserve that output for inspection without granting release acceptance. Verify actual model receipts too: the baseline retained 11 Flash calls despite a Pro primary configuration. The cost comparison is not an equivalent-quality savings result.
+
+The exact Reddit handoff already described the broader revenue category correctly; the raw final Pro response narrowed it incorrectly. Trace errors across each transformation before blaming acquisition, cached research or rendering. Selected findings were supplied in full while other history required a reader action; access was allowed, but no read happened. The separate study cap also needed its own completion allocation: application core reservations did not reserve money within the external verification guard.
+
+### Isolate the missing review before redesigning it — November 1, 2026
+
+An unchanged full-model review of the saved 10-story draft corrected the Reddit revenue-category error in one request, estimated at $0.129956, without error-specific hints or repeated planning/research/writing. It also corrected dated events and source references. The older Reddit observation, continuing-coverage omissions and repetitive writing remained; the Brief and seven stories were unchanged. Protecting the existing reviewer is necessary and useful, but a successful correction in one case is not general factual or release acceptance. See verification/market-first-research-2026-10-30/funded-review-2026-11-01.json.
+
+The owner treats a clearly dated two-hour-old price as minor, not a reason to expand the scope. Prioritize material factual errors, missed consequential coverage and reliable updates. Clear writing is also material: explain the actual product or business change, distinguish an inferred valuation explanation from observed co-movement, and include uncertainty only with a concrete reader consequence. Lead with the development rather than an abstract negative comparison. The November 1 owner feedback in owner-review-2026-10-31.json records the examples and source checks; these are semantic objectives, not phrase bans or ticker-specific rules.
+
+### Recorded claims remain fallible during public writing — November 1, 2026
+
+The fresh full-Pro writer and funded existing reviewer cost $0.220450 over the criticized five-investigation input. A shorter Brief removed its research-question list, but source-backed writing instructions plus recorded claims did not cure the material Amazon causal error or the unclear prose. The upstream claim labeled a source author’s year-over-year-versus-consensus comparison as reported_fact; final writing strengthened it and review explicitly endorsed it. Preserve source observations separately from interpretation, and inspect the actual reasoning across both boundaries. No extra stage, phrase ban or ticker rule is justified by this result. The complete unedited output and personal assessment are in verification/market-first-research-2026-10-30/deepseek-editorial-2026-11-01.json.
+
+The software paragraph trace confirms that the final writer inherited the missing-catalyst note, old article, valuation explanation and numerical context from the completed investigation. The final reviewer left the public why paragraph unchanged. An observation worth reporting does not require an established cause, but internal acquisition notes and a valuation label do not explain its investment meaning. An empty public field was already permitted; adding more required fields or another caution is not a source fix.
+
+### Emphasis and brevity require actual-output qualification — November 1, 2026
+
+A fresh full-Pro writer and reviewer over the currently published production run cost $0.261508. The actual capitalized plain-language instruction was present in both requests, source readers were available, and review completed. It corrected an Intel headline and reduced two financial inventories, but left substantial jargon, repeated research-limit commentary and an unsupported claim that unexplained moves are not investable. The candidate filled all 20 story slots versus production’s 11. Keep the real production baseline and all generated prose intact; this prompt experiment is not accepted. Count the writing task in both request totals when measuring compression.
+
+### Keep the candidate architecture when changing the baseline — November 1, 2026
+
+A request to compare against actual production changes the baseline, not the candidate execution path. Writer/reviewer-only replays isolate editorial behavior but do not fulfill full-flow verification. Preserve numerical preparation, the common planner, selected investigations and review in the candidate; record each executed stage. Earlier October 30–31 full-flow experiments remain part of execution history even when the latest editorial comparison did not use that path.
+
+### Fresh data-first selection improves discovery, not automatically publication — November 1, 2026
+
+The full current candidate prepared 999 observations and 242 groups before its new common planner. It selected six investigations, including regulated utilities versus independent power; four returned findings and that contrast reached Attention and Brief. The funded final reviewer still accepted a money-flow assertion without flow evidence and omitted a reported Binance breach despite its original being in the public reader. Preserve observed discovery gains separately from precision, source use, readability and completion. The $4.672672 estimate plus $0.611258 unknown maximum is a degraded whole-core attempt, not an equivalent-quality saving. See verification/market-first-research-2026-10-30/full-candidate-vs-current-production-2026-11-01.json.
+
+The production/candidate source comparison also shows that prompt compression removed substantive editorial behavior: independently form the explanation before reviewing the draft, read decisive originals, keep process limitations internal, and select figures only when they explain the mechanism or scale. Generic clarity instructions retained those objectives incompletely. Preserve these decisions concisely rather than restoring prompt repetition. This run changed discovery, research completion, context and prompts together; it does not isolate their relative causal effects on readability.
+
+### Communication review judges the returned explanation — November 1, 2026
+
+The small saved-source study kept full Pro and reran only writing/review or the existing reviewer. Public explanations need selective communication; complete knowledge replacements have a different fidelity objective. The reviewer now generates its corrected answer before its verdict in both JSON and Markdown contracts. Inspect the actual returned text: a reviewer can accurately critique a draft and introduce a new error while rewriting it. Sentence-count compliance did not protect financial meaning. The two isolated outputs in [communication examples](verification/market-first-research-2026-10-30/communication-examples-2026-11-01.json) explain the conditional advertising mechanism and clarify stock-market value. Expanded paragraphs remain unaccepted; this is not whole-feed qualification or a run-cost comparison.
+
+The owner rejected both small examples for low information density: one explained the same consequence twice; the other defined a financial quantity instead of reporting its change. Plain language should use concise, precise familiar terms. Preserve the question's scope, explain specialist concepts only when needed, and add context only when omitting it would materially mislead. A proposed mechanism does not claim to explain every cause; review should not automatically expand it into a source summary.
+
+Use established guidance: the [SEC's Plain English Handbook](https://www.sec.gov/files/pdf/handbook.pdf), especially choosing information before wording and putting action into strong verbs; [Microsoft's word-choice guide](https://learn.microsoft.com/en-us/style-guide/word-choice/use-simple-words-concise-sentences), on precise everyday words and removing empty words; and [Google's voice guide](https://developers.google.com/style/tone), on natural, direct writing without pedantry. The shared style uses short examples, including the owner's saved-login wording, a price-growth distinction and combining a repeated business explanation. These illustrate language, not market evidence; none supplies the desired Google or Alphabet answer.
+
+The follow-up produced two concise unedited Pro examples for $0.079898 across 13 review-only attempts. Resource-based guidance and few-shot examples did not reliably control default length: an explicit roughly 25-word brief task improved the short mechanism, while limiting the quantity task to the change removed its unnecessary causal appendix. Those narrow successes did not establish transfer to another business case. The word target was removed from Home after it encouraged preserving a malformed comparison. The owner later accepted the independent Exxon explanation; full Home output and unrelated shared consumers remain separate qualification work.
+
+The owner accepted the final independent Exxon example and clarified that figures are welcome with context, a baseline or reference. Keep its meaningful earnings comparison, dividend and repurchase plan; do not equate plain language with deleting financial information or reject familiar terminology pedantically. Earlier attempts compressed unsupported draft claims or omitted a forecast comparator. The accepted example used the complete original article, source-first writing and the existing reviewer. Ten Pro requests across those attempts cost an estimated $0.049962. Expanding to the full public surface reuses actual data-first findings and originals; it does not rerun research or establish whole-feed acceptance by itself.
+
+### Compact provenance does not establish communication quality — November 1, 2026
+
+The owner-accepted Exxon example did not transfer to the complete public feed. Two writing/review replays over the actual data-first findings cost $1.384468 in total; all four requests used full Pro and both final reviews completed. Initial claims repeated one large source trace seven times. Projecting claim text, references and support metadata into the existing handoff preserved every readable source record, cut claim bulk from 909,575 to 32,090 bytes and reduced the native request by 20%. The second replay cost $0.625792 versus $0.758676, but still retained jargon, evidence-audit caveats and material omissions. Distinguish a source available in a frozen corpus from one actually exposed to the publication reader: the candidate's public catalog had Binance resumption headlines, while breach reports were only in the separate corpus. The complete unedited comparison is retained in [the verification record](verification/market-first-research-2026-10-30/full-communication-comparison-2026-11-01.json). No research pipeline or deployment ran.
+
+### Accessibility depends on subject knowledge, not sentence fluency — November 1, 2026
+
+The owner clarified that the feed is esoteric: it assumes readers understand financial jargon. The original prompt explicitly required 80% ASD-STE100-inspired writing; compression removed that requirement, and it was absent from both latest native system instructions. Restore the explicit preference and audience assumptions in the shared instructions and reviewer. Explain unfamiliar financial concepts through their business meaning, preserve useful figures and comparisons, and avoid glossary digressions. Both composed local instructions now include the rule; no fresh model output, spending or deployment verifies its effect yet. See verification/market-first-research-2026-10-30/casual-reader-instructions-2026-11-01.json.
+
+- Production trial acceptance can authorize a known imperfect candidate. Preserve that scope explicitly: operational qualification and accepted newer features remain mandatory, while editorial improvement continues against the actual released version.
 ### Expandable prose needs paired grammatical replacements — October30
 
 An inline explanation must be authored as a replacement that fits the same prefix and suffix, including their punctuation. Joining structured plain and expandable runs into one native attributed paragraph preserves baselines, wrapping and independent phrase state. The brief composer should produce both readings together and review full sentences with simultaneous expansions; a generic explanation appended to arbitrary prose is insufficient. Keep authored interaction fixtures separate from evidence-backed generation, and retain Markdown/audio compatibility. [Native POC](verification/native-brief-expansion-2026-10-30/README.md).

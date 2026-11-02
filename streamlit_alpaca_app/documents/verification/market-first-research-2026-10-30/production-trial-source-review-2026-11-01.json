@@ -1,0 +1,67 @@
+{
+  "status": "accepted_for_owner_authorized_production_trial",
+  "source_revision": "f960d945e677e2be51014d040558ac9cb676027b",
+  "review_base_revision": "63a19ac7146c3da58b6338fd71e80dd027a80b1b",
+  "recorded_at_utc": "2026-11-02T07:45:06.111614+00:00",
+  "owner_acceptance": "documents/verification/market-first-research-2026-10-30/production-trial-2026-11-01.json",
+  "changed_runtime_review": {
+    "compute/market_attention.py": "Complete observed universe, adjusted completed-session comparisons, common history endpoints, correlation membership/change; distinguishes equal-weight observations from index contribution.",
+    "pipeline/jobs/attention_home_build.py": "One existing data-first research and public Zopedia path, original evidence accessible, independent public story identities, preserves original dates, partial research health, audio and ticker/background/chart materialization. No second ticker research fan-out. Initial claim projection omits repeated transport metadata; complete original records remain readable.",
+    "services/aql/constants.py": "Additive retained-research field with empty default; old callers remain valid.",
+    "services/aql/events.py": "Common agenda sees whole numerical context and headline catalog, selects bounded focused investigations or dated reuse. Eight-worker scheduling shares original clock/budget; complete evidence reader remains available and failed work stays visible operationally.",
+    "services/aql/pipeline.py": "Numerical preparation and grouping precede one common agenda; selected findings feed public/dossier consumers. Keeps complete raw observations, macro release relationships and hypothesis datasets.",
+    "services/attention_home_1d.py": "Optional selected_symbols supports explicit common-agenda callers; default selection behavior unchanged.",
+    "services/attention_materialized.py": "Additive market_context serialization and exact point-in-time history cutoff; old materialized rows remain valid.",
+    "services/home_view.py": "Expose all final selected public stories instead of clipping at16; accepted live calendar, summary, chart/audio/ticker/native/public contracts remain.",
+    "services/llm.py": "Shared explicit no-financial-jargon casual-reader rule, contextual figures and plain wording. Core schemas returned before human summary in the existing provider boundary. No provider/model schedule change.",
+    "services/llm_context.py": "Compressed common temporal/analysis instructions retain source dates, distinguish event and report dates, material financial comparisons and useful causal explanation.",
+    "services/llm_execution.py": "Ignore expired future core obligations when reserving current capacity; preserve historical records, settlements and unknown costs. Shared account atomic admission and original producer deadlines unchanged.",
+    "services/pipeline_store.py": "Filter lightweight research pointers by exact task suffix before decoding full artifacts; unfiltered and subject-scoped behavior preserved. No schema/migration change.",
+    "services/zopedia_agent.py": "Same shared native engine, writer and final reviewer; explicit reviewer prohibition on financial jargon and reader comprehension. Corrected text precedes verdict; retains structured machine contracts and source reader. Removes duplicate action wrapper without extra model stages or new fallback."
+  },
+  "operational_checks": {
+    "status": "passed",
+    "recorded_at_utc": "2026-11-02T07:44:35.724693+00:00",
+    "source": "f960d945e677e2be51014d040558ac9cb676027b",
+    "selection": [
+      "tests/test_market_first_contract.py",
+      "tests/test_home_publication_contract.py",
+      "tests/test_adaptive_run_budget.py",
+      "tests/test_harness_contracts.py",
+      "tests/test_llm_execution.py",
+      "tests/test_timeout_ownership.py",
+      "tests/test_market_calendar.py"
+    ],
+    "summary": "........................................................................ [ 44%]\n........................................................................ [ 89%]\n.................                                                        [100%]\n161 passed in 35.20s\n",
+    "exit_code": 0,
+    "isolated_postgresql": true,
+    "production_writes": false
+  },
+  "prompt_override_audit": {
+    "status": "passed",
+    "scope": "production",
+    "style_sha256": "c0cc0a362655a67e86dd92eb4da029dc6f7236ddfe8cfb286a4af8ad6d12890d",
+    "style_is_code_default": true,
+    "relevant_overrides": [
+      {
+        "key": "development::__narrative_style_rule__",
+        "empty": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "preservation": {
+    "calendar_application_source": "63a19ac7146c3da58b6338fd71e80dd027a80b1b",
+    "web_inputs_unchanged_against_accepted_calendar": true,
+    "native_source_unchanged_against_accepted_calendar": true,
+    "trading_and_broker_execution_files_unchanged": true,
+    "all_consumer_settings_preserved": true,
+    "no_schedule_provider_allowance_or_trade_authority_changes": true
+  },
+  "qualitative_limits": [
+    "Owner authorizes the present data-first system for a production trial. Prior complete retained-input outputs and writing feedback are recorded separately.",
+    "The explicit no-jargon/ASD casual-reader instructions have been composed and audited; their effect is not yet proven by a new model output.",
+    "No claim of full real-time scheduled completion or fixed writing quality until observed."
+  ],
+  "inference_requests_started": 0
+}

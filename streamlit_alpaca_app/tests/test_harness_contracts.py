@@ -63,6 +63,44 @@ def test_full_passages_and_source_refs_reach_writer_and_judge():
         assert "https://example.com/source" in prompt
 
 
+@pytest.mark.parametrize("artifact,schema", [
+    (_review(), {**zopedia_agent._JUDGE_SCHEMA,
+                 "properties": {**zopedia_agent._JUDGE_SCHEMA["properties"], "answer_markdown": {"type": "string"}},
+                 "required": [*zopedia_agent._JUDGE_SCHEMA["required"], "answer_markdown"]}),
+    ({"decision": "hold"}, {"type": "object", "properties": {"decision": {"type": "string"}},
+                            "required": ["decision"], "additionalProperties": False}),
+])
+def test_evidence_read_then_complete_artifact_needs_no_format_repurchase(monkeypatch, artifact, schema):
+    from data_access.query_service import QueryService
+    from jsonschema import Draft202012Validator
+
+    service = QueryService.from_environment().with_supplied_evidence({
+        "original": {"title": "Original", "metadata": {}, "content": "complete-source-tail"}})
+    replies = iter([
+        {"decision": {"action": "read", "tool_name": "research.read_supplied_evidence",
+                      "tool_arguments": json.dumps({"source_id": "original"})}},
+        {"decision": artifact},
+    ])
+    prompts = []
+
+    def generate(**kwargs):
+        reply = next(replies)  # A third purchase is an execution failure.
+        assert kwargs["schema"].get("type") == "object"
+        assert not list(Draft202012Validator(kwargs["schema"]).iter_errors(reply))
+        prompts.append(kwargs["user_prompt"])
+        return reply
+
+    monkeypatch.setattr(zopedia_agent, "generate_json_via_aql_zopedia_gateway", generate)
+    result = zopedia_agent._run_evidence_model_step(
+        llm_client=SimpleNamespace(), service=service, tool_calls=[], context_state={},
+        prompt=lambda calls: zopedia_agent._tool_history_prompt(calls, full_evidence=True),
+        system_prompt="", schema_name="artifact", schema=schema, surface="test", purpose="test",
+        deadline_monotonic=time.monotonic() + 3, metadata={}, progress_callback=None)
+    assert result == artifact
+    assert len(prompts) == 2
+    assert "complete-source-tail" in prompts[1]
+
+
 @pytest.mark.parametrize("provider", ["deepseek", "openai", "azure_openai", "local"])
 @pytest.mark.parametrize("first_attempt", ["repair", "retry", "expired"])
 def test_provider_attempts_share_one_remaining_budget(monkeypatch, provider, first_attempt):
@@ -93,6 +131,33 @@ def test_provider_attempts_share_one_remaining_budget(monkeypatch, provider, fir
             assert client.generate_json(system_prompt="", user_prompt="", schema_name="test", schema={}) == {"ok": True}
     assert timeouts == ([10] if first_attempt == "expired" else [10, 4])
     assert llm._REQUEST_DEADLINE.get() is None
+
+
+def test_model_visible_schema_preserves_declared_field_order(monkeypatch):
+    monkeypatch.setattr(llm, "apply_narrative_style", lambda prompt: prompt)
+    requests_sent = []
+    schema = {"type": "object", "properties": {
+        "findings": {"type": "array", "items": {"type": "string"}},
+        "brief": {"type": "string"},
+    }, "required": ["findings", "brief"], "additionalProperties": False}
+
+    class Session:
+        def post(self, url, **kwargs):
+            requests_sent.append(kwargs["json"])
+            return SimpleNamespace(status_code=200, text="", json=lambda: {
+                "choices": [{"message": {"content": '{"findings": [], "brief": ""}'}}]})
+
+    config = llm.LLMConfig(provider="deepseek", api_key="test", model="test",
+                           base_url="https://example.com", timeout_seconds=480)
+    llm.DeepSeekChatJSONClient(config, session=Session()).generate_json(
+        system_prompt="", user_prompt="", schema_name="ordered_artifact", schema=schema)
+    assert len(requests_sent) == 1
+    visible = json.loads(requests_sent[0]["messages"][-1]["content"].split("JSON Schema:\n")[-1])
+    repair = llm._json_repair_messages(schema_name="ordered_artifact", schema=schema, raw_content="invalid")
+    repair_schema = json.loads(repair[1]["content"].split("JSON Schema:\n")[1].split("\n\nOriginal request context:")[0])
+    for presented in (visible, repair_schema):
+        assert presented == schema
+        assert list(presented["properties"]) == list(schema["properties"])
 
 
 def test_public_run_retains_review_state_without_review_prose():

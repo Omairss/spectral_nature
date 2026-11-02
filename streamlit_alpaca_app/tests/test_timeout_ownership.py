@@ -119,7 +119,7 @@ def test_recovery_continuation_io_is_inside_its_total_budget(monkeypatch, interr
     monkeypatch.setenv("SYSTEM_RECOVERY_BUDGET_SECONDS", "60")
     monkeypatch.setattr(store, "read_execution_state", read)
     monkeypatch.setattr(store, "write_execution_state", write)
-    monkeypatch.setattr(store, "reconcile_dataset_manifests", lambda *a, **kw: {"next_offset": 4, "scan_complete": False})
+    monkeypatch.setattr(store, "reconcile_dataset_manifests", lambda *a, **kw: {"next_offset": 4, "scan_complete": False, "failed": 0})
     monkeypatch.setattr(store, "reconcile_provider_attempt_receipts", lambda **kw: pytest.fail("Expired batch started more recovery"))
     result = main.run_system_recovery(SimpleNamespace(), conn)
     assert result["job_status"] == "Warning" and not result["scan_complete"]
@@ -143,12 +143,13 @@ def test_recovery_uses_remaining_budget_after_database_admission_wait(monkeypatc
         now[0] = 30.0
         check_work()
         assert offset == 4 and limit == 4
-        return {"next_offset": 8, "scan_complete": False}
+        return {"next_offset": 8, "scan_complete": False, "failed": 0}
 
     monkeypatch.setattr(store, "reconcile_dataset_manifests", reconcile)
     monkeypatch.setattr(store, "write_execution_state", lambda *args: saved.append(args[2]))
     monkeypatch.setattr(store, "reconcile_provider_attempt_receipts", lambda **kw: {"scan_complete": True, "reconciled": 0})
+    monkeypatch.setattr(store, "reconcile_provider_budget_reservations", lambda **kw: {"scan_complete": False})
     result = main.run_system_recovery(SimpleNamespace(), SimpleNamespace(rollback=lambda: None))
     assert saved == [{"offset": 8}]
     assert result["manifests"]["next_offset"] == 8
-    assert result["elapsed_seconds"] == 30 and result["job_status"] == "Warning"
+    assert result["elapsed_seconds"] == 30 and not result["scan_complete"]

@@ -1,11 +1,11 @@
 {
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
-  "revision": 1,
-  "status": "design_reviewed_implementation_not_started_outcome_qualification_pending",
-  "recorded_at_utc": "2026-10-30T21:35:52.070592+00:00",
+  "revision": 20,
+  "status": "complete_data_first_attempt_degraded_quality_rejected_no_deployment",
+  "recorded_at_utc": "2026-10-31T03:18:50.047478+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
-  "source_of_truth": "This named plan owns the proposed implementation. The earlier design audit and measured coverage/value/cost records are linked evidence. Existing release acceptance remains the authority for accepted runtime code.",
+  "source_of_truth": "This named plan owns the implemented Market-First change and its remaining qualification. Existing release acceptance remains the authority for packaged runtime.",
   "baseline": {
     "checkpoint_tag": "checkpoint/market-first-baseline-20261030",
     "code_head_before_plan_checkpoint": "6923419b57f885892d443b163863985343eba895",
@@ -24,7 +24,7 @@
     "owns": "Home numerical lead preparation, pre-research market grouping and one common Home investigation selection/dispatch, using existing AQL/Zopedia research/review/composition and shared reuse.",
     "existing_news_collection": "Retain the working shared news producer and its schedules. Headlines are inputs, not a third Home research planner. Provider replacement remains held.",
     "other_workloads": "Company/news, Trading, Learning and interactive research keep their existing ownership and schedules. Home savings are not a whole-application cost forecast. Shared reuse must respect each consumer contract and access scope.",
-    "runtime_changes_now": false,
+    "runtime_changes_now": true,
     "deployment_now": false,
     "paid_qualification_now": false
   },
@@ -83,31 +83,31 @@
   "implementation_order": [
     {
       "id": "D1",
-      "state": "not_started",
+      "state": "implemented_numerical_verification_complete_public_quality_hold",
       "work": "Move existing numerical preparation upstream. Preserve broad available-universe coverage, current economic context and multiple horizons before company cuts; establish any needed dated benchmark input using the existing producer ownership.",
       "evidence_to_inspect": "Exact initial planner context, missing data/universe changes, quiet collective support and index contribution reproducibility."
     },
     {
       "id": "D2",
-      "state": "not_started",
+      "state": "implemented_numerical_verification_complete_public_quality_hold",
       "work": "Reuse suitable numerical relationship/group components and compare dated market-derived groupings. Keep pre-research observations separate from relationships learned later through research. Choose the method after inspecting histories and stability; a taxonomy regrouping is insufficient.",
       "evidence_to_inspect": "Actual changed/stable relationships, sparse history, corporate actions, asynchronous observations, universe churn and ordinary movement noise. Do not claim the Intel example occurred without measuring it."
     },
     {
       "id": "D3",
-      "state": "not_started",
+      "state": "implemented_full_local_flow_completed_public_quality_hold",
       "work": "Adapt existing Zopedia selection and dispatch to the common agenda. Carry relevant context, existing retained research and prior publications; reconcile Home macro/group/ticker analysis under that agenda without deleting downstream client data. Preserve concurrency across independent admitted work.",
       "evidence_to_inspect": "Actual chosen questions, original source follow-ups, repeat-investigation continuity, completeness of final market explanation, and measured attempt-inclusive cost."
     },
     {
       "id": "consumer_consistency",
-      "state": "not_started",
+      "state": "implemented_full_local_flow_completed_public_quality_hold",
       "work": "Preserve producer/story/source/research identities and chart/drilldown contracts. Resolve the observed producer capacity versus API 16-story cap in the existing owner before claiming a complete publication; do not use truncation as a budget policy.",
       "evidence_to_inspect": "Exact same publication across stored results, FastAPI, both Next.js gateways and native client."
     },
     {
       "id": "qualitative_comparison",
-      "state": "not_started",
+      "state": "complete_comparison_failed_quality_acceptance",
       "work": "Personally compare full accepted-baseline and candidate outputs on matched retained inputs, including unseen quiet/heavy and conflicting inputs; record important omissions and reasoning quality, not exact expected wording.",
       "evidence_to_inspect": "Complete research, review, Attention, Brief and charts; no hardcoded example tickers, sector quotas or programmatic NLP pass/fail score."
     },
@@ -119,7 +119,7 @@
     },
     {
       "id": "production_release",
-      "state": "not_authorized_by_this_checkpoint_request",
+      "state": "held_for_owner_evaluation",
       "work": "Preserve explicit owner control over promotion of this redesign. Present measured output and costs; the current instruction requests a plan review/checkpoint.",
       "evidence_to_inspect": "Future explicit production instruction and exact DEV-accepted digests."
     }
@@ -228,7 +228,7 @@
   "configuration_policy": "Reuse centrally owned configuration for allowance, event margin, deadlines and concurrency. Numerical horizon/grouping choices and the amount/depth of selected work remain adaptable. Choose defaults from complete-output comparisons rather than encoding this week's example companies or a fixed N. Any new setting requires one owner and documented effect, not a collection of exception flags.",
   "qualification_cases": [
     "Quiet current inputs: recognize limited new information and spend less without presenting old events as new.",
-    "Important group support with modest individual moves: assess the measured October 26–30 omissions, using only contemporaneously available data and sources. Avoid hardcoding the seven companies.",
+    "Important group support with modest individual moves: assess the measured October 26\u201330 omissions, using only contemporaneously available data and sources. Avoid hardcoding the seven companies.",
     "Heavy contradictory day: surface both declining high-weight names and offsetting groups; protect investigation depth and preserve the configurable event margin.",
     "Genuine and spurious grouping changes: inspect persistent breaks, stable groups, universe churn, incomplete histories and corporate actions.",
     "New consequential headline or macro release without a price anomaly: preserve a useful lead without reverting to headline frequency as the entire agenda.",
@@ -240,8 +240,8 @@
   "evaluation_policy": {
     "quality": "Primary agent personally reads full outputs and original evidence. Use held-out cases and compare substantive omissions, precision and useful mechanisms; deterministic tests check operational/data contracts only.",
     "cost": "Compare matched evidence, same models and price bands. Include all attempts, shared reuse, peak/off-peak effects, source acquisition and completion; unknown charges remain explicit. Do not extrapolate one peak catch-up as normal daily expense.",
-    "research_provider": "Follow AGENTS.md Lambda-only research policy and shared 25USD Pacific-day approval threshold. Earlier scoped DeepSeek verification approvals are closed and do not authorize new comparison spending. No rental or paid inference in this checkpoint.",
-    "acceptance_status": "Not run for this redesign. Cost reduction, recall improvement and safe cluster-change detection remain hypotheses until complete-output evaluation."
+    "research_provider": "Owner authorized the full-production-model DeepSeek verification exception on October30, initially10USD and extended to13USD then15USD. One cumulative ledger includes every attempt and unknown maximum; isolated storage and no production writes.",
+    "acceptance_status": "The complete local flow and exact publication assembly finish; latest fresh writing/review follows the declared schema order. Numerical and operational checks pass. Confirmed public causal-comparison, segment-scope, concision and coverage errors remain. No build or deployment."
   },
   "recovery": {
     "source": "Use the annotated checkpoint in a new worktree/branch, preserving active work. A verified Git bundle and a separate fresh repository restore provide local recovery independent of working-tree edits.",
@@ -255,7 +255,321 @@
     "coverage": "../verification/event-adaptive-reliability-2026-10-28/weekly-attention-bias-20261030.json",
     "story_value": "../verification/event-adaptive-reliability-2026-10-28/weekly-story-value-cost-audit-20261030.json",
     "cost_operations": "../verification/event-adaptive-reliability-2026-10-28/event-company-research-cost-detail-20261030.json",
-    "release_acceptance": "../../infra/release_acceptance.json"
+    "release_acceptance": "../../infra/release_acceptance.json",
+    "implementation_qualification": "../verification/market-first-research-2026-10-30/qualification.json",
+    "latest_public_artifact": "../verification/market-first-research-2026-10-30/candidate-output.json",
+    "latest_editorial_verification": "../verification/market-first-research-2026-10-30/compressed-current-production-2026-11-01.json"
   },
-  "next_action": "Implement D1 in accepted Git source after this baseline checkpoint, then D2/D3 as one coherent change to existing flow. Do not claim local/model/DEV acceptance before performing it."
+  "next_action": "The owner identified assumed financial knowledge as the main writing failure. The original explicit 80% ASD-STE100-inspired rule was omitted during compression and is now restored locally, with casual-reader understanding made explicit in the shared writer/style and reviewer. Current comparison predates this correction. No new paid run or deployment; conceptual clarity remains unverified in fresh output.",
+  "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
+  "qualification_authorization": {
+    "instruction": "Approve up to $10",
+    "pacific_day": "2026-10-30",
+    "maximum_new_total_usd": 33,
+    "exception": "Existing DeepSeek API at full production capability, isolated storage, no production writes; Lambda suitable capacity empty at22:02UTC. Earlier API approvals remain closed.",
+    "continuations": [
+      {
+        "instruction": "Approve up to $3 more",
+        "same_cumulative_cap_usd": 13,
+        "original_costs_and_unknowns_preserved": true
+      },
+      {
+        "instruction": "Approve up to $2 more",
+        "same_cumulative_cap_usd": 15,
+        "original_costs_and_unknowns_preserved": true
+      },
+      {
+        "instruction": "Approve up to $10 more",
+        "question_id": "call_adc5ecb36128450dbdf3c7ce28e1ad6c",
+        "same_cumulative_cap_usd": 25,
+        "original_costs_and_unknowns_preserved": true,
+        "pacific_day": "2026-10-31"
+      },
+      {
+        "instruction": "Approve up to $5 more",
+        "question_id": "call_cca264bcfeb94f109af7a263b9c76350",
+        "same_cumulative_cap_usd": 30,
+        "original_costs_and_unknowns_preserved": true
+      },
+      {
+        "instruction": "Approve up to $3 more",
+        "question_id": "call_7072ff99e4f94e288a6f15e324e09412",
+        "same_cumulative_cap_usd": 33,
+        "pacific_day": "2026-11-01",
+        "scope": "Existing final reviewer only; saved draft and original evidence; no planning, new investigations or production writes.",
+        "original_costs_and_unknowns_preserved": true,
+        "status": "completed_closed"
+      }
+    ]
+  },
+  "implementation": {
+    "branch": "feature/market-first-research-20261030",
+    "worktree": "/Users/omairs/Documents/code/spectral_nature_market_first_20261030",
+    "numerical_method": "Complete-linkage positive return correlation;40closed-session windows separated by20sessions;min30paired observations;floor0.6. Tunable in existing parameter registry. Same eligible universe compared; missing/unknown-adjustment histories remain visible but do not establish changed relationships. Current partial bars excluded from daily correlation.",
+    "performance": "Current adjusted histories provide5/20session andweek-to-date performance; relative performance uses the existing configured phase-shift benchmark. Raw daily returns retain their separate basis and observation/bar times.",
+    "dispatch": "One upfront shared Zopedia agenda replaces independent Home company, group, macro and ticker-enrichment inference. Relevant observations and chosen groups accompany focused questions; complete originals remain in the existing evidence reader.",
+    "reuse": "Planner selects an exact existing artifact to reuse or extend after comparing current observations. Current assessment and original research/source dates are separate. Question-execution and public-story identities remain distinct from source identity.",
+    "invariants": "Existing financial ledger, original clock, protected full-model publication, shared research review, schedules, news producer and other research workloads unchanged. New runtime is not yet release-accepted.",
+    "latest_source_revision": "f89e13e878196d0cd2a2d37ad773406cc90d43fa",
+    "capture_provenance": "Existing final-editor source index exposes raw_text_origin, source_kind and captured text length. Complete and snippet captures remain separate; no longest-text heuristic or added retrieval path.",
+    "schema_order": "The shared provider presents artifact fields in declared order, including stories before Brief. Canonical fingerprints remain sorted. Actual fresh writing/review followed that order; source precision remains unaccepted."
+  },
+  "owner_review": "../verification/market-first-research-2026-10-30/owner-review-2026-10-31.json",
+  "owner_followup_2026_10_31": {
+    "request": "Implement retained coverage, financial reasoning and concrete writing fixes; provide matched current versus proposed outputs.",
+    "tasks": [
+      {
+        "item": "Carry retained research through the existing pipeline to the final Zopedia reader, indexed rather than copied inline. Preserve originals and current observations independently of new research selection.",
+        "status": "implemented_reader_availability_verified_coverage_behavior_not_accepted"
+      },
+      {
+        "item": "Correct issuer/segment, category/component and financial-baseline reasoning in shared research and review.",
+        "status": "not_accepted_financial_category_error_remains"
+      },
+      {
+        "item": "Use concrete developments, business consequences and distinct public fields in shared writing.",
+        "status": "partially_improved_complete_output_not_accepted"
+      },
+      {
+        "item": "Run accepted current Git source and proposed source against the same cutoff, datasets and pre-run memory; read complete outputs and provide side-by-side text with attempt-inclusive costs.",
+        "status": "finished_complete_unedited_comparison_baseline_publication_failed_candidate_review_failed"
+      }
+    ],
+    "baseline_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+    "input_cutoff_utc": "2026-10-30T18:50:00Z",
+    "spending": {
+      "approved_cumulative_cap_usd": 30,
+      "estimated_usage_usd": 25.220081,
+      "unresolved_max_usd": 4.470776,
+      "pending_requests": 0,
+      "maximum_total_usd": 29.690857
+    },
+    "deployment": "No build or DEV/PROD deployment. All application changes remain on the separate feature branch.",
+    "evidence": "../verification/market-first-research-2026-10-30/followup-2026-10-31.json",
+    "result": "../verification/market-first-research-2026-10-30/matched-results-2026-10-31.json"
+  },
+  "remediation_design_2026_10_31": {
+    "status": "proposed_not_implemented_or_qualified",
+    "basis": "Read-only trace recorded in matched-results-2026-10-31.json/cause_followup. The final writer received the correct Reddit finding, introduced the category error, made no retained-report reads, and could not obtain a final review under the separate study guard.",
+    "changes": [
+      {
+        "boundary": "Research to final Zopedia editor",
+        "work": "Present substantive, dated, source-linked findings from retained and new research in the same representation. Use existing reviewed claims and report context instead of new full reports versus old title-only catalog entries. Keep the broad current numerical picture present and complete reports/originals accessible through the existing reader. Spending selection must not become publication eligibility.",
+        "cost_and_scale": "Do not copy every complete report into every investigation or add a separate recurring summarizer. Preserve complete claims and their qualifiers; do not truncate a financial category or silently reduce retained research to titles when context is full. Use the existing Zopedia context selection and report reader for larger bodies of evidence.",
+        "preserve": "No automatic republication, forced ticker coverage, sector quotas or extra final planner. Retained knowledge remains fallible and dated; current observations are not replaced with an older report's snapshot."
+      },
+      {
+        "boundary": "Finished artifact to existing shared reviewer",
+        "work": "Supply the actual Attention stories and Brief alongside the corresponding reviewed claims, original source passages and current observations. The existing reviewer owns source meaning, chronology, coverage and writing corrections and returns the complete corrected public artifact. Preserve the existing direct adoption of that artifact, with no later model rewrite.",
+        "cost_and_scale": "Expand evidence for the proposed stories through existing source associations and readers, not another retrieval service or an unlimited archive dump. Ambiguous or conflicting originals remain available; a research statement is not an independent primary source.",
+        "preserve": "No financial phrase rules, ticker exceptions, deterministic NLP grades, compulsory K-attempt gate or assumption that a completed model review guarantees factual accuracy. Source and story identities remain separate; two stories may legitimately use the same research."
+      },
+      {
+        "boundary": "Admission of optional work versus completion",
+        "work": "Extend existing application completion protection to the bounded evidence reading needed for writing and review, rather than protecting only answer-generation requests. Protect both time and money before optional investigations, account for the actual growing context, and stop optional work early enough to finish on the original deadline. Separately project those completion obligations into the strict study guard before admitting either comparison case; application reservations cannot override an owner-approved study cap.",
+        "cost_and_scale": "Use one atomic accounting authority per budget, stable work identities and explicit transfer from future obligations to admitted requests so money is not reserved twice. Bound evidence navigation so it cannot consume the funds reserved for the actual answer and review. Preserve genuine unknown charges, retries and prior spending. Production's configurable margin and best-effort behavior remain distinct from the hard verification cap.",
+        "preserve": "No reset of the logical clock, new allowance on retry, invented credit, silent model downgrade or unbounded core-spending exemption. If a complete comparison cannot fit, report that before purchasing the optional work."
+      }
+    ],
+    "failure_behavior": [
+      "Keep completed investigations when another investigation fails. Preserve the existing current-result and explicit failed-review health behavior; retaining an artifact is not claiming successful review or release acceptance.",
+      "Resume valid completed stages only when their input identity still matches. Changed observations require a current assessment; neither a retry nor reuse makes an older observation current.",
+      "Publish Attention and its Brief consistently from the same final artifact. If no valid artifact can be formed, preserve the previous publication with its real date; do not invent a fresh report or launch a second composition path."
+    ],
+    "qualification": "First inspect exact inputs, artifact adoption, budget reservations and failure/resume behavior without paid inference. Then, under a new explicit study authorization, personally read complete outputs on matched current inputs and a distinct quiet/heavy or contradictory case. Inspect source meaning, continuing relevance, discoveries outside headline attention, dates, writing, full costs and consumer consistency. The named companies diagnose defects; they are not a required ticker list. No release based only on successful execution, source availability or a model's own review verdict.",
+    "unchanged_order": "Raw stock/economic data -> anomalies/movers -> numerical groups and relationship changes -> one upfront Zopedia planner -> shared Zopedia research/review -> Zopedia Attention and Brief. No new agent, retrieval system or publication gate."
+  },
+  "funded_review_2026_11_01": {
+    "status": "review_useful_partial_quality_result_candidate_still_unaccepted",
+    "result": "../verification/market-first-research-2026-10-30/funded-review-2026-11-01.json",
+    "estimated_new_cost_usd": 0.129956,
+    "maximum_cumulative_usd": 29.820813,
+    "original_runtime_unchanged": true,
+    "deployment": false
+  },
+  "editorial_verification_2026_11_01": {
+    "status": "fresh_deepseek_completed_quality_rejected_no_deployment",
+    "owner_request": "I want to see the deepseek fix",
+    "scope": "Existing public writer and reviewer over the saved five-investigation publication input; no new planning or investigations, unchanged full model, isolated storage. Show complete generated text without hand edits.",
+    "runtime_changes": [
+      "Carry existing recorded claims and review status alongside findings, preserving original source identities and interpretation roles.",
+      "Give the shared writer and reviewer a reader-facing explanatory objective; preserve research discovery and complete knowledge fidelity.",
+      "Clarify existing public field purposes: business consequence without invented cause, optional fields empty when unhelpful, material observable follow-up instead of a research task list."
+    ],
+    "constraints": [
+      "No ticker-specific examples, phrase blacklist, new agent, new retrieval system, additional mandatory model stage or handwritten candidate prose.",
+      "Existing cumulative cap remains 33 dollars with all prior actual and unknown costs preserved. The new owner request explicitly authorizes DeepSeek verification; it does not raise the cap.",
+      "Protect final review in the study guard before optional evidence navigation.",
+      "No release acceptance from parser/schema checks; personally read the complete fresh output and the supporting originals."
+    ],
+    "source_case": "qualification/attempt-19-authored-order-publication/publication-call-inputs.json",
+    "deployment": false,
+    "result": "../verification/market-first-research-2026-10-30/deepseek-editorial-2026-11-01.json",
+    "estimated_new_cost_usd": 0.22045,
+    "maximum_cumulative_usd": 30.041263,
+    "pending_requests": 0,
+    "assessment": "Brief shortened, but Amazon causality, unclear shorthand, jargon, unnecessary figures and a misleading software explanation survived the funded review. No handwritten corrections or deployment."
+  },
+  "compressed_production_comparison_2026_11_01": {
+    "status": "fresh_output_completed_quality_rejected_no_deployment",
+    "owner_instruction": "Bold or capitalize the missed instruction and retry; compare against current production, not the unpromoted predecessor.",
+    "source_changes": "Compress existing shared writing, review, timing and language instructions at their owners. Capitalize plain-English/jargon correction. Keep complete-knowledge fidelity, evidence navigation and JSON contracts.",
+    "production_image": "sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+    "production_accepted_source": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+    "baseline": "Fresh read-only capture of the actual currently published production feed; 11 stories, run 897f8072-05b5-4f11-89de-792daa2093cb, cutoff 2026-10-30T20:50:40.507732+00:00.",
+    "candidate_scope": "Existing Zopedia public writer and reviewer over that publication\u2019s retained research, observations and captures, no new investigations. Reconstruction from persisted production inputs is recorded; not claimed as an identical original pre-publication request or full Market-First replay.",
+    "spending": "Current owner retry request authorizes this DeepSeek comparison within the existing cumulative 33-dollar cap; preserve 25.570487 known and 4.470776 unresolved maximum. No cap increase.",
+    "deployment": false,
+    "result": "../verification/market-first-research-2026-10-30/compressed-current-production-2026-11-01.json",
+    "estimated_new_cost_usd": 0.261508,
+    "baseline_stories": 11,
+    "candidate_stories": 20
+  },
+  "full_candidate_comparison_2026_11_01": {
+    "owner_instruction": "Do it: complete latest data-first pipeline with compressed prompts against actual current production.",
+    "scope": "Fresh numerical preparation, one common planner, selected shared investigations/reuse, existing review, Attention and Brief. No replay of earlier candidate model decisions or research.",
+    "baseline": "Actual 11-story production publication, run 897f8072-05b5-4f11-89de-792daa2093cb, cutoff 2026-10-30T20:50:40.507732+00:00.",
+    "inputs": "Read-only reconstruction of pre-cutoff production inputs and research, original captured sources; isolated database and no new live web discovery. Record limitations rather than claim an identical original producer invocation.",
+    "model": "Unchanged full DeepSeek v4 Pro, thinking/high, full context and literal output allowance.",
+    "completion": "Protect final writing and review in both application accounting and the independent cumulative verification cap before planning.",
+    "spending": "Owner approved up to $5 more via call_17225840710643a5aaad01726c02013e: cumulative ceiling $38; every prior known charge and unknown maximum remains counted. $3.287288 reserved for complete public writing/review before planning.",
+    "deployment": false,
+    "status": "full_data_first_execution_completed_degraded_quality_rejected_no_deployment",
+    "result": "../verification/market-first-research-2026-10-30/full-candidate-vs-current-production-2026-11-01.json",
+    "known_new_usd": 4.672672,
+    "unknown_new_max_usd": 0.611258,
+    "maximum_cumulative_usd": 35.586701000000005,
+    "pending_requests": 0,
+    "selected_questions": 6,
+    "returned_findings": 4,
+    "public_stories": 13,
+    "final_public_review": "completed",
+    "highlights": "failed_timeout"
+  },
+  "quality_recovery_2026_11_01": {
+    "status": "independent_business_example_failed_shared_prompts_unaccepted",
+    "objective": "Preserve numerical discovery while recovering concrete business explanation, meaningful source use and substantive review. Improve the existing flow rather than add another agent, retrieval service or prose filter.",
+    "observed_basis": "The candidate uses full Pro. Production-versus-candidate source review shows compressed prompts lost independent reviewer explanation, decisive-source reading and specific reader-focused writing duties. Failed investigations worsened coverage, but completed writing and review also produced material errors. This comparison does not isolate each change causally.",
+    "changes": [
+      {
+        "owner": "Shared Zopedia research and existing evidence reader",
+        "work": "Investigate the business question behind the numerical observation using relevant original captures and retained findings, including contrary evidence. Treat headlines, prior narratives and claim-role labels as fallible. Distinguish work that was not completed from a question investigated without a conclusive cause. Preserve useful observations and hypotheses without demanding proven causality."
+      },
+      {
+        "owner": "Shared final writing and Home task",
+        "work": "Use numerical observations, original sources and fallible prior research to explain the main business message for general readers. Preserve financial meaning and material context, omit secondary inventories, and compose Attention before its Brief summary. Removed the unqualified approximate word target after the held-out example failed."
+      },
+      {
+        "owner": "Existing shared reviewer",
+        "work": "Existing reviewer first forms its explanation from evidence and checks the draft as fallible claims. The independent case still failed readability and selection; this instruction is not accepted as a complete fix."
+      }
+    ],
+    "execution_prerequisites": "Correct the private study guard so transient worst-case holds wait within the original deadline and native Pro mechanical repair retains its supported mode. Preserve the cumulative cap and unknown charges, account for real inability to fund completion explicitly, and diagnose the Highlights loop separately; do not attribute already-generated prose to that later timeout.",
+    "qualification": "Use saved findings to isolate editorial behavior first; identify that explicitly as a stage comparison, not complete architecture verification. A later complete data-first comparison and a separate market case must assess discovery, business explanation, material precision, continuing coverage, readability and full cost. Personally inspect complete unedited outputs and decisive sources. No keyword grades, example-company rules, automatic reviewer-score acceptance or equal-quality savings claim from a degraded attempt.",
+    "spending_and_release": "Owner-directed communication-only continuation used the unused portion of the same $38 DeepSeek exception, with no increase and all prior costs and unknown maximums preserved. Latest limited outputs are for owner review. Whole-feed acceptance and deployment remain held.",
+    "preserved_order": "Stock/economic observations -> anomalies and movers -> numerical grouping and relationship changes -> one upfront Zopedia planner -> shared research and review -> Zopedia Attention and its Brief."
+  },
+  "communication_examples_2026_11_01": {
+    "result": "../verification/market-first-research-2026-10-30/communication-examples-2026-11-01.json",
+    "status": "small_example_owner_accepted_complete_feed_unaccepted",
+    "known_estimated_usd": 0.409317,
+    "sent_requests": 42,
+    "provider_cap_increase_usd": 0,
+    "full_pipeline_rerun": false,
+    "deployment": false,
+    "latest_continuation_costs": {
+      "sent_requests": 13,
+      "known_estimated_usd": 0.079898,
+      "unknown_max_usd": 0.0,
+      "cap_increase_usd": 0,
+      "scope": "Cases 17\u201329, including every retry. Earlier charges and unknown maximums remain counted."
+    },
+    "independent_example_costs": {
+      "sent_requests": 10,
+      "known_estimated_usd": 0.049962,
+      "unknown_max_usd": 0.0,
+      "cap_increase_usd": 0
+    }
+  },
+  "communication_full_comparison_preflight_2026_11_01": {
+    "status": "complete_comparison_delivered_quality_unaccepted",
+    "current_production_read_at_utc": "2026-11-02T06:30:34.110244+00:00",
+    "current_production_story_count": 11,
+    "input_origin": "actual full-candidate-20261101 owning Home publication call",
+    "scope": "Complete public writer and existing final reviewer; no full research rerun or production writes.",
+    "original_source_documents": 912,
+    "indexed_original_chunks": 1445,
+    "new_paid_requests": 0,
+    "preflight": {
+      "recorded_at_utc": "2026-11-02T06:39:02.751021+00:00",
+      "capture_only_no_paid_transport": true,
+      "request_bytes_bound": 704014,
+      "model": "deepseek-v4-pro",
+      "thinking": {
+        "type": "enabled"
+      },
+      "reasoning_effort": "high",
+      "native_output_allowance_unchanged": true,
+      "writer_maximum_usd": 1.2104479200000002,
+      "review_maximum_usd": 1.64364288,
+      "both_maximum_usd": 2.8540908000000003,
+      "cumulative_counted_usd": 35.996018,
+      "remaining_approved_usd": 2.0039820000000006,
+      "protected_additional_requirement_usd": 0.8501087999999997,
+      "request_sha256": "2aecb726d3c10f1df0025df85ccbae23daa66f3dbb1d17dff27eebf75dff0b16"
+    },
+    "requested_cap_usd": 40,
+    "owner_approval_received": true,
+    "approved_cap_usd": 40,
+    "approval_question_id": "call_5fc263584aa642ffb0ca24a72d01d205",
+    "first_replay": {
+      "status": "completed_quality_rejected",
+      "estimated_usd": 0.758676,
+      "requests": 2,
+      "unknown_max_usd": 0
+    },
+    "handoff_correction": {
+      "unbilled_preflight": true,
+      "native_writer_request_bytes": 562741,
+      "previous_native_writer_request_bytes": 704014,
+      "initial_findings_bytes_before": 909575,
+      "initial_findings_bytes_after": 32090,
+      "all_claim_texts_and_references_preserved": true,
+      "complete_readable_supplied_records_identical": true,
+      "source_index_numerical_context_task_and_schema_identical": true,
+      "writer_maximum_usd": 1.023968,
+      "review_maximum_usd": 1.643644,
+      "prior_counted_usd": 36.754694,
+      "cumulative_cap_usd": 40,
+      "model": "deepseek-v4-pro",
+      "thinking": {
+        "type": "enabled"
+      },
+      "reasoning_effort": "high"
+    },
+    "report": "../verification/market-first-research-2026-10-30/full-communication-comparison-2026-11-01.json",
+    "costs": {
+      "first_complete_editorial_attempt_estimated_usd": 0.758676,
+      "second_complete_editorial_attempt_estimated_usd": 0.625792,
+      "both_complete_editorial_attempts_estimated_usd": 1.384468,
+      "sent_requests": 4,
+      "new_unknown_max_usd": 0.0,
+      "cumulative_cap_usd": 40,
+      "cumulative_maximum_counted_usd": 37.380486,
+      "prior_costs_and_unknowns_preserved": true,
+      "scope": "Both full editorial attempts, including rejected work; not a full-research run or production daily forecast."
+    },
+    "owner_full_feed_acceptance": false
+  },
+  "casual_reader_instruction_repair_2026_11_01": {
+    "status": "restored_locally_not_model_verified",
+    "report": "../verification/market-first-research-2026-10-30/casual-reader-instructions-2026-11-01.json",
+    "new_spending_usd": 0,
+    "current_comparison_predates_change": true
+  },
+  "current_production_trial": {
+    "status": "owner_authorized",
+    "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-2026-11-01.json",
+    "writing_acceptance": "Trial accepted; further improvements remain conditional on comparison."
+  }
 }

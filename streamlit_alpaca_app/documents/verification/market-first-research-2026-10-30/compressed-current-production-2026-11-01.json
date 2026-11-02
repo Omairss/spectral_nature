@@ -1,0 +1,1744 @@
+{
+  "status": "execution_completed_quality_rejected_no_deployment",
+  "recorded_at_utc": "2026-11-02T00:12:07.352154+00:00",
+  "owner_instruction": "Capitalize the missed instruction, retry, and compare with actual current production.",
+  "source_revision": "a696fcef5018954f123fefbfdff73e701de62410",
+  "production_baseline": {
+    "actual_published_output": true,
+    "experimental_predecessor_used_as_baseline": false,
+    "accepted_source_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+    "image_digest": "sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+    "dataset": {
+      "dataset_name": "attention_home_snapshots_1d",
+      "dataset_version_id": "attention_home_snapshots_1d__20261030T205040Z__897f8072__78f03168d87c46d3890567cce4682e70",
+      "blob_path": "datasets/attention_home_snapshots_1d/dt=2026-10-30/asof=2026-10-30T20-50-40Z/universe=20260919/part-attention_home_snapshots_1d__20261030T205040Z__897f8072__78f03168d87c46d3890567cce4682e70.parquet",
+      "asof_time_utc": "2026-10-30T20:50:40.507732+00:00",
+      "ingested_at_utc": "2026-10-30T21:55:17.354951+00:00",
+      "row_count": 1,
+      "partitioning": {}
+    },
+    "run_id": "897f8072-05b5-4f11-89de-792daa2093cb",
+    "story_count": 11,
+    "public_feed_sha256": "eadd98a399411a049a01e3a54a3dcb86ca1a109cd689a4667820146bc85cb329"
+  },
+  "protocol": {
+    "publication_only": true,
+    "planning_repeated": false,
+    "investigations_repeated": false,
+    "input_reconstruction": {
+      "production_run_id": "897f8072-05b5-4f11-89de-792daa2093cb",
+      "asof": "2026-10-30T20:50:40.507732+00:00",
+      "current_production_stories": 11,
+      "original_bundles": 97,
+      "public_story_bundles_excluded": 11,
+      "enrichment_rows": 12,
+      "retained_captures": 115,
+      "published_feed_sha256": "eadd98a399411a049a01e3a54a3dcb86ca1a109cd689a4667820146bc85cb329",
+      "reconstructed_publication_input": true,
+      "meaning": "Reuse the exact persisted research and observations from current published production. This is not an identical capture of its original pre-publication writer request or a new investigation run.",
+      "reconstruction": [
+        "Restore market_coverage from its persisted coverage_summary copy.",
+        "Use original research bundles and their unedited evidence; exclude the 11 publication copies.",
+        "Use saved completed ticker research; exclude the already published market summary and binary audio.",
+        "Project saved source text through the existing canonical-document adapter; retain complete evidence in source bundles."
+      ]
+    },
+    "model": "deepseek-v4-pro",
+    "thinking": "enabled",
+    "reasoning_effort": "high",
+    "reader_available": true,
+    "manual_prose_edits": false,
+    "separate_effect_of_capitalization_measured": false,
+    "scope": "Compare actual current publication with the existing writer/reviewer applied to its saved research and observations. Not a whole Market-First run or identical original pre-publication request."
+  },
+  "instruction_compression": {
+    "previous_across_calls_words": 4281,
+    "actual_across_calls_words": 481,
+    "reduction_percent": 88.8,
+    "components": {
+      "writer_system": 118,
+      "reviewer_system": 172,
+      "task_in_each_call": 85,
+      "writer_user_instruction": 11,
+      "reviewer_user_instruction": 10
+    },
+    "capitalized_instruction": "REMOVE UNEXPLAINED JARGON; EXPLAIN ITS MEANING IN PLAIN ENGLISH.",
+    "accounting": "Count the Home task in both calls. The earlier proposal’s 411-word total omitted that second occurrence; actual requests are the authority."
+  },
+  "execution": {
+    "status": "completed",
+    "final_review_status": "completed",
+    "final_review_verdict": "revise",
+    "final_review_applied": true,
+    "native_requests": 2,
+    "reader_actions": 0,
+    "candidate_story_count": 20,
+    "database_stopped": true,
+    "production_writes": false,
+    "deployment": false
+  },
+  "personal_assessment": {
+    "method": "Read the entire actual production Brief and 11 stories and the entire reviewed candidate Brief and 20 stories. Inspect reviewer edits and original saved research. No phrase-based score or automated NLP acceptance.",
+    "improvements": [
+      "The final reviewer reduced some actual-versus-estimate transcription in SanDisk and Eli Lilly.",
+      "Intel’s headline changes from an asserted causal drag to observed coincidence, better matching the supplied partial explanation.",
+      "The candidate includes additional retained company developments, including rail-merger opposition, Alnylam’s trial-design dispute and Walmart’s battery partnership. This does not establish better overall coverage."
+    ],
+    "remaining_failures": [
+      "Substantial jargon remains despite the capitalized instruction: post-print, high-multiple, takeover-premium optionality, marginal signal, shared factor exposure and technical or factor-driven pullback remain poorly explained.",
+      "Repeated missing-source commentary still appears in investor-facing prose. Several stories repeat broad hypotheses rather than explaining a concrete consequence.",
+      "The unchanged Brief declares unexplained moves not yet investable signals because no confirmed common driver is available. That unsupported admission standard conflicts with the purpose of data-first attention.",
+      "The candidate expands from 11 to 20 stories, filling every declared section ceiling; useful additional coverage comes with much weaker low-information entries. More stories is not demonstrated quality improvement.",
+      "The Walmart story treats undisclosed terms as evidence of a low-commitment pilot. Missing terms alone do not establish the size of a commitment or that the arrangement is a pilot."
+    ],
+    "conclusion": "Capitalization and compression did not reliably enforce the requested reader-facing explanation. Current production is the real baseline; preserve the full candidate for owner inspection, with no deployment acceptance."
+  },
+  "verification_setup": {
+    "unbilled_preflight_correction": "The initial study protected the entire 12 MB display payload rather than the actual writer context. Its local allowance then disabled evidence navigation. Before any paid request, moved study completion declaration to the actual gateway query/evidence/schema; a fresh capture confirmed source reads available. No production accounting changed.",
+    "no_new_sidecar_or_review_stage": true
+  },
+  "costs": {
+    "estimated_new_usd": 0.261508,
+    "known_cumulative_usd": 25.831995,
+    "unknown_max_cumulative_usd": 4.470776,
+    "maximum_cumulative_usd": 30.302771,
+    "approved_cumulative_cap_usd": 33,
+    "cap_increase_usd": 0,
+    "pending_requests": 0,
+    "scope": "Two model requests: writer and reviewer. Existing production output and completed research reused. No full-run cost comparison is claimed."
+  },
+  "comparison_html": "/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/output/visualizations/deepseek-vs-current-prod-20261101.html",
+  "actual_prompts": "/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/output/visualizations/deepseek-prompts-20261101/current-production-comparison/prompts-used.txt",
+  "actual_writer_artifact": {
+    "stories": [
+      {
+        "section": "top_events",
+        "question": "Will Binance restore withdrawals on schedule and recover the stolen assets without further exchange freezes?",
+        "source_ids": [
+          "bundle:event::source-1147531d5ecbfce9bfc8",
+          "company-research:0",
+          "company-research:1",
+          "company-research:2",
+          "source:saa_doc::c56685c1b383724d4a41987f",
+          "source:saa_doc::f7111f3f9869cfc76f452567",
+          "source:saa_doc::f380d851784060843e9d686a"
+        ],
+        "supporting_symbols": [
+          "BTCUSD",
+          "ETHUSD",
+          "COIN",
+          "MSTR",
+          "IREN",
+          "MARA"
+        ],
+        "time_basis": {
+          "current_observation": "At 20:00 UTC on 30 October 2026 Binance updated that its technology team aimed to start resuming withdrawals within about 34 hours; at 20:35 UTC crypto-linked equities showed large declines.",
+          "background_events": [
+            {
+              "event": "Binance disclosed a $6.3 billion security breach and froze affected assets, with about $3 billion located so far; Reuters reported analysts reacting after the freeze.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::f7111f3f9869cfc76f452567",
+                "source:saa_doc::f380d851784060843e9d686a"
+              ]
+            },
+            {
+              "event": "Binance suspended deposits and withdrawals after the breach; Seeking Alpha reported a 48-hour resumption target earlier on 30 October.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::50e90be5fe2e1d9bb6c03a0d"
+              ]
+            }
+          ],
+          "report_dates": "Benzinga withdrawal update at 20:00 UTC 30 October 2026; IREN mover report at 17:52 UTC; Reuters and Bloomberg search captures retrieved later on 30 October."
+        },
+        "event_title": "Binance targets withdrawal resumption in about 34 hours after reported $6.3 billion breach and asset freeze",
+        "surface_summary_text": "The largest reported crypto exchange theft has suspended withdrawals and frozen about $3 billion, damaging exchange-custody confidence and hitting crypto-exposed equities; the near-term test is whether Binance restores service on schedule.",
+        "what_happened_text": "Binance said on 30 October that its tech team targets beginning to restore the withdrawal service within roughly 34 hours from the 20:00 UTC update, confirming the suspension was still active at that moment. The exchange earlier disclosed a $6.3 billion security breach and said about $3 billion of affected assets had been located and frozen. Crypto-linked equities sold off sharply in the 20:35 UTC snapshot—[Coinbase down about 10.9%, Strategy down about 7.8%, IREN down about 8.8%, and MARA down about 5.6%](https://www.benzinga.com/trading-ideas/movers/26/10/62752783/why-is-iren-stock-falling-on-friday-2)—though IREN's move also reflects AI capital-spending concern.",
+        "why_happened_text": "A breach of a major Bitcoin trading venue reduces confidence in exchange custody and forces broad crypto risk reduction, even though the company has not published a complete incident statement. The equity moves are sector-wide risk-off signals, not a direct BTC quote, but they are consistent with that mechanism.",
+        "affected_assets_summary_text": "Exposures beyond Binance include crypto proxies COIN, MSTR, MARA and IREN; IREN's dual Bitcoin-mining and AI-cloud business makes it a useful mixed signal, while PURR also fell about 10.3% in the same snapshot.",
+        "business_context_text": "Binance is a major crypto trading venue, so custody confidence and withdrawal availability are core to its liquidity model; the reported freeze may create a short-term liquidity interruption for customers.",
+        "watch_next_text": "Watch whether Binance actually starts resuming withdrawals within the stated 34-hour window and whether any additional exchanges or regulators confirm the scope; a clean resumption would reduce the market-interruption interpretation, while a delayed restart would strengthen it.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "top_events",
+        "question": "Does Microsoft's $25 billion note pricing signal higher AI-related funding costs, and how much fee income reaches the underwriting banks?",
+        "source_ids": [
+          "bundle:event::source-950c231d5b82abdccf0f",
+          "source:saa_doc::7ec9a680841c4d9dc9ecf1e8",
+          "source:saa_doc::5b2f5e78ef49353a45ac4b55",
+          "company-research:7",
+          "company-research:8",
+          "company-research:9"
+        ],
+        "supporting_symbols": [
+          "MSFT",
+          "JPM",
+          "WFC",
+          "UBS",
+          "AMZN",
+          "NVDA",
+          "ORCL"
+        ],
+        "time_basis": {
+          "current_observation": "Microsoft priced $25 billion of senior unsecured notes on 29 October 2026, with close expected 4 November; at the 20:35 UTC 30 October snapshot MSFT, JPM, WFC and UBS were lower alongside tech peers.",
+          "background_events": [
+            {
+              "event": "Microsoft reported fiscal Q1 2027 results on 28 October 2026: revenue $92.3 billion, up 19%; Azure revenue up 48%; capex $45.2 billion below consensus on delayed third-party capacity.",
+              "event_date": "2026-10-28",
+              "source_ids": [
+                "source:saa_doc::7ec9a680841c4d9dc9ecf1e8"
+              ]
+            },
+            {
+              "event": "Microsoft announced the debt offerings with final pricing on 29 October, including fixed coupons from 4.85% to 6.35% across ten tranches and two floating-rate notes.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "source:saa_doc::7ec9a680841c4d9dc9ecf1e8"
+              ]
+            }
+          ],
+          "report_dates": "Official Microsoft announcement captured 29 October; Manila Times recap published 19:01 UTC 30 October."
+        },
+        "event_title": "Microsoft prices $25 billion ten-tranche bond offering for general corporate purposes, with UBS, Wells Fargo and JPMorgan among managers",
+        "surface_summary_text": "A large, long-dated bond issuance strengthens Microsoft's balance sheet for AI and general spending, but the official use of proceeds is not AI-specific and the direct bank impact is likely modest fee income rather than a material earnings event.",
+        "what_happened_text": "Microsoft priced $25 billion of senior unsecured notes across ten tranches with maturities from 2028 through 2066 and fixed coupons from 4.85% to 6.35%, plus two floating-rate notes; close is expected on 4 November 2026. Eleven joint book-running managers include J.P. Morgan, UBS, Wells Fargo, Barclays, BNP Paribas, BofA Securities, Citigroup, Goldman Sachs, HSBC, Morgan Stanley and RBC, with additional co-managers. The official filing says proceeds are for general corporate purposes, including working capital, capital expenditures, stock repurchases, acquisitions and debt repayment; media framing that the money is only for AI overstates the legal use.",
+        "why_happened_text": "The issuance provides long-dated liquidity for Microsoft's build-out, but pricing it now tests credit appetite at a time when the 10-year Treasury is roughly 4.98% and BBB spreads are wider than a year earlier. The final spread to Treasuries and investor demand versus initial talk, not the announcement alone, would show whether AI-related funding costs are rising. For the banks, the mandate is fee income, but no fee terms are disclosed.",
+        "affected_assets_summary_text": "MSFT, JPM, WFC and UBS were all lower in the 20:35 UTC snapshot, as were AMZN, NVDA and ORCL, but the evidence does not establish that the bond offering caused those moves; this looks more like a broad equity pullback.",
+        "business_context_text": "Microsoft is adding debt while current market pricing is expensive; the latest yield curve shows the 10-year Treasury at 4.98%, and BBB spreads are wider than a year earlier.",
+        "watch_next_text": "Watch the 4 November close for final terms and whether any manager discloses fee or spread information; next investment-banking fee commentary will show the cumulative effect.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "top_events",
+        "question": "Will the Qatari-mediated talks produce any pause or Strait of Hormuz reopening, and will energy risk premiums remain?",
+        "source_ids": [
+          "bundle:event::source-09ab761410e3295eef9a",
+          "source:saa_doc::ccae609748ed19bc7b6c6e8f",
+          "source:saa_doc::d60397be7b160d8ea8ab3ba9",
+          "source:saa_doc::6419d303568928dffc015152",
+          "source:saa_doc::2a8e0c1516b9465b92e57881"
+        ],
+        "supporting_symbols": [
+          "XOM",
+          "CVX",
+          "USO",
+          "VLO",
+          "PSX",
+          "MPC",
+          "HAL",
+          "SLB",
+          "BKR",
+          "FRO",
+          "DHT",
+          "STNG"
+        ],
+        "time_basis": {
+          "current_observation": "On 30 October 2026 Axios reported Qatari negotiators had been in Tehran for 12 hours, with mediators in regular contact with the White House; at the 20:35 UTC snapshot XOM and CVX were higher but no causal link is established.",
+          "background_events": [
+            {
+              "event": "On 28 October Qatar presented Iran with a new proposal to end the war; Iran called the ideas unacceptable, and Qatar said Iran must stop threats to Arab Gulf states and open the Strait of Hormuz.",
+              "event_date": "2026-10-28",
+              "source_ids": [
+                "source:saa_doc::d60397be7b160d8ea8ab3ba9"
+              ]
+            },
+            {
+              "event": "A reported Qatari plan would pause U.S. strikes while Iran reopened shipping lanes through the Strait of Hormuz for ten days.",
+              "event_date": "unknown",
+              "source_ids": [
+                "source:saa_doc::6419d303568928dffc015152"
+              ]
+            }
+          ],
+          "report_dates": "Axios/Benzinga capture at 19:59 UTC 30 October; Reuters 28 October; social post reported three days prior from retrieved search."
+        },
+        "event_title": "Qatari negotiators in Tehran and White House contact keep oil-supply de-escalation possibility open",
+        "surface_summary_text": "Active Qatari mediation could lower the Strait of Hormuz risk premium if it yields a pause or reopening, but Iran recently rejected the latest package, so the talks remain a continuation without a confirmed breakthrough.",
+        "what_happened_text": "On 30 October, Axios correspondent Barak Ravid reported, citing sources, that Qatari negotiators had been in Tehran for 12 hours and Qatari mediators were in regular contact with the White House during the day. Two days earlier Qatar presented Iran with a new proposal; Iran saw only unacceptable ideas, and Qatar said Iran needed to stop threats to Arab Gulf states and open the Strait of Hormuz. A reported Qatari plan would pause U.S. strikes while Iran reopened shipping lanes through the strait for ten days.",
+        "why_happened_text": "A credible de-escalation that pauses strikes and reopens or protects the strait could lower the risk premium in crude, refined products and shipping costs; continued rejection keeps that premium in place. The observed XOM about 2.2% higher and CVX about 1.8% higher at 20:35 UTC is a market snapshot, not proof the talks caused the move.",
+        "affected_assets_summary_text": "Integrated oil and gas, refiners, oilfield services and tanker/shipping names are the direct exposure if supply risk changes; USO and energy equities could reprice on any confirmed pause.",
+        "business_context_text": "The Strait of Hormuz is a critical chokepoint for oil and LNG; the Iranian-US conflict has kept a supply-risk premium in energy markets since at least September 2026.",
+        "watch_next_text": "Watch whether officials confirm a pause, release or supply restoration; until then the supply-risk premium can fade or return.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "top_events",
+        "question": "Will the Surface Transportation Board grant CPKC's motion to dismiss the Union Pacific-Norfolk Southern merger, and how would a rival rail challenge affect the deal?",
+        "source_ids": [
+          "bundle:event::source-62a2093ff478c1e9ddc0",
+          "source:saa_doc::e05842d599666fb69a054863"
+        ],
+        "supporting_symbols": [
+          "CP",
+          "UNP",
+          "NSC"
+        ],
+        "time_basis": {
+          "current_observation": "On 30 October 2026 CPKC formally asked the STB to dismiss the UP-NS merger application; the merger remains under review and the observed CP and UNP stock changes are not attributable to the filing.",
+          "background_events": [
+            {
+              "event": "Union Pacific and Norfolk Southern merger application remains under STB review; CPKC says the request is based on alleged March remarks by Union Pacific's CEO at an industry meeting.",
+              "event_date": "2026-03; merger review ongoing as of 2026-10-30",
+              "source_ids": [
+                "source:saa_doc::e05842d599666fb69a054863"
+              ]
+            }
+          ],
+          "report_dates": "Trains.com article captured 19:02 UTC 30 October 2026."
+        },
+        "event_title": "CPKC petitions STB to dismiss Union Pacific-Norfolk Southern merger application over alleged CEO remarks",
+        "surface_summary_text": "A rail competitor is using a procedural challenge to potentially delay or derail a major Class I merger that would create a stronger rival, but no STB decision has been made.",
+        "what_happened_text": "CPKC formally asked the Surface Transportation Board to dismiss the merger application between Union Pacific and Norfolk Southern, saying the request is based on alleged remarks by Union Pacific's CEO at a March industry meeting that could be read as threats against customers who do not support the merger. CPKC argues this harms the integrity of the review. The article does not provide evidence of the remarks and reports no STB ruling.",
+        "why_happened_text": "If the STB grants the motion, the merger review could be delayed or ended; if it denies it, the review continues. CPKC has a clear incentive to oppose a merger that would combine two large Class I railroads, so the filing can be read as either a genuine integrity concern or an attempt to block a stronger rival.",
+        "affected_assets_summary_text": "CP was up about 1.47% and UNP up about 0.68% at the 20:35 UTC snapshot, but that does not establish the filing caused the moves; NSC is the target exposure.",
+        "business_context_text": "The proposed merger would combine two large Class I railroads, so other railroads and shippers have competitive incentives to oppose or support the review's outcome.",
+        "watch_next_text": "Watch the STB's response and any supporting comments from other shippers or competitors, plus the evidence CPKC provides for the March comments.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "top_events",
+        "question": "Will Rivian hit the end-2026 autonomy milestone needed to unlock Uber's $250 million tranche, and what is the technical test?",
+        "source_ids": [
+          "bundle:event::source-31ac39caaed872db9991",
+          "source:saa_doc::f41acb39f99794825d07b2c7",
+          "source:saa_doc::1ab8f72584eb171826bddb74",
+          "source:saa_doc::c766e0e61427e18bc566351b"
+        ],
+        "supporting_symbols": [
+          "RIVN",
+          "UBER"
+        ],
+        "time_basis": {
+          "current_observation": "On 29 October 2026 Rivian CEO said the company is on track to reach an autonomy milestone before end-2026; at 20:35 UTC 30 October RIVN was up about 6.1% and UBER down about 0.8%, with no causal link established.",
+          "background_events": [
+            {
+              "event": "Rivian raised $300 million through a private share placement with an Uber-affiliated entity after hitting the first autonomous-driving milestone.",
+              "event_date": "earlier",
+              "source_ids": [
+                "source:saa_doc::c766e0e61427e18bc566351b"
+              ]
+            },
+            {
+              "event": "Uber committed up to $1.25 billion through 2031, including an initial $300 million and a conditional $250 million tranche.",
+              "event_date": "prior agreement",
+              "source_ids": [
+                "source:saa_doc::f41acb39f99794825d07b2c7"
+              ]
+            }
+          ],
+          "report_dates": "Reuters article 29 October 2026; World Auto Forum recap captured 19:01 UTC 30 October."
+        },
+        "event_title": "Rivian says year-end autonomy milestone is on track; Uber's $250 million tranche remains conditional",
+        "surface_summary_text": "Management confidence supports the next $250 million payment inside the broader Uber commitment, but no technical or contractual milestone definition is provided, so the funding remains conditional until formally achieved.",
+        "what_happened_text": "Rivian CEO RJ Scaringe said the company is on track to hit an autonomy milestone before the end of 2026. Achieving it would unlock a $250 million investment tranche from Uber, part of a commitment of up to $1.25 billion through 2031. Reuters reports the commitment includes an initial $300 million; a separate record says that $300 million was raised through a private share placement after the first autonomous-driving milestone. The current update concerns the next milestone-linked payment, not the first investment.",
+        "why_happened_text": "Milestone-based financing links operating progress to cash: reaching the autonomy goal would support Rivian's plan to reduce cash burn and advance self-driving technology. Strong R2 sales are described as important to the same plan, but the captured reports do not state the exact technical or contract definition of the milestone.",
+        "affected_assets_summary_text": "RIVN was up about 6.10% and UBER down about 0.76% at 20:35 UTC, but those moves cannot be attributed to this statement from the available evidence.",
+        "business_context_text": "The companies plan to launch driverless R2 robotaxis on the Uber network by 2028, starting in select cities and later expanding to about 25 locations; that rollout is separate and not confirmed by this progress statement.",
+        "watch_next_text": "Watch for Rivian's formal announcement that the milestone has been achieved, or disclosure of the specific criteria.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Is Intel's weak Q4 PC and data-center guidance a company-specific disruption or a broader chip demand warning?",
+        "source_ids": [
+          "bundle:symbol::INTC",
+          "bundle:event::cluster-01-87d15f025b",
+          "source:saa_doc::866193af030e92cfaf741fbd",
+          "source:saa_doc::c365b7388f9e955d273f0abd",
+          "source:saa_doc::b8d96faba2d6c547d602953d"
+        ],
+        "supporting_symbols": [
+          "INTC",
+          "SNDK",
+          "QCOM",
+          "AMD",
+          "DELL",
+          "AAOI",
+          "TSEM",
+          "COHR",
+          "ALAB",
+          "MRVL",
+          "NBIS",
+          "LSCC",
+          "HUT",
+          "FORM",
+          "MU"
+        ],
+        "time_basis": {
+          "current_observation": "Intel reported Q3 2026 on 29 October; Q4 guidance missed on PC slowdown, Israel fab disruption, and memory shortages. At 20:35 UTC 30 October INTC was down about 29%, with chip peers also sharply lower.",
+          "background_events": [
+            {
+              "event": "Intel Q3 revenue beat but Q4 guidance missed; CFO reportedly said a sustained PC recovery needs memory availability to improve and prices to normalize.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "source:saa_doc::866193af030e92cfaf741fbd"
+              ]
+            },
+            {
+              "event": "Qualcomm was expected to report Q4 earnings after 30 October; stock fell 11.1% as tech stocks sold off.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::b8d96faba2d6c547d602953d",
+                "source:saa_doc::c365b7388f9e955d273f0abd"
+              ]
+            }
+          ],
+          "report_dates": "Intel 8-K and Qualcomm earnings preview captured around 29-30 October; cluster and symbol summaries as of 20:50 UTC."
+        },
+        "event_title": "Intel's weak Q4 PC outlook and warning drag chipmakers lower",
+        "surface_summary_text": "Intel's Q4 shortfall points to PC slowdown and memory constraints, not just company-specific issues, and shifts the sector interpretation from demand surge to supply-constrained consumer weakness.",
+        "what_happened_text": "Intel reported its Q3 2026 results on 29 October: revenue beat, but Q4 guidance missed on a PC slowdown, an Israel fab disruption, and memory shortages. The reported CFO comment was that a sustained PC recovery needs memory availability to improve and prices to normalize. Chip peers fell sharply; Qualcomm was down about 11.1% ahead of its earnings, and SanDisk, Micron and other semiconductor names declined in the observed snapshot.",
+        "why_happened_text": "Weak guidance from a major PC and server chipmaker signals that consumer and PC demand is weak enough to offset datacenter strength. The memory-shortage element ties the outcome to NAND and DRAM pricing, so this is a sector input, not just an Intel-specific event.",
+        "affected_assets_summary_text": "QCOM, SNDK, MU, AMD, DELL and other chip-related names declined with Intel; the co-movement is consistent with a broad chip risk-off but not proof of a single common cause.",
+        "business_context_text": "Intel is a bellwether for PC and server demand, and its guidance follows SanDisk's consumer revenue declines and management forecast for mid-teens PC and smartphone unit shipment declines in calendar 2026.",
+        "watch_next_text": "Watch Qualcomm's actual Q4 report and any PC demand commentary from Dell or AMD; if they confirm weak consumer demand, the sector normalization broadens.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Is SanDisk's datacenter-led NAND pricing strength sustainable into fiscal Q2, or are consumer weakness and analyst target cuts early normalization signals?",
+        "source_ids": [
+          "bundle:event::source-923a2bdbedf799e875ac",
+          "bundle:symbol::SNDK",
+          "source:saa_doc::7bf24f6b5b87d61e8e52cd06",
+          "source:saa_doc::b1b7f82474cb4a053aeb60e2",
+          "source:saa_doc::a46348646a5ad7f8a04f457b"
+        ],
+        "supporting_symbols": [
+          "SNDK",
+          "MU",
+          "WDC",
+          "STX",
+          "INTC",
+          "AMD"
+        ],
+        "time_basis": {
+          "current_observation": "SanDisk reported fiscal Q1 2027 on 29 October and guided Q2 above Q1; after the print, Mizuho, RBC and Wells Fargo cut price targets. At 20:35 UTC 30 October SNDK was down about 13%.",
+          "background_events": [
+            {
+              "event": "SanDisk Q4 FY2026 Consumer revenue was $556 million, down 32% sequentially and 5% year over year; management forecast mid-teens declines in PC and smartphone unit shipments.",
+              "event_date": "previous quarter",
+              "source_ids": [
+                "source:saa_doc::fdfc703535bbb1d6cdfaa8e6"
+              ]
+            },
+            {
+              "event": "Intel's Q3 report and weak Q4 guidance cited PC slowdown and memory shortages.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "bundle:symbol::INTC"
+              ]
+            }
+          ],
+          "report_dates": "Official release captured 29 October; analyst target-cut feeds captured 18:02 and 18:43 UTC 30 October."
+        },
+        "event_title": "SanDisk Q1 FY2027 beat, 8-for-1 split, and higher fiscal Q2 guidance meet post-print analyst target cuts; the signal is two-speed rather than broad memory normalization",
+        "surface_summary_text": "A datacenter-led earnings beat and raised guidance still saw the stock fall as analysts cut price targets, reflecting a tension between AI-driven storage strength and consumer/PC memory weakness.",
+        "what_happened_text": "SanDisk reported fiscal Q1 2027 revenue of $11.0 billion, up 23% sequentially; GAAP diluted EPS was $52.60 and non-GAAP diluted EPS was $49.51, above the pre-report guidance. The company guided fiscal Q2 revenue to $12.2-$12.6 billion and non-GAAP EPS to $55.00-$57.00 on a pre-split basis, implying roughly 13% sequential growth for both. SanDisk also announced an 8-for-1 forward split with record date 9 November and post-split trading expected 20 November. After the report, Mizuho cut its target to $1,900 from $2,050, RBC cut to $1,400 from $1,600, and Wells Fargo cut to $1,300 from $1,550 while maintaining Equal-Weight.",
+        "why_happened_text": "The beat and guidance support a datacenter and AI-driven NAND plateau rather than a broad demand reversal. But the same high memory prices are pressuring consumer/PC unit economics: SanDisk's prior Consumer revenue fell sharply and management forecast mid-teens PC and smartphone unit declines. Analyst target cuts are valuation adjustments after the stock's run, not a change to guidance, but they reflect concern that peak memory prices may not be durable outside datacenter.",
+        "affected_assets_summary_text": "SNDK fell about 13% at the snapshot, while memory peers MU, WDC and STX also declined; Intel's PC warning reinforces the consumer weakness side, though these moves are not individually attributed.",
+        "business_context_text": "The company's own release highlights robust and growing datacenter demand, but the visible release does not provide granular NAND average-selling-price or bit-shipment data, leaving the peak-versus-normalization question open.",
+        "watch_next_text": "Watch the earnings call or presentation for NAND pricing and datacenter capacity commentary; if prices are still rising into fiscal Q2, the data supports an extended peak, while consumer price concessions would broaden normalization.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Are weak Q4 guidance from Reddit and Roblox a platform-specific issue or an early signal of slowing digital-ad and gaming monetization?",
+        "source_ids": [
+          "bundle:event::cluster-02-ad489f11d8",
+          "bundle:symbol::RDDT",
+          "bundle:symbol::RBLX",
+          "source:saa_doc::fde1e8b8bf51c04a6449cc59",
+          "source:saa_doc::7321b8aac08c744d87b1dd9c"
+        ],
+        "supporting_symbols": [
+          "RDDT",
+          "RBLX",
+          "SPOT"
+        ],
+        "time_basis": {
+          "current_observation": "Reddit fell about 29% and Roblox about 18% in observed trade after their Q3 reports revealed weak forward outlooks, while Spotify gained in the same cluster.",
+          "background_events": [
+            {
+              "event": "Reddit reported strong Q3 but weak Q4 outlook.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "bundle:symbol::RDDT"
+              ]
+            },
+            {
+              "event": "Roblox Q3 revenue beat but Q4 bookings outlook disappointed; analyst flagged monetization risks.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "source:saa_doc::fde1e8b8bf51c04a6449cc59",
+                "source:saa_doc::7321b8aac08c744d87b1dd9c"
+              ]
+            }
+          ],
+          "report_dates": "Cluster and symbol summaries as of 30 October; Yahoo Finance Roblox outlook article captured."
+        },
+        "event_title": "Reddit and Roblox fall on weak forward guidance, while Spotify gains",
+        "surface_summary_text": "Two consumer-internet platforms are being repriced on guidance rather than current results: even with better-than-expected current revenue, investors are discounting slower forward growth and monetization risk.",
+        "what_happened_text": "Reddit shares fell about 29% after a weak outlook overshadowed a strong Q3. Roblox fell about 18% after its Q3 revenue beat but its Q4 bookings outlook disappointed; an analyst flagged monetization risks. Spotify moved higher in the same observed cluster, showing the guidance shock was not uniform across media platforms.",
+        "why_happened_text": "The declines are forward-looking repricing: investors treat platform guidance as the marginal signal, not current revenue beats. That suggests concern about digital-ad engagement and in-game monetization durability rather than a single negative data point.",
+        "affected_assets_summary_text": "Spotify is a useful counterexample within the same media cluster; it gained while Reddit and Roblox fell, so the weakness is company-specific outlook rather than an indiscriminate consumer-internet selloff.",
+        "business_context_text": "Both companies are high-multiple growth names where valuation depends heavily on forward monetization expectations; guidance misses therefore have outsized share-price consequences.",
+        "watch_next_text": "Watch next-quarter ad and bookings commentary, plus engagement and monetization disclosures, to see whether the guidance holes close or widen.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Is the Regeneron-led biotech rally sustainable, or are genomics names declining on separate company-specific disappointments?",
+        "source_ids": [
+          "bundle:event::cluster-03-943ce2bbfc",
+          "bundle:symbol::REGN",
+          "bundle:symbol::ILMN",
+          "source:saa_doc::0541ebaf3137ab1ad1c018fb"
+        ],
+        "supporting_symbols": [
+          "REGN",
+          "ILMN",
+          "CDNA",
+          "ATEC",
+          "AZN",
+          "BBIO",
+          "EXEL",
+          "ALNY"
+        ],
+        "time_basis": {
+          "current_observation": "Regeneron jumped about 13.5% after Q3 revenue and EPS beat; some biotech peers rose, while genomics makers such as Illumina fell 18.5% after its own report.",
+          "background_events": [
+            {
+              "event": "Regeneron Q3 2026 earnings beat, with Dupixent and Eylea HD growth; CFO said Regeneron is positioned for one of its strongest years ever.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "source:saa_doc::0541ebaf3137ab1ad1c018fb"
+              ]
+            },
+            {
+              "event": "Illumina Q3 FY2026 report led to an 18.5% observed decline.",
+              "event_date": "2026-10-29/30",
+              "source_ids": [
+                "bundle:symbol::ILMN"
+              ]
+            }
+          ],
+          "report_dates": "Cluster and symbol summaries as of 30 October."
+        },
+        "event_title": "Dupixent-led Regeneron beat lifts some biotech stocks while genomics makers fall",
+        "surface_summary_text": "The biotech session is mixed: profitable large-cap drug growth is rewarded, while genomics and tool companies face company-specific disappointments, so the cluster is not a single thematic signal.",
+        "what_happened_text": "Regeneron jumped about 13.5% after reporting Q3 revenue and EPS beats driven by Dupixent and Eylea HD; CFO commentary highlighted strong positioning. Some biotech names followed higher, but genomics makers such as Illumina fell about 18.5% after its Q3 report, and other genomics/tools names moved lower.",
+        "why_happened_text": "The split reflects a flight within healthcare toward profitable, revenue-growing drug franchises and away from higher-risk, tools/genomics stories that missed their own marks. There is no evidence of one common cause; the cluster is an artifact of simultaneous reporting, not a sector rotation.",
+        "affected_assets_summary_text": "AZN, BBIO, EXEL, ALNY and other biotech names are useful peers, but their moves should be read against their own news; ALNY also had a negative analyst note.",
+        "business_context_text": "Biotech earnings are idiosyncratic; clustering by simultaneous moves without confirmed company-specific news can mislead, so each name's own report remains the primary driver.",
+        "watch_next_text": "Watch whether Regeneron's Dupixent strength continues into next quarters and whether genomics names stabilize after their earnings-driven declines.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Does the reported CD&R take-private pursuit signal a credible premium for Global Payments, and how would a failed deal affect its valuation?",
+        "source_ids": [
+          "bundle:event::cluster-04-772f837ef7",
+          "bundle:symbol::GPN",
+          "source:saa_doc::45cf07684290c2f349a9ff81",
+          "source:saa_doc::1c30ae60561c05da13efda4f"
+        ],
+        "supporting_symbols": [
+          "GPN",
+          "COIN",
+          "PURR",
+          "XP"
+        ],
+        "time_basis": {
+          "current_observation": "Global Payments jumped about 13% on 30 October after a report that CD&R is pursuing a takeover; the cluster also includes crypto and brokerage financials falling.",
+          "background_events": [
+            {
+              "event": "Seeking Alpha reported CD&R pursuing a Global Payments takeover.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::45cf07684290c2f349a9ff81"
+              ]
+            }
+          ],
+          "report_dates": "Seeking Alpha and related market articles captured around 30 October."
+        },
+        "event_title": "Global Payments jumps on report of possible buyout; crypto and brokerage financials fall",
+        "surface_summary_text": "A takeover report creates immediate takeover-premium optionality for Global Payments, but the deal is unconfirmed and the surrounding financial cluster is mixed rather than a uniform risk-on.",
+        "what_happened_text": "Global Payments shares jumped about 13% after a report said Clayton Dubilier & Rice is pursuing a take-private deal. The same observed cluster showed crypto-exposed names and brokerage financials falling, including Coinbase and XP, but these are separate developments and not evidence of a common cause.",
+        "why_happened_text": "Takeover reports mechanically reprice a stock toward a potential acquisition premium; until a bid is confirmed, the gain is optionality. For the surrounding financial names, the Binance breach is a more likely driver for crypto-related declines than any Global Payments read-through.",
+        "affected_assets_summary_text": "COIN, PURR and XP are useful counterexamples within the financial cluster; their declines reflect their own crypto or brokerage exposures, not a Global Payments effect.",
+        "business_context_text": "Global Payments is a major payments processor; a large private-equity take-private would be a significant financing and valuation event, but no bid terms are available.",
+        "watch_next_text": "Watch whether Global Payments or CD&R confirms or denies the report, and any deal premium details.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Will Eli Lilly's GLP-1 volume momentum survive without durable net pricing, and how much does Medicare GLP-1 Bridge contribute?",
+        "source_ids": [
+          "bundle:event::source-73b584018c730cbd9d20",
+          "source:saa_doc::b7930d0569f7107078026f86",
+          "source:saa_doc::e94bbf208ca1e96bb0c24288"
+        ],
+        "supporting_symbols": [
+          "LLY",
+          "NVO"
+        ],
+        "time_basis": {
+          "current_observation": "Eli Lilly reported Q3 on 29 October and recapped on 30 October; adjusted EPS and revenue beat consensus, with Mounjaro and Zepbound revenue up strongly. At 20:35 UTC LLY was up about 3.17% and NVO about 2.15%.",
+          "background_events": [
+            {
+              "event": "Lilly Q2 2026 revenue rose 48% on 60% volume and a 13% realized-price decline; non-U.S. realized prices down 36% mainly from Mounjaro's China reimbursement listing.",
+              "event_date": "2026 Q2",
+              "source_ids": [
+                "bundle:event::source-73b584018c730cbd9d20"
+              ]
+            }
+          ],
+          "report_dates": "Benzinga recap at 17:45 UTC 30 October; Marketscreener analyst note at 18:02 UTC."
+        },
+        "event_title": "Eli Lilly Q3 2026 tops estimates on GLP-1 volume and raises revenue guidance; the captured data do not yet confirm pricing durability",
+        "surface_summary_text": "Strong GLP-1 volume is driving above-consensus sales and guidance, but the captured data lack product-level net price and margins, so investors cannot yet separate durable volume from price erosion.",
+        "what_happened_text": "Lilly's Q3 adjusted EPS was $7.48 against a $6.50 consensus and revenue rose 39% to $24.397B against $22.61B. Worldwide Mounjaro revenue rose 65% to $10.7B and U.S. Zepbound revenue rose 48% to $5.3B. The company raised 2026 revenue guidance to $91B-$92B from $85B-$87B, above consensus; it lowered adjusted EPS guidance to $35.00-$36.00, reflecting acquired IPR&D charges from AtaiBeckley and Merida Biosciences, not weaker demand. Multiple analysts raised price targets, with UBS to $1,625 and BMO to $1,650.",
+        "why_happened_text": "The report supports durable volume and market-share gains; CEO David Ricks linked Medicare GLP-1 Bridge uptake and middle-income demand to roughly a $10B improvement from initial guidance, though the Bridge contribution is not separated. Prior quarters show volume-led revenue with negative price realization, so the Q3 beat does not by itself confirm pricing durability.",
+        "affected_assets_summary_text": "LLY and NVO both rose in the snapshot, consistent with a sector bid rather than a Lilly-specific repricing; NVO is the natural competitor benchmark.",
+        "business_context_text": "GLP-1 competition and reimbursement are the critical factors; Lilly's growth depends on both volume and net price, and the source does not show product-level net price or gross margin.",
+        "watch_next_text": "Watch product-level net price and gross margin, a separate Bridge contribution figure, and competitor pricing or supply response.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Does Bernstein's trial-design concern meaningfully reduce nucresiran's probability of success, and will independent commentary confirm it?",
+        "source_ids": [
+          "bundle:event::source-1ac30aefb9610ff071e9",
+          "source:saa_doc::4ad10c55a6faf8941c2237b1"
+        ],
+        "supporting_symbols": [
+          "ALNY"
+        ],
+        "time_basis": {
+          "current_observation": "On 30 October 2026 Bernstein downgraded Alnylam to Market Perform and cut its price target to $199 from $376; ALNY was about 5.2% lower intraday later that day.",
+          "background_events": [
+            {
+              "event": "Alnylam's recent Q3 report repeated a 2026 revenue outlook below consensus, following a prior large stock decline.",
+              "event_date": "recent Q3",
+              "source_ids": [
+                "bundle:event::source-1ac30aefb9610ff071e9"
+              ]
+            }
+          ],
+          "report_dates": "TradingView/Seeking Alpha note captured 18:02 UTC 30 October."
+        },
+        "event_title": "Bernstein downgrades Alnylam on nucresiran TRITON-CM trial-design decision",
+        "surface_summary_text": "One analyst is cutting the value of a key pipeline asset because Alnylam declined proposed trial-design changes, but this is an assessment, not new trial data.",
+        "what_happened_text": "Bernstein downgraded Alnylam Pharmaceuticals to Market Perform from Outperform and reduced its price target to $199 from $376 on 30 October. The analyst said Alnylam decided not to adopt proposed design changes to TRITON-CM, the Phase 3 trial of nucresiran in ATTR-CM. Bernstein also reduced its estimated probability of success and expected nucresiran sales because of that decision.",
+        "why_happened_text": "A less informative trial design could raise the chance of a Phase 3 miss and reduce the expected economic value of a growth asset. The note follows a prior stock decline after Alnylam's recent Q3 report repeated guidance below consensus, so the downgrade adds to existing valuation pressure.",
+        "affected_assets_summary_text": "ALNY was observed about 5.2% lower intraday, but that move cannot be attributed only to this note; no competing ATTR-CM companies are identified in the source.",
+        "business_context_text": "Nucresiran is Alnylam's key pipeline asset in transthyretin amyloid cardiomyopathy; trial design choices directly affect the probability of regulatory success.",
+        "watch_next_text": "Watch independent comment on the trial design, the exact proposed change and Alnylam's reason for rejecting it, and any TRITON-CM data milestones.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Will Walmart's retail distribution meaningfully scale Base Power home batteries, or is this only a channel test without disclosed terms?",
+        "source_ids": [
+          "bundle:event::source-7a405a47cd8e1b8e104e",
+          "source:saa_doc::7edb3d1cf63ac3f5ef3846f8"
+        ],
+        "supporting_symbols": [
+          "WMT"
+        ],
+        "time_basis": {
+          "current_observation": "On 30 October 2026 Walmart announced a strategic investment in Base Power and agreement to make Base Power's home energy products available beginning in November. WMT was up about 1.9% at 20:35 UTC, but that cannot be tied to this news.",
+          "background_events": [],
+          "report_dates": "BusinessWire release captured 19:01 UTC 30 October."
+        },
+        "event_title": "Walmart-Base Power investment and November home-battery availability",
+        "surface_summary_text": "A large retail channel for residential batteries is being opened, but without pricing, installation or financing details the announcement is better read as a low-commitment pilot than proven volume.",
+        "what_happened_text": "Walmart announced a strategic investment in Base Power, a Texas-based energy company specializing in home battery systems, and the companies agreed to make Base Power's home energy products available to Walmart customers and Sam's Club members beginning in November. The release does not disclose investment amount, volume commitments, battery specifications, pricing, installation capacity, financing, or manufacturing partners.",
+        "why_happened_text": "Walmart's distribution network could materially reduce customer acquisition costs for home batteries, but that benefit only materializes if product specifications, pricing and installation capacity support adoption. The lack of quantified terms makes this a channel test rather than a proven volume event.",
+        "affected_assets_summary_text": "As the supporting public symbol, WMT was up about 1.9% in the observed snapshot; the announcement appears limited at this stage, and no Base Power public ticker is reported.",
+        "business_context_text": "Residential energy storage is a competitive market where retail access can change how households discover and finance backup power; Walmart's own announced exposure appears limited.",
+        "watch_next_text": "Watch Base Power product specifications and pricing, installation or financing partners, named manufacturers, and initial customer take-up after the November start.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Will Petrobras disclose recoverable volumes and advance toward an IBAMA licence, turning this Amazon mouth discovery into development optionality?",
+        "source_ids": [
+          "bundle:event::source-ece55f343903b0f22011",
+          "source:saa_doc::8077031479fa8008440f4408",
+          "source:saa_doc::c5c10c81cbfb2d1684f2545b",
+          "source:saa_doc::9998eb4de66b9cb12a631f80",
+          "source:saa_doc::7006d098ab62fdadd040317e"
+        ],
+        "supporting_symbols": [
+          "PBR",
+          "PBR.A",
+          "XOM",
+          "CVX"
+        ],
+        "time_basis": {
+          "current_observation": "Petrobras announced on 30 October 2026 a third oil discovery at the mouth of the Amazon, without size or commercial viability. At 20:35 UTC PBR ADS was up about 0.7% while XOM and CVX were up 2.2% and 1.8%.",
+          "background_events": [
+            {
+              "event": "Brazil authorized Petrobras to drill in the Foz do Amazonas region in October 2025, with drilling expected to last about five months and no production planned initially.",
+              "event_date": "2025-10-20",
+              "source_ids": [
+                "source:saa_doc::9998eb4de66b9cb12a631f80"
+              ]
+            },
+            {
+              "event": "CEO Magda Chambriard said in August 2026 that an Amazon mouth discovery confirmed the region's potential, but further studies were needed to determine commercial viability.",
+              "event_date": "2026-08-18",
+              "source_ids": [
+                "source:saa_doc::c5c10c81cbfb2d1684f2545b"
+              ]
+            }
+          ],
+          "report_dates": "Fiscal.ai/NewsNow capture 19:31 UTC 30 October; earlier Reuters and Valor reports captured as background."
+        },
+        "event_title": "Petrobras announces a third Amazon mouth oil discovery without disclosing resource size or commercial viability",
+        "surface_summary_text": "The announcement adds exploration optionality but no near-term oil supply; a resource estimate and new IBAMA environmental licence remain required before development.",
+        "what_happened_text": "Petrobras announced a third oil discovery at the mouth of the Amazon, but the report did not disclose the find's size, recoverable volume, or commercial viability. The company has been drilling in the region since Brazil authorized the Foz do Amazonas exploration in October 2025, with no production planned at that stage.",
+        "why_happened_text": "A discovery creates optionality, not supply: to turn it into production, Petrobras still needs appraisal and a viable resource estimate. If commercial viability is confirmed, a new environmental licence issued by IBAMA will be required before development, according to Petrobras's ESG disclosure.",
+        "affected_assets_summary_text": "PBR ADS was up modestly, while XOM and CVX were higher, but those moves are broad market snapshots, not proof the announcement caused them. Brazilian offshore drilling and services names would gain only if development advances.",
+        "business_context_text": "The Amazon mouth/Foz do Amazonas region is a high-profile exploration frontier with environmental licensing sensitivity; CEO commentary in August 2026 already cautioned that commercial viability was undetermined.",
+        "watch_next_text": "Watch whether Petrobras or its regulator discloses recoverable volumes, well test data, or the next IBAMA licensing step.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Are Amazon and Oracle declines signaling broad AI infrastructure capital-spending concern, or are they normal earnings-related target adjustments?",
+        "source_ids": [
+          "company-research:10",
+          "company-research:11",
+          "source:saa_doc::aef9a9079a165595c9e5d3d6"
+        ],
+        "supporting_symbols": [
+          "AMZN",
+          "ORCL",
+          "MSFT",
+          "NVDA"
+        ],
+        "time_basis": {
+          "current_observation": "At 20:35 UTC on 30 October, Amazon was down about 1.4% and Oracle down about 6.4%, after analysts cut Amazon targets following its Q3 report and amid sector-wide AI capex concern.",
+          "background_events": [
+            {
+              "event": "Amazon reported Q3 on 29 October; Scotiabank cut its target to $300 from $325, Wells Fargo to $326, and TD Cowen to $340.",
+              "event_date": "2026-10-29/30",
+              "source_ids": [
+                "company-research:10",
+                "source:saa_doc::aef9a9079a165595c9e5d3d6"
+              ]
+            }
+          ],
+          "report_dates": "Target-cut feed article captured around 30 October; company-research summaries as of 20:50 UTC."
+        },
+        "event_title": "Amazon price-target cuts and Oracle underperformance reflect AI capital-spending return concern",
+        "surface_summary_text": "Even with positive ratings, analysts are lowering Amazon's valuation on AI investment-payback worry, and Oracle's underperformance suggests the concern extends to cloud infrastructure names.",
+        "what_happened_text": "Scotiabank cut its Amazon price target to $300 from $325 while keeping Sector Outperform; Wells Fargo and TD Cowen also trimmed targets to $326 and $340, respectively. Oracle traded down about 6.4% in the same snapshot, underperforming Microsoft and Amazon, with no Oracle-specific operating release in the supplied captures.",
+        "why_happened_text": "The target cuts follow Amazon's Q3 report and point to investment-payback concern around AI infrastructure spending, not weak demand. Oracle's sharper decline is inferred from sector signals—Microsoft's capacity-constraint commentary and a $25 billion Microsoft note offering—not from a confirmed Oracle event.",
+        "affected_assets_summary_text": "MSFT fell about 1.6%, NVDA about 4.2%, and ORCL about 6.4% in the snapshot, supporting a broad tech/AI pullback rather than Amazon-specific or Oracle-specific news.",
+        "business_context_text": "Hyperscaler capex efficiency is under scrutiny after Microsoft's CFO flagged delayed third-party capacity deliveries; this raises questions about near-term AI cloud buildout returns across the sector.",
+        "watch_next_text": "Watch Amazon's next filing for AWS margin and capex guidance, and Oracle's next earnings detail on OCI capacity and AI infrastructure backlog.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "unresolved_large_moves",
+        "question": "Will Qualcomm's actual Q4 earnings validate the 11.1% pre-earnings decline, or is the move a tech risk-off artifact?",
+        "source_ids": [
+          "bundle:symbol::QCOM",
+          "source:saa_doc::b8d96faba2d6c547d602953d",
+          "source:saa_doc::c365b7388f9e955d273f0abd",
+          "source:saa_doc::92653838b9a3e9d54ac93489"
+        ],
+        "supporting_symbols": [
+          "QCOM",
+          "AMD",
+          "INTC",
+          "NVDA"
+        ],
+        "time_basis": {
+          "current_observation": "Qualcomm's observed price fell 11.1% on 30 October as tech stocks sold off ahead of its expected Q4 earnings decline; no Q4 report was yet available.",
+          "background_events": [
+            {
+              "event": "Earnings preview expected Qualcomm Q4 earnings to decline.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::c365b7388f9e955d273f0abd",
+                "source:saa_doc::92653838b9a3e9d54ac93489"
+              ]
+            }
+          ],
+          "report_dates": "Earnings preview articles captured around 29-30 October; Seeking Alpha drop article captured."
+        },
+        "event_title": "Qualcomm's observed price falls 11.1% on 30 October as tech stocks sell off ahead of expected Q4 earnings decline",
+        "surface_summary_text": "A large decline before an earnings report leaves the move unresolved; it could reflect expected guidance weakness or simply the broader chip selloff.",
+        "what_happened_text": "Qualcomm fell 11.1% in observed trade, while semiconductor peers also declined. A preview noted Q4 earnings were expected to decline, but no actual report had been released at the observation time.",
+        "why_happened_text": "The decline is not yet tied to a confirmed company announcement; it is likely a combination of sector risk-off and positioning ahead of the print.",
+        "affected_assets_summary_text": "AMD, INTC and other chip names declined in the same session, so the move is not isolated and cannot be attributed solely to Qualcomm.",
+        "business_context_text": "Qualcomm is a major mobile-chip supplier; its earnings are sensitive to smartphone demand, which SanDisk and Intel have already flagged as weak.",
+        "watch_next_text": "Watch Qualcomm's actual Q4 results and guidance when released; if the report exceeds the low bar, the decline may reverse, while a weak guide would confirm it.",
+        "cause_status": "unresolved"
+      },
+      {
+        "section": "unresolved_large_moves",
+        "question": "What caused the deep declines in DDOG, NET and FSLY as a group, and is there a confirmed common driver?",
+        "source_ids": [
+          "bundle:event::cluster-05-9f48e61bcc",
+          "bundle:symbol::DDOG",
+          "bundle:symbol::NET",
+          "bundle:symbol::FSLY"
+        ],
+        "supporting_symbols": [
+          "DDOG",
+          "NET",
+          "FSLY"
+        ],
+        "time_basis": {
+          "current_observation": "In the 20:35 UTC 30 October snapshot, DDOG, NET and FSLY moved down as a group with deep declines, but no common confirmed driver appears in the supplied evidence.",
+          "background_events": [],
+          "report_dates": "Cluster summary as of 30 October."
+        },
+        "event_title": "Cloud infrastructure and edge software names moved down as one group, with each showing a deep decline",
+        "surface_summary_text": "A group move without confirmed individual news leaves the decline unresolved; it may reflect a broad software risk-off rather than any company-specific failure.",
+        "what_happened_text": "DDOG, NET and FSLY each showed deep declines in the observed snapshot, moving as a group. The supplied research does not identify a confirmed common cause or company-specific release for the joint down move.",
+        "why_happened_text": "Group declines can signal shared factor exposure—such as high-multiple cloud software, interest-rate sensitivity, or sector rotation—but the evidence does not establish one.",
+        "affected_assets_summary_text": "These names are useful separate exposures to cloud monitoring, edge networking and CDN; their simultaneous decline could be a risk-off artifact.",
+        "business_context_text": "The names are high-valuation software stocks with already elevated expectations; without news, market-wide equity pressure may be a plausible but unproven driver.",
+        "watch_next_text": "Watch whether any company confirms guidance or macro release that explains the joint move; otherwise the decline may mark a technical or factor-driven pullback.",
+        "cause_status": "unresolved"
+      },
+      {
+        "section": "unresolved_large_moves",
+        "question": "Why did AppLovin and Braze move in opposite directions in the adtech group, and what does it signal for digital advertising?",
+        "source_ids": [
+          "bundle:event::cluster-06-b1d90be5d9",
+          "bundle:symbol::APP",
+          "bundle:symbol::BRZE"
+        ],
+        "supporting_symbols": [
+          "APP",
+          "BRZE"
+        ],
+        "time_basis": {
+          "current_observation": "In the 20:35 UTC 30 October snapshot, the advertising technology group split: APP and BRZE moved in opposite directions, with no confirmed common driver.",
+          "background_events": [],
+          "report_dates": "Cluster summary as of 30 October."
+        },
+        "event_title": "The advertising technology group split",
+        "surface_summary_text": "A split within adtech suggests the moves are company-specific or positioning-driven, not a sector-wide advertising signal.",
+        "what_happened_text": "APP and BRZE moved in opposite directions in the same observed snapshot, despite being grouped as advertising technology. No common confirmed driver is supplied.",
+        "why_happened_text": "When two related names diverge without a shared catalyst, the explanation is likely idiosyncratic—differences in exposure, earnings, or investor positioning—rather than an industry-wide shift.",
+        "affected_assets_summary_text": "APP and BRZE are the two useful names; their divergence is a counterexample to any single adtech narrative.",
+        "business_context_text": "Digital advertising growth varies by performance-based versus subscription/B2C models; AppLovin and Braze may not share the same ad demand exposure.",
+        "watch_next_text": "Watch either company's next disclosures for individual drivers; until then the split remains unexplained.",
+        "cause_status": "unresolved"
+      },
+      {
+        "section": "unresolved_large_moves",
+        "question": "Why did CoStar and Tyler Technologies decline as a group, and is there a confirmed common driver?",
+        "source_ids": [
+          "bundle:event::cluster-07-c31b5a6a2f",
+          "bundle:symbol::CSGP",
+          "bundle:symbol::TYL"
+        ],
+        "supporting_symbols": [
+          "CSGP",
+          "TYL"
+        ],
+        "time_basis": {
+          "current_observation": "In the 20:35 UTC 30 October snapshot, CSGP and TYL moved down together in an unexplained two-stock information technology group.",
+          "background_events": [],
+          "report_dates": "Cluster summary as of 30 October."
+        },
+        "event_title": "The move was concentrated in two information technology stocks",
+        "surface_summary_text": "The group decline is unresolved; two unrelated software/data names moving together without confirmed news likely reflects a common factor or coincident selling.",
+        "what_happened_text": "CSGP and TYL each declined in the observed snapshot, forming a small grouped move. No confirmed company-specific or macro driver is supplied.",
+        "why_happened_text": "The pairing is uncommon; without shared news, the move may be coincidental factor exposure or sector-specific selling, but the evidence does not support a cause.",
+        "affected_assets_summary_text": "CSGP is a commercial real estate data platform and TYL is a public-sector software provider; they have different end markets, making the joint decline unusual.",
+        "business_context_text": "Both are high-quality software names often sensitive to interest rates and growth expectations; a broad tech pullback could explain the move, but this is unconfirmed.",
+        "watch_next_text": "Watch whether either company reports news or whether the move reverses in the next session; if it does, it was likely transient.",
+        "cause_status": "unresolved"
+      },
+      {
+        "section": "unresolved_large_moves",
+        "question": "Why did Bright Horizons fall 18%—far more than its expected move—and is there a confirmed fundamental driver?",
+        "source_ids": [
+          "bundle:symbol::BFAM",
+          "source:saa_doc::661669d3d8a19f2f73c50110",
+          "source:saa_doc::4460046c7e039ff39825766a"
+        ],
+        "supporting_symbols": [
+          "BFAM"
+        ],
+        "time_basis": {
+          "current_observation": "At the 20:35 UTC 30 October snapshot, BFAM fell from $67.10 to $54.99, a decline of 18.05%, far larger than its expected 0.21% daily move.",
+          "background_events": [
+            {
+              "event": "Bright Horizons had a 12-month price target cut to $86, implying 28% upside, and Morgan Stanley lowered its target; these are analyst adjustments, not earnings guidance.",
+              "event_date": "prior to 2026-10-30",
+              "source_ids": [
+                "source:saa_doc::4460046c7e039ff39825766a",
+                "source:saa_doc::52799cbabbde8e94805aea14"
+              ]
+            }
+          ],
+          "report_dates": "Symbol bundle and search results retrieved 30 October."
+        },
+        "event_title": "Bright Horizons shares fall 18% in observed trade with no confirmed same-day fundamental release",
+        "surface_summary_text": "An unexplained large decline in a child-care and education provider leaves the move unresolved; prior analyst target cuts do not adequately explain the magnitude.",
+        "what_happened_text": "Bright Horizons fell 18.05% to $54.99 in the observed snapshot, far exceeding the expected 0.21% daily move. The available evidence includes earlier price-target cuts, including a 12-month target cut to $86 with 28% implied upside and a Morgan Stanley target cut, but no confirmed same-day earnings or guidance release.",
+        "why_happened_text": "The large move without a decisive same-day catalyst could reflect an analyst downgrade, sector flow, or liquidity-driven event, but the supplied evidence does not identify one; the prior target cuts are valuation adjustments, not a fundamental shock.",
+        "affected_assets_summary_text": "No useful peer co-movement is supplied; BFAM is the sole exposure in this story.",
+        "business_context_text": "Bright Horizons operates employer-sponsored child care and education; its expected daily move is small, so an 18% move strongly suggests a discrete event rather than normal volatility.",
+        "watch_next_text": "Watch for a company filing, analyst action, or block trade disclosure; if none appears, the decline may be a liquidity-driven dislocation that could partially reverse.",
+        "cause_status": "unresolved"
+      }
+    ],
+    "market_summary": {
+      "summary_text": "The most consequential developments are a $6.3 billion Binance breach with a withdrawal freeze, a large Microsoft bond pricing that tests AI-related funding costs, and active Qatari mediation that could reprice Strait of Hormuz supply risk. Semiconductor earnings are sending a two-speed signal: Intel's weak Q4 PC guidance and SanDisk's consumer weakness contrast with datacenter memory strength. Several high-multiple consumer-internet and biotech names are being repriced on guidance or analyst actions rather than current results. The unresolved large moves—Qualcomm ahead of earnings, grouped cloud software declines, an adtech split, the CoStar/Tyler pairing, and Bright Horizons' unexplained 18% drop—are not yet investable signals because no confirmed common driver is available.",
+      "confidence": "medium",
+      "limitations": [
+        "The briefing is a snapshot from 20:50 UTC on 30 October 2026; price moves may be unfinished and do not prove causation.",
+        "Several large moves remain unexplained despite extensive evidence, so attribution is intentionally cautious.",
+        "Product-level pricing, margins, fee terms, and some official company statements were not available in the supplied record.",
+        "Group moves and cluster membership are observational and do not establish common flows or causes."
+      ]
+    },
+    "issues": [
+      "Read the full SanDisk earnings call or presentation for NAND pricing and datacenter capacity commentary before concluding normalization versus extended peak.",
+      "Obtain the original Microsoft pricing supplement/final terms to measure final spread versus initial talk and investor demand.",
+      "Confirm whether Binance's withdrawal service actually resumes within the stated 34-hour target and whether any exchange or regulator issues additional statements.",
+      "Watch for official confirmation of a Qatari pause or Strait of Hormuz reopening; current evidence is only media mediation reporting.",
+      "Locate a same-day catalyst for Bright Horizons' 18% decline; the available target cuts do not explain the magnitude."
+    ]
+  },
+  "actual_review": {
+    "status": "completed",
+    "verdict": "revise",
+    "critique_summary": "The draft is largely sound and uses the evidence appropriately, but it over-transcribes exact actual-versus-estimate pairs and quarterly line items in the SanDisk and Eli Lilly stories, contrary to the figure-guidance instruction. The Intel headline also asserts a causal 'drag' when the broader chip sector cause is only partly isolated. I made targeted edits to reduce unnecessary figures, keep only consequential quantities, and align the Intel headline with the reported partial cause.",
+    "confidence": "high",
+    "limitations": [],
+    "unsupported_claims": [],
+    "evidence_gaps": [],
+    "revised_answer_applied": true,
+    "research_requests": [
+      "Read the full SanDisk earnings call or presentation for NAND pricing and datacenter capacity commentary before concluding normalization versus extended peak.",
+      "Obtain the original Microsoft pricing supplement/final terms to measure final spread versus initial talk and investor demand.",
+      "Confirm whether Binance's withdrawal service actually resumes within the stated 34-hour target and whether any exchange or regulator issues additional statements.",
+      "Watch for official confirmation of a Qatari pause or Strait of Hormuz reopening; current evidence is only media mediation reporting.",
+      "Locate a same-day catalyst for Bright Horizons' 18% decline; the available target cuts do not explain the magnitude."
+    ]
+  },
+  "actual_reviewed_artifact": {
+    "stories": [
+      {
+        "section": "top_events",
+        "question": "Will Binance restore withdrawals on schedule and recover the stolen assets without further exchange freezes?",
+        "source_ids": [
+          "bundle:event::source-1147531d5ecbfce9bfc8",
+          "company-research:0",
+          "company-research:1",
+          "company-research:2",
+          "source:saa_doc::c56685c1b383724d4a41987f",
+          "source:saa_doc::f7111f3f9869cfc76f452567",
+          "source:saa_doc::f380d851784060843e9d686a"
+        ],
+        "supporting_symbols": [
+          "BTCUSD",
+          "ETHUSD",
+          "COIN",
+          "MSTR",
+          "IREN",
+          "MARA"
+        ],
+        "time_basis": {
+          "current_observation": "At 20:00 UTC on 30 October 2026 Binance updated that its technology team aimed to start resuming withdrawals within about 34 hours; at 20:35 UTC crypto-linked equities showed large declines.",
+          "background_events": [
+            {
+              "event": "Binance disclosed a $6.3 billion security breach and froze affected assets, with about $3 billion located so far; Reuters reported analysts reacting after the freeze.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::f7111f3f9869cfc76f452567",
+                "source:saa_doc::f380d851784060843e9d686a"
+              ]
+            },
+            {
+              "event": "Binance suspended deposits and withdrawals after the breach; Seeking Alpha reported a 48-hour resumption target earlier on 30 October.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::50e90be5fe2e1d9bb6c03a0d"
+              ]
+            }
+          ],
+          "report_dates": "Benzinga withdrawal update at 20:00 UTC 30 October 2026; IREN mover report at 17:52 UTC; Reuters and Bloomberg search captures retrieved later on 30 October."
+        },
+        "event_title": "Binance targets withdrawal resumption in about 34 hours after reported $6.3 billion breach and asset freeze",
+        "surface_summary_text": "The largest reported crypto exchange theft has suspended withdrawals and frozen about $3 billion, damaging exchange-custody confidence and hitting crypto-exposed equities; the near-term test is whether Binance restores service on schedule.",
+        "what_happened_text": "Binance said on 30 October that its tech team targets beginning to restore the withdrawal service within roughly 34 hours from the 20:00 UTC update, confirming the suspension was still active at that moment. The exchange earlier disclosed a $6.3 billion security breach and said about $3 billion of affected assets had been located and frozen. Crypto-linked equities sold off sharply in the 20:35 UTC snapshot—Coinbase down about 10.9%, Strategy down about 7.8%, IREN down about 8.8%, and MARA down about 5.6%—though IREN's move also reflects AI capital-spending concern.",
+        "why_happened_text": "A breach of a major Bitcoin trading venue reduces confidence in exchange custody and forces broad crypto risk reduction, even though the company has not published a complete incident statement. The equity moves are sector-wide risk-off signals, not a direct BTC quote, but they are consistent with that mechanism.",
+        "affected_assets_summary_text": "Exposures beyond Binance include crypto proxies COIN, MSTR, MARA and IREN; IREN's dual Bitcoin-mining and AI-cloud business makes it a useful mixed signal, while PURR also fell about 10.3% in the same snapshot.",
+        "business_context_text": "Binance is a major crypto trading venue, so custody confidence and withdrawal availability are core to its liquidity model; the reported freeze may create a short-term liquidity interruption for customers.",
+        "watch_next_text": "Watch whether Binance actually starts resuming withdrawals within the stated 34-hour window and whether any additional exchanges or regulators confirm the scope; a clean resumption would reduce the market-interruption interpretation, while a delayed restart would strengthen it.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "top_events",
+        "question": "Does Microsoft's $25 billion note pricing signal higher AI-related funding costs, and how much fee income reaches the underwriting banks?",
+        "source_ids": [
+          "bundle:event::source-950c231d5b82abdccf0f",
+          "source:saa_doc::7ec9a680841c4d9dc9ecf1e8",
+          "source:saa_doc::5b2f5e78ef49353a45ac4b55",
+          "company-research:6",
+          "company-research:7",
+          "company-research:8",
+          "company-research:9"
+        ],
+        "supporting_symbols": [
+          "MSFT",
+          "JPM",
+          "WFC",
+          "UBS",
+          "AMZN",
+          "NVDA",
+          "ORCL"
+        ],
+        "time_basis": {
+          "current_observation": "Microsoft priced $25 billion of senior unsecured notes on 29 October 2026, with close expected 4 November; at the 20:35 UTC 30 October snapshot MSFT, JPM, WFC and UBS were lower alongside tech peers.",
+          "background_events": [
+            {
+              "event": "Microsoft reported fiscal Q1 2027 results on 28 October 2026: revenue $92.3 billion, up 19%; Azure revenue up 48%; capex $45.2 billion below consensus on delayed third-party capacity.",
+              "event_date": "2026-10-28",
+              "source_ids": [
+                "source:saa_doc::7ec9a680841c4d9dc9ecf1e8"
+              ]
+            },
+            {
+              "event": "Microsoft announced the debt offerings with final pricing on 29 October, including fixed coupons from 4.85% to 6.35% across ten tranches and two floating-rate notes.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "source:saa_doc::7ec9a680841c4d9dc9ecf1e8"
+              ]
+            }
+          ],
+          "report_dates": "Official Microsoft announcement captured 29 October; Manila Times recap published 19:01 UTC 30 October."
+        },
+        "event_title": "Microsoft prices $25 billion ten-tranche bond offering for general corporate purposes, with UBS, Wells Fargo and JPMorgan among managers",
+        "surface_summary_text": "A large, long-dated bond issuance strengthens Microsoft's balance sheet for AI and general spending, but the official use of proceeds is not AI-specific and the direct bank impact is likely modest fee income rather than a material earnings event.",
+        "what_happened_text": "Microsoft priced $25 billion of senior unsecured notes across ten tranches with maturities from 2028 through 2066 and fixed coupons from 4.85% to 6.35%, plus two floating-rate notes; close is expected on 4 November 2026. Eleven joint book-running managers include J.P. Morgan, UBS, Wells Fargo, Barclays, BNP Paribas, BofA Securities, Citigroup, Goldman Sachs, HSBC, Morgan Stanley and RBC, with additional co-managers. The official filing says proceeds are for general corporate purposes, including working capital, capital expenditures, stock repurchases, acquisitions and debt repayment; media framing that the money is only for AI overstates the legal use.",
+        "why_happened_text": "The issuance provides long-dated liquidity for Microsoft's build-out, but pricing it now tests credit appetite at a time when the 10-year Treasury is roughly 4.98% and BBB spreads are wider than a year earlier. The final spread to Treasuries and investor demand versus initial talk, not the announcement alone, would show whether AI-related funding costs are rising. For the banks, the mandate is fee income, but no fee terms are disclosed.",
+        "affected_assets_summary_text": "MSFT, JPM, WFC and UBS were all lower in the 20:35 UTC snapshot, as were AMZN, NVDA and ORCL, but the evidence does not establish that the bond offering caused those moves; this looks more like a broad equity pullback.",
+        "business_context_text": "Microsoft is adding debt while current market pricing is expensive; the latest yield curve shows the 10-year Treasury at 4.98%, and BBB spreads are wider than a year earlier.",
+        "watch_next_text": "Watch the 4 November close for final terms and whether any manager discloses fee or spread information; next investment-banking fee commentary will show the cumulative effect.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "top_events",
+        "question": "Will the Qatari-mediated talks produce any pause or Strait of Hormuz reopening, and will energy risk premiums remain?",
+        "source_ids": [
+          "bundle:event::source-09ab761410e3295eef9a",
+          "source:saa_doc::ccae609748ed19bc7b6c6e8f",
+          "source:saa_doc::d60397be7b160d8ea8ab3ba9",
+          "source:saa_doc::6419d303568928dffc015152",
+          "source:saa_doc::2a8e0c1516b9465b92e57881"
+        ],
+        "supporting_symbols": [
+          "XOM",
+          "CVX",
+          "USO",
+          "VLO",
+          "PSX",
+          "MPC",
+          "HAL",
+          "SLB",
+          "BKR",
+          "FRO",
+          "DHT",
+          "STNG"
+        ],
+        "time_basis": {
+          "current_observation": "On 30 October 2026 Axios reported Qatari negotiators had been in Tehran for 12 hours, with mediators in regular contact with the White House; at the 20:35 UTC snapshot XOM and CVX were higher but no causal link is established.",
+          "background_events": [
+            {
+              "event": "On 28 October Qatar presented Iran with a new proposal to end the war; Iran called the ideas unacceptable, and Qatar said Iran must stop threats to Arab Gulf states and open the Strait of Hormuz.",
+              "event_date": "2026-10-28",
+              "source_ids": [
+                "source:saa_doc::d60397be7b160d8ea8ab3ba9"
+              ]
+            },
+            {
+              "event": "A reported Qatari plan would pause U.S. strikes while Iran reopened shipping lanes through the Strait of Hormuz for ten days.",
+              "event_date": "unknown",
+              "source_ids": [
+                "source:saa_doc::6419d303568928dffc015152"
+              ]
+            }
+          ],
+          "report_dates": "Axios/Benzinga capture at 19:59 UTC 30 October; Reuters 28 October; social post reported three days prior from retrieved search."
+        },
+        "event_title": "Qatari negotiators in Tehran and White House contact keep oil-supply de-escalation possibility open",
+        "surface_summary_text": "Active Qatari mediation could lower the Strait of Hormuz risk premium if it yields a pause or reopening, but Iran recently rejected the latest package, so the talks remain a continuation without a confirmed breakthrough.",
+        "what_happened_text": "On 30 October, Axios correspondent Barak Ravid reported, citing sources, that Qatari negotiators had been in Tehran for 12 hours and Qatari mediators were in regular contact with the White House during the day. Two days earlier Qatar presented Iran with a new proposal; Iran saw only unacceptable ideas, and Qatar said Iran needed to stop threats to Arab Gulf states and open the Strait of Hormuz. A reported Qatari plan would pause U.S. strikes while Iran reopened shipping lanes through the strait for ten days.",
+        "why_happened_text": "A credible de-escalation that pauses strikes and reopens or protects the strait could lower the risk premium in crude, refined products and shipping costs; continued rejection keeps that premium in place. The observed XOM about 2.2% higher and CVX about 1.8% higher at 20:35 UTC is a market snapshot, not proof the talks caused the move.",
+        "affected_assets_summary_text": "Integrated oil and gas, refiners, oilfield services and tanker/shipping names are the direct exposure if supply risk changes; USO and energy equities could reprice on any confirmed pause.",
+        "business_context_text": "The Strait of Hormuz is a critical chokepoint for oil and LNG; the Iranian-US conflict has kept a supply-risk premium in energy markets since at least September 2026.",
+        "watch_next_text": "Watch whether officials confirm a pause, release or supply restoration; until then the supply-risk premium can fade or return.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "top_events",
+        "question": "Will the Surface Transportation Board grant CPKC's motion to dismiss the Union Pacific-Norfolk Southern merger, and how would a rival rail challenge affect the deal?",
+        "source_ids": [
+          "bundle:event::source-62a2093ff478c1e9ddc0",
+          "source:saa_doc::e05842d599666fb69a054863"
+        ],
+        "supporting_symbols": [
+          "CP",
+          "UNP",
+          "NSC"
+        ],
+        "time_basis": {
+          "current_observation": "On 30 October 2026 CPKC formally asked the STB to dismiss the UP-NS merger application; the merger remains under review and the observed CP and UNP stock changes are not attributable to the filing.",
+          "background_events": [
+            {
+              "event": "Union Pacific and Norfolk Southern merger application remains under STB review; CPKC says the request is based on alleged March remarks by Union Pacific's CEO at an industry meeting.",
+              "event_date": "2026-03 (remarks); merger review ongoing as of 2026-10-30",
+              "source_ids": [
+                "source:saa_doc::e05842d599666fb69a054863"
+              ]
+            }
+          ],
+          "report_dates": "Trains.com article captured 19:02 UTC 30 October 2026."
+        },
+        "event_title": "CPKC petitions STB to dismiss Union Pacific-Norfolk Southern merger application over alleged CEO remarks",
+        "surface_summary_text": "A rail competitor is using a procedural challenge to potentially delay or derail a major Class I merger that would create a stronger rival, but no STB decision has been made.",
+        "what_happened_text": "CPKC formally asked the Surface Transportation Board to dismiss the merger application between Union Pacific and Norfolk Southern, saying the request is based on alleged remarks by Union Pacific's CEO at a March industry meeting that could be read as threats against customers who do not support the merger. CPKC argues this harms the integrity of the review. The article does not provide evidence of the remarks and reports no STB ruling.",
+        "why_happened_text": "If the STB grants the motion, the merger review could be delayed or ended; if it denies it, the review continues. CPKC has a clear incentive to oppose a merger that would combine two large Class I railroads, so the filing can be read as either a genuine integrity concern or an attempt to block a stronger rival.",
+        "affected_assets_summary_text": "CP was up about 1.47% and UNP up about 0.68% at the 20:35 UTC snapshot, but that does not establish the filing caused the moves; NSC is the target exposure.",
+        "business_context_text": "The proposed merger would combine two large Class I railroads, so other railroads and shippers have competitive incentives to oppose or support the review's outcome.",
+        "watch_next_text": "Watch the STB's response and any supporting comments from other shippers or competitors, plus the evidence CPKC provides for the March comments.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "top_events",
+        "question": "Will Rivian hit the end-2026 autonomy milestone needed to unlock Uber's $250 million tranche, and what is the technical test?",
+        "source_ids": [
+          "bundle:event::source-31ac39caaed872db9991",
+          "source:saa_doc::f41acb39f99794825d07b2c7",
+          "source:saa_doc::1ab8f72584eb171826bddb74",
+          "source:saa_doc::c766e0e61427e18bc566351b"
+        ],
+        "supporting_symbols": [
+          "RIVN",
+          "UBER"
+        ],
+        "time_basis": {
+          "current_observation": "On 29 October 2026 Rivian CEO said the company is on track to reach an autonomy milestone before end-2026; at 20:35 UTC 30 October RIVN was up about 6.1% and UBER down about 0.8%, with no causal link established.",
+          "background_events": [
+            {
+              "event": "Rivian raised $300 million through a private share placement with an Uber-affiliated entity after hitting the first autonomous-driving milestone.",
+              "event_date": "earlier (before October 2026)",
+              "source_ids": [
+                "source:saa_doc::c766e0e61427e18bc566351b"
+              ]
+            },
+            {
+              "event": "Uber committed up to $1.25 billion through 2031, including an initial $300 million and a conditional $250 million tranche.",
+              "event_date": "prior agreement",
+              "source_ids": [
+                "source:saa_doc::f41acb39f99794825d07b2c7"
+              ]
+            }
+          ],
+          "report_dates": "Reuters article 29 October 2026; World Auto Forum recap captured 19:01 UTC 30 October."
+        },
+        "event_title": "Rivian says year-end autonomy milestone is on track; Uber's $250 million tranche remains conditional",
+        "surface_summary_text": "Management confidence supports the next $250 million payment inside the broader Uber commitment, but no technical or contractual milestone definition is provided, so the funding remains conditional until formally achieved.",
+        "what_happened_text": "Rivian CEO RJ Scaringe said the company is on track to hit an autonomy milestone before the end of 2026. Achieving it would unlock a $250 million investment tranche from Uber, part of a commitment of up to $1.25 billion through 2031. Reuters reports the commitment includes an initial $300 million; a separate record says that $300 million was raised through a private share placement after the first autonomous-driving milestone. The current update concerns the next milestone-linked payment, not the first investment.",
+        "why_happened_text": "Milestone-based financing links operating progress to cash: reaching the autonomy goal would support Rivian's plan to reduce cash burn and advance self-driving technology. Strong R2 sales are described as important to the same plan, but the captured reports do not state the exact technical or contract definition of the milestone.",
+        "affected_assets_summary_text": "RIVN was up about 6.10% and UBER down about 0.76% at 20:35 UTC, but those moves cannot be attributed to this statement from the available evidence.",
+        "business_context_text": "The companies plan to launch driverless R2 robotaxis on the Uber network by 2028, starting in select cities and later expanding to about 25 locations; that rollout is separate and not confirmed by this progress statement.",
+        "watch_next_text": "Watch for Rivian's formal announcement that the milestone has been achieved, or disclosure of the specific criteria.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Is Intel's weak Q4 PC and data-center guidance a company-specific disruption or a broader chip demand warning?",
+        "source_ids": [
+          "bundle:symbol::INTC",
+          "bundle:event::cluster-01-87d15f025b",
+          "source:saa_doc::866193af030e92cfaf741fbd",
+          "source:saa_doc::c365b7388f9e955d273f0abd",
+          "source:saa_doc::b8d96faba2d6c547d602953d"
+        ],
+        "supporting_symbols": [
+          "INTC",
+          "SNDK",
+          "QCOM",
+          "AMD",
+          "DELL",
+          "AAOI",
+          "TSEM",
+          "COHR",
+          "ALAB",
+          "MRVL",
+          "NBIS",
+          "LSCC",
+          "HUT",
+          "FORM",
+          "MU"
+        ],
+        "time_basis": {
+          "current_observation": "Intel reported Q3 2026 on 29 October; Q4 guidance missed on PC slowdown, Israel fab disruption, and memory shortages. At 20:35 UTC 30 October INTC was down about 29%, with chip peers also sharply lower.",
+          "background_events": [
+            {
+              "event": "Intel Q3 revenue beat but Q4 guidance missed; CFO reportedly said a sustained PC recovery needs memory availability to improve and prices to normalize.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "source:saa_doc::866193af030e92cfaf741fbd"
+              ]
+            },
+            {
+              "event": "Qualcomm was expected to report Q4 earnings after 30 October; stock fell 11.1% as tech stocks sold off.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::b8d96faba2d6c547d602953d",
+                "source:saa_doc::c365b7388f9e955d273f0abd"
+              ]
+            }
+          ],
+          "report_dates": "Intel 8-K and Qualcomm earnings preview captured around 29-30 October; cluster and symbol summaries as of 20:50 UTC."
+        },
+        "event_title": "Intel's weak Q4 PC outlook and warning coincide with broad chipmaker declines",
+        "surface_summary_text": "Intel's Q4 shortfall points to PC slowdown and memory constraints, not just company-specific issues, and shifts the sector interpretation from demand surge to supply-constrained consumer weakness.",
+        "what_happened_text": "Intel reported its Q3 2026 results on 29 October: revenue beat, but Q4 guidance missed on a PC slowdown, an Israel fab disruption, and memory shortages. The reported CFO comment was that a sustained PC recovery needs memory availability to improve and prices to normalize. Chip peers fell sharply; Qualcomm was down about 11.1% ahead of its earnings, and SanDisk, Micron and other semiconductor names declined in the observed snapshot.",
+        "why_happened_text": "Weak guidance from a major PC and server chipmaker signals that consumer and PC demand is weak enough to offset datacenter strength. The memory-shortage element ties the outcome to NAND and DRAM pricing, so this is a sector input, not just an Intel-specific event.",
+        "affected_assets_summary_text": "QCOM, SNDK, MU, AMD, DELL and other chip-related names declined with Intel; the co-movement is consistent with a broad chip risk-off but not proof of a single common cause.",
+        "business_context_text": "Intel is a bellwether for PC and server demand, and its guidance follows SanDisk's consumer revenue declines and management forecast for mid-teens PC and smartphone unit shipment declines in calendar 2026.",
+        "watch_next_text": "Watch Qualcomm's actual Q4 report and any PC demand commentary from Dell or AMD; if they confirm weak consumer demand, the sector normalization broadens.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Is SanDisk's datacenter-led NAND pricing strength sustainable into fiscal Q2, or are consumer weakness and analyst target cuts early normalization signals?",
+        "source_ids": [
+          "bundle:event::source-923a2bdbedf799e875ac",
+          "bundle:symbol::SNDK",
+          "source:saa_doc::7bf24f6b5b87d61e8e52cd06",
+          "source:saa_doc::b1b7f82474cb4a053aeb60e2",
+          "source:saa_doc::a46348646a5ad7f8a04f457b"
+        ],
+        "supporting_symbols": [
+          "SNDK",
+          "MU",
+          "WDC",
+          "STX",
+          "INTC",
+          "AMD"
+        ],
+        "time_basis": {
+          "current_observation": "SanDisk reported fiscal Q1 2027 on 29 October and guided Q2 above Q1; after the print, Mizuho, RBC and Wells Fargo cut price targets. At 20:35 UTC 30 October SNDK was down about 13%.",
+          "background_events": [
+            {
+              "event": "SanDisk Q4 FY2026 Consumer revenue was $556 million, down 32% sequentially and 5% year over year; management forecast mid-teens declines in PC and smartphone unit shipments.",
+              "event_date": "previous quarter",
+              "source_ids": [
+                "source:saa_doc::fdfc703535bbb1d6cdfaa8e6"
+              ]
+            },
+            {
+              "event": "Intel's Q3 report and weak Q4 guidance cited PC slowdown and memory shortages.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "bundle:symbol::INTC"
+              ]
+            }
+          ],
+          "report_dates": "Official release captured 29 October; analyst target-cut feeds captured 18:02 and 18:43 UTC 30 October."
+        },
+        "event_title": "SanDisk Q1 FY2027 beat, 8-for-1 split, and higher fiscal Q2 guidance meet post-print analyst target cuts; the signal is two-speed rather than broad memory normalization",
+        "surface_summary_text": "A datacenter-led earnings beat and raised guidance still saw the stock fall as analysts cut price targets, reflecting a tension between AI-driven storage strength and consumer/PC memory weakness.",
+        "what_happened_text": "SanDisk reported a fiscal Q1 2027 datacenter-led beat, with revenue up 23% sequentially and both GAAP and non-GAAP EPS above the company's own pre-report guidance. It guided fiscal Q2 revenue and non-GAAP EPS about 13% higher sequentially, above the Q1 actual, and announced an 8-for-1 forward split with record date 9 November and post-split trading expected 20 November. After the print, Mizuho cut its price target to $1,900 from $2,050, RBC to $1,400 from $1,600, and Wells Fargo to $1,300 from $1,550 while keeping Equal-Weight.",
+        "why_happened_text": "The beat and guidance support a datacenter and AI-driven NAND plateau rather than a broad demand reversal. But the same high memory prices are pressuring consumer/PC unit economics: SanDisk's prior Consumer revenue fell sharply and management forecast mid-teens PC and smartphone unit declines. Analyst target cuts are valuation adjustments after the stock's run, not a change to guidance, but they reflect concern that peak memory prices may not be durable outside datacenter.",
+        "affected_assets_summary_text": "SNDK fell about 13% at the snapshot, while memory peers MU, WDC and STX also declined; Intel's PC warning reinforces the consumer weakness side, though these moves are not individually attributed.",
+        "business_context_text": "The company's own release highlights robust and growing datacenter demand, but the visible release does not provide granular NAND average-selling-price or bit-shipment data, leaving the peak-versus-normalization question open.",
+        "watch_next_text": "Watch the earnings call or presentation for NAND pricing and datacenter capacity commentary; if prices are still rising into fiscal Q2, the data supports an extended peak, while consumer price concessions would broaden normalization.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Are weak Q4 guidance from Reddit and Roblox a platform-specific issue or an early signal of slowing digital-ad and gaming monetization?",
+        "source_ids": [
+          "bundle:event::cluster-02-ad489f11d8",
+          "bundle:symbol::RDDT",
+          "bundle:symbol::RBLX",
+          "source:saa_doc::fde1e8b8bf51c04a6449cc59",
+          "source:saa_doc::7321b8aac08c744d87b1dd9c"
+        ],
+        "supporting_symbols": [
+          "RDDT",
+          "RBLX",
+          "SPOT"
+        ],
+        "time_basis": {
+          "current_observation": "Reddit fell about 29% and Roblox about 18% in observed trade after their Q3 reports revealed weak forward outlooks, while Spotify gained in the same cluster.",
+          "background_events": [
+            {
+              "event": "Reddit reported strong Q3 but weak Q4 outlook.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "bundle:symbol::RDDT"
+              ]
+            },
+            {
+              "event": "Roblox Q3 revenue beat but Q4 bookings outlook disappointed; analyst flagged monetization risks.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "source:saa_doc::fde1e8b8bf51c04a6449cc59",
+                "source:saa_doc::7321b8aac08c744d87b1dd9c"
+              ]
+            }
+          ],
+          "report_dates": "Cluster and symbol summaries as of 30 October; Yahoo Finance Roblox outlook article captured."
+        },
+        "event_title": "Reddit and Roblox fall on weak forward guidance, while Spotify gains",
+        "surface_summary_text": "Two consumer-internet platforms are being repriced on guidance rather than current results: even with better-than-expected current revenue, investors are discounting slower forward growth and monetization risk.",
+        "what_happened_text": "Reddit shares fell about 29% after a weak outlook overshadowed a strong Q3. Roblox fell about 18% after its Q3 revenue beat but its Q4 bookings outlook disappointed; an analyst flagged monetization risks. Spotify moved higher in the same observed cluster, showing the guidance shock was not uniform across media platforms.",
+        "why_happened_text": "The declines are forward-looking repricing: investors treat platform guidance as the marginal signal, not current revenue beats. That suggests concern about digital-ad engagement and in-game monetization durability rather than a single negative data point.",
+        "affected_assets_summary_text": "Spotify is a useful counterexample within the same media cluster; it gained while Reddit and Roblox fell, so the weakness is company-specific outlook rather than an indiscriminate consumer-internet selloff.",
+        "business_context_text": "Both companies are high-multiple growth names where valuation depends heavily on forward monetization expectations; guidance misses therefore have outsized share-price consequences.",
+        "watch_next_text": "Watch next-quarter ad and bookings commentary, plus engagement and monetization disclosures, to see whether the guidance holes close or widen.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Is the Regeneron-led biotech rally sustainable, or are genomics names declining on separate company-specific disappointments?",
+        "source_ids": [
+          "bundle:event::cluster-03-943ce2bbfc",
+          "bundle:symbol::REGN",
+          "bundle:symbol::ILMN",
+          "source:saa_doc::0541ebaf3137ab1ad1c018fb"
+        ],
+        "supporting_symbols": [
+          "REGN",
+          "ILMN",
+          "CDNA",
+          "ATEC",
+          "AZN",
+          "BBIO",
+          "EXEL",
+          "ALNY"
+        ],
+        "time_basis": {
+          "current_observation": "Regeneron jumped about 13.5% after Q3 revenue and EPS beat; some biotech peers rose, while genomics makers such as Illumina fell 18.5% after its own report.",
+          "background_events": [
+            {
+              "event": "Regeneron Q3 2026 earnings beat, with Dupixent and Eylea HD growth; CFO said Regeneron is positioned for one of its strongest years ever.",
+              "event_date": "2026-10-29",
+              "source_ids": [
+                "source:saa_doc::0541ebaf3137ab1ad1c018fb"
+              ]
+            },
+            {
+              "event": "Illumina Q3 FY2026 report led to an 18.5% observed decline.",
+              "event_date": "2026-10-29/30",
+              "source_ids": [
+                "bundle:symbol::ILMN"
+              ]
+            }
+          ],
+          "report_dates": "Cluster and symbol summaries as of 30 October."
+        },
+        "event_title": "Dupixent-led Regeneron beat lifts some biotech stocks while genomics makers fall",
+        "surface_summary_text": "The biotech session is mixed: profitable large-cap drug growth is rewarded, while genomics and tool companies face company-specific disappointments, so the cluster is not a single thematic signal.",
+        "what_happened_text": "Regeneron jumped about 13.5% after reporting Q3 revenue and EPS beats driven by Dupixent and Eylea HD; CFO commentary highlighted strong positioning. Some biotech names followed higher, but genomics makers such as Illumina fell about 18.5% after its Q3 report, and other genomics/tools names moved lower.",
+        "why_happened_text": "The split reflects a flight within healthcare toward profitable, revenue-growing drug franchises and away from higher-risk, tools/genomics stories that missed their own marks. There is no evidence of one common cause; the cluster is an artifact of simultaneous reporting, not a sector rotation.",
+        "affected_assets_summary_text": "AZN, BBIO, EXEL, ALNY and other biotech names are useful peers, but their moves should be read against their own news; ALNY also had a negative analyst note.",
+        "business_context_text": "Biotech earnings are idiosyncratic; clustering by simultaneous moves without confirmed company-specific news can mislead, so each name's own report remains the primary driver.",
+        "watch_next_text": "Watch whether Regeneron's Dupixent strength continues into next quarters and whether genomics names stabilize after their earnings-driven declines.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Does the reported CD&R take-private pursuit signal a credible premium for Global Payments, and how would a failed deal affect its valuation?",
+        "source_ids": [
+          "bundle:event::cluster-04-772f837ef7",
+          "bundle:symbol::GPN",
+          "source:saa_doc::45cf07684290c2f349a9ff81",
+          "source:saa_doc::1c30ae60561c05da13efda4f"
+        ],
+        "supporting_symbols": [
+          "GPN",
+          "COIN",
+          "PURR",
+          "XP"
+        ],
+        "time_basis": {
+          "current_observation": "Global Payments jumped about 13% on 30 October after a report that CD&R is pursuing a takeover; the cluster also includes crypto and brokerage financials falling.",
+          "background_events": [
+            {
+              "event": "Seeking Alpha reported CD&R pursuing a Global Payments takeover.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::45cf07684290c2f349a9ff81"
+              ]
+            }
+          ],
+          "report_dates": "Seeking Alpha and related market articles captured around 30 October."
+        },
+        "event_title": "Global Payments jumps on report of possible buyout; crypto and brokerage financials fall",
+        "surface_summary_text": "A takeover report creates immediate takeover-premium optionality for Global Payments, but the deal is unconfirmed and the surrounding financial cluster is mixed rather than a uniform risk-on.",
+        "what_happened_text": "Global Payments shares jumped about 13% after a report said Clayton Dubilier & Rice is pursuing a take-private deal. The same observed cluster showed crypto-exposed names and brokerage financials falling, including Coinbase and XP, but these are separate developments and not evidence of a common cause.",
+        "why_happened_text": "Takeover reports mechanically reprice a stock toward a potential acquisition premium; until a bid is confirmed, the gain is optionality. For the surrounding financial names, the Binance breach is a more likely driver for crypto-related declines than any Global Payments read-through.",
+        "affected_assets_summary_text": "COIN, PURR and XP are useful counterexamples within the financial cluster; their declines reflect their own crypto or brokerage exposures, not a Global Payments effect.",
+        "business_context_text": "Global Payments is a major payments processor; a large private-equity take-private would be a significant financing and valuation event, but no bid terms are available.",
+        "watch_next_text": "Watch whether Global Payments or CD&R confirms or denies the report, and any deal premium details.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Will Eli Lilly's GLP-1 volume momentum survive without durable net pricing, and how much does Medicare GLP-1 Bridge contribute?",
+        "source_ids": [
+          "bundle:event::source-73b584018c730cbd9d20",
+          "source:saa_doc::b7930d0569f7107078026f86",
+          "source:saa_doc::e94bbf208ca1e96bb0c24288"
+        ],
+        "supporting_symbols": [
+          "LLY",
+          "NVO"
+        ],
+        "time_basis": {
+          "current_observation": "Eli Lilly reported Q3 on 29 October and recapped on 30 October; adjusted EPS and revenue beat consensus, with Mounjaro and Zepbound revenue up strongly. At 20:35 UTC LLY was up about 3.17% and NVO about 2.15%.",
+          "background_events": [
+            {
+              "event": "Lilly's prior Q2 2026 growth was volume-led, with falling realized prices, especially outside the U.S. after Mounjaro's China reimbursement listing.",
+              "event_date": "2026 Q2",
+              "source_ids": [
+                "bundle:event::source-73b584018c730cbd9d20"
+              ]
+            }
+          ],
+          "report_dates": "Benzinga recap at 17:45 UTC 30 October; Marketscreener analyst note at 18:02 UTC."
+        },
+        "event_title": "Eli Lilly Q3 2026 tops estimates on GLP-1 volume and raises revenue guidance; the captured data do not yet confirm pricing durability",
+        "surface_summary_text": "Strong GLP-1 volume is driving above-consensus sales and guidance, but the captured data lack product-level net price and margins, so investors cannot yet separate durable volume from price erosion.",
+        "what_happened_text": "In Q3 2026, Eli Lilly beat consensus on adjusted EPS and revenue, with worldwide Mounjaro and U.S. Zepbound sales rising sharply. The company raised 2026 revenue guidance to $91B-$92B from $85B-$87B, above consensus, while lowering adjusted EPS guidance to $35.00-$36.00 because of acquired in-process R&D charges from AtaiBeckley and Merida Biosciences, not weaker demand. Multiple analysts raised price targets after the report, including UBS to $1,625 and BMO to $1,650.",
+        "why_happened_text": "The report supports durable volume and market-share gains; CEO David Ricks linked Medicare GLP-1 Bridge uptake and middle-income demand to roughly a $10B improvement from initial guidance, though the Bridge contribution is not separated. Prior quarters show volume-led revenue with negative price realization, so the Q3 beat does not by itself confirm pricing durability.",
+        "affected_assets_summary_text": "LLY and NVO both rose in the snapshot, consistent with a sector bid rather than a Lilly-specific repricing; NVO is the natural competitor benchmark.",
+        "business_context_text": "GLP-1 competition and reimbursement are the critical factors; Lilly's growth depends on both volume and net price, and the source does not show product-level net price or gross margin.",
+        "watch_next_text": "Watch product-level net price and gross margin, a separate Bridge contribution figure, and competitor pricing or supply response.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Does Bernstein's trial-design concern meaningfully reduce nucresiran's probability of success, and will independent commentary confirm it?",
+        "source_ids": [
+          "bundle:event::source-1ac30aefb9610ff071e9",
+          "source:saa_doc::4ad10c55a6faf8941c2237b1"
+        ],
+        "supporting_symbols": [
+          "ALNY"
+        ],
+        "time_basis": {
+          "current_observation": "On 30 October 2026 Bernstein downgraded Alnylam to Market Perform and cut its price target to $199 from $376; ALNY was about 5.2% lower intraday later that day.",
+          "background_events": [
+            {
+              "event": "Alnylam's recent Q3 report repeated a 2026 revenue outlook below consensus, following a prior large stock decline.",
+              "event_date": "recent Q3",
+              "source_ids": [
+                "bundle:event::source-1ac30aefb9610ff071e9"
+              ]
+            }
+          ],
+          "report_dates": "TradingView/Seeking Alpha note captured 18:02 UTC 30 October."
+        },
+        "event_title": "Bernstein downgrades Alnylam on nucresiran TRITON-CM trial-design decision",
+        "surface_summary_text": "One analyst is cutting the value of a key pipeline asset because Alnylam declined proposed trial-design changes, but this is an assessment, not new trial data.",
+        "what_happened_text": "Bernstein downgraded Alnylam Pharmaceuticals to Market Perform from Outperform and reduced its price target to $199 from $376 on 30 October. The analyst said Alnylam decided not to adopt proposed design changes to TRITON-CM, the Phase 3 trial of nucresiran in ATTR-CM. Bernstein also reduced its estimated probability of success and expected nucresiran sales because of that decision.",
+        "why_happened_text": "A less informative trial design could raise the chance of a Phase 3 miss and reduce the expected economic value of a growth asset. The note follows a prior stock decline after Alnylam's recent Q3 report repeated guidance below consensus, so the downgrade adds to existing valuation pressure.",
+        "affected_assets_summary_text": "ALNY was observed about 5.2% lower intraday, but that move cannot be attributed only to this note; no competing ATTR-CM companies are identified in the source.",
+        "business_context_text": "Nucresiran is Alnylam's key pipeline asset in transthyretin amyloid cardiomyopathy; trial design choices directly affect the probability of regulatory success.",
+        "watch_next_text": "Watch independent comment on the trial design, the exact proposed change and Alnylam's reason for rejecting it, and any TRITON-CM data milestones.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Will Walmart's retail distribution meaningfully scale Base Power home batteries, or is this only a channel test without disclosed terms?",
+        "source_ids": [
+          "bundle:event::source-7a405a47cd8e1b8e104e",
+          "source:saa_doc::7edb3d1cf63ac3f5ef3846f8"
+        ],
+        "supporting_symbols": [
+          "WMT"
+        ],
+        "time_basis": {
+          "current_observation": "On 30 October 2026 Walmart announced a strategic investment in Base Power and agreement to make Base Power's home energy products available beginning in November. WMT was up about 1.9% at 20:35 UTC, but that cannot be tied to this news.",
+          "background_events": [],
+          "report_dates": "BusinessWire release captured 19:01 UTC 30 October."
+        },
+        "event_title": "Walmart-Base Power investment and November home-battery availability",
+        "surface_summary_text": "A large retail channel for residential batteries is being opened, but without pricing, installation or financing details the announcement is better read as a low-commitment pilot than proven volume.",
+        "what_happened_text": "Walmart announced a strategic investment in Base Power, a Texas-based energy company specializing in home battery systems, and the companies agreed to make Base Power's home energy products available to Walmart customers and Sam's Club members beginning in November. The release does not disclose investment amount, volume commitments, battery specifications, pricing, installation capacity, financing, or manufacturing partners.",
+        "why_happened_text": "Walmart's distribution network could materially reduce customer acquisition costs for home batteries, but that benefit only materializes if product specifications, pricing and installation capacity support adoption. The lack of quantified terms makes this a channel test rather than a proven volume event.",
+        "affected_assets_summary_text": "As the supporting public symbol, WMT was up about 1.9% in the observed snapshot; the announcement appears limited at this stage, and no Base Power public ticker is reported.",
+        "business_context_text": "Residential energy storage is a competitive market where retail access can change how households discover and finance backup power; Walmart's own announced exposure appears limited.",
+        "watch_next_text": "Watch Base Power product specifications and pricing, installation or financing partners, named manufacturers, and initial customer take-up after the November start.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Will Petrobras disclose recoverable volumes and advance toward an IBAMA licence, turning this Amazon mouth discovery into development optionality?",
+        "source_ids": [
+          "bundle:event::source-ece55f343903b0f22011",
+          "source:saa_doc::8077031479fa8008440f4408",
+          "source:saa_doc::c5c10c81cbfb2d1684f2545b",
+          "source:saa_doc::9998eb4de66b9cb12a631f80",
+          "source:saa_doc::7006d098ab62fdadd040317e"
+        ],
+        "supporting_symbols": [
+          "PBR",
+          "PBR.A",
+          "XOM",
+          "CVX"
+        ],
+        "time_basis": {
+          "current_observation": "Petrobras announced on 30 October 2026 a third oil discovery at the mouth of the Amazon, without size or commercial viability. At 20:35 UTC PBR ADS was up about 0.7% while XOM and CVX were up 2.2% and 1.8%.",
+          "background_events": [
+            {
+              "event": "Brazil authorized Petrobras to drill in the Foz do Amazonas region in October 2025, with drilling expected to last about five months and no production planned initially.",
+              "event_date": "2025-10-20",
+              "source_ids": [
+                "source:saa_doc::9998eb4de66b9cb12a631f80"
+              ]
+            },
+            {
+              "event": "CEO Magda Chambriard said in August 2026 that an Amazon mouth discovery confirmed the region's potential, but further studies were needed to determine commercial viability.",
+              "event_date": "2026-08-18",
+              "source_ids": [
+                "source:saa_doc::c5c10c81cbfb2d1684f2545b"
+              ]
+            }
+          ],
+          "report_dates": "Fiscal.ai/NewsNow capture 19:31 UTC 30 October; earlier Reuters and Valor reports captured as background."
+        },
+        "event_title": "Petrobras announces a third Amazon mouth oil discovery without disclosing resource size or commercial viability",
+        "surface_summary_text": "The announcement adds exploration optionality but no near-term oil supply; a resource estimate and new IBAMA environmental licence remain required before development.",
+        "what_happened_text": "Petrobras announced a third oil discovery at the mouth of the Amazon, but the report did not disclose the find's size, recoverable volume, or commercial viability. The company has been drilling in the region since Brazil authorized the Foz do Amazonas exploration in October 2025, with no production planned at that stage.",
+        "why_happened_text": "A discovery creates optionality, not supply: to turn it into production, Petrobras still needs appraisal and a viable resource estimate. If commercial viability is confirmed, a new environmental licence issued by IBAMA will be required before development, according to Petrobras's ESG disclosure.",
+        "affected_assets_summary_text": "PBR ADS was up modestly, while XOM and CVX were higher, but those moves are broad market snapshots, not proof the announcement caused them. Brazilian offshore drilling and services names would gain only if development advances.",
+        "business_context_text": "The Amazon mouth/Foz do Amazonas region is a high-profile exploration frontier with environmental licensing sensitivity; CEO commentary in August 2026 already cautioned that commercial viability was undetermined.",
+        "watch_next_text": "Watch whether Petrobras or its regulator discloses recoverable volumes, well test data, or the next IBAMA licensing step.",
+        "cause_status": "supported"
+      },
+      {
+        "section": "must_read_movers",
+        "question": "Are Amazon and Oracle declines signaling broad AI infrastructure capital-spending concern, or are they normal earnings-related target adjustments?",
+        "source_ids": [
+          "company-research:10",
+          "company-research:11",
+          "source:saa_doc::aef9a9079a165595c9e5d3d6"
+        ],
+        "supporting_symbols": [
+          "AMZN",
+          "ORCL",
+          "MSFT",
+          "NVDA"
+        ],
+        "time_basis": {
+          "current_observation": "At 20:35 UTC on 30 October, Amazon was down about 1.4% and Oracle down about 6.4%, after analysts cut Amazon targets following its Q3 report and amid sector-wide AI capex concern.",
+          "background_events": [
+            {
+              "event": "Amazon reported Q3 on 29 October; Scotiabank cut its target to $300 from $325, Wells Fargo to $326, and TD Cowen to $340.",
+              "event_date": "2026-10-29/30",
+              "source_ids": [
+                "company-research:10",
+                "source:saa_doc::aef9a9079a165595c9e5d3d6"
+              ]
+            }
+          ],
+          "report_dates": "Target-cut feed article captured around 30 October; company-research summaries as of 20:50 UTC."
+        },
+        "event_title": "Amazon price-target cuts and Oracle underperformance reflect AI capital-spending return concern",
+        "surface_summary_text": "Even with positive ratings, analysts are lowering Amazon's valuation on AI investment-payback worry, and Oracle's underperformance suggests the concern extends to cloud infrastructure names.",
+        "what_happened_text": "Scotiabank cut its Amazon price target to $300 from $325 while keeping Sector Outperform; Wells Fargo and TD Cowen also trimmed targets to $326 and $340, respectively. Oracle traded down about 6.4% in the same snapshot, underperforming Microsoft and Amazon, with no Oracle-specific operating release in the supplied captures.",
+        "why_happened_text": "The target cuts follow Amazon's Q3 report and point to investment-payback concern around AI infrastructure spending, not weak demand. Oracle's sharper decline is inferred from sector signals—Microsoft's capacity-constraint commentary and a $25 billion Microsoft note offering—not from a confirmed Oracle event.",
+        "affected_assets_summary_text": "MSFT fell about 1.6%, NVDA about 4.2%, and ORCL about 6.4% in the snapshot, supporting a broad tech/AI pullback rather than Amazon-specific or Oracle-specific news.",
+        "business_context_text": "Hyperscaler capex efficiency is under scrutiny after Microsoft's CFO flagged delayed third-party capacity deliveries; this raises questions about near-term AI cloud buildout returns across the sector.",
+        "watch_next_text": "Watch Amazon's next filing for AWS margin and capex guidance, and Oracle's next earnings detail on OCI capacity and AI infrastructure backlog.",
+        "cause_status": "partial"
+      },
+      {
+        "section": "unresolved_large_moves",
+        "question": "Will Qualcomm's actual Q4 earnings validate the 11.1% pre-earnings decline, or is the move a tech risk-off artifact?",
+        "source_ids": [
+          "bundle:symbol::QCOM",
+          "source:saa_doc::b8d96faba2d6c547d602953d",
+          "source:saa_doc::c365b7388f9e955d273f0abd",
+          "source:saa_doc::92653838b9a3e9d54ac93489"
+        ],
+        "supporting_symbols": [
+          "QCOM",
+          "AMD",
+          "INTC",
+          "NVDA"
+        ],
+        "time_basis": {
+          "current_observation": "Qualcomm's observed price fell 11.1% on 30 October as tech stocks sold off ahead of its expected Q4 earnings decline; no Q4 report was yet available.",
+          "background_events": [
+            {
+              "event": "Earnings preview expected Qualcomm Q4 earnings to decline.",
+              "event_date": "2026-10-30",
+              "source_ids": [
+                "source:saa_doc::c365b7388f9e955d273f0abd",
+                "source:saa_doc::92653838b9a3e9d54ac93489"
+              ]
+            }
+          ],
+          "report_dates": "Earnings preview articles captured around 29-30 October; Seeking Alpha drop article captured."
+        },
+        "event_title": "Qualcomm's observed price falls 11.1% on 30 October as tech stocks sell off ahead of expected Q4 earnings decline",
+        "surface_summary_text": "A large decline before an earnings report leaves the move unresolved; it could reflect expected guidance weakness or simply the broader chip selloff.",
+        "what_happened_text": "Qualcomm fell 11.1% in observed trade, while semiconductor peers also declined. A preview noted Q4 earnings were expected to decline, but no actual report had been released at the observation time.",
+        "why_happened_text": "The decline is not yet tied to a confirmed company announcement; it is likely a combination of sector risk-off and positioning ahead of the print.",
+        "affected_assets_summary_text": "AMD, INTC and other chip names declined in the same session, so the move is not isolated and cannot be attributed solely to Qualcomm.",
+        "business_context_text": "Qualcomm is a major mobile-chip supplier; its earnings are sensitive to smartphone demand, which SanDisk and Intel have already flagged as weak.",
+        "watch_next_text": "Watch Qualcomm's actual Q4 results and guidance when released; if the report exceeds the low bar, the decline may reverse, while a weak guide would confirm it.",
+        "cause_status": "unresolved"
+      },
+      {
+        "section": "unresolved_large_moves",
+        "question": "What caused the deep declines in DDOG, NET and FSLY as a group, and is there a confirmed common driver?",
+        "source_ids": [
+          "bundle:event::cluster-05-9f48e61bcc",
+          "bundle:symbol::DDOG",
+          "bundle:symbol::NET",
+          "bundle:symbol::FSLY"
+        ],
+        "supporting_symbols": [
+          "DDOG",
+          "NET",
+          "FSLY"
+        ],
+        "time_basis": {
+          "current_observation": "In the 20:35 UTC 30 October snapshot, DDOG, NET and FSLY moved down as a group with deep declines, but no common confirmed driver appears in the supplied evidence.",
+          "background_events": [],
+          "report_dates": "Cluster summary as of 30 October."
+        },
+        "event_title": "Cloud infrastructure and edge software names moved down as one group, with each showing a deep decline",
+        "surface_summary_text": "A group move without confirmed individual news leaves the decline unresolved; it may reflect a broad software risk-off rather than any company-specific failure.",
+        "what_happened_text": "DDOG, NET and FSLY each showed deep declines in the observed snapshot, moving as a group. The supplied research does not identify a confirmed common cause or company-specific release for the joint down move.",
+        "why_happened_text": "Group declines can signal shared factor exposure—such as high-multiple cloud software, interest-rate sensitivity, or sector rotation—but the evidence does not establish one.",
+        "affected_assets_summary_text": "These names are useful separate exposures to cloud monitoring, edge networking and CDN; their simultaneous decline could be a risk-off artifact.",
+        "business_context_text": "The names are high-valuation software stocks with already elevated expectations; without news, market-wide equity pressure may be a plausible but unproven driver.",
+        "watch_next_text": "Watch whether any company confirms guidance or macro release that explains the joint move; otherwise the decline may mark a technical or factor-driven pullback.",
+        "cause_status": "unresolved"
+      },
+      {
+        "section": "unresolved_large_moves",
+        "question": "Why did AppLovin and Braze move in opposite directions in the adtech group, and what does it signal for digital advertising?",
+        "source_ids": [
+          "bundle:event::cluster-06-b1d90be5d9",
+          "bundle:symbol::APP",
+          "bundle:symbol::BRZE"
+        ],
+        "supporting_symbols": [
+          "APP",
+          "BRZE"
+        ],
+        "time_basis": {
+          "current_observation": "In the 20:35 UTC 30 October snapshot, the advertising technology group split: APP and BRZE moved in opposite directions, with no confirmed common driver.",
+          "background_events": [],
+          "report_dates": "Cluster summary as of 30 October."
+        },
+        "event_title": "The advertising technology group split",
+        "surface_summary_text": "A split within adtech suggests the moves are company-specific or positioning-driven, not a sector-wide advertising signal.",
+        "what_happened_text": "APP and BRZE moved in opposite directions in the same observed snapshot, despite being grouped as advertising technology. No common confirmed driver is supplied.",
+        "why_happened_text": "When two related names diverge without a shared catalyst, the explanation is likely idiosyncratic—differences in exposure, earnings, or investor positioning—rather than an industry-wide shift.",
+        "affected_assets_summary_text": "APP and BRZE are the two useful names; their divergence is a counterexample to any single adtech narrative.",
+        "business_context_text": "Digital advertising growth varies by performance-based versus subscription/B2C models; AppLovin and Braze may not share the same ad demand exposure.",
+        "watch_next_text": "Watch either company's next disclosures for individual drivers; until then the split remains unexplained.",
+        "cause_status": "unresolved"
+      },
+      {
+        "section": "unresolved_large_moves",
+        "question": "Why did CoStar and Tyler Technologies decline as a group, and is there a confirmed common driver?",
+        "source_ids": [
+          "bundle:event::cluster-07-c31b5a6a2f",
+          "bundle:symbol::CSGP",
+          "bundle:symbol::TYL"
+        ],
+        "supporting_symbols": [
+          "CSGP",
+          "TYL"
+        ],
+        "time_basis": {
+          "current_observation": "In the 20:35 UTC 30 October snapshot, CSGP and TYL moved down together in an unexplained two-stock information technology group.",
+          "background_events": [],
+          "report_dates": "Cluster summary as of 30 October."
+        },
+        "event_title": "The move was concentrated in two information technology stocks",
+        "surface_summary_text": "The group decline is unresolved; two unrelated software/data names moving together without confirmed news likely reflects a common factor or coincident selling.",
+        "what_happened_text": "CSGP and TYL each declined in the observed snapshot, forming a small grouped move. No confirmed company-specific or macro driver is supplied.",
+        "why_happened_text": "The pairing is uncommon; without shared news, the move may be coincidental factor exposure or sector-specific selling, but the evidence does not support a cause.",
+        "affected_assets_summary_text": "CSGP is a commercial real estate data platform and TYL is a public-sector software provider; they have different end markets, making the joint decline unusual.",
+        "business_context_text": "Both are high-quality software names often sensitive to interest rates and growth expectations; a broad tech pullback could explain the move, but this is unconfirmed.",
+        "watch_next_text": "Watch whether either company reports news or whether the move reverses in the next session; if it does, it was likely transient.",
+        "cause_status": "unresolved"
+      },
+      {
+        "section": "unresolved_large_moves",
+        "question": "Why did Bright Horizons fall 18%—far more than its expected move—and is there a confirmed fundamental driver?",
+        "source_ids": [
+          "bundle:symbol::BFAM",
+          "source:saa_doc::661669d3d8a19f2f73c50110",
+          "source:saa_doc::4460046c7e039ff39825766a"
+        ],
+        "supporting_symbols": [
+          "BFAM"
+        ],
+        "time_basis": {
+          "current_observation": "At the 20:35 UTC 30 October snapshot, BFAM fell from $67.10 to $54.99, a decline of 18.05%, far larger than its expected 0.21% daily move.",
+          "background_events": [
+            {
+              "event": "Bright Horizons had a 12-month price target cut to $86, implying 28% upside, and Morgan Stanley lowered its target; these are analyst adjustments, not earnings guidance.",
+              "event_date": "prior to 2026-10-30",
+              "source_ids": [
+                "source:saa_doc::4460046c7e039ff39825766a",
+                "source:saa_doc::52799cbabbde8e94805aea14"
+              ]
+            }
+          ],
+          "report_dates": "Symbol bundle and search results retrieved 30 October."
+        },
+        "event_title": "Bright Horizons shares fall 18% in observed trade with no confirmed same-day fundamental release",
+        "surface_summary_text": "An unexplained large decline in a child-care and education provider leaves the move unresolved; prior analyst target cuts do not adequately explain the magnitude.",
+        "what_happened_text": "Bright Horizons fell 18.05% to $54.99 in the observed snapshot, far exceeding the expected 0.21% daily move. The available evidence includes earlier price-target cuts, including a 12-month target cut to $86 with 28% implied upside and a Morgan Stanley target cut, but no confirmed same-day earnings or guidance release.",
+        "why_happened_text": "The large move without a decisive same-day catalyst could reflect an analyst downgrade, sector flow, or liquidity-driven event, but the supplied evidence does not identify one; the prior target cuts are valuation adjustments, not a fundamental shock.",
+        "affected_assets_summary_text": "No useful peer co-movement is supplied; BFAM is the sole exposure in this story.",
+        "business_context_text": "Bright Horizons operates employer-sponsored child care and education; its expected daily move is small, so an 18% move strongly suggests a discrete event rather than normal volatility.",
+        "watch_next_text": "Watch for a company filing, analyst action, or block trade disclosure; if none appears, the decline may be a liquidity-driven dislocation that could partially reverse.",
+        "cause_status": "unresolved"
+      }
+    ],
+    "market_summary": {
+      "summary_text": "The most consequential developments are a $6.3 billion Binance breach with a withdrawal freeze, a large Microsoft bond pricing that tests AI-related funding costs, and active Qatari mediation that could reprice Strait of Hormuz supply risk. Semiconductor earnings are sending a two-speed signal: Intel's weak Q4 PC guidance and SanDisk's consumer weakness contrast with datacenter memory strength. Several high-multiple consumer-internet and biotech names are being repriced on guidance or analyst actions rather than current results. The unresolved large moves—Qualcomm ahead of earnings, grouped cloud software declines, an adtech split, the CoStar/Tyler pairing, and Bright Horizons' unexplained 18% drop—are not yet investable signals because no confirmed common driver is available.",
+      "confidence": "medium",
+      "limitations": [
+        "The briefing is a snapshot from 20:50 UTC on 30 October 2026; price moves may be unfinished and do not prove causation.",
+        "Several large moves remain unexplained despite extensive evidence, so attribution is intentionally cautious.",
+        "Product-level pricing, margins, fee terms, and some official company statements were not available in the supplied record.",
+        "Group moves and cluster membership are observational and do not establish common flows or causes."
+      ]
+    },
+    "issues": [
+      "Read the full SanDisk earnings call or presentation for NAND pricing and datacenter capacity commentary before concluding normalization versus extended peak.",
+      "Obtain the original Microsoft pricing supplement/final terms to measure final spread versus initial talk and investor demand.",
+      "Confirm whether Binance's withdrawal service actually resumes within the stated 34-hour target and whether any exchange or regulator issues additional statements.",
+      "Watch for official confirmation of a Qatari pause or Strait of Hormuz reopening; current evidence is only media mediation reporting.",
+      "Locate a same-day catalyst for Bright Horizons' 18% decline; the available target cuts do not explain the magnitude."
+    ]
+  }
+}

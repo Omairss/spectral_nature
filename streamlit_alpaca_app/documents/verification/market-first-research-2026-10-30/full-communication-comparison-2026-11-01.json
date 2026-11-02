@@ -1,0 +1,133 @@
+{
+  "status": "complete_comparison_delivered_quality_unaccepted",
+  "recorded_at_utc": "2026-11-02T07:17:07.443283+00:00",
+  "owner_accepted_small_example": "communication-example-20261101-34",
+  "scope": "Complete public writer and existing final reviewer over the actual data-first candidate findings and original supplied records. No planning, investigations, live source acquisition or production writes.",
+  "production": {
+    "read_at_utc": "2026-11-02T06:30:34.110244+00:00",
+    "read_only": true,
+    "datasets": [
+      {
+        "dataset_name": "attention_home_1d",
+        "dataset_version_id": "attention_home_1d__20261030T205040Z__897f8072__965a33ba5c664d8c9b846538b08f59f0",
+        "blob_path": "datasets/attention_home_1d/dt=2026-10-30/asof=2026-10-30T20-50-40Z/universe=20260919/part-attention_home_1d__20261030T205040Z__897f8072__965a33ba5c664d8c9b846538b08f59f0.parquet",
+        "asof_time_utc": "2026-10-30T20:50:40.507732+00:00",
+        "ingested_at_utc": "2026-10-30T21:55:20.978133+00:00",
+        "row_count": 1
+      },
+      {
+        "dataset_name": "attention_home_snapshots_1d",
+        "dataset_version_id": "attention_home_snapshots_1d__20261030T205040Z__897f8072__78f03168d87c46d3890567cce4682e70",
+        "blob_path": "datasets/attention_home_snapshots_1d/dt=2026-10-30/asof=2026-10-30T20-50-40Z/universe=20260919/part-attention_home_snapshots_1d__20261030T205040Z__897f8072__78f03168d87c46d3890567cce4682e70.parquet",
+        "asof_time_utc": "2026-10-30T20:50:40.507732+00:00",
+        "ingested_at_utc": "2026-10-30T21:55:17.354951+00:00",
+        "row_count": 1
+      }
+    ],
+    "selected": {
+      "dataset_name": "attention_home_snapshots_1d",
+      "dataset_version_id": "attention_home_snapshots_1d__20261030T205040Z__897f8072__78f03168d87c46d3890567cce4682e70",
+      "blob_path": "datasets/attention_home_snapshots_1d/dt=2026-10-30/asof=2026-10-30T20-50-40Z/universe=20260919/part-attention_home_snapshots_1d__20261030T205040Z__897f8072__78f03168d87c46d3890567cce4682e70.parquet",
+      "asof_time_utc": "2026-10-30T20:50:40.507732+00:00",
+      "ingested_at_utc": "2026-10-30T21:55:17.354951+00:00",
+      "row_count": 1
+    },
+    "home_sha256": "ddc71b2f89d8635515aefea01e8535daa8b361845c546b5970aea4ec5c602f56",
+    "latest_identity_rechecked_at_utc": "2026-11-02T07:05:39.310832+00:00",
+    "identity_recheck_read_only": true
+  },
+  "candidate_manifest": {
+    "scope": "Complete Attention and Brief public writer and existing final reviewer over the actual data-first candidate findings. No planner or investigation rerun, new acquisition or production writes.",
+    "source_revision": "1e99e3d26473612033e427e27114aad949bb0cab",
+    "engine_revision": "fab56e3aaf0c261866ae",
+    "input_origin": "full-candidate-20261101/publication-call-inputs.json",
+    "input_sha256": "9b3ce670bd4deda264a1be15012d4a2524938316dd9385e40588eea38c354978",
+    "asof": "2026-10-30T20:50:40.507732+00:00",
+    "model": "deepseek-v4-pro",
+    "thinking": "enabled",
+    "reasoning_effort": "high",
+    "manual_prose_injected": false,
+    "writer_review_timeout_seconds": 900,
+    "data_first_research_rerun": false
+  },
+  "handoff_correction": {
+    "unbilled_preflight": true,
+    "native_writer_request_bytes": 562741,
+    "previous_native_writer_request_bytes": 704014,
+    "initial_findings_bytes_before": 909575,
+    "initial_findings_bytes_after": 32090,
+    "all_claim_texts_and_references_preserved": true,
+    "complete_readable_supplied_records_identical": true,
+    "source_index_numerical_context_task_and_schema_identical": true,
+    "writer_maximum_usd": 1.023968,
+    "review_maximum_usd": 1.643644,
+    "prior_counted_usd": 36.754694,
+    "cumulative_cap_usd": 40,
+    "model": "deepseek-v4-pro",
+    "thinking": {
+      "type": "enabled"
+    },
+    "reasoning_effort": "high"
+  },
+  "output": {
+    "html_path": "/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/output/visualizations/deepseek-vs-current-prod-20261101.html",
+    "html_sha256": "e18d56f0bc7b30b8ab6897a83789350bee82f92273bce76e6a3f8859aea04595",
+    "public_json_path": "/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/output/visualizations/deepseek-vs-current-prod-20261101.json",
+    "brief_and_all_public_story_fields_present": true,
+    "production_story_count": 11,
+    "candidate_story_count": 6,
+    "unedited_native_prose": true,
+    "native_review_receipt": {
+      "file": "transport-c7a64a1ce47c41f68d91c55cbf612f8b.json",
+      "sha256": "574555949999f21d99815e21b0867e618dc5e568b6f8438977212fda29756039",
+      "model": "deepseek-v4-pro"
+    }
+  },
+  "review": {
+    "status": "completed",
+    "verdict": "revise",
+    "critique_summary": "The draft was clear and closely matched the evidence. I condensed financial line items in the Exxon and Regeneron stories to keep the prose focused on business implications, per the plain-English instruction not to transcribe line items. No material factual errors were found; several causal links correctly remain partial or unresolved.",
+    "confidence": "medium",
+    "limitations": [],
+    "unsupported_claims": [],
+    "evidence_gaps": [],
+    "revised_answer_applied": true,
+    "research_requests": []
+  },
+  "personal_assessment": {
+    "accepted": false,
+    "discovery": "The candidate preserves the regulated-utility versus independent-power contrast found by its original data-first research.",
+    "readability": "Still repeats defensive contrasts, source-audit caveats and unexplained terminology such as rate-base growth, merchant prices, product cracks and beta. The model reviewer called it clear; my review does not accept it.",
+    "coverage": "Fewer stories is not itself a failure. Here the candidate omits important company developments covered by production, including Lilly and Rivian, and fails to explain the reported Binance breach. Its public supplied catalog includes only withdrawal-resumption headlines for Binance; breach reports exist in the separate frozen corpus but were not supplied to this candidate public reader. No new sources were added to disguise this gap.",
+    "precision": "The crypto headline says double-digit falls while its daily group figures are 8.8% and 8.7%, and it labels the withdrawal disruption maintenance without support from the resumption headline.",
+    "figures": "Useful figures and comparisons remain. The owner-accepted small example stands; contextual financial detail is not the reason for rejection.",
+    "interpretation_limit": "The metadata projection preserves all readable records and reduces prompt bulk and cost. This single replay does not establish why every quality difference occurred or restore the requested communication standard."
+  },
+  "costs": {
+    "first_complete_editorial_attempt_estimated_usd": 0.758676,
+    "second_complete_editorial_attempt_estimated_usd": 0.625792,
+    "both_complete_editorial_attempts_estimated_usd": 1.384468,
+    "sent_requests": 4,
+    "new_unknown_max_usd": 0.0,
+    "cumulative_cap_usd": 40,
+    "cumulative_maximum_counted_usd": 37.380486,
+    "prior_costs_and_unknowns_preserved": true,
+    "scope": "Both full editorial attempts, including rejected work; not a full-research run or production daily forecast."
+  },
+  "operations": {
+    "final_review_completed_both_attempts": true,
+    "full_pro_high_reasoning_both_attempts": true,
+    "local_databases_stopped": true,
+    "new_gpu_allocated": false,
+    "development_deployment": false,
+    "production_deployment": false,
+    "personal_full_text_review": true,
+    "browser_layout_inspected": true,
+    "automated_nlp_grades_used": false
+  },
+  "runtime_sha256": {
+    "services/llm.py": "1a48e17ccef73548cc25787c8361e5f9399a859ddb670f7c1a55a37bf42227d0",
+    "services/zopedia_agent.py": "bfae9bd12aa9f134943838452ac8fa240116c8882d511942d9bb5431a3040828",
+    "pipeline/jobs/attention_home_build.py": "bb0ac949dee768936c1b673ab8028b8e7d8b08202a3e0fa640c8463e2fb725c9"
+  }
+}

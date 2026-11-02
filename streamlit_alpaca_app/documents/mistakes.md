@@ -1453,6 +1453,121 @@ The earlier answer said 15 Home updates containing 151 stories without immediate
 
 The discussion of Market-First Research described expected cost/recall benefits before a candidate existed. The named plan now explicitly records them as hypotheses, identifies the audited 999-instrument coverage limit and retrospective end-weight attribution, and requires point-in-time matched comparisons. A local code checkpoint preserves accepted behavior; it cannot certify the new planner, guarantee zero omissions or restore Azure/data state by itself. No redesign runtime or release was made during this review.
 
+### Qualification setup must match production storage assumptions — October 30, 2026
+
+The initial Market-First preparation queried large research payloads before narrowing their lightweight latest pointers and exceeded its read timeout; the next local PostgreSQL setup used SQL_ASCII and rejected retained Unicode source text. No inference was sent. Narrow pointer identities before loading full artifacts, use UTF8 for isolated PostgreSQL, and preserve attempt costs across qualification retries. The runtime research-list query now filters task identity on the existing pointer key instead of decoding unrelated full results.
+
+### Keep media out of research history — October 30, 2026
+
+The first Market-First paid comparison exposed a new input mistake: copying the previous homepage summary object also copied its narration audio and internal traces into planning. Stopped the comparison, retained all actual and unknown charges under the same approval, and changed the owning input to pass only the prior headline and summary text. The full numerical context precedes headlines, with group/sector summaries before the complete observation table. No candidate was deployed from that attempt.
+
+### Repair research handoffs before accepting a data-first selection — October 30, 2026
+
+The first complete Market-First comparison selected previously missed numerical leads but framed broad groups as competing causal explanations and failed to pass relevant prior publication findings into focused research. Publication then failed on list-position source references. No candidate was accepted or deployed. Corrected the owning planner/research context, retained dated originals in the existing reader, and bound publication references to stable capture IDs rather than adding aliases or suppressing failures.
+
+### Keep qualification history fixed and numerical consumers broad — October 30, 2026
+
+A retry initially included unaccepted trial findings in its prior-research context. Paused further paid transport, retained all immutable work and costs, and froze the original 39 retained artifacts for comparisons. The consumer audit also found that limiting numerical candidate rows to selected investigations would narrow signal-ranking and macro inputs, especially on a zero-investigation run. Moved the existing numerical preparation before selection across the covered universe; research and display selection remain separate. The full first successful publication still repeated chart values and overstated some causal headlines, so it remains unaccepted while the owning editor contract is corrected and replayed.
+
+### Use one publication representation — October 30, 2026
+
+The next full replay completed reviewed stories, but the model assigned the same story IDs to several display lists. The duplicated selection/body contract rejected publication. Replaced it with one story object containing its sources, one section and complete prose; application-owned IDs derive from the immutable publication and position. The editor now receives reviewed claim roles and factual corrections, then summarizes the finished Attention list into Brief. No fuzzy identity repair, new publisher or extra planner was added. A source lookup timeout also exposed inaccurate aggregate health: valid text completion now retains a separate count of current acquisition/review failures; old reused errors do not become new failures.
+
+### Keep qualification ordering and financial unknowns explicit — October 30, 2026
+
+The isolated fixture imported historical artifacts with identical SQL update times, so an unordered tie changed which prior investigations entered the planner and defeated exact-input reuse. Fixed the study to use the original ordered artifact identities; runtime history was not rewritten. A later chart request was still active when the isolated process ended, so its full maximum remains unknown alongside the earlier interrupted request. No balance refresh or new comparison cleared either bound. The fresh public draft also remained too numerical and sharpened an unsupported financial timeline; it was not accepted or deployed.
+
+### Fix conflicting reviewer instructions at their owner — October 30, 2026
+
+Repeated Home-only instruction refinements improved readability. A later audit incorrectly flagged the Reddit U.S. estimate miss from the research summary; the complete CNBC capture explicitly confirms a separate U.S. estimate. Read the original before declaring a factual error. The shared reviewer added statistics back into Brief because its global prompt demanded high-recall discovery and a competing answer for every task. Corrected that objective at source. Prior model grades did not grant acceptance; no candidate was deployed.
+
+### Trace the complete writing path before tuning local prose — October 30, 2026
+
+Home-only instruction changes were insufficient because structured final synthesis selected a different system instruction from ordinary shared writing. The fresh whole-assembly comparison exposed repeated financial transcription again. Removed that format-based writer fork at the shared synthesis source; no candidate gained acceptance from schema checks or the reviewer grade alone. Later inspection found that the Home schema already declares stories before Brief, while DeepSeek serializes every schema with alphabetically sorted keys. That made the visible model contract place Brief before stories and rearrange story fields. Preserve declared order in generation and literal JSON repair; canonical cache hashes remain separate. Request-level verification is not a qualitative result. Fresh output subsequently followed the declared order, but retained the Amazon comparison and Reddit segment-scope errors; no release was accepted.
+
+### Do not repurchase a review for an unused wrapper — October 30, 2026
+
+Fresh common planning purchased a complete schema-valid review, then repeated the large input because the review appeared directly inside the navigation wrapper. Paused new paid calls and let admitted requests settle. Simplified the shared contract so the decision field contains the complete artifact or an evidence-navigation request, without an additional answer wrapper. The validation and original execution deadline remain authoritative; no missing verdict is defaulted to acceptance. The paused comparison is not a successful publication.
+
+### Finishing materialization does not finish the requested behavior — October 30, 2026
+
+The next complete comparison produced seven stories and46ticker profiles, but Brief still gave little prominence to the non-tech discoveries and cards repeated too much financial detail. Its Amazon explanation strengthened a source author's suggested connection into a confirmed earnings-miss explanation. Read the complete article before recording that issue. The common planner also still received article excerpts and full prior reports beyond the requested headlines. Corrected those owning inputs and the shared attribution instruction; the complete candidate is not accepted or deployed. Offline input capture must not load incomplete outputs from unreplayed stages; the fixture failure sent no inference. The subsequent five-story full flow completed with39ticker snapshots and five Highlights, but the Amazon comparison and public over-detail remained; a successful run was not acceptance. A referenced-capture review did not resolve that error. Referenced captures can be snippets: the CNBC188-character search result and7082-character article are separately retained, but the public source index hid their representation. Exposed origin/type/length at the input owner. An independent direct-source diagnostic improved body attribution while leaving Brief unqualified and substituting an older article price for an available current observation. Neither experimental review view was added to runtime.
+
+### Do not present narrower outputs as demonstrated efficiency — October 31, 2026
+
+Quoted a 69 percent cost difference between a 13-story production sample and a 5-story retained-input candidate. The cutoffs, source histories and included producers differ; this is not equivalent-work savings. Owner review identified omitted ongoing reports and vague writing. Workhorse/Rivian research was available to common planning but did not reach the five selected findings. Preserve the rejected output and resolve the owning selection/handoff rather than patching the example stories.
+
+### Trace candidate metadata as well as retained prose — October 31, 2026
+
+Restoring reports alone would leave companies outside the new agenda without current ticker observations in the publication payload. Preserve the observed candidate universe through final writing; never borrow old report prices. The fresh output comparison remains pending its requested provider exception, so neither code checks nor restored reader entries establish that the qualitative failures are fixed.
+
+### Bootstrap frozen retrieval before paid comparison — October 31, 2026
+
+The matched replay copied pre-run research but omitted the existing retained-search tables and source index. Searches returned database errors, so the first attempt cannot establish comparable product quality. Paused new transport, preserved its $2.347911 cost and original clocks, then initialized the normal application index from 100 captured originals and checked search plus full-document reads in both revisions before restarting. This was a verification setup error, not a production failure.
+
+### Preserve acquired originals with retained research — October 31, 2026
+
+The retained publication reader copied only artifact_context.source_documents. Older investigations often kept acquired captures in agent_result.tool_calls instead, leaving reports readable but their underlying originals absent. Project those saved captures through the existing shared evidence adapter with the original research date; do not expose execution traces or repurchase research to recover already-held material.
+
+### Queue before transport accounting in verification — October 31, 2026
+
+The study throttled requests inside Session.send, after application transport accounting began. Exact gateway receipts show several local queue timeouts and cap rejections were never sent, yet the isolated run held their maximum costs as unknown. Move study queue admission ahead of the provider adapter; settle only explicitly proven local rejections at zero, retaining all genuine network failures and the original cumulative study ledger. The resulting constrained draft failed financial precision and its required-field contract; it is not accepted output.
+
+### Separate completed writing from accepted quality — October 31, 2026
+
+The corrected candidate produced 10 stories, but its final reviewer could not fit the remaining study cap. Personal review still found the Reddit category error, an older price observation and missing continuing coverage. The baseline generated nine stories but failed publication on unknown and repeated source references. Show both complete outputs with those states intact, retain every charge, and hold deployment. The core-expiry correction is a separate bookkeeping invariant: these remaining obligations had the original global deadline, so it is not established as the cure for this quality failure.
+
+The follow-up traced the category error to final composition: correct reviewed research was changed in the raw Pro response. The evidence reader was available. Readability checks did not establish actual use of earlier reports, and the separate verification guard had no final-review reserve despite application-level core funding. These are the confirmed handoff and verification-design gaps; another prompt edit alone is not demonstrated to resolve them.
+
+The November 1 control completed only the previously blocked final review, with its original inputs, model and instructions. It corrected the Reddit category for $0.129956. Do not use an unreviewed draft as sufficient evidence that a new reviewer or writing stage is needed. The unchanged old observation, omissions and repetitive prose remain separate defects, and the candidate stays unaccepted. The full result is verification/market-first-research-2026-10-30/funded-review-2026-11-01.json.
+
+The owner subsequently identified unclear product shorthand, valuation jargon, generic unresolved-question lists and negative openings. These are meaningful editorial failures, whereas the dated two-hour-old price is low priority. Multiple delivered comparison files also obscured which text and cost belonged to the latest result: the earlier five-story HTML's $1.44 test and roughly $9 peak production sample are not the later matched comparison. State the version and scope explicitly, preserve historical text and costs, and do not attribute a consolidated EPS miss to AI-debt interest without the expected-versus-actual expense bridge.
+
+### An editorial prompt change did not fix the requested behavior — November 1, 2026
+
+The actual DeepSeek writer-and-review replay still states that AI-debt interest caused Amazon’s consensus EPS miss, repeats software valuation jargon and login-test shorthand, and retains excessive numerical detail. The existing reviewer completed with high confidence and accepted the financial explanation. The source comparison was already labeled reported_fact in the retained research; carrying that label forward did not validate it. Preserve this as rejected experimental output, distinguish the modest Brief shortening from a real fix, and do not deploy or replace the generated prose with an authored example. Both paid requests settled at an estimated $0.220450; all earlier charges and $4.470776 in unresolved maximums remain counted under the $33 cap.
+
+The owner’s software-paragraph follow-up traced the public process commentary to the retained investigation itself. Its earlier reviewer corrected a date and requested additional company research; final writing repackaged that incomplete explanation and the funded final reviewer preserved it verbatim. Do not blame the display heading, a compulsory nonempty field or missing review funds for this result.
+
+### Compare with actual production and fund the actual study context — November 1, 2026
+
+The owner rejected the earlier unpromoted five-story baseline. Replaced it with a fresh read-only capture of the live 11-story publication and independently verified its worker digest. Candidate inputs are reconstructed from that run’s persisted research and observations, not falsely labeled an identical original request. An unbilled preflight caught study funding quoted against unrelated display payload; declaring the actual writer context restored source reads before paid transport. The emphasized compact prompts still failed qualitative acceptance. The earlier proposed 411-word accounting also omitted the writing task repeated in the review; report measured native requests rather than that proposal total.
+
+### Substituting an editorial replay for the requested candidate — November 1, 2026
+
+The owner asked for the latest complete data-first candidate against actual production. The delivered November 1 comparison instead reused production research for the candidate and reran only writing/review. It consumed $0.261508 without verifying the requested architecture. Subsequent explanations also obscured earlier full-flow experiments until the records were checked. Preserve those experiments, their costs and unknowns. Prepare the full current path, keep the actual production baseline and protect final review before paid execution; no scope substitution or deployment acceptance.
+
+### Verification must preserve native repair and wait for temporary holds — November 1, 2026
+
+The full-flow study guard wrongly applied the Pro thinking/high analysis requirement to the existing Pro mechanical JSON-repair route and refused two unsent conversions. It also rejected research/review calls while other requests held maximum reservations instead of waiting for settlement. Two investigations and two research reviews remained incomplete. These are verification defects, not evidence of production credit exhaustion. The actual pipeline still produced 13 stories with a completed final review, but material source-use, causality and writing failures remained; Highlights later timed out. Preserve this exact run and its unknown charge. A separate unbilled repair-mode correction is prepared, not retrospectively treated as tested. No further paid run or deployment is accepted.
+
+The owner's readability comparison required checking the actual accepted source as well as outputs. Compression removed specific writing and independent-review duties, while the candidate reproduced research caveats and specialist shorthand. Its completed final review made only a pharma qualification and missed material source use and clarity problems. Study failures explain missing work, not all prose regressions; the later Highlights timeout cannot explain text already generated. All candidate requests used Pro, so blaming a cheaper model would be unsupported.
+
+### Keep the communication probe small and inspect its rewrite — November 1, 2026
+
+Started with an entire company selloff, its business explanation and fund exposure instead of the smallest criticized passage. Repeated factual corrections did not establish clear communication. A three-sentence request led the reviewer to drop the market-value qualifier and imply advertising revenue was not rising; a later edit confused search-growth rate with search-use level. Those expanded outputs remain rejected. The short mechanism and targeted quantity clarification are limited examples for owner feedback, not proof that the shared prompts restore the complete feed. The first 19 calls cost an estimated $0.279457, with no new unknown charges and no full pipeline or deployment.
+
+Two private setup attempts sent no inference: preparation used system Python without a project dependency, and another selected a normalized review without its original agent context. Use the project interpreter and the correct retained artifact, and stop dependent execution when preparation fails. Preserve these failures separately from model-quality results.
+
+The owner rejected the two small outputs: the advertising paragraph repeated its point, while the market-value sentence became a definition. Instructions to explain everything to an unfamiliar reader encouraged padding. The next review-only attempt expanded the paragraph further and mistook a conditional mechanism for an exclusive causal claim; it remains rejected. Its complete model output and charge were retained despite a later private-runner bookkeeping error, so no duplicate inference was needed.
+
+The continuation used 13 existing-review calls, estimated at $0.079898, with no new unknown charges or cap increase. General brevity rules and examples alone remained inconsistent; the selected short output needed an explicit brief-length task, and the quantity sentence needed its scope limited to the value change. They are narrow owner-review examples, not whole-feed acceptance. Approximate guidance per point was temporarily added to Home, then removed after a malformed comparison; its complete artifact still needs qualitative replay. Across all 32 communication calls the estimate is $0.359355; every earlier study cost and unknown remains counted. No full pipeline or deployment ran.
+
+### Do not turn clarity into deletion of useful information — November 1, 2026
+
+I rejected the final Exxon example for its figures and ordinary financial language. The owner accepted it: figures are useful with context, a baseline or reference. Preserve that standard when expanding to the complete feed. Earlier attempts still exposed real problems: compressing a bad draft retained unsupported claims, and word-count pressure preserved a malformed forecast comparison. The unqualified word target was removed from Home. Ten Pro requests cost an estimated $0.049962, with no new unknown charges or cap increase; the accepted example does not imply whole-feed or shared-consumer acceptance.
+
+I attributed a missing forecast comparator to reviewer trimming before checking the native writer response. The writer had already omitted it; review preserved the error. Trace both actual transformations before identifying the responsible stage. Across all 42 communication requests, the estimate is $0.409317, with all earlier study charges and unknown maximums preserved under the same $38 cap.
+
+### A clear example did not restore the complete feed — November 1, 2026
+
+After the owner accepted the small Exxon explanation, full writing/review still produced jargon and disclaimers, narrowed important coverage and described the Binance disruption as maintenance. Both final reviews were funded and completed at full Pro; the reviewer called the text clear. I removed repeated provenance from the existing public claim handoff and replayed it with identical prompts and source records. This reduced input and cost but did not restore quality. Preserve both rejected complete outputs and their $1.384468 total estimate; do not present six generated stories as successful restoration or confuse corpus availability with reader access. Current production was read directly and rechecked, and the comparison shows every public field without manual prose edits. No deployment or further paid iteration is accepted.
+
+### Compression removed the explicit audience standard — November 1, 2026
+
+I replaced the original 80% ASD-STE100-inspired requirement with SEC/Microsoft guidance during prompt compression. Both latest native writer/reviewer instructions omitted it. I also focused too much on concision when the owner identified assumed financial knowledge as the main problem. Restored the explicit style and casual-reader understanding locally, including no assumed financial training for market reports. The current comparison predates this correction; no new inference or deployment ran, and restored wording is not evidence of restored output quality.
+
+- A release branch can lag independent accepted deployments. The November 1 live inventory includes 38 consumers and a newer calendar API/worker. Reconcile the accepted calendar Git source before packaging the data-first release; never promote the older source over it.
 ### Native inline-link verification needs precise limits — October30
 
 Simulator exposed expandable paragraphs as single accessibility elements, and repeated coordinate taps returned `noWindowsAvailable`. Native accessibility activation did verify Intel, Microsoft and Fed expansion/collapse, including independent open paragraphs; it did not separately qualify the second Meta link, VoiceOver or larger text settings. Keep these limits in the receipt rather than modifying the product for automation or presenting authored sample explanations as qualified LLM generation. The actual paragraph layout and previous Markdown publication were personally inspected. [Review](verification/native-brief-expansion-2026-10-30/README.md).

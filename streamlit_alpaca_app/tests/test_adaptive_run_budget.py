@@ -68,6 +68,17 @@ def test_run_and_wallet_reservation_rollback_together(store):
     assert pipeline_store.read_execution_state(*execution._run_budget_key(), strict=True) is None
 
 
+def test_research_listing_preserves_task_subject_and_unfiltered_queries(store):
+    namespace = 'research-list-contract-' + uuid.uuid4().hex
+    for identity, subject, task in [('one', 'company:X', 'a'), ('two', 'company:X', 'ba'), ('three', 'company:Y', 'a')]:
+        pipeline_store.retain_research_checkpoint(namespace=namespace, input_key=identity, subject=subject, task=task,
+            artifact={'artifact_id': identity, 'subject': subject, 'task': task,
+                      'created_at_utc': '2026-10-30T18:50:00Z', 'result': {}})
+    assert {a['artifact_id'] for a in pipeline_store.list_research_artifacts(namespace=namespace)} == {'one', 'two', 'three'}
+    assert {a['artifact_id'] for a in pipeline_store.list_research_artifacts(namespace=namespace, task='a')} == {'one', 'three'}
+    assert {a['artifact_id'] for a in pipeline_store.list_research_artifacts(namespace=namespace, subjects=['company:X'])} == {'one', 'two'}
+
+
 def test_sixteen_concurrent_workers_share_ten_dollars_and_settlement_refunds_headroom(store):
     def admit(index):
         try:
@@ -953,7 +964,7 @@ def test_evidence_navigation_cannot_consume_the_answer_reserve(core_wallet, monk
             execution.reserve_provider_budget(config, {}, attempt_id=attempt, timeout=10)
             execution.settle_provider_budget(config, attempt_id=attempt, charge={"status":"estimated", "usd_max": .1},
                 definitely_unbilled=False)
-            return {"decision": {"action": "answer", "answer": {"value": "result"}}}
+            return {"decision": {"value": "result"}}
     client = Client(); client.config = config
     monkeypatch.setattr(gateway, "_record_gateway_call", lambda **kwargs: None)
     with execution.model_call_context(core_work_id="primary"):
@@ -965,6 +976,7 @@ def test_evidence_navigation_cannot_consume_the_answer_reserve(core_wallet, monk
     assert result == {"value":"result"}
     assert len(calls) == 2 and calls[0][0]["routing"]["role"] == "research"
     assert calls[1][0]["routing"]["role"] == "core"
-    assert calls[1][1]["properties"]["decision"]["properties"]["action"]["enum"] == ["answer"]
+    assert calls[1][1]["properties"]["decision"] == {
+        "type": "object", "properties": {"value": {"type": "string"}}, "required": ["value"]}
     state = pipeline_store.read_execution_state(*execution._run_budget_key(), strict=True)
     assert len(state["attempts"]) == 1 and state["core_obligations"]["primary"]["remaining_microusd"] == 1_900_000

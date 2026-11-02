@@ -221,19 +221,14 @@ _AGENT_FINAL_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        "Explain the answer to the person who asked the question. When a research outline is supplied, use it as your "
-        "analysis and use the source index for citations. Otherwise form the best answer from the supplied context, "
-        "collected sources and established knowledge. Lead with the answer, then explain the connection in familiar words. "
-        "Choose the points and details that help this reader understand. You may omit secondary points, figures and examples; "
-        "you do not need to cover the whole outline. Preserve the meaning, numbers and degree of certainty of what you include. "
-        "When wording an existing outline, do not add new factual claims or analytical conclusions. A typical question needs two to four short paragraphs; "
-        "follow the user's request when it needs a different length or format. Replace specialist shorthand with its ordinary "
-        "meaning. If a technical term is needed, explain it when you introduce it. Give useful source-title citations inline. "
-        "Use a Markdown link only when the index provides a complete URL; otherwise write the title as plain text. "
-        "Follow the active global writing style and the user's source scope. Keep research notes and process commentary private. "
-        "Keep the explanation focused on this request. A retrieved passage is useful only if it helps answer the question; "
-        "omit unrelated examples and analogies from other domains. When one example is requested, develop that example. "
-        "Attribute an execution failure only to events for that specific attempt, never to carried evidence from another run."
+        "Answer the question from the evidence; treat supplied drafts and research claims as fallible. "
+        "Select the essential facts and explain their useful connections and consequences "
+        "without repeating the same point. You may omit secondary facts, figures and examples. "
+        "Keep evidence that materially supports or challenges the central interpretation. "
+        "Use established subject knowledge to explain how the facts connect, distinguishing interpretation from reporting. "
+        "Use the research and original sources without strengthening their claims or confusing what a figure measures. "
+        "Keep research notes and execution limitations internal. Cite source titles using supplied URLs. "
+        "Only a requested complete retained-knowledge rewrite must preserve all unique original information."
     ),
 )
 
@@ -253,48 +248,24 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        "You are the Spectral Nature Zopedia research editor. This is a statistical, high-recall discovery system. "
-        "Improve usefulness, explanatory depth and relevance while preserving valuable noisy leads, indirect "
-        "connections and reasonable hypotheses. Review is refinement, not certification or permission to publish. "
-        "First form your own explanation from the collected evidence and the user's actual question. Put the important "
-        "source-grounded findings and competing interpretations in answer_points before judging the draft. Then compare "
-        "the draft against that explanation: correct its framing and consequential omissions, not only individual facts. "
-        "Treat earlier planning narratives as working hypotheses; new evidence can overturn their organizing theme. "
-        "Use established business knowledge to "
-        "explain connections; respect any user-imposed evidence scope. Exact ticker attribution, complete source "
-        "coverage and proven causality are not prerequisites for useful analysis. "
-        "Correct material factual errors, contradictions and incoherent reasoning. Check the logic of each claimed connection, "
-        "not just whether its individual facts appear in a source. Explain the relationship in the underlying system or "
-        "business; related observations alone do not establish the direction of an effect. Check numerical meaning: an amount versus "
-        "a change, the units, the denominator and the time period. Distinguish a reported fact "
-        "from established context and an inference, expressing each at an appropriate strength. Do not invent "
-        "reports, observations or completed research. Use actual dates for observed developments. "
-        "When evidence is incomplete, retain the useful interpretation and direct the next investigation. "
-        "Do not replace substantive analysis with missing-evidence paragraphs or generic caveats. "
-        "If the draft is useful as written, accept it. Otherwise return an improved answer that preserves its "
-        "valuable connections. Use insufficient only when you cannot form a substantive answer, and still "
-        "return the best useful analysis available. Keep process limitations internal where the schema allows. "
-        "Use research_requests for a few specific information needs when a missing angle could materially improve the answer. "
-        "Do not request proof, a source-provided causal ranking or complete citations for every reasonable inference. "
-        "Return the best useful answer even when further work would help. Apply the active global writing style: human, clear "
-        "prose that explains meaning, with useful source links and intact paragraph breaks. Keep process diagnostics internal. "
-        "Match the user's requested length and format. Cut extra examples, repeated facts, unrequested next steps and "
-        "section-heavy prose. A simple question usually needs a short explanation, not a report. Remove jargon or explain "
-        "the underlying idea in familiar words. A useful draft can still need revision for clarity and relevance. "
-        "Return corrected answer_points as a short outline of the main ideas the reader needs. Carry every material "
-        "correction into those points; the final writer uses them. Fix malformed Markdown tables before accepting or revising the answer."
-        "\n\nRespect the artifact's purpose. A complete rewrite of retained knowledge has a fidelity objective that"
-        " differs from a short answer. Compare the actual replacement text and stored fields against the complete"
-        " originals. Preserve distinct useful observations, including quantities, units, periods, dates and times,"
-        " conditions, counterevidence and uncertain leads. Repetition can be removed; unique useful information"
-        " cannot disappear silently. Treat content accounting as claims to verify, not proof of preservation. Trace"
-        " every claimed retained observation to where it actually survives in the replacement. If an observation"
-        " claimed as retained is absent, correct the replacement or explicitly account for its removal and judge"
-        " whether that removal is justified. A correct original figure must not become unknown merely because it is"
-        " buried inside repetitive material. Do not apply story-length cuts to a complete memory article. Later"
-        " readers must be able to use that article without depending on hidden task context. Use available original"
-        " readers before claiming an original is missing. Do not invent facts or settle conflicting observations"
-        " just to make the rewrite consistent."
+        "You are an expert editor for casual readers unfamiliar with the subject. Assume no financial training "
+        "for market reports. Check that the reader can understand the ideas and their importance. "
+        "DO NOT ACCEPT FINANCIAL JARGON. Rewrite it in everyday language before returning the report. "
+        "Answer the requested question, not a broader one. "
+        "First form your own explanation from the evidence, then compare the draft. Treat the draft as claims to "
+        "check, not authority. Rewrite around the main message. Remove repeated ideas, padding and unnecessary definitions. "
+        "Do not add background merely because it appears in the sources. Replace specialist shorthand with its "
+        "meaning in the situation, using precise everyday words. Explain essential unfamiliar concepts within "
+        "the explanation. NO DISCLAIMERS or research bookkeeping. "
+        "Correct material errors, false connections and important omissions using the evidence and established subject "
+        "knowledge. Ordinary subject knowledge does not need a separate citation for every statement. "
+        "Read originals for material ambiguities. Preserve quantities, comparisons, dates and certainty. "
+        "Keep useful figures with their context, baseline or reference. "
+        "Put the essential ideas in answer_points, return the corrected text, then judge that exact text for accurate "
+        "understanding and clarity. Use research_requests for further work. "
+        "Accept clear, sound drafts; revise unclear or inaccurate drafts; use insufficient only without a substantive answer. "
+        "Only a requested complete retained-knowledge rewrite must preserve every unique useful original observation "
+        "and qualifier."
     ),
 )
 
@@ -1184,9 +1155,7 @@ def _run_evidence_model_step(
         "type": "object", "additionalProperties": False,
         "properties": {
             "decision": {"anyOf": [
-                {"type": "object", "additionalProperties": False,
-                 "properties": {"action": {"type": "string", "enum": ["answer"]}, "answer": schema},
-                 "required": ["action", "answer"]},
+                schema,
                 {"type": "object", "additionalProperties": False,
                  "properties": {"action": {"type": "string", "enum": ["read"]}, "tool_name": {"type": "string"},
                                 "tool_arguments": {"type": "string", "description": "JSON-encoded evidence tool arguments."}},
@@ -1249,9 +1218,7 @@ def _run_evidence_model_step(
             "history_catalog": history_catalog, "supplied_sources": reader.supplied_evidence_manifest,
             "tools": read_tools, "context_feedback": feedback,
         })
-        active_schema = step_schema
-        if answer_only:
-            active_schema = {**step_schema, "properties": {"decision": step_schema["properties"]["decision"]["anyOf"][0]}}
+        active_schema = ({**step_schema, "properties": {"decision": schema}} if answer_only else step_schema)
         try:
             with model_call_context(discretionary_core_step=protected_step and not answer_only and funded_core_research()):
                 step = generate_json_via_aql_zopedia_gateway(
@@ -1259,10 +1226,7 @@ def _run_evidence_model_step(
                     system_prompt=system_prompt + (
                         "\nOptional research is complete. Return the current answer from the evidence already available."
                         if answer_only else
-                        "\nEvidence remains readable during this step. Put the selected action and its fields inside decision. "
-                        "Return action=answer with the requested result in answer, "
-                        "or action=read with an evidence tool and its JSON arguments. Use select_context to choose which "
-                        "tool results stay in working context. Read any omitted result through its history source_id."
+                        '\nReturn the artifact inside decision. To read, use action=read with tool_name and tool_arguments inside decision. select_context manages working context; originals remain readable.'
                     ),
                     user_prompt=user_prompt, schema_name=schema_name + "_evidence_step", schema=active_schema,
                     deadline_monotonic=min(deadline_monotonic, time.monotonic() + model_timeout_seconds)
@@ -1289,11 +1253,13 @@ def _run_evidence_model_step(
             feedback = str(exc) + " Choose working-context tool_call_ids or read specific sections. Originals are retained."
             continue
         public_step = {key: value for key, value in step.items() if not key.startswith("__")}
-        # An existing caller may request the artifact directly in its query.
-        # Preserve that valid paid answer rather than regenerate it to obtain
-        # an unused tool-control envelope.
         if not list(Draft202012Validator(schema).iter_errors(public_step)):
             return step
+        # Keep the provider-compatible root object, with one artifact layer.
+        # The complete review schema is validated before any answer is adopted.
+        artifact = public_step.get("decision")
+        if isinstance(artifact, dict) and not list(Draft202012Validator(schema).iter_errors(artifact)):
+            return {**artifact, **{key: value for key, value in step.items() if key.startswith("__")}}
         errors = list(Draft202012Validator(active_schema).iter_errors(public_step))
         if errors:
             if answer_only:
@@ -1309,8 +1275,6 @@ def _run_evidence_model_step(
                 continue
             context_state["tool_call_ids"] = keep
         action = navigation["action"]
-        if action == "answer":
-            return {**navigation["answer"], **{key: value for key, value in step.items() if key.startswith("__")}}
         if action == "select_context":
             catalog_only = False
             feedback = ""
@@ -1638,7 +1602,10 @@ _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
         "Make those points self-contained, including facts, quotations, calculations or code needed by this request, "
         "with source references. Choose them for the actual request; do not include every observation collected during research. "
         "This is a factual research summary, not private chain-of-thought. Revise earlier interpretations when new "
-        "sources change the picture. A prior generated answer is context, not independent corroboration. Distinguish original "
+        "sources change the picture. A prior generated answer is context, not independent corroboration. When explaining "
+        "a financial surprise, keep the company, segment, metric and comparison baseline distinct. Read the decisive "
+        "original and compare actual with expected values before attributing a forecast miss to one component; a "
+        "prior-period change alone does not establish that bridge. Distinguish original "
         "reporting, dated observations, retained knowledge and hypotheses. Read source dependencies when it adds understanding; "
         "Write public_update for the person following the research: summary describes the specific work you are doing, "
         "finding describes what the completed work has established (empty before any findings), and next_step names the "
@@ -2087,34 +2054,13 @@ def _final_user_prompt(
             "Use ordinary words and useful source-title links. Follow the requested length and format."
         )
     return (
-        f"{evidence_block}"
-        "Tool evidence:\n"
+        f"{evidence_block}Tool evidence:\n"
         f"{_tool_history_prompt(tool_calls, full_evidence=True, selected_source_ids=selected_source_ids)}\n\n"
-        f"{history_block}"
-        f"Task: {_clean(task) or 'agent_answer'}\n"
-        f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
-        f"User question:\n{query}\n\n"
-        + "Research outline:\n" + json.dumps(answer_points or [], ensure_ascii=False)
-        + "\n\nAvailable draft:\n" + draft_answer + "\n\n"
-        + (
-            f"Return the artifact JSON for {response_schema_name}, using its requested fields and format. "
-            if response_schema_name
-            else "Write the most useful answer from this evidence and established context, including reasonable inferences. "
-        )
-        + "When the user question contains typed Context JSON, source_acquisition_rows, supplied source text, or inline datasets, treat that supplied context as evidence too, especially when the tool budget is zero. "
-        + (
-            "Use concise plain prose in public text fields, without headings or process commentary. "
-            if response_schema_name
-            else "Match the requested format. Use clear connected prose and short paragraphs with blank lines between them. "
-        )
-        + "If you use a Markdown table, it must have a header row, separator row, and one row per line; use bullets if a table would be cramped. "
-        "Treat the user's premise as unverified unless the evidence supports it; if evidence contradicts the premise, say so plainly. "
-        "If you use Zopedia memory, cite the relevant page title. Keep internal IDs out of public prose. "
-        "Use source-title links for supporting reports, including retained sources; keep source dependencies distinct from generated interpretation. "
-        "Do not claim that live search, recent search, or a source-reading tool failed or returned no results unless the tool history shows that exact attempt. "
-        "For current questions, respect the dates of supplied and retained evidence; supplied current reports count even without a live tool call. "
-        "Do not turn the answer into a citation list. "
-        "Incomplete evidence should guide interpretation and follow-up, not erase a useful connection. Respect the user's evidence scope."
+        f"{history_block}Task: {_clean(task) or 'agent_answer'}\n"
+        f"Surface: {_clean(surface) or 'zopedia.chat'}\n\nUser question:\n{query}\n\n"
+        "Research outline:\n" + json.dumps(answer_points or [], ensure_ascii=False)
+        + "\n\nAvailable draft:\n" + draft_answer
+        + f"\n\nReturn the complete {response_schema_name} artifact using its schema and supplied evidence."
     )
 
 
@@ -2137,39 +2083,15 @@ def _judge_user_prompt(
     if prefetched_context:
         evidence_block = f"{prefetched_context}\n\n"
     return (
-        f"{evidence_block}"
-        "Tool evidence:\n"
-        f"{_tool_history_prompt(tool_calls, full_evidence=True)}\n\n"
-        f"{history_block}"
-        f"Task: {_clean(task) or 'agent_answer'}\n"
-        f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
-        f"User question:\n{query}\n\n"
-        "Draft answer:\n"
-        f"{draft_answer}\n\n"
-        + ("Application-assembled publication preview (execution errors here require correcting the artifact):\n"
+        f"{evidence_block}Tool evidence:\n{_tool_history_prompt(tool_calls, full_evidence=True)}\n\n"
+        f"{history_block}Task: {_clean(task) or 'agent_answer'}\n"
+        f"Surface: {_clean(surface) or 'zopedia.chat'}\n\nUser question:\n{query}\n\n"
+        f"Draft answer:\n{draft_answer}\n\n"
+        + ("Application-assembled publication preview:\n"
            + json.dumps(artifact_preview, ensure_ascii=False, default=str) + "\n\n"
            if artifact_preview is not None else "")
-        +
-        "Derive the explanation this reader needs from the sources before assessing the draft. "
-        "Use answer_points for that independent explanation, including evidence that challenges an earlier narrative. "
-        "Then correct the draft for useful discovery, relevance and explanatory depth. "
-        "When the original user question contains typed Context JSON, source_acquisition_rows, supplied source text, or inline datasets, treat that supplied context as part of the evidence even if no tool calls were made. "
-        "Use verdict='accept' when the draft is useful, coherent and expresses facts and hypotheses appropriately. "
-        "Use verdict='revise' when the answer should be corrected or made more precise. "
-        "Use verdict='insufficient' only when you cannot form a substantive answer; retain whatever useful analysis is available. "
-        "Correct false descriptions of tool activity without discarding the investigation. "
-        "Use established business context and reasonable inference to explain indirect relationships. Missing exact source "
-        "matches or price data do not exclude useful leads. Keep observations dated and do not invent current facts. "
-        "Review temporal framing in titles and opening summaries independently of dates in the body. A correctly "
-        "dated body does not make a headline that presents an old statement as new acceptable. Lead with the actual "
-        "current observation or continuation; if a title leads with an older event or statement, include its original "
-        "date there. Reconcile any time_basis fields with the sources and apply the correction to the public prose. "
-        + (
-            "Return the corrected artifact in answer_payload. Keep its field schema and use plain public prose."
-            if structured_response
-            else "Return the complete reader-facing answer in answer_markdown, ready to publish in the requested length and format. "
-                 "Apply your corrections directly to that prose. Keep editing instructions, critique and the supporting answer_points outline in their own fields."
-        )
+        + ("Return the complete corrected artifact in answer_payload, preserving its schema."
+           if structured_response else "Return the complete corrected reader-facing answer in answer_markdown.")
     )
 
 
@@ -2227,14 +2149,16 @@ def _run_answer_judge(
     review_schema = dict(_JUDGE_SCHEMA)
     if response_schema:
         review_schema["properties"] = {
-            **_JUDGE_SCHEMA["properties"],
+            "answer_points": _JUDGE_SCHEMA["properties"]["answer_points"],
             "answer_payload": response_schema,
+            **{key: value for key, value in _JUDGE_SCHEMA["properties"].items() if key != "answer_points"},
         }
         review_schema["required"] = [*_JUDGE_SCHEMA["required"], "answer_payload"]
     else:
         review_schema["properties"] = {
-            **_JUDGE_SCHEMA["properties"],
+            "answer_points": _JUDGE_SCHEMA["properties"]["answer_points"],
             "answer_markdown": {"type": "string", "description": "Complete final answer for the reader; no editorial instructions."},
+            **{key: value for key, value in _JUDGE_SCHEMA["properties"].items() if key != "answer_points"},
         }
         review_schema["required"] = [*_JUDGE_SCHEMA["required"], "answer_markdown"]
     preview = None
@@ -2256,8 +2180,7 @@ def _run_answer_judge(
                 system_prompt=(
                     get_prompt(_AGENT_JUDGE_SYSTEM_PROMPT)
                     + (
-                        " The draft is a structured artifact. Return the corrected artifact in answer_payload, preserving its schema. "
-                        "Review the facts, sources and business reasoning. Keep process limitations out of public text fields."
+                        ' Return the complete corrected artifact in answer_payload, preserving its schema.'
                         if response_schema
                         else ""
                     )
@@ -3895,13 +3818,9 @@ def _execute_zopedia_agent_loop(
                         progress_callback=progress_callback,
                         surface=_clean(surface) or "zopedia.chat",
                         purpose="agent.final_synthesis",
-                        system_prompt=(
-                            "You are the shared AQL/Zopedia research synthesis engine. Use the collected sources and supplied context. "
-                            "Return only the requested artifact JSON matching its schema. Preserve reported facts, business context and "
-                            "useful hypotheses at their actual evidence strength. Do not wrap the artifact in answer_markdown, "
-                            "confidence or limitations unless those fields belong to the artifact schema."
-                            if response_schema
-                            else get_prompt(_AGENT_FINAL_SYSTEM_PROMPT)
+                        system_prompt=get_prompt(_AGENT_FINAL_SYSTEM_PROMPT) + (
+                            ' Return only the requested artifact JSON, with no extra wrappers.'
+                            if response_schema else ""
                         ),
                         prompt=lambda visible: _final_user_prompt(
                             query=agent_query,

@@ -207,7 +207,8 @@ def test_literal_conversion_preserves_style_and_global_thinking_configuration(st
         generate(model)
     generate(model)
     assert calls[0]["json"]["messages"][0]["content"] == "Return supplied values."
-    assert "Global language policy" in calls[1]["json"]["messages"][0]["content"]
+    from services.llm import NARRATIVE_STYLE_RULE
+    assert NARRATIVE_STYLE_RULE in calls[1]["json"]["messages"][0]["content"]
     assert all(call["json"]["thinking"] == {"type": "disabled"} for call in calls)
     assert calls[0]["json"]["max_tokens"] == 65536
     assert "max_tokens" not in calls[1]["json"]
@@ -447,9 +448,9 @@ def test_event_replay_identity_excludes_its_own_new_result(monkeypatch):
     monkeypatch.setattr(events.pipeline_store, 'list_research_artifacts', lambda **kwargs: [])
     url='https://example.invalid/event'
     source='doc::event-news::'+hashlib.sha256(url.encode()).hexdigest()[:20]
-    plan={'title':'Event','question':'Question','source_ids':[source], 'related_symbols':[], 'followup_questions':[], 'rationale':'Research'}
+    plan={'title':'Event','question':'Question','source_ids':[source], 'related_symbols':[], 'followup_questions':[], 'rationale':'Research', 'research_action':'investigate', 'prior_artifact_id':'', 'group_ids':[], 'economic_series_ids':[]}
     version=[1]; captured=[]
-    monkeypatch.setattr(events, 'latest_research_artifact', lambda **kwargs: {'artifact_id':str(version[0]),'payload':{'observation':version[0]}})
+    monkeypatch.setattr(events, 'latest_research_artifact', lambda **kwargs: {'artifact_id':str(version[0]),'created_at_utc':'2026-10-12T00:00:00Z', 'payload':{'observation':version[0]}})
     def run(**kwargs):
         if kwargs['schema_name']=='source_event_nominations':return {'status':'completed','payload':{'research_agenda':['Question'],'findings_markdown':'Retained market research','events':[plan]}}
         captured.append(kwargs)
@@ -458,7 +459,7 @@ def test_event_replay_identity_excludes_its_own_new_result(monkeypatch):
     kwargs=dict(market_frame=pd.DataFrame(),universe_frame=None,asof_time_utc='2026-10-13T12:00:00Z',run_id='execution',llm_client=object())
     news=pd.DataFrame([{'headline':'Event','url':url,'summary':'Complete report','published_at':'2026-10-13T11:00:00Z'}])
     events.research_source_events(news,**kwargs);version[0]=2;events.research_source_events(news,**kwargs)
-    assert len(captured)==2 and captured[0]['query']!=captured[1]['query']
+    assert len(captured)==2 and captured[0]['query']==captured[1]['query']
     assert captured[0]['reuse_identity']==captured[1]['reuse_identity']
 
 
@@ -482,7 +483,8 @@ def test_market_discovery_retains_acquisition_without_feed_or_focused_events(mon
         asof_time_utc="2026-10-28T18:35:00Z", run_id="current", llm_client=object(),
         macro_context={"observations": [{"date": "2026-10-27", "value": 1}]})
     assert len(calls) == 1 and calls[0]["max_tool_calls"] > 0
-    assert calls[0]["initial_evidence"] == []
+    assert calls[0]["service"].read_supplied_evidence(source_id="economic-observations")["text"]
+    assert calls[0]["service"].read_supplied_evidence(source_id="previous-publication")["text"]
     assert result["documents"][0]["raw_text"] == source["content"]
     assert result["documents"][0]["url"] == source["url"]
     assert result["market_research"][0]["status"] == ("completed" if valid_contract else "failed")
@@ -584,3 +586,18 @@ def test_audio_reuses_text_voice_model_and_format(store, monkeypatch):
                          session=SimpleNamespace(post=post))
     assert c.synthesize("Same text") == c.synthesize("Same text") == b"audio-bytes"
     assert len(calls) == 1 and store[1][0]["operation"] == "audio"
+
+
+def test_expired_unspent_core_releases_headroom_without_clearing_unknown_charges(monkeypatch):
+    from copy import deepcopy
+    monkeypatch.setattr(execution.time, "time", lambda: 100)
+    state = {"cap_microusd": 10_000_000, "attempts": {
+        "paid": {"status": "settled", "charged_microusd": 2_000_000},
+        "unknown": {"status": "unknown", "maximum_microusd": 1_000_000}},
+        "core_obligations": {
+            "expired": {"remaining_microusd": 4_000_000, "deadline_at": 99},
+            "live": {"remaining_microusd": 2_000_000, "deadline_at": 101},
+            "legacy_without_expiry": {"remaining_microusd": 500_000}}}
+    original = deepcopy(state)
+    assert execution._run_remaining(state) == 4_500_000
+    assert state == original

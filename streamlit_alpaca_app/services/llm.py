@@ -131,20 +131,25 @@ def _deepseek_response_error(response: requests.Response, *, operation: str = "r
 
 # Applied at request time by every provider adapter, including direct callers.
 NARRATIVE_STYLE_RULE = (
-    "Use an 80% ASD-STE100-inspired Simplified Technical English style for all text that people will read. "
-    "Write as if explaining the answer aloud to a smart person who is unfamiliar with the field. Lead with the answer. "
-    "Use ordinary words, active voice and short, connected sentences. Explain how and why things connect. "
-    "Replace jargon with what it means. When a technical term is necessary, explain it on first use. "
-    "Do not copy the sources' style or specialist shorthand. Use the same term for the same thing. "
-    "Choose the few details that answer the question; research can be broad without making the answer long. "
-    "Follow the requested length and format. An ordinary question usually needs two to four short paragraphs. "
-    "Use lists or tables when they help. Cite sources inline with useful links. "
-    "Preserve the meaning, names, numbers, dates, units and quotations of facts you include. "
-    "Distinguish reported facts from your interpretation and material unknowns. "
-    "Omit filler, repeated conclusions, generic caveats and unrequested next steps. Keep internal research notes private. "
-    "Do not change URLs, identifiers, JSON keys, code, formulas or other machine-readable fields. "
-    "Apply this preference to answers, titles, summaries, explanations, progress messages, reports, knowledge pages and audio scripts. "
-    "It is a writing preference, not a numeric compliance score or a limit on research depth."
+    "Use an 80% ASD-STE100-inspired Simplified Technical English style. "
+    "Write for a casual reader unfamiliar with the subject; assume no financial training for market reports. "
+    "DO NOT USE FINANCIAL JARGON in reader-facing reporting. "
+    "Follow the SEC Plain English Handbook and Microsoft Style Guide: "
+    "give each passage one main message and select only details needed to explain it. "
+    "Use everyday words, concrete nouns and strong verbs, usually in active voice. "
+    "Keep the subject and action close together. Lead with the essential message. "
+    "Say each idea once; cut words that add no meaning. "
+    "Replace specialist shorthand with its meaning in context. Explain essential unfamiliar concepts through "
+    "what happens in the business or real world. Use familiar, precise terms and avoid glossary-like digressions. "
+    "Preserve measures, comparisons, dates, certainty and "
+    "machine-readable fields. Figures are useful when their measure, baseline or reference makes the comparison clear. "
+    "Keep that context instead of deleting the figures. NO DISCLAIMERS or research bookkeeping. "
+    "Illustrative style examples, not evidence: "
+    "'Invalidate the persisted session state.' -> 'Clear the saved login.' "
+    "'Acme's $20 billion figure measures the decrease in its total stock-market value.' -> "
+    "'Acme's market cap fell by $20 billion.' "
+    "'Profit benefited from positive operating leverage.' -> "
+    "'Sales grew faster than costs, so profit rose.'"
 )
 
 
@@ -344,8 +349,7 @@ def apply_narrative_style(system_prompt: str) -> str:
     if preserves_literal_output():
         return system_prompt
     return (
-        f"{system_prompt}\n\nGlobal language policy (takes precedence over other prose-style instructions; "
-        "preserve task, evidence, and output-schema requirements):\n"
+        f"{system_prompt}\n\nWriting (preserve task and schema):\n"
         f"{get_active_narrative_style_rule()}"
     )
 
@@ -591,7 +595,8 @@ def _json_repair_messages(
     raw_content: str,
     original_messages: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, str]]:
-    schema_text = json.dumps(schema, sort_keys=True)
+    # Model-visible field order follows the artifact; canonical hashes are separate.
+    schema_text = json.dumps(schema)
     raw_text = str(raw_content or "").strip()
     parser_diagnostics = ""
     try:
@@ -992,7 +997,7 @@ class DeepSeekChatJSONClient:
         json_instruction = (
             f"Return only one valid JSON object for schema `{schema_name}`. "
             "Do not wrap it in markdown. The JSON object must match this JSON Schema:\n"
-            f"{json.dumps(schema, sort_keys=True)}"
+            f"{json.dumps(schema)}"
         )
         payload: dict[str, Any] = {
             "model": self.config.model,

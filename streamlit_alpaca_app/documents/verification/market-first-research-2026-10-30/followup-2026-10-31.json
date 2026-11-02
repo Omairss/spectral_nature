@@ -1,0 +1,90 @@
+{
+  "status": "verification_finished_candidate_not_accepted",
+  "date_pacific": "2026-10-31",
+  "changes": [
+    "Carry the existing bounded retained-research catalog through the AQL artifact handoff to the final Zopedia evidence reader, including quiet or disabled optional-investigation runs.",
+    "Separate the configurable inline history size from readable reports: the store catalog is bounded at 100, while 20 recent summaries remain inline by default. No complete retained report is inserted inline.",
+    "Preserve source captures, original research dates and artifact identities when a retained finding supports a published story. Reject future-dated artifacts at the input boundary.",
+    "Preserve current candidate observations across the observed universe so publication outside the new investigation list can use current ticker metadata.",
+    "Clarify issuer/segment, category/component, period and forecast comparison reasoning in shared research/review, and allow source-grounded corrections to a fallible writing outline.",
+    "Require concrete developments and practical business consequences with distinct public fields in the existing shared writer."
+  ],
+  "source_file_sha256": {
+    "pipeline/jobs/attention_home_build.py": "78126dda707824a4b7216af91c0f40f48813069769fc1184be70d00e4271b83a",
+    "services/aql/constants.py": "bb19f843b4294d2d7f932691165cf740cc6a1419ad7fc94fcc9ff78e6eacd9ff",
+    "services/aql/events.py": "59e55fe0313acd1ca4b0194c9a69e06bcbc8cb7f28b487e143f8d9a69dc173d7",
+    "services/aql/pipeline.py": "69259ce2e9731fa23df4247f299d3eb3be814977f98cf9bb08dab9d1139f1b6e",
+    "services/zopedia_agent.py": "6d9e4028639b732bd9bdff6146d7cd8e0d6dba97663e3334afc5a90818c9b1f1",
+    "services/llm_execution.py": "a43fddf9dd402ef5e83c0ca195e0267c06918002b1ea2b8f13bac12f79361dd3"
+  },
+  "offline_handoff": {
+    "new_provider_requests": 0,
+    "retained_reports": 36,
+    "original_retained_reports": 36,
+    "inline_retained_report_bodies": false,
+    "current_findings": 5,
+    "publication_request_sha256": "a7582a42e282dd08a1c6266c999f2c8a2bdddbec805be04a79b35b969f8f1746",
+    "meaning": "Input availability and provenance only; no new model output or quality acceptance."
+  },
+  "operational_checks": {
+    "result": "21 passed in 1.16s",
+    "scope": "Numerical, current observation, date, source preservation, reader and provider contracts; no prose grades."
+  },
+  "legacy_suite": {
+    "before": "26 failed, 26 passed",
+    "after": "26 failed, 27 passed",
+    "identical_failure_names": true,
+    "meaning": "The 26 older agent tests fail on unchanged pre-fix Git source too. They include removed helper names and obsolete prompt/behavior expectations. They were not changed to manufacture acceptance."
+  },
+  "comparison_protocol": {
+    "current_source": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
+    "cutoff_utc": "2026-10-30T18:50:00Z",
+    "inputs": "Pin the same recorded dataset versions, completed pre-run artifacts and captured source content for both complete flows. Preserve each source implementation’s own planner and writer. No rejected experiment becomes historical knowledge.",
+    "model": "Pro primary/final writing, enabled/high reasoning. Actual baseline also retained 11 Flash calls; see matched-results-2026-10-31.json.",
+    "same_exclusions": "No new live intraday collection, narration or independent optional page generation in either comparison. Do not call these core-flow costs the whole production bill.",
+    "inspection": "Personally inspect complete Briefs and all stories, financial scope/comparison, continuing useful coverage, numerical discoveries, concrete explanation and omissions. Do not force example-company inclusion.",
+    "accounting": "All baseline, candidate, failed and interrupted requests count in the same original study ledger; preserve the earlier $12.203458 estimate and $2.292450 unresolved maximum.",
+    "authorization": "Owner continued the same cumulative API exception to $30; all previous costs and unknowns preserved.",
+    "current_worker_image_verified": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+    "source_access": "Identical captured source inputs and pre-run memory; new external source acquisition disabled in both complete core-flow replays. This isolates reasoning and handoff behavior; it does not qualify live discovery.",
+    "frozen_retained_search": {
+      "original_documents": 100,
+      "indexed_chunks": 275,
+      "corpus_sha256": "495ac961bf7d1b967296f9ddb8542c6a0679c794bb87ed09aa870936a747919c",
+      "actual_storage_readers": "Search and full original reads checked on both revisions before restart.",
+      "initial_setup_failure_usd": 2.347911,
+      "accounting": "Initial setup attempt preserved and excluded from product quality/cost conclusions; charges remain in the same original study ledger. Original 115-minute clocks retained."
+    }
+  },
+  "deployment": "No build or DEV/PROD deployment. All application changes remain on the separate feature branch.",
+  "qualification_limits": [
+    "The readback proves retained reports are available, not that the model selects or interprets them correctly.",
+    "Runtime defaults changed; no fresh quality claim is made from operational checks."
+  ],
+  "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/operations/market-first-research-20261030/matched-comparison-20261031",
+  "publication_boundary": "Expose complete canonical research, semantic review corrections and original source captures to the reader/publication, excluding internal agent execution traces.",
+  "retained_capture_followup": {
+    "issue": "Older research stores acquisitions in saved tool results; artifact_context.source_documents alone was incomplete.",
+    "change": "Project acquisitions using existing materialize_research_artifacts, retain original research dates, keep private execution traces excluded and keep current direct-capture indexing intact.",
+    "offline_readback": {
+      "retained_reports": 36,
+      "projected_captures": 289,
+      "workhorse": 66,
+      "rivian": 7,
+      "servicenow": 14,
+      "alphabet": 1,
+      "meaning": "Availability/provenance only; not a prose-quality score."
+    },
+    "source_revision": "25e4b168",
+    "model_output": "Fresh f89e13e8 full flow completed with an unaccepted 10-story artifact; complete report below."
+  },
+  "budget_followup": {
+    "runtime_change": "Exclude expired unspent core obligations from run admission, retaining the records and all actual/unknown request costs. Account-level future-work already applied the same deadline rule.",
+    "study_correction": "Move local queueing before application provider admission. Settle only gateway receipts explicitly proving local queue timeout/cap rejection before physical transport; no genuine unknown charge is cleared.",
+    "rejected_output": "Prior b8b9fd8c draft retains unsupported Amazon variance attribution, Reddit category/component conflation and older article observations, and missed a required public field. No canonical candidate feed exists from that attempt.",
+    "authorization": "Owner approved same cumulative cap $30 via call_cca264bcfeb94f109af7a263b9c76350; previous charges and unknown bounds preserved.",
+    "next": "Paid verification ended within the cap; address the recorded unmet reasoning and coverage behavior before release.",
+    "observed_limit": "Expired unspent core obligations no longer reduce run admission after their recorded deadline. Actual readback shows the two remaining candidate obligations have the original global 21:35 deadline, not the elapsed 600-second investigation deadline. This bookkeeping correction is not established as a cause or cure of this draft quality failure."
+  },
+  "matched_results": "matched-results-2026-10-31.json"
+}

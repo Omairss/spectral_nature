@@ -1,0 +1,26 @@
+{
+  "status": "restored_locally_not_model_verified",
+  "recorded_at_utc": "2026-11-02T07:27:44.351375+00:00",
+  "owner_feedback": "The prose is esoteric and assumes financial jargon; casual readers cannot understand the ideas.",
+  "native_requests_checked": [
+    "contextual-figures-full-20261101-2/request-937f5cf4723648c198dca1b5fbcaa405.json",
+    "contextual-figures-full-20261101-2/request-c7a64a1ce47c41f68d91c55cbf612f8b.json"
+  ],
+  "finding": "The original prompt export contained the explicit 80% ASD-STE100-inspired instruction. Neither latest native writer nor reviewer system instruction contained it; the compressed defaults replaced it with SEC/Microsoft guidance.",
+  "change": "Restore the explicit shared style and require writing for readers unfamiliar with the subject, with no financial training for market reports. Explain specialist concepts through their meaning in context and preserve useful figures with comparisons. The existing reviewer checks conceptual understanding.",
+  "local_checks": {
+    "both_composed_instruction_sets_contain_requirement": true,
+    "prompt_database_override_loading_disabled_for_this_unpaid_inspection": true,
+    "new_inference_requests": 0,
+    "new_spending_usd": 0,
+    "existing_comparison_regenerated": false,
+    "development_deployment": false,
+    "production_deployment": false,
+    "quality_acceptance": false
+  },
+  "resolved_instruction_sha256": {
+    "zopedia_agent_final_answer_markdown_response_to_user": "a551068662beaa575b18aac38f02d16ea75ef6e36a5b7e1c09844bccc66c86c8",
+    "zopedia_agent_answer_judge_evidence_sufficiency_review": "e391858e304d035f5b277ffb3f0ac88260782b8081be474ed6361f75e66f1dde"
+  },
+  "scope": "Local shared instruction repair and audit only; no claim of improved model output."
+}

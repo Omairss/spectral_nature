@@ -1,8 +1,14 @@
 {
   "status": "accepted_locally",
+<<<<<<< HEAD
   "scope": "Source/data contracts accepted for local packaging; native/web visual and exact-image development verification precede deployment.",
   "source_revision": "63a19ac7146c3da58b6338fd71e80dd027a80b1b",
   "review_base_revision": "d3cad0cfa001b67f1b6f90e3db8869db7de0a3d1",
+=======
+  "scope": "Owner-authorized Market-First production trial preserving accepted live calendar and Trading",
+  "source_revision": "f960d945e677e2be51014d040558ac9cb676027b",
+  "review_base_revision": "63a19ac7146c3da58b6338fd71e80dd027a80b1b",
+>>>>>>> 59e8c7e56b9280c38b1f10ca0880ac7bdbb18601
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
     ".env.example": "d4bf338c68c5a6db29e8de3c42e3b942066c4611689510129553b2f8db1cbb5e",
@@ -40,6 +46,7 @@
     "compute/event_study.py": "a0c136e22a49c36b28af9e300ed19497108c9829609040232839237ec56d894c",
     "compute/fred.py": "aab5cf82a6194cbc5f7616131aa99571c16da8392103bc1a8553e8274bf10f60",
     "compute/fundamentals.py": "43d4cde29627856c10e631cd162a53a1929f47eae27a4cbab8827b963c08acbd",
+    "compute/market_attention.py": "212836a0dd709ccb715e00affe6070f9bac2eb301b24285cfff30f672f52645c",
     "compute/ownership.py": "e184716d90b4c62edfcf8b09500703a18ec3084245b96c89214f4f267135d367",
     "compute/paper_portfolio.py": "ef42f373de5759e1a1ab7a2ad6518fcc8050090a4ff499c1de477af7c60f2cfd",
     "compute/paper_sizing.py": "03e99030b7eef434da72ce7576281aaa47990e140791fe429040e383cb89fe78",
@@ -72,7 +79,7 @@
     "docker-compose.dev.yml": "b34fcd354a6743bbdf3c75b4c98dc49164d15f9eb5b02448d7c51a83f9ecf19d",
     "pipeline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "pipeline/jobs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "pipeline/jobs/attention_home_build.py": "e623dbc3ceeabef6d12177229fed8c1b1886337868b1637bebb648b16feb10f2",
+    "pipeline/jobs/attention_home_build.py": "bb0ac949dee768936c1b673ab8028b8e7d8b08202a3e0fa640c8463e2fb725c9",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "4ad026ee19bad85615ed847f4e2ab9533b59949b11ae9d7d4a42460acb12f6ee",
@@ -126,14 +133,14 @@
     "services/aql/clusterer.py": "f75cd2a9b414c33d58403d73ec946ba3fce32cff877ccae6c347d893dafd049d",
     "services/aql/collector.py": "3aa61cf7ca5fa041e8b5632d7b77f3393e6998fdd0eda95f601ad8ab7379fc4a",
     "services/aql/config.py": "2eb5fd7b967608205ec93c49c3e218e02ffc5d622d30377530dd3305dddda634",
-    "services/aql/constants.py": "10f24c5cff9936685bf077035eb9da87a72dece03f57bb7b39d0dd1cfae18fe2",
-    "services/aql/events.py": "fcab4bd4ad835d84d188db35c99e8c866bbb2e8b6084d4ba13ce40e7a3058feb",
+    "services/aql/constants.py": "bb19f843b4294d2d7f932691165cf740cc6a1419ad7fc94fcc9ff78e6eacd9ff",
+    "services/aql/events.py": "59e55fe0313acd1ca4b0194c9a69e06bcbc8cb7f28b487e143f8d9a69dc173d7",
     "services/aql/evidence_index.py": "65c0bd8ff406509028a7fbee0dd7ef21b1453c985a23360b686997442bcef268",
     "services/aql/evidence_pack.py": "ae8e663783a17ae5f9e519047be10a65f9d829337f2b45f9a5cbcb53c6b2454c",
     "services/aql/extractor.py": "6bedaaccbd7ee00a73d5d3f7c2d30a58bd120416663f31b99ab9110ee464866d",
     "services/aql/macro.py": "2eb4d4f12afb18294b7d4bddc0203037896f6e92e04ad81d7b5d14cab5b40281",
     "services/aql/news_business_resolution.py": "196ed78947ee8820f37383133855afadc10ab3fe186ee989e5c24e24773bbafb",
-    "services/aql/pipeline.py": "ae0552855f8d7798ad901b7925153eeb75b7f60f363d2f17675fc19e192475dd",
+    "services/aql/pipeline.py": "69259ce2e9731fa23df4247f299d3eb3be814977f98cf9bb08dab9d1139f1b6e",
     "services/aql/summarizer.py": "87a4ebd55c936bfce6f4e61a774c55a97c2f56153b83a037ee4d686144a27eb3",
     "services/aql/writer.py": "cda1c4c1a3ba4e437d0be2781848938c09cb2ed85c3decebe250241f9a327ad2",
     "services/aql_zopedia_engine.py": "36c1b4a2d302482478cd3561964cb46fbf1c4318ef5c6ac82955980dbb5fe835",
@@ -141,11 +148,11 @@
     "services/attention_context_llm.py": "60b84285a114bf79c89bd7601219ffaed143534a8b4b214f4bd9fce3ac9b989a",
     "services/attention_graph_network.py": "9511f96ea29d213c1dd59d4f87fd880f84a7be36e276ae07ef88ef71e5204ebc",
     "services/attention_graph_topology.py": "a3497f7cd4e1831724948e842721c1909fee57fb9d83a196c1f562f1e4553f0d",
-    "services/attention_home_1d.py": "bbac164dbd8a9c781fdc299d81a25780c3f3eff4702f0ed9747e90489c8a3720",
+    "services/attention_home_1d.py": "dd0068120de812948f4f8b722dc16b7ada8872868a6e38c4e312be263b00ed86",
     "services/attention_live_research.py": "17e2cf624b46b9c6dc63d1c11e44e7142f099a73a342cb1c06ba100e31487d73",
     "services/attention_macro_signals.py": "ab138ad97a05bc90e1603f1c37373a7d842a8deceb5eba3c3c39ab2b2c30af8b",
     "services/attention_market_events.py": "72f5049589acc4427c2667feb51b5401bc5f39902d1aefa27af77cc1284a55df",
-    "services/attention_materialized.py": "0618da8cbc64e3940e811557c7a2c1323bf8960cb7f93e9fa9df379fae09565c",
+    "services/attention_materialized.py": "a437f5677e39883345af8820a924f26bfc4838dd7465e5eb963a657b85a3cc31",
     "services/attention_signal_graph.py": "6682b3fd24519e2fab4a79f9370734d24e77df6f1d05f45bdadc484140a21544",
     "services/attention_surface.py": "ad733746e32b528fe07303ee10f7501231c8ae0dc38bf03bba8c013331c892db",
     "services/attention_ticker_snapshots.py": "cb91ea0e644c77105f6b68464387a2f03cd0e02663f905a24f9590e0a08bae98",
@@ -176,15 +183,15 @@
     "services/fundamentals.py": "7fe7900992c223eb042c3816878a38b1e61c87f85bb6d912a17bb8ce4a0a3217",
     "services/historical_corpus.py": "b7bd57baf77d675a3d4f1e7afb85ccc5287e77fe7eafb7ea046fe0a88b588ebc",
     "services/historical_training.py": "f36b5c9d792538d438bb66bfda8ca80b8e73e59666cd9ffd8f39bbeb226617ac",
-    "services/home_view.py": "6adbb3a6f02c0ca59694d2514bbe1f8528a42c1721f3dd3f1414f8835b021734",
+    "services/home_view.py": "ae04164bbcea35bdfa03d5d7a2dde779c0ffa6f8072efa2c759ccbeff15a7961",
     "services/homepage_support.py": "143a973c91c57420d60c16a8811fe79c75b154cf1be7efffce4f82714968be7e",
     "services/inference_policy.py": "0971f0b573c90eee5e9f12b650018e5c027e44e7ec8f54de968034bfad8c0114",
     "services/json_utils.py": "5f18985844cbfb425afb98cc0d16753c33fa929592acef8151b7825ebf858735",
     "services/knowledge_graph.py": "5c96484475c50a2d5e8823c64d50b875b2095d0c91d1510b812a301f8542b050",
     "services/knowledge_graph_proposals.py": "4ceaa4a481d6c418f3d2b7e1b393503fea9a4c3dd8b79cf3c27052fc549cd045",
-    "services/llm.py": "e15875d66ba2d90cfe8df8c9e8c8709522adfc4b872beac566dcc14df832d705",
-    "services/llm_context.py": "29f3d8dc408b18f4cddba72a0f6b1e5b9ab2e2afe027554d9c5d1c600b365aec",
-    "services/llm_execution.py": "5d1690649d8645541136c8a2cc81e03d1a3a4383d7b17b172ced1a04a58f2223",
+    "services/llm.py": "12f489acf2791d790fc842e5b3e2e30e63a5287e2186cd76841ae5c3f57791b3",
+    "services/llm_context.py": "283a833f5162c65ca5f37e8c6e879ce9026a0ab4234c39005eff50d045c1f568",
+    "services/llm_execution.py": "a43fddf9dd402ef5e83c0ca195e0267c06918002b1ea2b8f13bac12f79361dd3",
     "services/llm_prices.json": "248fac18ed76e8bda0e9c778fa052fcae1cfa6f6b77f15972b1f6414ae0b4595",
     "services/market.py": "682e2e9bcd074ff8d879cd2fe0b6363a820f4387a248d92fbe409561c27ed553",
     "services/market_calendar.py": "5489a56494014ffaaace6fda24d8e7935a5d3c1402d01b375b90bfeaaea86cbe",
@@ -195,7 +202,7 @@
     "services/options.py": "0451f958398c313c08ff8b9b66f1d3e1863e068b98af78907328ad51728c09e4",
     "services/page_agentic_summary.py": "07c3bbe22ba2f488226a45cd5afd770e6041f2491fd23de13c7909a499e38a1e",
     "services/page_browsing.py": "7c6a8d6e71817e77c2cc86b57bd6dddab54db70cc51fb5ef0914d3fb43dcb1d3",
-    "services/pipeline_store.py": "d0259ce1dcdfaf3fcb903ba117ad10d5e07068f14459cc1a96a1d3548b5d1c00",
+    "services/pipeline_store.py": "305c19440e655d9753d4fd6ad2f845ee3612b1f618791bcb17e0b1f73182cc77",
     "services/portfolio_view.py": "5f6a572174d42e5776b6c1f3be2c06ec3b9d4297d5759a39c51b6181db84bc3e",
     "services/research_export.py": "7b4519950688050950f2e8424b78a47bcf0bce8b148a98bb958f1bbe7e1d01ad",
     "services/robinhood_main.py": "118febce7cb314a46fa69f1a1500ab25abfc509bbff8b6fed3af25cb48764ac0",
@@ -223,7 +230,7 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "158ad038e144fb5e37c87f53af6f6dfb551c7231d2b542e48a89a555d968e9ee",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "7bce304b5f17a6738e946b1307e52c0079b16c91760c0b4f479811ea9d73fe32",
+    "services/zopedia_agent.py": "9c02988baf5791798f9a728d591f65f3825a5768d241fc60e0ee20dcfa4e34dc",
     "services/zopedia_analysis.py": "56d1a2cb099073122996574fdf3187b61d641c43d207f9e3ed5efd3ad4d09f53",
     "services/zopedia_learning.py": "896f846bbee4f4a367dec206a3e2a8cc53d18bbf4cf7aab6a062681d005ee797",
     "services/zopedia_maintenance.py": "895e4e3bf71a46bd41bdbe46e570214220587824db8245327cda05ebe72fc06a",
@@ -359,6 +366,7 @@
     "compute/event_study.py": "a0c136e22a49c36b28af9e300ed19497108c9829609040232839237ec56d894c",
     "compute/fred.py": "aab5cf82a6194cbc5f7616131aa99571c16da8392103bc1a8553e8274bf10f60",
     "compute/fundamentals.py": "43d4cde29627856c10e631cd162a53a1929f47eae27a4cbab8827b963c08acbd",
+    "compute/market_attention.py": "212836a0dd709ccb715e00affe6070f9bac2eb301b24285cfff30f672f52645c",
     "compute/ownership.py": "e184716d90b4c62edfcf8b09500703a18ec3084245b96c89214f4f267135d367",
     "compute/paper_portfolio.py": "ef42f373de5759e1a1ab7a2ad6518fcc8050090a4ff499c1de477af7c60f2cfd",
     "compute/paper_sizing.py": "03e99030b7eef434da72ce7576281aaa47990e140791fe429040e383cb89fe78",
@@ -390,7 +398,7 @@
     "data_access/query_service.py": "effe47edeabecef0a23736e9776b6839dd95f4412ec61840c6ad2b9cc9a9fec5",
     "pipeline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "pipeline/jobs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "pipeline/jobs/attention_home_build.py": "e623dbc3ceeabef6d12177229fed8c1b1886337868b1637bebb648b16feb10f2",
+    "pipeline/jobs/attention_home_build.py": "bb0ac949dee768936c1b673ab8028b8e7d8b08202a3e0fa640c8463e2fb725c9",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "4ad026ee19bad85615ed847f4e2ab9533b59949b11ae9d7d4a42460acb12f6ee",
@@ -422,14 +430,14 @@
     "services/aql/clusterer.py": "f75cd2a9b414c33d58403d73ec946ba3fce32cff877ccae6c347d893dafd049d",
     "services/aql/collector.py": "3aa61cf7ca5fa041e8b5632d7b77f3393e6998fdd0eda95f601ad8ab7379fc4a",
     "services/aql/config.py": "2eb5fd7b967608205ec93c49c3e218e02ffc5d622d30377530dd3305dddda634",
-    "services/aql/constants.py": "10f24c5cff9936685bf077035eb9da87a72dece03f57bb7b39d0dd1cfae18fe2",
-    "services/aql/events.py": "fcab4bd4ad835d84d188db35c99e8c866bbb2e8b6084d4ba13ce40e7a3058feb",
+    "services/aql/constants.py": "bb19f843b4294d2d7f932691165cf740cc6a1419ad7fc94fcc9ff78e6eacd9ff",
+    "services/aql/events.py": "59e55fe0313acd1ca4b0194c9a69e06bcbc8cb7f28b487e143f8d9a69dc173d7",
     "services/aql/evidence_index.py": "65c0bd8ff406509028a7fbee0dd7ef21b1453c985a23360b686997442bcef268",
     "services/aql/evidence_pack.py": "ae8e663783a17ae5f9e519047be10a65f9d829337f2b45f9a5cbcb53c6b2454c",
     "services/aql/extractor.py": "6bedaaccbd7ee00a73d5d3f7c2d30a58bd120416663f31b99ab9110ee464866d",
     "services/aql/macro.py": "2eb4d4f12afb18294b7d4bddc0203037896f6e92e04ad81d7b5d14cab5b40281",
     "services/aql/news_business_resolution.py": "196ed78947ee8820f37383133855afadc10ab3fe186ee989e5c24e24773bbafb",
-    "services/aql/pipeline.py": "ae0552855f8d7798ad901b7925153eeb75b7f60f363d2f17675fc19e192475dd",
+    "services/aql/pipeline.py": "69259ce2e9731fa23df4247f299d3eb3be814977f98cf9bb08dab9d1139f1b6e",
     "services/aql/summarizer.py": "87a4ebd55c936bfce6f4e61a774c55a97c2f56153b83a037ee4d686144a27eb3",
     "services/aql/writer.py": "cda1c4c1a3ba4e437d0be2781848938c09cb2ed85c3decebe250241f9a327ad2",
     "services/aql_zopedia_engine.py": "36c1b4a2d302482478cd3561964cb46fbf1c4318ef5c6ac82955980dbb5fe835",
@@ -437,11 +445,11 @@
     "services/attention_context_llm.py": "60b84285a114bf79c89bd7601219ffaed143534a8b4b214f4bd9fce3ac9b989a",
     "services/attention_graph_network.py": "9511f96ea29d213c1dd59d4f87fd880f84a7be36e276ae07ef88ef71e5204ebc",
     "services/attention_graph_topology.py": "a3497f7cd4e1831724948e842721c1909fee57fb9d83a196c1f562f1e4553f0d",
-    "services/attention_home_1d.py": "bbac164dbd8a9c781fdc299d81a25780c3f3eff4702f0ed9747e90489c8a3720",
+    "services/attention_home_1d.py": "dd0068120de812948f4f8b722dc16b7ada8872868a6e38c4e312be263b00ed86",
     "services/attention_live_research.py": "17e2cf624b46b9c6dc63d1c11e44e7142f099a73a342cb1c06ba100e31487d73",
     "services/attention_macro_signals.py": "ab138ad97a05bc90e1603f1c37373a7d842a8deceb5eba3c3c39ab2b2c30af8b",
     "services/attention_market_events.py": "72f5049589acc4427c2667feb51b5401bc5f39902d1aefa27af77cc1284a55df",
-    "services/attention_materialized.py": "0618da8cbc64e3940e811557c7a2c1323bf8960cb7f93e9fa9df379fae09565c",
+    "services/attention_materialized.py": "a437f5677e39883345af8820a924f26bfc4838dd7465e5eb963a657b85a3cc31",
     "services/attention_signal_graph.py": "6682b3fd24519e2fab4a79f9370734d24e77df6f1d05f45bdadc484140a21544",
     "services/attention_surface.py": "ad733746e32b528fe07303ee10f7501231c8ae0dc38bf03bba8c013331c892db",
     "services/attention_ticker_snapshots.py": "cb91ea0e644c77105f6b68464387a2f03cd0e02663f905a24f9590e0a08bae98",
@@ -472,15 +480,15 @@
     "services/fundamentals.py": "7fe7900992c223eb042c3816878a38b1e61c87f85bb6d912a17bb8ce4a0a3217",
     "services/historical_corpus.py": "b7bd57baf77d675a3d4f1e7afb85ccc5287e77fe7eafb7ea046fe0a88b588ebc",
     "services/historical_training.py": "f36b5c9d792538d438bb66bfda8ca80b8e73e59666cd9ffd8f39bbeb226617ac",
-    "services/home_view.py": "6adbb3a6f02c0ca59694d2514bbe1f8528a42c1721f3dd3f1414f8835b021734",
+    "services/home_view.py": "ae04164bbcea35bdfa03d5d7a2dde779c0ffa6f8072efa2c759ccbeff15a7961",
     "services/homepage_support.py": "143a973c91c57420d60c16a8811fe79c75b154cf1be7efffce4f82714968be7e",
     "services/inference_policy.py": "0971f0b573c90eee5e9f12b650018e5c027e44e7ec8f54de968034bfad8c0114",
     "services/json_utils.py": "5f18985844cbfb425afb98cc0d16753c33fa929592acef8151b7825ebf858735",
     "services/knowledge_graph.py": "5c96484475c50a2d5e8823c64d50b875b2095d0c91d1510b812a301f8542b050",
     "services/knowledge_graph_proposals.py": "4ceaa4a481d6c418f3d2b7e1b393503fea9a4c3dd8b79cf3c27052fc549cd045",
-    "services/llm.py": "e15875d66ba2d90cfe8df8c9e8c8709522adfc4b872beac566dcc14df832d705",
-    "services/llm_context.py": "29f3d8dc408b18f4cddba72a0f6b1e5b9ab2e2afe027554d9c5d1c600b365aec",
-    "services/llm_execution.py": "5d1690649d8645541136c8a2cc81e03d1a3a4383d7b17b172ced1a04a58f2223",
+    "services/llm.py": "12f489acf2791d790fc842e5b3e2e30e63a5287e2186cd76841ae5c3f57791b3",
+    "services/llm_context.py": "283a833f5162c65ca5f37e8c6e879ce9026a0ab4234c39005eff50d045c1f568",
+    "services/llm_execution.py": "a43fddf9dd402ef5e83c0ca195e0267c06918002b1ea2b8f13bac12f79361dd3",
     "services/llm_prices.json": "248fac18ed76e8bda0e9c778fa052fcae1cfa6f6b77f15972b1f6414ae0b4595",
     "services/market.py": "682e2e9bcd074ff8d879cd2fe0b6363a820f4387a248d92fbe409561c27ed553",
     "services/market_calendar.py": "5489a56494014ffaaace6fda24d8e7935a5d3c1402d01b375b90bfeaaea86cbe",
@@ -491,7 +499,7 @@
     "services/options.py": "0451f958398c313c08ff8b9b66f1d3e1863e068b98af78907328ad51728c09e4",
     "services/page_agentic_summary.py": "07c3bbe22ba2f488226a45cd5afd770e6041f2491fd23de13c7909a499e38a1e",
     "services/page_browsing.py": "7c6a8d6e71817e77c2cc86b57bd6dddab54db70cc51fb5ef0914d3fb43dcb1d3",
-    "services/pipeline_store.py": "d0259ce1dcdfaf3fcb903ba117ad10d5e07068f14459cc1a96a1d3548b5d1c00",
+    "services/pipeline_store.py": "305c19440e655d9753d4fd6ad2f845ee3612b1f618791bcb17e0b1f73182cc77",
     "services/portfolio_view.py": "5f6a572174d42e5776b6c1f3be2c06ec3b9d4297d5759a39c51b6181db84bc3e",
     "services/research_export.py": "7b4519950688050950f2e8424b78a47bcf0bce8b148a98bb958f1bbe7e1d01ad",
     "services/robinhood_main.py": "118febce7cb314a46fa69f1a1500ab25abfc509bbff8b6fed3af25cb48764ac0",
@@ -519,7 +527,7 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "158ad038e144fb5e37c87f53af6f6dfb551c7231d2b542e48a89a555d968e9ee",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "7bce304b5f17a6738e946b1307e52c0079b16c91760c0b4f479811ea9d73fe32",
+    "services/zopedia_agent.py": "9c02988baf5791798f9a728d591f65f3825a5768d241fc60e0ee20dcfa4e34dc",
     "services/zopedia_analysis.py": "56d1a2cb099073122996574fdf3187b61d641c43d207f9e3ed5efd3ad4d09f53",
     "services/zopedia_learning.py": "896f846bbee4f4a367dec206a3e2a8cc53d18bbf4cf7aab6a062681d005ee797",
     "services/zopedia_maintenance.py": "895e4e3bf71a46bd41bdbe46e570214220587824db8245327cda05ebe72fc06a",
@@ -530,19 +538,19 @@
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
   "reviewed_changes": {
-    "Dockerfile.runtime": "Reviewed source, previous behavior and operational evidence in documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-    "Dockerfile.web": "Reviewed source, previous behavior and operational evidence in documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-    "pipeline/jobs/main.py": "Reviewed source, previous behavior and operational evidence in documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-    "pipeline/jobs/market_calendar_refresh.py": "Reviewed source, previous behavior and operational evidence in documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-    "requirements.txt": "Reviewed source, previous behavior and operational evidence in documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-    "services/alpha_vantage.py": "Reviewed source, previous behavior and operational evidence in documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-    "services/fred.py": "Reviewed source, previous behavior and operational evidence in documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-    "services/home_view.py": "Reviewed source, previous behavior and operational evidence in documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-    "services/market_calendar.py": "Reviewed source, previous behavior and operational evidence in documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-    "web/components/home-workspace.tsx": "Reviewed source, previous behavior and operational evidence in documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-    "web/components/market-event-calendar.module.css": "Reviewed source, previous behavior and operational evidence in documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-    "web/components/market-event-calendar.tsx": "Reviewed source, previous behavior and operational evidence in documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-    "web/lib/types.ts": "Reviewed source, previous behavior and operational evidence in documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md"
+    "compute/market_attention.py": "Complete observed universe, adjusted completed-session comparisons, common history endpoints, correlation membership/change; distinguishes equal-weight observations from index contribution.",
+    "pipeline/jobs/attention_home_build.py": "One existing data-first research and public Zopedia path, original evidence accessible, independent public story identities, preserves original dates, partial research health, audio and ticker/background/chart materialization. No second ticker research fan-out. Initial claim projection omits repeated transport metadata; complete original records remain readable.",
+    "services/aql/constants.py": "Additive retained-research field with empty default; old callers remain valid.",
+    "services/aql/events.py": "Common agenda sees whole numerical context and headline catalog, selects bounded focused investigations or dated reuse. Eight-worker scheduling shares original clock/budget; complete evidence reader remains available and failed work stays visible operationally.",
+    "services/aql/pipeline.py": "Numerical preparation and grouping precede one common agenda; selected findings feed public/dossier consumers. Keeps complete raw observations, macro release relationships and hypothesis datasets.",
+    "services/attention_home_1d.py": "Optional selected_symbols supports explicit common-agenda callers; default selection behavior unchanged.",
+    "services/attention_materialized.py": "Additive market_context serialization and exact point-in-time history cutoff; old materialized rows remain valid.",
+    "services/home_view.py": "Expose all final selected public stories instead of clipping at16; accepted live calendar, summary, chart/audio/ticker/native/public contracts remain.",
+    "services/llm.py": "Shared explicit no-financial-jargon casual-reader rule, contextual figures and plain wording. Core schemas returned before human summary in the existing provider boundary. No provider/model schedule change.",
+    "services/llm_context.py": "Compressed common temporal/analysis instructions retain source dates, distinguish event and report dates, material financial comparisons and useful causal explanation.",
+    "services/llm_execution.py": "Ignore expired future core obligations when reserving current capacity; preserve historical records, settlements and unknown costs. Shared account atomic admission and original producer deadlines unchanged.",
+    "services/pipeline_store.py": "Filter lightweight research pointers by exact task suffix before decoding full artifacts; unfiltered and subject-scoped behavior preserved. No schema/migration change.",
+    "services/zopedia_agent.py": "Same shared native engine, writer and final reviewer; explicit reviewer prohibition on financial jargon and reader comprehension. Corrected text precedes verdict; retains structured machine contracts and source reader. Removes duplicate action wrapper without extra model stages or new fallback."
   },
   "retired_files": [
     "scripts/eval_critique_harness.py",
@@ -616,14 +624,547 @@
         "web/lib/types.ts"
       ],
       "evidence": "documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md"
+    },
+    {
+      "name": "Market-First common agenda and casual-reader final review",
+      "status": "accepted",
+      "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json",
+      "files": [
+        "compute/market_attention.py",
+        "pipeline/jobs/attention_home_build.py",
+        "services/aql/constants.py",
+        "services/aql/events.py",
+        "services/aql/pipeline.py",
+        "services/attention_home_1d.py",
+        "services/attention_materialized.py",
+        "services/home_view.py",
+        "services/llm.py",
+        "services/llm_context.py",
+        "services/llm_execution.py",
+        "services/pipeline_store.py",
+        "services/zopedia_agent.py"
+      ]
     }
   ],
   "roles": {
     "worker": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48"
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d"
       ],
+      "development_targets": [
+        {
+          "name": "trading-agent-build-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "macro-fred-daily-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "sn-research-run-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "dataset-refresh-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "attention-home-next-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "b307da9a8aeb66a26d800e66b5e602d5300542114a1f4af4275f416f083e023b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "attention-ticker-next-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "daily-datapoints-next-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "technical-history-next-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "equities-next-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "system-recovery-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "cleanup-trial-observer-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "a2c020dace093967fddc70cf28d1dfa7d823f94df764256a85e99cce486b3b09",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "zopedia-maintenance-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "market-calendar-refresh-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "ceee1951e7d748240c81b56d126e0a2758e192d5314cf26eb980668eaf6af0ce",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+            "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        }
+      ],
+      "production_targets": [
+        {
+          "name": "universe-builder",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "equities-intraday-preload",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "macro-fred-daily",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "commodities-regime",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "options-liquid-universe",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "news-ingest-and-features",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "08d16a9ed58ad153576b6278c68e4cdc5d3a228aa035c569c36beeb70d15ff74",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "entity-taxonomy-refresh",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "attention-home-build",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "006190f074b4aa15d79421f21124812374cbb938194b54628eff41b675bbf513",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "fundamentals-quarterly-refresh",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "company-baseline-prefetch",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "trading-agent-build",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "zopedia-maintenance",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "zopedia-learning",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "fab966688263776cc208a6d0de8341d6f0bde52cb332c52dcba9383f515df9d0",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "system-health",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "sn-research-run",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "evidence-index-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        },
+        {
+          "name": "system-recovery",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
+            "source_revision": "d72891b51d9a7a663d9cb207a13a293aa96383ce",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          },
+          "execution_binding": {
+            "name": "system-recovery",
+            "role": "worker",
+            "pipeline_job": "system-recovery",
+            "dataset_namespace": "",
+            "trigger": "Schedule",
+            "cron": "7,22,37,52 * * * *",
+            "environment": {
+              "SYSTEM_RECOVERY_BUDGET_SECONDS": "60"
+            }
+          }
+        },
+        {
+          "name": "market-calendar-refresh",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "cedc52abc916dddf6bfa6849b91a64301a26093996f5f225c0301291da0c1140",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+            "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        }
+      ],
+<<<<<<< HEAD
       "development_targets": [
         {
           "name": "market-calendar-refresh-dev",
@@ -713,11 +1254,14 @@
           "evidence": "documents/verification/live-market-calendar-2026-11-01/PACKAGE_ACCEPTANCE.json"
         }
       }
+=======
+      "accepted_images": {}
+>>>>>>> 59e8c7e56b9280c38b1f10ca0880ac7bdbb18601
     },
     "api-next": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7"
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16"
       ],
       "development_targets": [
         {
@@ -727,17 +1271,35 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
-            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
-            "evidence": "documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-            "package_evidence": "documents/verification/live-market-calendar-2026-11-01/retained-package-proofs.json"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
+            "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
         }
       ],
+      "production_targets": [
+        {
+          "name": "sn-api-next",
+          "kind": "containerApps",
+          "role": "api-next",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
+            "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        }
+      ],
+<<<<<<< HEAD
       "production_targets": [
         {
           "name": "sn-api-next",
@@ -783,31 +1345,16 @@
           "evidence": "documents/verification/live-market-calendar-2026-11-01/PACKAGE_ACCEPTANCE.json"
         }
       }
+=======
+      "accepted_images": {}
+>>>>>>> 59e8c7e56b9280c38b1f10ca0880ac7bdbb18601
     },
     "web": {
       "dependency_image": "node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9"
       ],
-      "development_targets": [
-        {
-          "name": "sn-next-ui-dev",
-          "kind": "containerApps",
-          "role": "web",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
-            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
-            "evidence": "documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
-            "package_evidence": "documents/verification/live-market-calendar-2026-11-01/retained-package-proofs.json"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
-        }
-      ],
+<<<<<<< HEAD
       "production_targets": [
         {
           "name": "sn-streamlit-ui",
@@ -868,6 +1415,11 @@
           "evidence": "documents/verification/live-market-calendar-2026-11-01/PACKAGE_ACCEPTANCE.json"
         }
       },
+=======
+      "development_targets": [],
+      "production_targets": [],
+      "accepted_images": {},
+>>>>>>> 59e8c7e56b9280c38b1f10ca0880ac7bdbb18601
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
         "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
@@ -972,13 +1524,48 @@
       "baseline_images": [
         "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577"
       ],
-      "development_targets": [],
-      "production_targets": [],
+      "development_targets": [
+        {
+          "name": "robinhood-main-sync-dev",
+          "kind": "jobs",
+          "role": "broker",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        }
+      ],
+      "production_targets": [
+        {
+          "name": "robinhood-main-sync-prod",
+          "kind": "jobs",
+          "role": "broker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
+            "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+            "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+          }
+        }
+      ],
       "accepted_images": {}
     }
   },
   "untouched_consumers": [
     {
+<<<<<<< HEAD
       "name": "universe-builder",
       "kind": "jobs",
       "role": "worker",
@@ -1523,6 +2110,54 @@
         "package_evidence": "documents/verification/live-market-calendar-2026-11-01/retained-package-proofs.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48"
+=======
+      "name": "sn-streamlit-ui",
+      "kind": "containerApps",
+      "role": "web",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+        "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+        "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+      }
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "kind": "containerApps",
+      "role": "web",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+        "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+        "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+      }
+    },
+    {
+      "name": "sn-next-ui",
+      "kind": "containerApps",
+      "role": "web",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+        "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+        "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
+      }
+>>>>>>> 59e8c7e56b9280c38b1f10ca0880ac7bdbb18601
     }
   ],
   "retired_consumers": [
@@ -1546,20 +2181,21 @@
   "consumer_contract_reviews": {
     "database_lifecycle": {
       "status": "accepted",
-      "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
+      "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
     },
     "pipeline_publication": {
       "status": "accepted",
-      "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
+      "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
     },
     "broker_background": {
       "status": "accepted",
-      "evidence": "documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md"
+      "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-source-review-2026-11-01.json"
     }
   },
   "preceding_release": {
-    "source_revision": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
-    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/publication-identity-repair.json"
+    "accepted_application_source": "63a19ac7146c3da58b6338fd71e80dd027a80b1b",
+    "calendar_production_package": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+    "all_38_private_definitions_retained": true
   },
   "production_embedding_activation": {
     "owner_instruction": "Enable the existing Azure semantic search",
@@ -1590,6 +2226,7 @@
     "base_budgets_and_schedules_preserved": true
   },
   "production_authorization": {
+<<<<<<< HEAD
     "owner_instruction": "Is the real earnings scan deployed in prod as a job? If not, deploy it. Then update the phone with this app",
     "recorded_at": "2026-11-02T06:57:38.621105+00:00",
     "evidence": "documents/verification/live-market-calendar-2026-11-01/PRODUCTION_AUTHORIZATION.json"
@@ -1615,5 +2252,9 @@
     },
     "source_inventory_sha256": "bd0f4040e86a0d92d802818686734ed1f7b349a4b9556a565882ce2ab91647b6",
     "evidence": "documents/verification/live-market-calendar-2026-11-01/PRODUCTION.json"
+=======
+    "owner_instruction": "Add explicit instructions to not use financial jargon, especially for the reviewer. Push this system to prod for an end-to-end trial this week; iterate writing afterwards and update prod only if better.",
+    "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-2026-11-01.json"
+>>>>>>> 59e8c7e56b9280c38b1f10ca0880ac7bdbb18601
   }
 }
