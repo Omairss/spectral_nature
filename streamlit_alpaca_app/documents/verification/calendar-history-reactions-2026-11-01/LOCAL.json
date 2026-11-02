@@ -1102,6 +1102,11 @@
     "targeted_operational_cases": 22,
     "typescript": "passed",
     "web_phone_width": 390,
-    "external_inference_calls": 0
+    "external_inference_calls": 0,
+    "visible_reaction": "label color only",
+    "reaction_percentage_visible": false,
+    "reaction_close_dates_visible": false,
+    "native_minimal_compact": "native-minimal-compact.jpg",
+    "native_minimal_expanded": "native-minimal-expanded.jpg"
   }
 }

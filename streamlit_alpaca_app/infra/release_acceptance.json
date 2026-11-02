@@ -719,7 +719,29 @@
           }
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280": {
+          "status": "passed",
+          "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
+          "runtime_files": 200,
+          "runtime_inventory_sha256": "fb0c1b5f0da01d4b51eb62918ea29ba2941d9ab58930d93b9fe75a39b0d9c7c5",
+          "all_packaged_files_checked": true,
+          "checks": [
+            "complete Git package",
+            "API imports/OpenAPI",
+            "worker and broker imports",
+            "retained native performance API",
+            "flat account zero return and undefined Sharpe",
+            "calendar producer imports and 121-day projection"
+          ],
+          "external_requests": 0,
+          "role": "worker",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
+          "source_inventory_sha256": "d635767c0c166150fbb048f0e0b528994803e0b07841325355fc284030e561ac",
+          "complete_git_inventory_matches": true,
+          "evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330",
@@ -765,7 +787,30 @@
           "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15"
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7": {
+          "status": "passed",
+          "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
+          "runtime_files": 200,
+          "runtime_inventory_sha256": "fb0c1b5f0da01d4b51eb62918ea29ba2941d9ab58930d93b9fe75a39b0d9c7c5",
+          "all_packaged_files_checked": true,
+          "checks": [
+            "complete Git package",
+            "API imports/OpenAPI",
+            "worker and broker imports",
+            "retained native performance API",
+            "unauthenticated Trading read/write rejection",
+            "flat account zero return and undefined Sharpe",
+            "calendar producer imports and 121-day projection"
+          ],
+          "external_requests": 0,
+          "role": "api-next",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
+          "source_inventory_sha256": "d635767c0c166150fbb048f0e0b528994803e0b07841325355fc284030e561ac",
+          "complete_git_inventory_matches": true,
+          "evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
+        }
+      }
     },
     "web": {
       "dependency_image": "node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da",
@@ -828,7 +873,28 @@
           "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9"
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113": {
+          "status": "passed",
+          "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
+          "source_inventory_sha256": "d635767c0c166150fbb048f0e0b528994803e0b07841325355fc284030e561ac",
+          "runtime_inventory_sha256": "6a016f5456929b18c2b3601dd7e614a8f0e397f9c1cb59f9b836df8e379898cb",
+          "input_files": 96,
+          "compiled_files": 1725,
+          "symlinks": 0,
+          "all_packaged_files_checked": true,
+          "checks": [
+            "complete compiled files and symlinks",
+            "accepted Git web inputs",
+            "Trading page, order and call routes",
+            "preserved Broad Economy route and outlook component input"
+          ],
+          "role": "web",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+          "complete_git_inventory_matches": true,
+          "evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
+        }
+      },
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
         "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
