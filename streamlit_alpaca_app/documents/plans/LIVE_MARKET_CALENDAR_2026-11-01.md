@@ -1,8 +1,8 @@
 # Live market calendar — November 1, 2026
 
-The owner approved implementing Alpha Vantage earnings discovery plus official Fed, BLS and BEA schedules. Replace authored timeline events with retained real source records. Preserve the approved native carousel, inline expansion and attention graph. Production promotion is not authorized by this request.
+The owner approved implementing Alpha Vantage earnings discovery plus official Fed, BLS and BEA schedules. Replace authored timeline events with retained real source records. Preserve the approved native carousel, inline expansion and attention graph. The owner subsequently authorized production deployment and the physical-phone update on November 1.
 
-Status: implemented and accepted on DEV. The first managed-identity cloud run published 3,454 expected earnings and 61 agency events; native Simulator and web read the deployed publication. See [development verification](../verification/live-market-calendar-2026-11-01/DEVELOPMENT.json).
+Status: live in production and installed/launched as native build 18 on the owner’s iPhone. The production job runs every six hours; its first managed-identity execution published 3,454 expected earnings and 59 agency events. Both production web entry points read that publication. See [production verification](../verification/live-market-calendar-2026-11-01/PRODUCTION.json) and preceding [DEV qualification](../verification/live-market-calendar-2026-11-01/DEVELOPMENT.json).
 
 ## Ownership and publication
 
@@ -28,10 +28,16 @@ The owner authorized storing the supplied key as `AlphaVantage` in the existing 
 
 ## Owner-key activation
 
-The owner explicitly authorized saving AlphaVantage in the existing Key Vault. A live request succeeded with 3,454 earnings rows and the normal producer published them alongside 61 agency events in the development namespace. Calendar refreshes remain independent of brief generation. Busy-date review exposed eager rendering; the clients now create visible event rows as needed. Shared ordering uses event importance without a fixed company shortlist. Exact-image development qualification and the first scheduled-worker execution passed. Production remains unchanged.
+The owner explicitly authorized saving AlphaVantage in the existing Key Vault. A live request succeeded with 3,454 earnings rows and the normal producer published them alongside 61 agency events in the development namespace. Calendar refreshes remain independent of brief generation. Busy-date review exposed eager rendering; the clients now create visible event rows as needed. Shared ordering uses event importance without a fixed company shortlist. Exact-image development qualification and the first scheduled-worker execution passed. The subsequent authorized production promotion is recorded below.
 
-## Delivery and source integration
+## Initial DEV delivery and source integration
 
 Only the existing DEV API and Next.js images changed. The new `market-calendar-refresh-dev` job runs at 00:00/06:00/12:00/18:00UTC, with a 300-second deadline and the existing managed identity. All 36 existing configurations, all 21 production images and the other 13 existing DEV images were read back unchanged. Conditional Home reads include the calendar in the response fingerprint; an unchanged body returns 304. Replay before the first retained calendar does not receive the later live schedule.
 
 Scoped changes were also applied to the original IDE checkout with a clean patch check, preserving its concurrent jobs/types changes. That checkout remains unaccepted release source. Build/release only the committed `feature/live-market-calendar-20261101` worktree. Issuer-confirmation ingestion remains future work; Alpha Vantage entries are explicitly expected.
+
+## Production and physical-phone delivery
+
+The owner requested the real production scan and phone update. Added `market-calendar-refresh` with the same qualified worker image, four daily UTC refreshes and a 300-second bound. Its `production` namespace matches the production API; the store canonically maps that production name to its existing production publication path. The first execution succeeded without inference. Promoted the exact DEV API/web images to the existing production API and both Next.js entry points. All 37 pre-existing configurations, all 16 DEV images and the other 18 existing production images remain unchanged across the 38-consumer readback; all three new app revisions are Healthy.
+
+Signed Release build 18 is installed in place over build 17, independently read back and running on the paired iPhone. The initial launch was rejected under its renewed profile despite valid local signing, certificate membership and device registration. The installed executable subsequently ran, and a final ordinary launch succeeded with the same process. No physical-screen inspection is claimed. Current source and verification remain in this committed worktree; the original IDE checkout retains concurrent work.

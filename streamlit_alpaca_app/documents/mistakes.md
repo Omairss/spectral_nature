@@ -1453,3 +1453,7 @@ Simulator exposed expandable paragraphs as single accessibility elements, and re
 
 - The first local publication hit PyArrow26's NumPy2 requirement against the application's NumPy<2 constraint. Bound PyArrow below26 and verified a normal materialized publication with25.
 - Sparse mock calendars concealed clipping and eager rendering on busy days. Review the full provider dataset before release; fixed inner-text clamping and lazy event rows globally.
+
+### November 1, 2026 — renewed native profile
+
+iOS rejected the first build 18 launch despite a valid signature, matching provisioning certificate and registered device. Keep installation and launch as separate verification states; the later matching process and successful ordinary launch established completion. Do not rebuild or change signing access merely because the generic iOS security error lists several possible causes.

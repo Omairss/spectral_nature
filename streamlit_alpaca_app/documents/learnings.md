@@ -1522,3 +1522,7 @@ An inline explanation must be authored as a replacement that fits the same prefi
 
 - FRED release dates include future schedules; realtime start/end describe vintages. Keep date-only fallback records date-only. Publisher monthly pages need an explicit requested-period check, and annual/monthly Fed meeting identities must match.
 - Bulk earnings produce hundreds of events on busy dates. Preserve all records, rank each day from shared data, and render visible carousel rows lazily. A live owner-key request establishes access; the public demo does not.
+
+### November 1, 2026 — production calendar and physical-device verification
+
+Match a new producer to the reader’s explicit production namespace; legacy macro producers may use the canonical unscoped production path. Promote only the exact DEV-qualified images. For native installation, independently verify bundle version and the matching running executable; local signature validation does not establish that iOS will launch a renewed development profile.

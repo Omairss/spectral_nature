@@ -1,6 +1,6 @@
 # Market event calendar sources — October 30, 2026
 
-Status: implemented on DEV on November 1, 2026. Alpha Vantage expected earnings and official Fed/BEA schedules plus BLS/FRED fallback now feed the shared native/web carousel. The owner key is stored in Key Vault. The first managed-identity cloud publication succeeded with 3,454 earnings and 61 agency records. Production is unchanged. See [implementation and current limits](LIVE_MARKET_CALENDAR_2026-11-01.md).
+Status: implemented and promoted to production on November 1, 2026. Alpha Vantage expected earnings and official Fed/BEA schedules plus BLS/FRED fallback now feed the shared native/web carousel. The owner key is stored in Key Vault. The first production managed-identity publication succeeded with 3,454 earnings and 59 agency records; the earlier DEV run contained 61 agency records in its preceding rolling window. Native build 18 is installed and launched on the owner’s iPhone. See [implementation and current limits](LIVE_MARKET_CALENDAR_2026-11-01.md).
 
 ## Source decision
 

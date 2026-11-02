@@ -21,7 +21,7 @@ Use the docs as follows:
 
 ## Product and UX
 
-- [Live market-event calendar](LIVE_MARKET_CALENDAR_2026-11-01.md): shared source ingestion, expected earnings, native/web carousel and exact-image DEV qualification.
+- [Live market-event calendar](LIVE_MARKET_CALENDAR_2026-11-01.md): shared source ingestion, expected earnings, native/web carousel, production job and physical iPhone build 18.
 
 - [Client refresh and native paper performance](CLIENT_REFRESH_2026-10-22.md): conditional live Brief refresh, replay/playback preservation and corrected native detail routing.
 
