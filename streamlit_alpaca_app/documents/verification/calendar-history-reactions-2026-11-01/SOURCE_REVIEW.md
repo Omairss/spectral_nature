@@ -1,6 +1,6 @@
 # Calendar history and measured reactions
 
-The owner requested past events colored by reaction. The accepted baseline is `4430267b`, the live calendar release and build18. This isolated checkout changes the shared calendar producer and both clients. Existing Brief research, audio, Highlights, attention graph, Trading, authorization and all existing schedules stay on their accepted paths. No model or research allocation was used.
+The owner requested past events colored by reaction. The initial baseline was `4430267b`, the live calendar release and build18. During implementation the accepted Market-First backend `59e8c7e5` was promoted in another session. Integrated that exact Git source before packaging; its thirteen runtime changes remain byte-for-byte identical and its full package/production proofs are retained. The final review base is `59e8c7e5`. This isolated checkout changes the shared calendar producer and both clients. Existing Brief research, audio, Highlights, attention graph, Trading, authorization and all existing schedules stay on their accepted paths. No model or research allocation was used.
 
 ## Source and numerical acceptance
 

@@ -1,5 +1,9 @@
 # Mistakes — Active Guidelines
 
+## Release preparation must fail fast and use the Git root — 2026-11-02
+
+Operator metadata preparation used repository-relative paths while running inside the application directory. A failed step was followed by later shell commands, and an unresolved acceptance record was temporarily committed. The source gate rejected it before any build or deployment. Corrected the metadata, made dependent operator sequences fail fast, anchored Git path filters to the actual root, and passed all three complete source gates before packaging. A failed preparation step must stop its dependent sequence.
+
 ## Validate quote coverage before reaction color — 2026-11-02
 
 The first calendar preview reused IEX-only adjusted closes and described them too broadly as a market reaction. The owner questioned Microsoft's color. The issuer's official lookup and a fresh consolidated SIP probe agreed on −0.16%, versus the cached IEX −0.35%; the opening gap was positive but the next close was negative. Calendar observations now explicitly fetch SIP, expose the exact close dates and retain no IEX fallback. Verify the feed as well as arithmetic before accepting a reaction percentage.
