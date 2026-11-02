@@ -381,7 +381,13 @@
         "empty": true,
         "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       }
-    ]
+    ],
+    "resolved_core_model": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-pro",
+      "thinking_mode": "enabled",
+      "reasoning_effort": "high"
+    }
   },
   "normalizations": "production-trial-azure-normalization-2026-11-01.json",
   "accepted_application_source": "f960d945e677e2be51014d040558ac9cb676027b",
@@ -395,5 +401,12 @@
     "image_and_configuration_records": "Private production-trial-20261101/{apps,jobs}.before.json; exact prior digests recorded per consumer in infra/release_acceptance.json",
     "automatic_baseline_research_fallback_added": false
   },
-  "owner_instruction": "Add explicit instructions to not use financial jargon, especially for the reviewer. Push to production for this week, then iterate writing and promote further changes only if better."
+  "owner_instruction": "Add explicit instructions to not use financial jargon, especially for the reviewer. Push to production for this week, then iterate writing and promote further changes only if better.",
+  "visual_review": {
+    "status": "passed",
+    "fresh_production_browser_navigation": true,
+    "observed_publication": "Oct30,8:50PMUTC",
+    "home_calendar_brief_audio_chart_and_feed_present": true,
+    "new_trial_output_published": false
+  }
 }
