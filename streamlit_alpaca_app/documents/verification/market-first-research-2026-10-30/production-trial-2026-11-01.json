@@ -1,0 +1,29 @@
+{
+  "status": "authorized_preparing_release",
+  "recorded_at_utc": "2026-11-02T07:38:45.621038+00:00",
+  "owner_instruction": "Add explicit instructions to not use financial jargon - specially for the reviewer. Test out this system end-to-end this week. Push this to prod. Then iterate on the writing with feedback; update prod if better.",
+  "acceptance": "Owner accepts the current data-first system for a production trial. This does not claim the known writing issues are resolved.",
+  "release_scope": [
+    "Data-first market observations and numerical grouping before one shared Zopedia research agenda",
+    "Shared original evidence, focused investigations, retained research with original dates, and Zopedia review before Attention and Brief",
+    "Explicit prohibition on financial jargon in shared writing and reviewer instructions",
+    "Preserve accepted calendar, Trading, frontend, native and all current consumer configurations"
+  ],
+  "remaining_work": [
+    "Inspect exact integrated source and package",
+    "Development verification of exact images before production",
+    "Production readback and rollback record",
+    "Narrow writer/reviewer iteration over retained evidence, compared with released version before any further promotion"
+  ],
+  "preservation": {
+    "live_consumer_count": 38,
+    "live_apps": 5,
+    "live_jobs": 33,
+    "accepted_calendar_application_source": "63a19ac7146c3da58b6338fd71e80dd027a80b1b",
+    "private_snapshot": "production-trial-20261101/{apps,jobs}.before.json"
+  },
+  "inference": {
+    "new_paid_requests_this_release": 0,
+    "no_historical_output_republication": true
+  }
+}

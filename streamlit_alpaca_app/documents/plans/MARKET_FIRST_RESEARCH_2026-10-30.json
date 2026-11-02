@@ -1,7 +1,7 @@
 {
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
-  "revision": 12,
+  "revision": 20,
   "status": "complete_data_first_attempt_degraded_quality_rejected_no_deployment",
   "recorded_at_utc": "2026-10-31T03:18:50.047478+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
@@ -228,7 +228,7 @@
   "configuration_policy": "Reuse centrally owned configuration for allowance, event margin, deadlines and concurrency. Numerical horizon/grouping choices and the amount/depth of selected work remain adaptable. Choose defaults from complete-output comparisons rather than encoding this week's example companies or a fixed N. Any new setting requires one owner and documented effect, not a collection of exception flags.",
   "qualification_cases": [
     "Quiet current inputs: recognize limited new information and spend less without presenting old events as new.",
-    "Important group support with modest individual moves: assess the measured October 26–30 omissions, using only contemporaneously available data and sources. Avoid hardcoding the seven companies.",
+    "Important group support with modest individual moves: assess the measured October 26\u201330 omissions, using only contemporaneously available data and sources. Avoid hardcoding the seven companies.",
     "Heavy contradictory day: surface both declining high-weight names and offsetting groups; protect investigation depth and preserve the configurable event margin.",
     "Genuine and spurious grouping changes: inspect persistent breaks, stable groups, universe churn, incomplete histories and corporate actions.",
     "New consequential headline or macro release without a price anomaly: preserve a useful lead without reverting to headline frequency as the entire agenda.",
@@ -260,7 +260,7 @@
     "latest_public_artifact": "../verification/market-first-research-2026-10-30/candidate-output.json",
     "latest_editorial_verification": "../verification/market-first-research-2026-10-30/compressed-current-production-2026-11-01.json"
   },
-  "next_action": "Owner reviews the complete actual-production versus new data-first output. Candidate remains unaccepted. Fix recorded verification admission and shared interpretation/source-use failures before another paid qualification or release.",
+  "next_action": "The owner identified assumed financial knowledge as the main writing failure. The original explicit 80% ASD-STE100-inspired rule was omitted during compression and is now restored locally, with casual-reader understanding made explicit in the shared writer/style and reviewer. Current comparison predates this correction. No new paid run or deployment; conceptual clarity remains unverified in fresh output.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",
@@ -417,7 +417,7 @@
     "production_image": "sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48",
     "production_accepted_source": "91a0f2d7dc33ee5caea9c6d8610a54b3b20bcab8",
     "baseline": "Fresh read-only capture of the actual currently published production feed; 11 stories, run 897f8072-05b5-4f11-89de-792daa2093cb, cutoff 2026-10-30T20:50:40.507732+00:00.",
-    "candidate_scope": "Existing Zopedia public writer and reviewer over that publication’s retained research, observations and captures, no new investigations. Reconstruction from persisted production inputs is recorded; not claimed as an identical original pre-publication request or full Market-First replay.",
+    "candidate_scope": "Existing Zopedia public writer and reviewer over that publication\u2019s retained research, observations and captures, no new investigations. Reconstruction from persisted production inputs is recorded; not claimed as an identical original pre-publication request or full Market-First replay.",
     "spending": "Current owner retry request authorizes this DeepSeek comparison within the existing cumulative 33-dollar cap; preserve 25.570487 known and 4.470776 unresolved maximum. No cap increase.",
     "deployment": false,
     "result": "../verification/market-first-research-2026-10-30/compressed-current-production-2026-11-01.json",
@@ -445,5 +445,131 @@
     "public_stories": 13,
     "final_public_review": "completed",
     "highlights": "failed_timeout"
+  },
+  "quality_recovery_2026_11_01": {
+    "status": "independent_business_example_failed_shared_prompts_unaccepted",
+    "objective": "Preserve numerical discovery while recovering concrete business explanation, meaningful source use and substantive review. Improve the existing flow rather than add another agent, retrieval service or prose filter.",
+    "observed_basis": "The candidate uses full Pro. Production-versus-candidate source review shows compressed prompts lost independent reviewer explanation, decisive-source reading and specific reader-focused writing duties. Failed investigations worsened coverage, but completed writing and review also produced material errors. This comparison does not isolate each change causally.",
+    "changes": [
+      {
+        "owner": "Shared Zopedia research and existing evidence reader",
+        "work": "Investigate the business question behind the numerical observation using relevant original captures and retained findings, including contrary evidence. Treat headlines, prior narratives and claim-role labels as fallible. Distinguish work that was not completed from a question investigated without a conclusive cause. Preserve useful observations and hypotheses without demanding proven causality."
+      },
+      {
+        "owner": "Shared final writing and Home task",
+        "work": "Use numerical observations, original sources and fallible prior research to explain the main business message for general readers. Preserve financial meaning and material context, omit secondary inventories, and compose Attention before its Brief summary. Removed the unqualified approximate word target after the held-out example failed."
+      },
+      {
+        "owner": "Existing shared reviewer",
+        "work": "Existing reviewer first forms its explanation from evidence and checks the draft as fallible claims. The independent case still failed readability and selection; this instruction is not accepted as a complete fix."
+      }
+    ],
+    "execution_prerequisites": "Correct the private study guard so transient worst-case holds wait within the original deadline and native Pro mechanical repair retains its supported mode. Preserve the cumulative cap and unknown charges, account for real inability to fund completion explicitly, and diagnose the Highlights loop separately; do not attribute already-generated prose to that later timeout.",
+    "qualification": "Use saved findings to isolate editorial behavior first; identify that explicitly as a stage comparison, not complete architecture verification. A later complete data-first comparison and a separate market case must assess discovery, business explanation, material precision, continuing coverage, readability and full cost. Personally inspect complete unedited outputs and decisive sources. No keyword grades, example-company rules, automatic reviewer-score acceptance or equal-quality savings claim from a degraded attempt.",
+    "spending_and_release": "Owner-directed communication-only continuation used the unused portion of the same $38 DeepSeek exception, with no increase and all prior costs and unknown maximums preserved. Latest limited outputs are for owner review. Whole-feed acceptance and deployment remain held.",
+    "preserved_order": "Stock/economic observations -> anomalies and movers -> numerical grouping and relationship changes -> one upfront Zopedia planner -> shared research and review -> Zopedia Attention and its Brief."
+  },
+  "communication_examples_2026_11_01": {
+    "result": "../verification/market-first-research-2026-10-30/communication-examples-2026-11-01.json",
+    "status": "small_example_owner_accepted_complete_feed_unaccepted",
+    "known_estimated_usd": 0.409317,
+    "sent_requests": 42,
+    "provider_cap_increase_usd": 0,
+    "full_pipeline_rerun": false,
+    "deployment": false,
+    "latest_continuation_costs": {
+      "sent_requests": 13,
+      "known_estimated_usd": 0.079898,
+      "unknown_max_usd": 0.0,
+      "cap_increase_usd": 0,
+      "scope": "Cases 17\u201329, including every retry. Earlier charges and unknown maximums remain counted."
+    },
+    "independent_example_costs": {
+      "sent_requests": 10,
+      "known_estimated_usd": 0.049962,
+      "unknown_max_usd": 0.0,
+      "cap_increase_usd": 0
+    }
+  },
+  "communication_full_comparison_preflight_2026_11_01": {
+    "status": "complete_comparison_delivered_quality_unaccepted",
+    "current_production_read_at_utc": "2026-11-02T06:30:34.110244+00:00",
+    "current_production_story_count": 11,
+    "input_origin": "actual full-candidate-20261101 owning Home publication call",
+    "scope": "Complete public writer and existing final reviewer; no full research rerun or production writes.",
+    "original_source_documents": 912,
+    "indexed_original_chunks": 1445,
+    "new_paid_requests": 0,
+    "preflight": {
+      "recorded_at_utc": "2026-11-02T06:39:02.751021+00:00",
+      "capture_only_no_paid_transport": true,
+      "request_bytes_bound": 704014,
+      "model": "deepseek-v4-pro",
+      "thinking": {
+        "type": "enabled"
+      },
+      "reasoning_effort": "high",
+      "native_output_allowance_unchanged": true,
+      "writer_maximum_usd": 1.2104479200000002,
+      "review_maximum_usd": 1.64364288,
+      "both_maximum_usd": 2.8540908000000003,
+      "cumulative_counted_usd": 35.996018,
+      "remaining_approved_usd": 2.0039820000000006,
+      "protected_additional_requirement_usd": 0.8501087999999997,
+      "request_sha256": "2aecb726d3c10f1df0025df85ccbae23daa66f3dbb1d17dff27eebf75dff0b16"
+    },
+    "requested_cap_usd": 40,
+    "owner_approval_received": true,
+    "approved_cap_usd": 40,
+    "approval_question_id": "call_5fc263584aa642ffb0ca24a72d01d205",
+    "first_replay": {
+      "status": "completed_quality_rejected",
+      "estimated_usd": 0.758676,
+      "requests": 2,
+      "unknown_max_usd": 0
+    },
+    "handoff_correction": {
+      "unbilled_preflight": true,
+      "native_writer_request_bytes": 562741,
+      "previous_native_writer_request_bytes": 704014,
+      "initial_findings_bytes_before": 909575,
+      "initial_findings_bytes_after": 32090,
+      "all_claim_texts_and_references_preserved": true,
+      "complete_readable_supplied_records_identical": true,
+      "source_index_numerical_context_task_and_schema_identical": true,
+      "writer_maximum_usd": 1.023968,
+      "review_maximum_usd": 1.643644,
+      "prior_counted_usd": 36.754694,
+      "cumulative_cap_usd": 40,
+      "model": "deepseek-v4-pro",
+      "thinking": {
+        "type": "enabled"
+      },
+      "reasoning_effort": "high"
+    },
+    "report": "../verification/market-first-research-2026-10-30/full-communication-comparison-2026-11-01.json",
+    "costs": {
+      "first_complete_editorial_attempt_estimated_usd": 0.758676,
+      "second_complete_editorial_attempt_estimated_usd": 0.625792,
+      "both_complete_editorial_attempts_estimated_usd": 1.384468,
+      "sent_requests": 4,
+      "new_unknown_max_usd": 0.0,
+      "cumulative_cap_usd": 40,
+      "cumulative_maximum_counted_usd": 37.380486,
+      "prior_costs_and_unknowns_preserved": true,
+      "scope": "Both full editorial attempts, including rejected work; not a full-research run or production daily forecast."
+    },
+    "owner_full_feed_acceptance": false
+  },
+  "casual_reader_instruction_repair_2026_11_01": {
+    "status": "restored_locally_not_model_verified",
+    "report": "../verification/market-first-research-2026-10-30/casual-reader-instructions-2026-11-01.json",
+    "new_spending_usd": 0,
+    "current_comparison_predates_change": true
+  },
+  "current_production_trial": {
+    "status": "owner_authorized",
+    "evidence": "documents/verification/market-first-research-2026-10-30/production-trial-2026-11-01.json",
+    "writing_acceptance": "Trial accepted; further improvements remain conditional on comparison."
   }
 }

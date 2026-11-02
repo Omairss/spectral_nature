@@ -1,0 +1,434 @@
+{
+  "status": "small_example_owner_accepted_complete_feed_unaccepted",
+  "recorded_at_utc": "2026-11-02T05:10:24.884292+00:00",
+  "scope": "Small writing/review and review-only examples using saved original captures. No research planning, investigations, full pipeline, charts, new source acquisition or production writes.",
+  "model": "deepseek-v4-pro",
+  "thinking": "enabled",
+  "reasoning_effort": "high",
+  "examples": [
+    {
+      "name": "Google advertising risk, short-brief task",
+      "case": "communication-example-20261101-28",
+      "query": "As of 2026-10-30T20:50:40.507732+00:00. Condense this AI advertising risk for the Attention feed into a brief of about 25 words. Preserve the mechanism, business significance and uncertainty. Use everyday words. Return the same fields with source references.",
+      "input_manifest": {
+        "scope": "One Alphabet explanation and existing shared review only; no pipeline, planning, investigation, charts or production writes.",
+        "source_revision": "1e99e3d26473612033e427e27114aad949bb0cab",
+        "engine_revision": "423562e9d1461989b6c6",
+        "model": "deepseek-v4-pro",
+        "thinking": "enabled",
+        "reasoning_effort": "high",
+        "input_sha256": "b89b57188e698f0f6e2cc2fb17e41b56990720381f97c05acd3a3ef3aaec9dee",
+        "source_sha256": {
+          "doc::event-news::a11cce13eadfe48ba931": "82c0206bd66cf6820370dfea4896c4991331f23bea8a08dcbcc2834fb272c148"
+        },
+        "manual_prose_injected": false,
+        "asof": "2026-10-30T20:50:40.507732+00:00"
+      },
+      "input_draft": {
+        "why_happened_text": "More searches are shifting to Google's AI answers, which can show fewer ads than traditional results, so ad revenue can grow more slowly even as search activity rises. Search ads are a major source of Google's income, so if AI search earns less per query, the company could report slower ad growth even while people search more.",
+        "source_ids": [
+          "doc::event-news::a11cce13eadfe48ba931"
+        ]
+      },
+      "output": {
+        "why_happened_text": "More searches are shifting to AI answers, which show fewer ads. Since Search ads are a big income source, revenue growth may lag search growth.",
+        "source_ids": [
+          "doc::event-news::a11cce13eadfe48ba931"
+        ]
+      },
+      "review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft explains the correct mechanism and uncertainty, but it is much longer than the requested ~25 words and repeats the same revenue-risk point twice.",
+        "answer_markdown": "{\"why_happened_text\": \"More searches are shifting to AI answers, which show fewer ads. Since Search ads are a big income source, revenue growth may lag search growth.\", \"source_ids\": [\"doc::event-news::a11cce13eadfe48ba931\"]}",
+        "answer_points": [
+          "More searches are moving to AI answers that show fewer ads.",
+          "Search ads are a major income source, so this shift may slow revenue growth even as usage rises.",
+          "The outcome remains uncertain as Google expands AI advertising."
+        ],
+        "confidence": "high",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "research_requests": []
+      },
+      "unedited_native_output": true,
+      "native_receipts": [
+        {
+          "file": "transport-46ad423c8c6046719d4a02a6f392722f.json",
+          "reported_model": "deepseek-v4-pro",
+          "sha256": "0994e2e04a080652f9dd44196cb0720e892047467e52bf986527e3723c4611c1"
+        }
+      ]
+    },
+    {
+      "name": "Alphabet market-value change only",
+      "case": "communication-example-20261101-29",
+      "query": "As of 2026-10-30T20:50:40.507732+00:00. Report only the market-value change in the draft, using a concise sentence for the Attention feed. Return the same fields with source references.",
+      "input_manifest": {
+        "scope": "One Alphabet explanation and existing shared review only; no pipeline, planning, investigation, charts or production writes.",
+        "source_revision": "1e99e3d26473612033e427e27114aad949bb0cab",
+        "engine_revision": "423562e9d1461989b6c6",
+        "model": "deepseek-v4-pro",
+        "thinking": "enabled",
+        "reasoning_effort": "high",
+        "input_sha256": "857eeba97626efc5fcca99eda56436bd680780a51a35b7e466b5cfd39269c1a0",
+        "source_sha256": {
+          "doc::event-news::a11cce13eadfe48ba931": "82c0206bd66cf6820370dfea4896c4991331f23bea8a08dcbcc2834fb272c148",
+          "saa_doc::8af026860902d4786211e1ac": "8fe3eb70aff58991a9053680cc684207c89ae06b33ab651f53f3ecd41d681431"
+        },
+        "manual_prose_injected": false,
+        "asof": "2026-10-30T20:50:40.507732+00:00"
+      },
+      "input_draft": {
+        "summary_text": "Alphabet's $482 billion figure measures how much the company's total stock-market value fell in one day after investors questioned whether its AI spending will earn enough.",
+        "source_ids": [
+          "saa_doc::8af026860902d4786211e1ac"
+        ]
+      },
+      "output": {
+        "summary_text": "Alphabet lost about $482 billion in market value on Thursday.",
+        "source_ids": [
+          "saa_doc::8af026860902d4786211e1ac"
+        ]
+      },
+      "review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft adds a reason for the decline, but the task asks to report only the market-value change. Keep the concise loss figure and remove the causal explanation.",
+        "answer_markdown": "{\"summary_text\": \"Alphabet lost about $482 billion in market value on Thursday.\", \"source_ids\": [\"saa_doc::8af026860902d4786211e1ac\"]}",
+        "answer_points": [
+          "Alphabet lost about $482 billion in market value on Thursday."
+        ],
+        "confidence": "high",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "research_requests": []
+      },
+      "unedited_native_output": true,
+      "native_receipts": [
+        {
+          "file": "transport-48d07457c69346a28aa42f6127455b7d.json",
+          "reported_model": "deepseek-v4-pro",
+          "sha256": "0d8a92b8d990584a616c9c2be573a8a85482e2d91eba51fab400001ebf3571fa"
+        }
+      ]
+    }
+  ],
+  "personal_assessment": {
+    "search_risk": "The final short-brief output gives the fewer-ads mechanism and its income significance in two short sentences, with a conditional growth consequence. It is concise enough to show the owner. The source remains an analyst interpretation; this exercise is not new factual research.",
+    "market_value": "The final statement reports the market-value decline directly and omits an unnecessary definition and causal appendix. It uses market value rather than the owner-preferred market cap.",
+    "default_concision": "Not accepted as reliable. Earlier retries expanded the passage, repeated the consequence, retained ad-load/coverage jargon, or treated basic business knowledge as unsupported. The concise Google result needed an explicit roughly 25-word task; the market statement needed a scope limited to the value change.",
+    "examples": "Style examples are deliberately close analogues illustrating the owner feedback. They are not independent held-out evaluation or market evidence. Neither final output was manually rewritten.",
+    "remaining_qualification": "Two complete public writer/reviewer replays used the actual data-first findings and existing originals. Both reviews completed at full Pro, but jargon, defensive caveats and important coverage omissions remain. The corrected claim projection reduces input bulk, not the quality problem. See full-communication-comparison-2026-11-01.json."
+  },
+  "costs": {
+    "sent_requests": 42,
+    "known_estimated_usd": 0.409317,
+    "unknown_max_usd": 0.0,
+    "cap_increase_usd": 0,
+    "cumulative_cap_usd": 38,
+    "cumulative_maximum_counted_usd": 35.996018,
+    "scope": "All communication iterations, including failed quality attempts; not full-run cost or savings."
+  },
+  "source_runtime_sha256": {
+    "services/llm.py": "a993eaa8d80e047ec731dad785b06289f6e093e0f9b5ab1b712c4d25da36ec18",
+    "services/zopedia_agent.py": "e29fb5d79b607402bc506646da44bb81531c55959a0e8103df92247fb9dc29be",
+    "pipeline/jobs/attention_home_build.py": "7cf37643592c73bff573c48d14cf66c42df030ca656cac05675d7b51d64ff94e"
+  },
+  "operational_checks": {
+    "syntax_parsed": true,
+    "native_output_integrity_checked": true,
+    "automated_nlp_grades_used": false,
+    "production_deployment": false,
+    "development_deployment": false,
+    "gpu_allocated": false
+  },
+  "study_setup_failures": [
+    {
+      "case": 4,
+      "sent_requests": 0,
+      "cause": "Preparation used system Python without the project dependency, but a dependent runner was still started; the scope guard blocked transport."
+    },
+    {
+      "case": 5,
+      "sent_requests": 0,
+      "cause": "A normalized review artifact lacks the full agent context expected by the review runner; reused the original full-agent artifact instead."
+    },
+    {
+      "case": 17,
+      "sent_requests": 1,
+      "cause": "Native review completed and its receipt/output were retained; the private runner then failed to mark an undeclared future-review entry. The completed bookkeeping entry was reconciled without repeating inference."
+    }
+  ],
+  "remaining_work": [
+    "Owner can inspect the complete current-production comparison.",
+    "Reassess the public editorial handoff and original-source coverage before another paid iteration.",
+    "Whole-feed, shared consumers and deployment remain unaccepted."
+  ],
+  "earlier_examples": [
+    {
+      "name": "Search advertising mechanism",
+      "case": "communication-example-20261101-14",
+      "query": "As of 2026-10-30T20:50:40.507732+00:00. Briefly explain why more Google searches can coincide with slower advertising revenue growth, and why that matters for the business, to a reader unfamiliar with finance or technology. Put the explanation in why_happened_text and references in source_ids.",
+      "input_manifest": {
+        "scope": "One Alphabet explanation and existing shared review only; no pipeline, planning, investigation, charts or production writes.",
+        "source_revision": "1e99e3d26473612033e427e27114aad949bb0cab",
+        "engine_revision": "7b5160bde2b9e35488ce",
+        "model": "deepseek-v4-pro",
+        "thinking": "enabled",
+        "reasoning_effort": "high",
+        "input_sha256": "86c7955548a8999be30867332d19ee1befa76834909c7b4bcb7a29cc18d76a5b",
+        "source_sha256": {
+          "doc::event-news::a11cce13eadfe48ba931": "82c0206bd66cf6820370dfea4896c4991331f23bea8a08dcbcc2834fb272c148"
+        },
+        "manual_prose_injected": false,
+        "asof": "2026-10-30T20:50:40.507732+00:00"
+      },
+      "output": {
+        "why_happened_text": "More searches are shifting to Google's AI answers, which can show fewer ads than traditional results, so ad revenue can grow more slowly even as search activity rises. Search ads are a major source of Google's income, so if AI search earns less per query, the company could report slower ad growth even while people search more.",
+        "source_ids": [
+          "doc::event-news::a11cce13eadfe48ba931"
+        ]
+      },
+      "review": {
+        "status": "completed",
+        "verdict": "accept",
+        "critique_summary": "The draft clearly explains the supported mechanism: Google's AI search answers can display fewer ads than traditional search results, so a rise in search activity does not automatically produce a matching rise in advertising revenue. It also connects this to the business consequence by noting that search advertising is a major revenue source for Google. The source supports these points, and the source_ids field is correct and complete.",
+        "answer_markdown": "{\"why_happened_text\": \"More searches are shifting to Google's AI answers, which can show fewer ads than traditional results, so ad revenue can grow more slowly even as search activity rises. Search ads are a major source of Google's income, so if AI search earns less per query, the company could report slower ad growth even while people search more.\", \"source_ids\": [\"doc::event-news::a11cce13eadfe48ba931\"]}",
+        "answer_points": [
+          "More Google searches do not automatically mean more advertising revenue.",
+          "AI-powered search answers can show fewer ads than traditional search results.",
+          "Because search advertising is a major part of Google's income, lower ad revenue per AI query can slow overall ad growth even as search activity rises."
+        ],
+        "confidence": "high",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "research_requests": []
+      },
+      "unedited_native_output": true,
+      "owner_feedback": "Rejected: repetition or an unnecessary definition; not concise public reporting."
+    },
+    {
+      "name": "Stock-market value clarification",
+      "case": "communication-example-20261101-16",
+      "query": "As of 2026-10-30T20:50:40.507732+00:00. Rewrite only the statement about the $482 billion figure so a reader unfamiliar with finance understands what the amount measures. Return one short sentence in summary_text and references in source_ids.",
+      "input_manifest": {
+        "scope": "One Alphabet explanation and existing shared review only; no pipeline, planning, investigation, charts or production writes.",
+        "source_revision": "1e99e3d26473612033e427e27114aad949bb0cab",
+        "engine_revision": "7b5160bde2b9e35488ce",
+        "model": "deepseek-v4-pro",
+        "thinking": "enabled",
+        "reasoning_effort": "high",
+        "input_sha256": "5d558d7f3c9a6bf0b0bcadad23fa7e9e4014b0a2191e93d7bc232cf5dc0165a8",
+        "source_sha256": {
+          "doc::event-news::a11cce13eadfe48ba931": "82c0206bd66cf6820370dfea4896c4991331f23bea8a08dcbcc2834fb272c148",
+          "saa_doc::8af026860902d4786211e1ac": "8fe3eb70aff58991a9053680cc684207c89ae06b33ab651f53f3ecd41d681431"
+        },
+        "manual_prose_injected": false,
+        "asof": "2026-10-30T20:50:40.507732+00:00"
+      },
+      "output": {
+        "summary_text": "Alphabet's $482 billion figure measures how much the company's total stock-market value fell in one day after investors questioned whether its AI spending will earn enough.",
+        "source_ids": [
+          "saa_doc::8af026860902d4786211e1ac"
+        ]
+      },
+      "review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft calls the $482 billion figure a 'loss' without explaining that it measures a one-day drop in Alphabet's total stock-market value. It also includes a source that does not contain the $482 billion figure; only the second source does.",
+        "answer_markdown": "{\"summary_text\": \"Alphabet's $482 billion figure measures how much the company's total stock-market value fell in one day after investors questioned whether its AI spending will earn enough.\", \"source_ids\": [\"saa_doc::8af026860902d4786211e1ac\"]}",
+        "answer_points": [
+          "The $482 billion is how much Alphabet's total stock-market value fell in one day.",
+          "The drop followed third-quarter results that raised doubts about whether Alphabet's AI investments will earn enough."
+        ],
+        "confidence": "high",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "research_requests": []
+      },
+      "unedited_native_output": true,
+      "owner_feedback": "Rejected: repetition or an unnecessary definition; not concise public reporting."
+    }
+  ],
+  "latest_continuation_costs": {
+    "sent_requests": 13,
+    "known_estimated_usd": 0.079898,
+    "unknown_max_usd": 0.0,
+    "cap_increase_usd": 0,
+    "scope": "Cases 17–29, including every retry. Earlier charges and unknown maximums remain counted."
+  },
+  "writing_references": [
+    {
+      "title": "SEC Plain English Handbook",
+      "url": "https://www.sec.gov/files/pdf/handbook.pdf",
+      "applied": "Select needed information before wording; concrete words, strong verbs, active voice; preserve substantive meaning."
+    },
+    {
+      "title": "Microsoft: Use simple words, concise sentences",
+      "url": "https://learn.microsoft.com/en-us/style-guide/word-choice/use-simple-words-concise-sentences",
+      "applied": "Precise familiar words; remove words without substance; one consistent term."
+    },
+    {
+      "title": "Google: Voice and tone",
+      "url": "https://developers.google.com/style/tone",
+      "applied": "Natural, direct writing without jargon or pedantry."
+    },
+    {
+      "title": "Australian Government Style Manual: Sentences",
+      "url": "https://www.stylemanual.gov.au/writing-and-designing-content/clear-language-and-writing-style/sentences",
+      "applied": "Short sentences; average 15 words, usually no more than 25. The approximately 25-word brief is a diagnostic task format, not an automatic quality gate."
+    }
+  ],
+  "iteration_history": [
+    {
+      "case": "communication-example-20261101-17",
+      "status": "rejected_for_expansion_repetition_or_jargon",
+      "input_and_complete_output_retained": true
+    },
+    {
+      "case": "communication-example-20261101-18",
+      "status": "rejected_for_expansion_repetition_or_jargon",
+      "input_and_complete_output_retained": true
+    },
+    {
+      "case": "communication-example-20261101-19",
+      "status": "rejected_for_expansion_repetition_or_jargon",
+      "input_and_complete_output_retained": true
+    },
+    {
+      "case": "communication-example-20261101-20",
+      "status": "rejected_for_expansion_repetition_or_jargon",
+      "input_and_complete_output_retained": true
+    },
+    {
+      "case": "communication-example-20261101-21",
+      "status": "rejected_for_expansion_repetition_or_jargon",
+      "input_and_complete_output_retained": true
+    },
+    {
+      "case": "communication-example-20261101-22",
+      "status": "rejected_for_expansion_repetition_or_jargon",
+      "input_and_complete_output_retained": true
+    },
+    {
+      "case": "communication-example-20261101-23",
+      "status": "rejected_for_expansion_repetition_or_jargon",
+      "input_and_complete_output_retained": true
+    },
+    {
+      "case": "communication-example-20261101-24",
+      "status": "rejected_for_expansion_repetition_or_jargon",
+      "input_and_complete_output_retained": true
+    },
+    {
+      "case": "communication-example-20261101-25",
+      "status": "rejected_for_expansion_repetition_or_jargon",
+      "input_and_complete_output_retained": true
+    },
+    {
+      "case": "communication-example-20261101-26",
+      "status": "rejected_for_expansion_repetition_or_jargon",
+      "input_and_complete_output_retained": true
+    },
+    {
+      "case": "communication-example-20261101-27",
+      "status": "rejected_for_expansion_repetition_or_jargon",
+      "input_and_complete_output_retained": true
+    },
+    {
+      "case": "communication-example-20261101-28",
+      "status": "focused_rewrite_for_owner_review",
+      "input_and_complete_output_retained": true
+    },
+    {
+      "case": "communication-example-20261101-29",
+      "status": "focused_rewrite_for_owner_review",
+      "input_and_complete_output_retained": true
+    }
+  ],
+  "independent_business_example": {
+    "status": "owner_accepted",
+    "case": "communication-example-20261101-34",
+    "scope": "One independent Exxon explanation written from its complete original article and reviewed through the existing shared engine. The saved draft is retained only for comparison, not submitted as the question. No new research, charts or production writes.",
+    "query": "As of 2026-10-30T20:50:40.507732+00:00. Write one concise explanation for the Attention feed, focusing on the main business development in the supplied article and why it matters. Use everyday words and preserve financial meaning and uncertainty. Return the explanation and source references.",
+    "original_saved_passage": "Refining strength, not broad crude-price gains, anchored Exxon's beat; the energy group's multi-week advance is a separate geopolitical supply-risk premium.",
+    "output": {
+      "why_happened_text": "ExxonMobil's refining business drove the quarter: Energy Products adjusted earnings more than doubled to $9 billion from $4.1 billion, as geopolitical disruptions tightened fuel supply and lifted refining margins. That beat Wall Street expectations on profit and revenue and supported higher shareholder returns, with the quarterly dividend rising to $1.07 per share and a $20 billion 2027 share repurchase target announced.",
+      "source_ids": [
+        "saa_doc::becd6ef1f6d938c6edbe5368"
+      ]
+    },
+    "review": {
+      "status": "completed",
+      "verdict": "accept",
+      "critique_summary": "The draft accurately reflects the supplied article: refining led the quarter, with Energy Products adjusted earnings more than doubling to $9 billion as geopolitical disruptions lifted refining margins. It correctly ties the beat to shareholder returns, including the dividend increase to $1.07 and the $20 billion 2027 buyback target. Wording is concise and preserves financial meaning and uncertainty.",
+      "confidence": "high",
+      "limitations": [],
+      "unsupported_claims": [],
+      "evidence_gaps": [],
+      "revised_answer_applied": false,
+      "research_requests": []
+    },
+    "input_manifest": {
+      "scope": "One independent Exxon explanation written from its complete original article and reviewed through the existing shared engine. The saved draft is retained only for comparison, not submitted as the question. No new research, charts or production writes.",
+      "source_revision": "1e99e3d26473612033e427e27114aad949bb0cab",
+      "engine_revision": "db2ba4486cd91bd89764",
+      "model": "deepseek-v4-pro",
+      "thinking": "enabled",
+      "reasoning_effort": "high",
+      "input_sha256": "f00e4f00c2d54ead5c638ddd7f878bf06225024a2aed570c28c06f20168c6d25",
+      "source_sha256": {
+        "saa_doc::becd6ef1f6d938c6edbe5368": "7495932f621ba4423583e7e394eff5a3eeeca50efe36e9c8e285218a37326f34"
+      },
+      "manual_prose_injected": false,
+      "asof": "2026-10-30T20:50:40.507732+00:00"
+    },
+    "native_receipts": [
+      {
+        "file": "transport-6aa2353dc040438194cc30449c865df6.json",
+        "reported_model": "deepseek-v4-pro",
+        "sha256": "5ec1f23cfb7cfe1dcd63e3a90d1585e9717c9decaeb14e255b63bcf3c616a569"
+      }
+    ],
+    "unedited_native_output": true,
+    "personal_assessment": "Owner accepts this example. Keep meaningful figures with a measure, baseline or reference; do not reject financial detail merely because it includes numbers or familiar terminology.",
+    "iterations": [
+      {
+        "case": 30,
+        "result": "Rejected. Compressed the old draft, retained jargon, changed the energy group into an issuer stock claim and added unsupported not-tied-to-fundamentals language."
+      },
+      {
+        "case": 31,
+        "result": "Rejected. Independent-source instruction still yielded a rephrased old claim with jargon and added may."
+      },
+      {
+        "case": 32,
+        "result": "Rejected. Source-based writing retained jargon and the malformed beat Q3 profit and revenue. Raw writer already omitted the forecast comparator; review kept it while prioritizing the word target. The earlier claim that review deleted forecasts was wrong."
+      },
+      {
+        "case": 33,
+        "result": "Source-based writing without a word target restored the forecast comparison, but expanded into a numerical quarter and shareholder-return recap; rejected for communication."
+      },
+      {
+        "case": 34,
+        "result": "Owner accepted the complete unedited example and authorized expansion to the full comparison."
+      }
+    ],
+    "costs": {
+      "sent_requests": 10,
+      "known_estimated_usd": 0.049962,
+      "unknown_max_usd": 0.0,
+      "cap_increase_usd": 0
+    },
+    "no_new_research_or_production_writes": true,
+    "word_target_removed_from_home_task": true,
+    "assistant_initial_assessment": "Rejected. Still uses refining margins and business-segment shorthand, repeats a numerical quarter recap and shareholder-return announcements, and gives long sentences instead of a plain explanation of the main business mechanism. The model accepted this quality; that verdict does not establish acceptance.",
+    "owner_feedback": "Figures are fine as long as they have context/baseline/reference. This looks good. Now do the rest and show me the full comparison."
+  },
+  "complete_feed_comparison": "full-communication-comparison-2026-11-01.json"
+}

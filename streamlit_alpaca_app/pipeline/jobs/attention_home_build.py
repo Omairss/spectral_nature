@@ -1931,7 +1931,9 @@ def _review_home_public_surface(
         answer = bundle.get("findings_markdown") or bundle.get("research_result")
         if answer:
             findings.append({"source_id": source_id, "findings": answer,
-                "recorded_claims": bundle.get("claims") or [],
+                "recorded_claims": [{key: claim.get(key) for key in (
+                    "claim_text", "source_id", "source_url", "evidence_role", "citation_status")}
+                    for claim in bundle.get("claims") or []],
                 "research_review": {key: (bundle.get("quality_review") or {}).get(key)
                                     for key in ("status", "verdict", "critique_summary", "unsupported_claims", "evidence_gaps")}})
     for index, row in enumerate(enrichment_rows or []):
@@ -1969,7 +1971,17 @@ def _review_home_public_surface(
                                "items": {"type": "string", "enum": list(records)}}}}},
     }}
     query = (
-        ((f"As of {_zopedia_asof_text(asof_time_utc)}. " 'Use current stock and economic observations, numerical groups, headlines and dated research to find consequential developments beyond headline attention. Groups do not prove flows or common causes. New research spending does not define publication eligibility; assess continuing relevance without automatic repetition or removal. Write distinct Attention stories first, then their Brief summary. Section limits are ceilings. Explain the business change and consequence. Unexplained observations can matter. Leave redundant fields empty. Include only material follow-ups. Use exact source IDs and valid source-title links.'))
+        f"As of {_zopedia_asof_text(asof_time_utc)}. "
+        "Use current stock and economic observations, numerical groups, headlines and dated research to explain "
+        "consequential developments beyond headline attention in concise, clear public reporting. "
+        "Lead with the business or economic explanation; each sentence should add information. "
+        "Assess continuing relevance independently of new "
+        "research spending. Write distinct Attention stories first, then summarize their main themes in Brief: "
+        "what changed, the business developments behind it and the wider economic or investment significance. "
+        "Preserve evidence that supports or challenges the central thesis. Treat numerical groups as observations "
+        "and explain plausible connections at their actual strength. Use original sources when the explanation "
+        "depends on a material detail. Section limits are ceilings; leave redundant fields empty and include only "
+        "material follow-ups. Use exact source IDs and valid source-title links."
     )
     initial_evidence = [{
         "numerical_overview": {key: value for key, value in (payload.get("market_context") or {}).items()

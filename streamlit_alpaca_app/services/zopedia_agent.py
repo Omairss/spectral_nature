@@ -221,9 +221,14 @@ _AGENT_FINAL_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        (
-        'Explain the requested answer and its consequence. Cite source titles using supplied URLs. Complete knowledge replacements preserve all unique original information.'
-    )
+        "Answer the question from the evidence; treat supplied drafts and research claims as fallible. "
+        "Select the essential facts and explain their useful connections and consequences "
+        "without repeating the same point. You may omit secondary facts, figures and examples. "
+        "Keep evidence that materially supports or challenges the central interpretation. "
+        "Use established subject knowledge to explain how the facts connect, distinguishing interpretation from reporting. "
+        "Use the research and original sources without strengthening their claims or confusing what a figure measures. "
+        "Keep research notes and execution limitations internal. Cite source titles using supplied URLs. "
+        "Only a requested complete retained-knowledge rewrite must preserve all unique original information."
     ),
 )
 
@@ -243,8 +248,25 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        (
-        'Check facts, causal logic, financial meaning, dates, material omissions and clarity against original evidence and the request. REMOVE UNEXPLAINED JARGON; EXPLAIN ITS MEANING IN PLAIN ENGLISH. Correct the final text; preserve useful analysis and qualified hypotheses. Remove repetition, unnecessary figures and research commentary. Accept sound drafts, revise errors, use insufficient only without a substantive answer. Record corrections in answer_points and research needs in research_requests. Complete knowledge replacements preserve every unique useful original observation and qualifier.'   ) ),
+        "You are an expert editor for casual readers unfamiliar with the subject. Assume no financial training "
+        "for market reports. Check that the reader can understand the ideas and their importance. "
+        "DO NOT ACCEPT FINANCIAL JARGON. Rewrite it in everyday language before returning the report. "
+        "Answer the requested question, not a broader one. "
+        "First form your own explanation from the evidence, then compare the draft. Treat the draft as claims to "
+        "check, not authority. Rewrite around the main message. Remove repeated ideas, padding and unnecessary definitions. "
+        "Do not add background merely because it appears in the sources. Replace specialist shorthand with its "
+        "meaning in the situation, using precise everyday words. Explain essential unfamiliar concepts within "
+        "the explanation. NO DISCLAIMERS or research bookkeeping. "
+        "Correct material errors, false connections and important omissions using the evidence and established subject "
+        "knowledge. Ordinary subject knowledge does not need a separate citation for every statement. "
+        "Read originals for material ambiguities. Preserve quantities, comparisons, dates and certainty. "
+        "Keep useful figures with their context, baseline or reference. "
+        "Put the essential ideas in answer_points, return the corrected text, then judge that exact text for accurate "
+        "understanding and clarity. Use research_requests for further work. "
+        "Accept clear, sound drafts; revise unclear or inaccurate drafts; use insufficient only without a substantive answer. "
+        "Only a requested complete retained-knowledge rewrite must preserve every unique useful original observation "
+        "and qualifier."
+    ),
 )
 
 _JUDGE_SCHEMA: dict[str, Any] = {
@@ -2127,14 +2149,16 @@ def _run_answer_judge(
     review_schema = dict(_JUDGE_SCHEMA)
     if response_schema:
         review_schema["properties"] = {
-            **_JUDGE_SCHEMA["properties"],
+            "answer_points": _JUDGE_SCHEMA["properties"]["answer_points"],
             "answer_payload": response_schema,
+            **{key: value for key, value in _JUDGE_SCHEMA["properties"].items() if key != "answer_points"},
         }
         review_schema["required"] = [*_JUDGE_SCHEMA["required"], "answer_payload"]
     else:
         review_schema["properties"] = {
-            **_JUDGE_SCHEMA["properties"],
+            "answer_points": _JUDGE_SCHEMA["properties"]["answer_points"],
             "answer_markdown": {"type": "string", "description": "Complete final answer for the reader; no editorial instructions."},
+            **{key: value for key, value in _JUDGE_SCHEMA["properties"].items() if key != "answer_points"},
         }
         review_schema["required"] = [*_JUDGE_SCHEMA["required"], "answer_markdown"]
     preview = None
