@@ -1595,3 +1595,7 @@ The software paragraph trace confirms that the final writer inherited the missin
 ### Emphasis and brevity require actual-output qualification — November 1, 2026
 
 A fresh full-Pro writer and reviewer over the currently published production run cost $0.261508. The actual capitalized plain-language instruction was present in both requests, source readers were available, and review completed. It corrected an Intel headline and reduced two financial inventories, but left substantial jargon, repeated research-limit commentary and an unsupported claim that unexplained moves are not investable. The candidate filled all 20 story slots versus production’s 11. Keep the real production baseline and all generated prose intact; this prompt experiment is not accepted. Count the writing task in both request totals when measuring compression.
+
+### Keep the candidate architecture when changing the baseline — November 1, 2026
+
+A request to compare against actual production changes the baseline, not the candidate execution path. Writer/reviewer-only replays isolate editorial behavior but do not fulfill full-flow verification. Preserve numerical preparation, the common planner, selected investigations and review in the candidate; record each executed stage. Earlier October 30–31 full-flow experiments remain part of execution history even when the latest editorial comparison did not use that path.

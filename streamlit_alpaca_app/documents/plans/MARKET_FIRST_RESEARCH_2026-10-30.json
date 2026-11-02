@@ -1,8 +1,8 @@
 {
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
-  "revision": 10,
-  "status": "implemented_fresh_output_rejected_no_deployment",
+  "revision": 11,
+  "status": "preparing_complete_latest_candidate_against_actual_production",
   "recorded_at_utc": "2026-10-31T03:18:50.047478+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
   "source_of_truth": "This named plan owns the implemented Market-First change and its remaining qualification. Existing release acceptance remains the authority for packaged runtime.",
@@ -260,7 +260,7 @@
     "latest_public_artifact": "../verification/market-first-research-2026-10-30/candidate-output.json",
     "latest_editorial_verification": "../verification/market-first-research-2026-10-30/compressed-current-production-2026-11-01.json"
   },
-  "next_action": "Show the complete actual current-production versus compact-prompt candidate. Both stages are funded and completed, but plain-language and explanatory failures remain. Preserve the unedited output and keep deployment held; do not treat emphasis or compression as a verified cure.",
+  "next_action": "Verify complete candidate input and source access offline; wait for requested spending approval before paid execution; personally inspect all generated research and publication against actual production.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",
@@ -424,5 +424,16 @@
     "estimated_new_cost_usd": 0.261508,
     "baseline_stories": 11,
     "candidate_stories": 20
+  },
+  "full_candidate_comparison_2026_11_01": {
+    "owner_instruction": "Do it: complete latest data-first pipeline with compressed prompts against actual current production.",
+    "scope": "Fresh numerical preparation, one common planner, selected shared investigations/reuse, existing review, Attention and Brief. No replay of earlier candidate model decisions or research.",
+    "baseline": "Actual 11-story production publication, run 897f8072-05b5-4f11-89de-792daa2093cb, cutoff 2026-10-30T20:50:40.507732+00:00.",
+    "inputs": "Read-only reconstruction of pre-cutoff production inputs and research, original captured sources; isolated database and no new live web discovery. Record limitations rather than claim an identical original producer invocation.",
+    "model": "Unchanged full DeepSeek v4 Pro, thinking/high, full context and literal output allowance.",
+    "completion": "Protect final writing and review in both application accounting and the independent cumulative verification cap before planning.",
+    "spending": "Original $33 cap retains $30.302771 committed maximum, leaving $2.697229. Pending owner request for up to $5 additional, cumulative $38. No new inference until approval.",
+    "deployment": false,
+    "status": "unpaid_input_preparation"
   }
 }

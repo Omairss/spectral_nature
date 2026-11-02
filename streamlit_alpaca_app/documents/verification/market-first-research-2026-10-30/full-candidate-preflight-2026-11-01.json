@@ -1,0 +1,69 @@
+{
+  "status": "prepared_no_paid_inference_awaiting_spending_approval",
+  "baseline": "Actual currently published production, 11 stories, run 897f8072-05b5-4f11-89de-792daa2093cb",
+  "asof": "2026-10-30T20:50:40.507732+00:00",
+  "first_stage": {
+    "task": "source_event_nomination",
+    "surface": "aql.source_event_nomination",
+    "schema_name": "source_event_nominations"
+  },
+  "numerical_coverage": {
+    "observed_symbols": 999,
+    "history_symbols": 999,
+    "comparable_relationship_symbols": 998,
+    "missing_history": [],
+    "unverified_adjustment": [],
+    "relationship_ineligible": [
+      "VYLR"
+    ],
+    "index_attribution": "unavailable: no dated benchmark membership and weights supplied"
+  },
+  "groups": 242,
+  "current_news_rows": 89,
+  "headlines_including_previous_publication_sources": 166,
+  "inline_prior_summaries": 20,
+  "retained_catalog_artifacts": 52,
+  "source_reader": {
+    "original_documents": 912,
+    "indexed_chunks": 1445,
+    "corpus_sha256": "e84b0d3666ffb9afd2211112814535a29858e171c96a97c94683b386a9f160f9",
+    "search_probe_rows": 5,
+    "full_original_read": true,
+    "new_web_access": false
+  },
+  "resolved_prompts": {
+    "zopedia_agent_answer_judge_evidence_sufficiency_review": {
+      "text": "Check facts, causal logic, financial meaning, dates, material omissions and clarity against original evidence and the request. REMOVE UNEXPLAINED JARGON; EXPLAIN ITS MEANING IN PLAIN ENGLISH. Correct the final text; preserve useful analysis and qualified hypotheses. Remove repetition, unnecessary figures and research commentary. Accept sound drafts, revise errors, use insufficient only without a substantive answer. Record corrections in answer_points and research needs in research_requests. Complete knowledge replacements preserve every unique useful original observation and qualifier.",
+      "default_matches": true
+    },
+    "zopedia_agent_final_answer_markdown_response_to_user": {
+      "text": "Explain the requested answer and its consequence. Cite source titles using supplied URLs. Complete knowledge replacements preserve all unique original information.",
+      "default_matches": true
+    }
+  },
+  "model": {
+    "model": "deepseek-v4-pro",
+    "thinking": {
+      "type": "enabled"
+    },
+    "reasoning_effort": "high",
+    "max_tokens": null
+  },
+  "output_default_verified": {
+    "url": "https://api-docs.deepseek.com/api/create-chat-completion/",
+    "thinking_high_default_tokens": 65536,
+    "native_request_unchanged": true
+  },
+  "cutoff_checks": "All selected datasets as-of and ingested before the cutoff; pre-run retained research created before it; no future-published captures indexed.",
+  "production_read_only": true,
+  "no_production_writes": true,
+  "inference_requests_sent": 0,
+  "database_stopped": true,
+  "spending": {
+    "cumulative_cap_usd": 33,
+    "known_plus_unknown_max_usd": 30.302771,
+    "remaining_usd": 2.697229,
+    "pending_request": "Approve up to 5 additional, cumulative cap 38; estimated new spending 3–5."
+  },
+  "scope": "The candidate will invoke the actual existing Home producer, including fresh common planning, focused investigation/reuse decisions, shared review, public writing/review, publication and Highlights. No paid historical candidate stage is replayed. Sources are frozen originals rather than new web discovery. No build or deployment."
+}

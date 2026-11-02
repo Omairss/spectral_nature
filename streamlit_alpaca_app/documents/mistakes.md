@@ -1524,3 +1524,7 @@ The owner’s software-paragraph follow-up traced the public process commentary 
 ### Compare with actual production and fund the actual study context — November 1, 2026
 
 The owner rejected the earlier unpromoted five-story baseline. Replaced it with a fresh read-only capture of the live 11-story publication and independently verified its worker digest. Candidate inputs are reconstructed from that run’s persisted research and observations, not falsely labeled an identical original request. An unbilled preflight caught study funding quoted against unrelated display payload; declaring the actual writer context restored source reads before paid transport. The emphasized compact prompts still failed qualitative acceptance. The earlier proposed 411-word accounting also omitted the writing task repeated in the review; report measured native requests rather than that proposal total.
+
+### Substituting an editorial replay for the requested candidate — November 1, 2026
+
+The owner asked for the latest complete data-first candidate against actual production. The delivered November 1 comparison instead reused production research for the candidate and reran only writing/review. It consumed $0.261508 without verifying the requested architecture. Subsequent explanations also obscured earlier full-flow experiments until the records were checked. Preserve those experiments, their costs and unknowns. Prepare the full current path, keep the actual production baseline and protect final review before paid execution; no scope substitution or deployment acceptance.
