@@ -8,7 +8,9 @@
 .calendar button:focus-visible { outline: 1px solid var(--teal); outline-offset: -1px; border-radius: 3px; }
 .date { width: 100%; height: 44px; font-size: 12px; }
 .events { height: 60px; overflow: hidden; }
-.events button { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; height: 30px; width: 100%; text-overflow: ellipsis; line-height: 1.1; overflow: hidden; }
+.events button { display: flex; align-items: center; justify-content: center; height: 30px; width: 100%; overflow: hidden; }
+.events button span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; line-height: 14px; text-overflow: ellipsis; }
+.events.expanded button span { line-height: 17px; }
 .events.expanded { height: 280px; overflow-y: auto; scrollbar-width: none; }
 .expanded button { height: 40px; }
 .events button.selected { color: var(--teal); }

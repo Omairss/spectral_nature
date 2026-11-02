@@ -54,12 +54,12 @@ export function MarketEventCalendar({ calendar }: { calendar: Calendar }) {
             </button>
             <div className={`${styles.events} ${expanded ? styles.expanded : ""}`}
               style={expanded ? { height: Math.min(7, Math.max(...calendar.days.map(d => d.events.length))) * 40 } : undefined}>
-              {(expanded ? item.events : item.events.filter(e => important.has(e.id))).map(entry => <button
+              {(depth < 3 ? (expanded ? item.events : item.events.filter(e => important.has(e.id))) : []).map(entry => <button
                 key={entry.id} className={selection === entry.id ? styles.selected : ""}
                 aria-label={entry.name} aria-expanded={selection === entry.id}
                 style={{ fontSize: `${12 + 2 * entry.importance}px` }}
                 onClick={() => { center(index); setExpanded(true); setSelection(expanded && selection !== entry.id ? entry.id : null); }}>
-                {entry.ticker || entry.short_label || entry.name}
+                <span>{entry.ticker || entry.short_label || entry.name}</span>
               </button>)}
             </div>
           </div>

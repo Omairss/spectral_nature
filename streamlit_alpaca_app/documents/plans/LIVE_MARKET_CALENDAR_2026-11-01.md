@@ -23,3 +23,7 @@ Implementation worktree: `/Users/omairs/Documents/code/spectral_nature_calendar_
 Read-only live source captures are kept under `documents/verification/live-market-calendar-2026-11-01/raw/`; authored October calendar examples must never be merged into the live dataset. Inspect real multi-event days, date changes, empty days, source outage retention, DST, replay and the actual native/web display. Use operational contract tests for parsing/publication reliability, and personal review for display usefulness. Do not treat tests as evidence of LLM quality.
 
 Alpha Vantage key is absent from process configuration and Key Vault metadata. Asked the owner to save an existing key as `AlphaVantage`; do not paste secrets in chat, create an account or buy a subscription. The documented public demo may be used for local read-only verification, but must never become a default key or a public serving feed.
+
+## Owner-key activation
+
+The owner explicitly authorized saving AlphaVantage in the existing Key Vault. A live request succeeded with3,454 earnings rows and the normal producer published them alongside61 agency events in the development namespace. Calendar refreshes remain independent of brief generation. Busy-date review exposed eager rendering; the clients now create visible event rows as needed. Shared ordering uses event importance without a fixed company shortlist. Production remains unchanged; exact-image development qualification is next.

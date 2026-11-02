@@ -1517,3 +1517,8 @@ Name the design separately from accepted source. Preserve the exact accepted app
 ### Expandable prose needs paired grammatical replacements — October30
 
 An inline explanation must be authored as a replacement that fits the same prefix and suffix, including their punctuation. Joining structured plain and expandable runs into one native attributed paragraph preserves baselines, wrapping and independent phrase state. The brief composer should produce both readings together and review full sentences with simultaneous expansions; a generic explanation appended to arbitrary prose is insufficient. Keep authored interaction fixtures separate from evidence-backed generation, and retain Markdown/audio compatibility. [Native POC](verification/native-brief-expansion-2026-10-30/README.md).
+
+### November 1, 2026 — source-backed event calendar
+
+- FRED release dates include future schedules; realtime start/end describe vintages. Keep date-only fallback records date-only. Publisher monthly pages need an explicit requested-period check, and annual/monthly Fed meeting identities must match.
+- Bulk earnings produce hundreds of events on busy dates. Preserve all records, rank each day from shared data, and render visible carousel rows lazily. A live owner-key request establishes access; the public demo does not.

@@ -1448,3 +1448,8 @@ The discussion of Market-First Research described expected cost/recall benefits 
 ### Native inline-link verification needs precise limits — October30
 
 Simulator exposed expandable paragraphs as single accessibility elements, and repeated coordinate taps returned `noWindowsAvailable`. Native accessibility activation did verify Intel, Microsoft and Fed expansion/collapse, including independent open paragraphs; it did not separately qualify the second Meta link, VoiceOver or larger text settings. Keep these limits in the receipt rather than modifying the product for automation or presenting authored sample explanations as qualified LLM generation. The actual paragraph layout and previous Markdown publication were personally inspected. [Review](verification/native-brief-expansion-2026-10-30/README.md).
+
+### November 1, 2026 — calendar integration corrections
+
+- The first local publication hit PyArrow26's NumPy2 requirement against the application's NumPy<2 constraint. Bound PyArrow below26 and verified a normal materialized publication with25.
+- Sparse mock calendars concealed clipping and eager rendering on busy days. Review the full provider dataset before release; fixed inner-text clamping and lazy event rows globally.

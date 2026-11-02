@@ -306,6 +306,8 @@ def project_calendar(state: dict, *, reference: date, past_days: int = 7, future
             "timing_label": row.get("timing_label"), "timing_precision": row["timing_precision"],
             "facts": row.get("facts", []), "source_as_of": row.get("last_seen_at"),
         })
+    for day in days.values():
+        day["events"].sort(key=lambda e: (-e["importance"], e.get("time") or "99:99", e["name"], e["id"]))
     return {"reference_date": reference.isoformat(), "as_of": state["as_of"], "days": list(days.values())}
 
 

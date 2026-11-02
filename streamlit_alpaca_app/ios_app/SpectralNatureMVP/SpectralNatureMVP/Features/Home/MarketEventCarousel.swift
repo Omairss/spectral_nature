@@ -96,7 +96,7 @@ struct MarketEventCarousel: View {
         let step = viewportWidth / 5
         ScrollViewReader { reader in
           ScrollView(.horizontal) {
-            HStack(alignment: .top, spacing: 0) {
+            LazyHStack(alignment: .top, spacing: 0) {
               ForEach(calendar.days) { day in
                 column(day, width: step) { id in
                   focusRequest = id
@@ -201,7 +201,7 @@ struct MarketEventCarousel: View {
       .accessibilityIdentifier("calendar-day-\(day.id)")
 
       ScrollView(.vertical) {
-        VStack(spacing: 0) {
+        LazyVStack(spacing: 0) {
           ForEach(expanded ? day.events : day.highlights) { event in
             Button {
               if expanded {
