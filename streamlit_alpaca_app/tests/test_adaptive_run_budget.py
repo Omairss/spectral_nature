@@ -964,7 +964,7 @@ def test_evidence_navigation_cannot_consume_the_answer_reserve(core_wallet, monk
             execution.reserve_provider_budget(config, {}, attempt_id=attempt, timeout=10)
             execution.settle_provider_budget(config, attempt_id=attempt, charge={"status":"estimated", "usd_max": .1},
                 definitely_unbilled=False)
-            return {"decision": {"action": "answer", "answer": {"value": "result"}}}
+            return {"decision": {"value": "result"}}
     client = Client(); client.config = config
     monkeypatch.setattr(gateway, "_record_gateway_call", lambda **kwargs: None)
     with execution.model_call_context(core_work_id="primary"):

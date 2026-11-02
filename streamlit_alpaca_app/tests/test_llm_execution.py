@@ -207,7 +207,8 @@ def test_literal_conversion_preserves_style_and_global_thinking_configuration(st
         generate(model)
     generate(model)
     assert calls[0]["json"]["messages"][0]["content"] == "Return supplied values."
-    assert "Global language policy" in calls[1]["json"]["messages"][0]["content"]
+    from services.llm import NARRATIVE_STYLE_RULE
+    assert NARRATIVE_STYLE_RULE in calls[1]["json"]["messages"][0]["content"]
     assert all(call["json"]["thinking"] == {"type": "disabled"} for call in calls)
     assert calls[0]["json"]["max_tokens"] == 65536
     assert "max_tokens" not in calls[1]["json"]
