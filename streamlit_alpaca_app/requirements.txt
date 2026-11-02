@@ -13,7 +13,7 @@ python-dotenv>=1.0
 azure-identity>=1.17
 azure-keyvault-secrets>=4.8
 azure-storage-blob>=12.23
-pyarrow>=17.0
+pyarrow>=17.0,<26
 psycopg[binary]>=3.2
 psycopg_pool>=3.2,<4
 fastapi>=0.112
@@ -28,3 +28,5 @@ pypdf>=6.19,<7
 lxml>=6.1,<7
 trafilatura>=2.3,<3
 tiktoken>=0.12,<1
+icalendar==6.3.2
+tzdata==2026.6

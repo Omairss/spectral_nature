@@ -7,6 +7,7 @@ import { Visualization } from "@/components/visualizations/visualization";
 import { AttentionTickerCard } from "@/components/attention-ticker-card";
 import { TrendChart } from "@/components/visualizations/trend-chart";
 import type { HomeView } from "@/lib/types";
+import { MarketEventCalendar } from "@/components/market-event-calendar";
 
 function todayUtc() {
   return new Date().toISOString().slice(0, 10);
@@ -103,6 +104,12 @@ export function HomeWorkspace({ initialHome, initialEtag, targetDate }: {
     };
   }, [initialHome, initialEtag, targetDate]);
   const available = home?.status === "available";
+  const graph = home?.graph ? <section className="home-graph-panel" aria-label="Market attention network">
+    <header className="section-heading">
+      <h2>{home.graph.title}</h2>
+    </header>
+    <Visualization artifact={home.graph} />
+  </section> : null;
   return (
     <div className="page-shell home-workspace">
       <header className="artifact-header">
@@ -134,6 +141,7 @@ export function HomeWorkspace({ initialHome, initialEtag, targetDate }: {
         </section>
       ) : (
         <>
+          {home.calendar ? <><MarketEventCalendar calendar={home.calendar} />{graph}</> : null}
           {home.summary ? (
             <section className="brief-panel">
               <div className="brief-copy">
@@ -184,15 +192,7 @@ export function HomeWorkspace({ initialHome, initialEtag, targetDate }: {
             </ol>
           </section>
 
-          {home.graph ? (
-            <section className="home-graph-panel" aria-label="Market attention network">
-              <header className="section-heading">
-                <div><p className="section-label">Structure</p><h2>{home.graph.title}</h2></div>
-                <span>{home.graph.performance.row_count.toLocaleString("en-US")} plotted points</span>
-              </header>
-              <Visualization artifact={home.graph} />
-            </section>
-          ) : null}
+          {!home.calendar ? graph : null}
         </>
       )}
     </div>

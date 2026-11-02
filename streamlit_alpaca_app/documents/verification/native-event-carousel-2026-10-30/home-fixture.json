@@ -1,0 +1,3698 @@
+{
+  "status": "available",
+  "view_date": "2026-10-29",
+  "is_replay": false,
+  "as_of": "2026-10-29T18:50:37.219566+00:00",
+  "run_id": "native-calendar-preview-20261030",
+  "summary": {
+    "headline": "Cloud growth meets a spending test",
+    "markdown": "Microsoft’s cloud growth exceeded expectations. Meta’s advertising held up, but its higher investment outlook put the timing of returns in focus.",
+    "audio_available": false
+  },
+  "beats": [],
+  "daily_datapoints": [],
+  "daily_datapoints_as_of": null,
+  "graph": {
+    "schema_version": "visualization.v1",
+    "artifact_type": "visualization",
+    "artifact_id": "viz_52f81092b3c3c772facc0be9",
+    "title": "Market attention network",
+    "renderer": "plotly",
+    "renderer_contract": "plotly.figure.v1",
+    "dataset_refs": [],
+    "datasets": {},
+    "spec": {
+      "figure": {
+        "data": [
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.220)",
+              "width": 0.9
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "peer::Cybersecurity Software - sector::Information Technology<br>weight=0.26<br>reasons=topology path (taxonomy)",
+              "peer::Cybersecurity Software - sector::Information Technology<br>weight=0.26<br>reasons=topology path (taxonomy)"
+            ],
+            "x": [
+              2.351366909902874,
+              1.9285194777735675
+            ],
+            "y": [
+              2.9206176480038883,
+              2.5495466194788405
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.220)",
+              "width": 0.9
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "sector::Information Technology - peer::Analog Semiconductors<br>weight=0.26<br>reasons=topology path (taxonomy)",
+              "sector::Information Technology - peer::Analog Semiconductors<br>weight=0.26<br>reasons=topology path (taxonomy)"
+            ],
+            "x": [
+              1.9285194777735675,
+              1.4091516141917726
+            ],
+            "y": [
+              2.5495466194788405,
+              2.7200488180657345
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.220)",
+              "width": 0.9
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "sector::Information Technology - peer::Asset Management<br>weight=0.26<br>reasons=topology path (taxonomy)",
+              "sector::Information Technology - peer::Asset Management<br>weight=0.26<br>reasons=topology path (taxonomy)"
+            ],
+            "x": [
+              1.9285194777735675,
+              2.095392396243133
+            ],
+            "y": [
+              2.5495466194788405,
+              2.004542247768713
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.220)",
+              "width": 0.9
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "peer::Footwear - sector::Consumer Discretionary<br>weight=0.26<br>reasons=topology path (taxonomy)",
+              "peer::Footwear - sector::Consumer Discretionary<br>weight=0.26<br>reasons=topology path (taxonomy)"
+            ],
+            "x": [
+              4.895460131949062,
+              5.1520064577184055
+            ],
+            "y": [
+              5.467481850080544,
+              5.862002352394503
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.220)",
+              "width": 0.9
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "sector::Consumer Discretionary - peer::Casual Dining Restaurants<br>weight=0.26<br>reasons=topology path (taxonomy)",
+              "sector::Consumer Discretionary - peer::Casual Dining Restaurants<br>weight=0.26<br>reasons=topology path (taxonomy)"
+            ],
+            "x": [
+              5.1520064577184055,
+              5.444077260549915
+            ],
+            "y": [
+              5.862002352394503,
+              6.21189864193072
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.220)",
+              "width": 0.9
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "peer::Asset Management - sector::Health Care<br>weight=0.26<br>reasons=topology path (taxonomy)",
+              "peer::Asset Management - sector::Health Care<br>weight=0.26<br>reasons=topology path (taxonomy)"
+            ],
+            "x": [
+              2.095392396243133,
+              2.2347742932098003
+            ],
+            "y": [
+              2.004542247768713,
+              1.5029731664904225
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.220)",
+              "width": 0.9
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "sector::Health Care - peer::Biotechnology<br>weight=0.26<br>reasons=topology path (taxonomy)",
+              "sector::Health Care - peer::Biotechnology<br>weight=0.26<br>reasons=topology path (taxonomy)"
+            ],
+            "x": [
+              2.2347742932098003,
+              2.357442698356374
+            ],
+            "y": [
+              1.5029731664904225,
+              1.0309130739572017
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.234)",
+              "width": 0.996
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "FTNT - peer::Cybersecurity Software<br>weight=0.30<br>reasons=topology path (membership)",
+              "FTNT - peer::Cybersecurity Software<br>weight=0.30<br>reasons=topology path (membership)"
+            ],
+            "x": [
+              2.6820038732554488,
+              2.351366909902874
+            ],
+            "y": [
+              3.227989324573419,
+              2.9206176480038883
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.234)",
+              "width": 0.996
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "ALNY - peer::Biotechnology<br>weight=0.30<br>reasons=topology path (membership)",
+              "ALNY - peer::Biotechnology<br>weight=0.30<br>reasons=topology path (membership)"
+            ],
+            "x": [
+              2.450603246105698,
+              2.357442698356374
+            ],
+            "y": [
+              0.6328854045781425,
+              1.0309130739572017
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.234)",
+              "width": 0.996
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "CROX - peer::Footwear<br>weight=0.30<br>reasons=topology path (membership)",
+              "CROX - peer::Footwear<br>weight=0.30<br>reasons=topology path (membership)"
+            ],
+            "x": [
+              4.758091036314848,
+              4.895460131949062
+            ],
+            "y": [
+              5.017733668695839,
+              5.467481850080544
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.234)",
+              "width": 0.996
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "ALGM - peer::Analog Semiconductors<br>weight=0.30<br>reasons=topology path (membership)",
+              "ALGM - peer::Analog Semiconductors<br>weight=0.30<br>reasons=topology path (membership)"
+            ],
+            "x": [
+              0.9641060306780356,
+              1.4091516141917726
+            ],
+            "y": [
+              2.8108342932706503,
+              2.7200488180657345
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.234)",
+              "width": 0.996
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "CAKE - peer::Casual Dining Restaurants<br>weight=0.30<br>reasons=topology path (membership)",
+              "CAKE - peer::Casual Dining Restaurants<br>weight=0.30<br>reasons=topology path (membership)"
+            ],
+            "x": [
+              5.7089233077842625,
+              5.444077260549915
+            ],
+            "y": [
+              6.499030858084056,
+              6.21189864193072
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.249)",
+              "width": 1.092
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "APG - tag::construction_cycle<br>weight=0.34<br>reasons=topology path (tag)",
+              "APG - tag::construction_cycle<br>weight=0.34<br>reasons=topology path (tag)"
+            ],
+            "x": [
+              3.9172442615557967,
+              3.6563843740243906
+            ],
+            "y": [
+              4.394761488625974,
+              4.149133755959291
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.249)",
+              "width": 1.092
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "TENB - tag::enterprise_software<br>weight=0.34<br>reasons=topology path (tag)",
+              "TENB - tag::enterprise_software<br>weight=0.34<br>reasons=topology path (tag)"
+            ],
+            "x": [
+              2.8438681882674026,
+              3.1222963920567706
+            ],
+            "y": [
+              3.409952226275711,
+              3.659829713509504
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.249)",
+              "width": 1.092
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "tag::enterprise_software - ADSK<br>weight=0.34<br>reasons=topology path (tag)",
+              "tag::enterprise_software - ADSK<br>weight=0.34<br>reasons=topology path (tag)"
+            ],
+            "x": [
+              3.1222963920567706,
+              3.393276622319158
+            ],
+            "y": [
+              3.659829713509504,
+              3.903007364482118
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.249)",
+              "width": 1.092
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "ADSK - tag::construction_cycle<br>weight=0.34<br>reasons=topology path (tag)",
+              "ADSK - tag::construction_cycle<br>weight=0.34<br>reasons=topology path (tag)"
+            ],
+            "x": [
+              3.393276622319158,
+              3.6563843740243906
+            ],
+            "y": [
+              3.903007364482118,
+              4.149133755959291
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.285)",
+              "width": 1.332
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "ADT - event::observed-cohort-sector-e31fa276cb<br>weight=0.44<br>reasons=topology path (event)",
+              "ADT - event::observed-cohort-sector-e31fa276cb<br>weight=0.44<br>reasons=topology path (event)"
+            ],
+            "x": [
+              4.477711972185368,
+              4.2889353155339665
+            ],
+            "y": [
+              4.973932008940091,
+              4.748890664964559
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.285)",
+              "width": 1.332
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "GOOGL - event::source-215cb2aa422446cd60e2<br>weight=0.44<br>reasons=topology path (event)",
+              "GOOGL - event::source-215cb2aa422446cd60e2<br>weight=0.44<br>reasons=topology path (event)"
+            ],
+            "x": [
+              0.32468642803782144,
+              0.4371679053180031
+            ],
+            "y": [
+              3.5353208272014807,
+              3.2639362260152978
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.403)",
+              "width": 2.44
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "GEN - TENB<br>weight=0.44<br>reasons=taxonomy_peer",
+              "GEN - TENB<br>weight=0.44<br>reasons=taxonomy_peer"
+            ],
+            "x": [
+              2.8734975322734213,
+              2.8438681882674026
+            ],
+            "y": [
+              3.1594789448126326,
+              3.409952226275711
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.285)",
+              "width": 1.332
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "FLS - event::observed-cohort-sector-e31fa276cb<br>weight=0.44<br>reasons=topology path (event)",
+              "FLS - event::observed-cohort-sector-e31fa276cb<br>weight=0.44<br>reasons=topology path (event)"
+            ],
+            "x": [
+              4.0888877820388405,
+              4.2889353155339665
+            ],
+            "y": [
+              4.555340349986105,
+              4.748890664964559
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(148, 163, 184, 0.285)",
+              "width": 1.332
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "LITE - event::source-215cb2aa422446cd60e2<br>weight=0.44<br>reasons=topology path (event)",
+              "LITE - event::source-215cb2aa422446cd60e2<br>weight=0.44<br>reasons=topology path (event)"
+            ],
+            "x": [
+              0.5630461799830275,
+              0.4371679053180031
+            ],
+            "y": [
+              2.947949076363162,
+              3.2639362260152978
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.409)",
+              "width": 2.48
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "ADT - FCN<br>weight=0.45<br>reasons=taxonomy_sector, history_corr",
+              "ADT - FCN<br>weight=0.45<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              4.477711972185368,
+              4.315450183568742
+            ],
+            "y": [
+              4.973932008940091,
+              5.221381480170353
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.409)",
+              "width": 2.48
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "CMG - CAKE<br>weight=0.45<br>reasons=taxonomy_sector, tags",
+              "CMG - CAKE<br>weight=0.45<br>reasons=taxonomy_sector, tags"
+            ],
+            "x": [
+              5.890273128592547,
+              5.7089233077842625
+            ],
+            "y": [
+              6.687718885365453,
+              6.499030858084056
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.423)",
+              "width": 2.568
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "DOCN - LITE<br>weight=0.46<br>reasons=taxonomy_sector, history_corr",
+              "DOCN - LITE<br>weight=0.46<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.31328731446645985,
+              0.5630461799830275
+            ],
+            "y": [
+              2.773518696000844,
+              2.947949076363162
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.426)",
+              "width": 2.584
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "CIFR - NBIS<br>weight=0.46<br>reasons=taxonomy_sector, history_corr",
+              "CIFR - NBIS<br>weight=0.46<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.0,
+              0.280712585223176
+            ],
+            "y": [
+              3.0313131458098943,
+              2.985200700862641
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.440)",
+              "width": 2.6799999999999997
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "ADT - CROX<br>weight=0.47<br>reasons=history_corr",
+              "ADT - CROX<br>weight=0.47<br>reasons=history_corr"
+            ],
+            "x": [
+              4.477711972185368,
+              4.758091036314848
+            ],
+            "y": [
+              4.973932008940091,
+              5.017733668695839
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.448)",
+              "width": 2.7279999999999998
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "CAT - PLXS<br>weight=0.48<br>reasons=history_corr",
+              "CAT - PLXS<br>weight=0.48<br>reasons=history_corr"
+            ],
+            "x": [
+              0.825274256986402,
+              0.8372749412265448
+            ],
+            "y": [
+              2.3651403387369947,
+              2.6344191467387397
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.476)",
+              "width": 2.912
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "NCLH - CROX<br>weight=0.50<br>reasons=taxonomy_sector, history_corr",
+              "NCLH - CROX<br>weight=0.50<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              4.991288346935108,
+              4.758091036314848
+            ],
+            "y": [
+              5.056654608436489,
+              5.017733668695839
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.480)",
+              "width": 2.936
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "NBIS - LITE<br>weight=0.50<br>reasons=taxonomy_sector, history_corr",
+              "NBIS - LITE<br>weight=0.50<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.280712585223176,
+              0.5630461799830275
+            ],
+            "y": [
+              2.985200700862641,
+              2.947949076363162
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.491)",
+              "width": 3.008
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "FLS - APG<br>weight=0.51<br>reasons=taxonomy_sector, history_corr",
+              "FLS - APG<br>weight=0.51<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              4.0888877820388405,
+              3.9172442615557967
+            ],
+            "y": [
+              4.555340349986105,
+              4.394761488625974
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.497)",
+              "width": 3.048
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "FTNT - TENB<br>weight=0.52<br>reasons=taxonomy_peer, tags",
+              "FTNT - TENB<br>weight=0.52<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.6820038732554488,
+              2.8438681882674026
+            ],
+            "y": [
+              3.227989324573419,
+              3.409952226275711
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.502)",
+              "width": 3.08
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "CVNA - CROX<br>weight=0.52<br>reasons=taxonomy_sector, tags",
+              "CVNA - CROX<br>weight=0.52<br>reasons=taxonomy_sector, tags"
+            ],
+            "x": [
+              4.926244806632697,
+              4.758091036314848
+            ],
+            "y": [
+              4.82470525751709,
+              5.017733668695839
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.512)",
+              "width": 3.144
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "WOLF - MXL<br>weight=0.53<br>reasons=taxonomy_sector, history_corr",
+              "WOLF - MXL<br>weight=0.53<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.8428707596177485,
+              0.7935036840289778
+            ],
+            "y": [
+              3.1807018708996377,
+              2.9356002509806887
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.527)",
+              "width": 3.24
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "GKOS - SDGR<br>weight=0.54<br>reasons=taxonomy_sector, tags",
+              "GKOS - SDGR<br>weight=0.54<br>reasons=taxonomy_sector, tags"
+            ],
+            "x": [
+              2.7867163145316125,
+              2.5778219235926465
+            ],
+            "y": [
+              0.1715578186052782,
+              0.22547469393946518
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.527)",
+              "width": 3.24
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "GKOS - TXG<br>weight=0.54<br>reasons=taxonomy_sector, tags",
+              "GKOS - TXG<br>weight=0.54<br>reasons=taxonomy_sector, tags"
+            ],
+            "x": [
+              2.7867163145316125,
+              2.512069830370252
+            ],
+            "y": [
+              0.1715578186052782,
+              0.1938506217723419
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.527)",
+              "width": 3.24
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "IOVA - HTFL<br>weight=0.54<br>reasons=taxonomy_sector, tags",
+              "IOVA - HTFL<br>weight=0.54<br>reasons=taxonomy_sector, tags"
+            ],
+            "x": [
+              2.373705137574392,
+              2.321789619343569
+            ],
+            "y": [
+              0.4698148895723935,
+              0.2524092777481104
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.527)",
+              "width": 3.24
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "TXG - BCAX<br>weight=0.54<br>reasons=taxonomy_sector, tags",
+              "TXG - BCAX<br>weight=0.54<br>reasons=taxonomy_sector, tags"
+            ],
+            "x": [
+              2.512069830370252,
+              2.501515903661375
+            ],
+            "y": [
+              0.1938506217723419,
+              0.43980392214757336
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.527)",
+              "width": 3.24
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "TXG - CAI<br>weight=0.54<br>reasons=taxonomy_sector, tags",
+              "TXG - CAI<br>weight=0.54<br>reasons=taxonomy_sector, tags"
+            ],
+            "x": [
+              2.512069830370252,
+              2.41724352856148
+            ],
+            "y": [
+              0.1938506217723419,
+              0.0
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.527)",
+              "width": 3.24
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "TXG - GRAL<br>weight=0.54<br>reasons=taxonomy_sector, tags",
+              "TXG - GRAL<br>weight=0.54<br>reasons=taxonomy_sector, tags"
+            ],
+            "x": [
+              2.512069830370252,
+              2.646089195944693
+            ],
+            "y": [
+              0.1938506217723419,
+              0.008176323069666314
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.527)",
+              "width": 3.24
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "TXG - HTFL<br>weight=0.54<br>reasons=taxonomy_sector, tags",
+              "TXG - HTFL<br>weight=0.54<br>reasons=taxonomy_sector, tags"
+            ],
+            "x": [
+              2.512069830370252,
+              2.321789619343569
+            ],
+            "y": [
+              0.1938506217723419,
+              0.2524092777481104
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.527)",
+              "width": 3.24
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "SDGR - BCAX<br>weight=0.54<br>reasons=taxonomy_sector, tags",
+              "SDGR - BCAX<br>weight=0.54<br>reasons=taxonomy_sector, tags"
+            ],
+            "x": [
+              2.5778219235926465,
+              2.501515903661375
+            ],
+            "y": [
+              0.22547469393946518,
+              0.43980392214757336
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.527)",
+              "width": 3.24
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "SDGR - CAI<br>weight=0.54<br>reasons=taxonomy_sector, tags",
+              "SDGR - CAI<br>weight=0.54<br>reasons=taxonomy_sector, tags"
+            ],
+            "x": [
+              2.5778219235926465,
+              2.41724352856148
+            ],
+            "y": [
+              0.22547469393946518,
+              0.0
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.527)",
+              "width": 3.24
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "SDGR - GRAL<br>weight=0.54<br>reasons=taxonomy_sector, tags",
+              "SDGR - GRAL<br>weight=0.54<br>reasons=taxonomy_sector, tags"
+            ],
+            "x": [
+              2.5778219235926465,
+              2.646089195944693
+            ],
+            "y": [
+              0.22547469393946518,
+              0.008176323069666314
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.527)",
+              "width": 3.24
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "SDGR - HTFL<br>weight=0.54<br>reasons=taxonomy_sector, tags",
+              "SDGR - HTFL<br>weight=0.54<br>reasons=taxonomy_sector, tags"
+            ],
+            "x": [
+              2.5778219235926465,
+              2.321789619343569
+            ],
+            "y": [
+              0.22547469393946518,
+              0.2524092777481104
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.531)",
+              "width": 3.2640000000000002
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "CRDO - MXL<br>weight=0.54<br>reasons=taxonomy_sector, history_corr",
+              "CRDO - MXL<br>weight=0.54<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.7140243009711478,
+              0.7935036840289778
+            ],
+            "y": [
+              3.0572192313420326,
+              2.9356002509806887
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.536)",
+              "width": 3.2960000000000003
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "IREN - NBIS<br>weight=0.55<br>reasons=taxonomy_sector, history_corr",
+              "IREN - NBIS<br>weight=0.55<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.05495828476693898,
+              0.280712585223176
+            ],
+            "y": [
+              2.882828263786396,
+              2.985200700862641
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.550)",
+              "width": 3.3840000000000003
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "CRDO - LITE<br>weight=0.56<br>reasons=taxonomy_sector, history_corr",
+              "CRDO - LITE<br>weight=0.56<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.7140243009711478,
+              0.5630461799830275
+            ],
+            "y": [
+              3.0572192313420326,
+              2.947949076363162
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.564)",
+              "width": 3.4799999999999995
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "FTNT - GEN<br>weight=0.57<br>reasons=taxonomy_peer, claims",
+              "FTNT - GEN<br>weight=0.57<br>reasons=taxonomy_peer, claims"
+            ],
+            "x": [
+              2.6820038732554488,
+              2.8734975322734213
+            ],
+            "y": [
+              3.227989324573419,
+              3.1594789448126326
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.572)",
+              "width": 3.5279999999999996
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "ALGM - PLXS<br>weight=0.58<br>reasons=taxonomy_sector, history_corr",
+              "ALGM - PLXS<br>weight=0.58<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.9641060306780356,
+              0.8372749412265448
+            ],
+            "y": [
+              2.8108342932706503,
+              2.6344191467387397
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.599)",
+              "width": 3.7039999999999997
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "PLXS - TER<br>weight=0.60<br>reasons=taxonomy_sector, history_corr",
+              "PLXS - TER<br>weight=0.60<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.8372749412265448,
+              0.6415144780952757
+            ],
+            "y": [
+              2.6344191467387397,
+              2.741809742458998
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.600)",
+              "width": 3.7119999999999997
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "MRVL - TER<br>weight=0.60<br>reasons=taxonomy_sector, history_corr",
+              "MRVL - TER<br>weight=0.60<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.49591923386480685,
+              0.6415144780952757
+            ],
+            "y": [
+              2.580808242011989,
+              2.741809742458998
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.621)",
+              "width": 3.848
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "FORM - LITE<br>weight=0.62<br>reasons=taxonomy_sector, history_corr",
+              "FORM - LITE<br>weight=0.62<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.4748345038897177,
+              0.5630461799830275
+            ],
+            "y": [
+              2.78284448404261,
+              2.947949076363162
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.629)",
+              "width": 3.896
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "AXTI - LITE<br>weight=0.62<br>reasons=taxonomy_sector, history_corr",
+              "AXTI - LITE<br>weight=0.62<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.6343618069693928,
+              0.5630461799830275
+            ],
+            "y": [
+              3.145391248765301,
+              2.947949076363162
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.633)",
+              "width": 3.92
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "MRVL - FORM<br>weight=0.62<br>reasons=taxonomy_sector, history_corr",
+              "MRVL - FORM<br>weight=0.62<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.49591923386480685,
+              0.4748345038897177
+            ],
+            "y": [
+              2.580808242011989,
+              2.78284448404261
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.635)",
+              "width": 3.936
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "ALGM - MXL<br>weight=0.63<br>reasons=taxonomy_sector, history_corr",
+              "ALGM - MXL<br>weight=0.63<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.9641060306780356,
+              0.7935036840289778
+            ],
+            "y": [
+              2.8108342932706503,
+              2.9356002509806887
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.641)",
+              "width": 3.976
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "TER - LITE<br>weight=0.63<br>reasons=taxonomy_sector, history_corr",
+              "TER - LITE<br>weight=0.63<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.6415144780952757,
+              0.5630461799830275
+            ],
+            "y": [
+              2.741809742458998,
+              2.947949076363162
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.655)",
+              "width": 4.064
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "MXL - LITE<br>weight=0.64<br>reasons=taxonomy_sector, history_corr",
+              "MXL - LITE<br>weight=0.64<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.7935036840289778,
+              0.5630461799830275
+            ],
+            "y": [
+              2.9356002509806887,
+              2.947949076363162
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.677)",
+              "width": 4.208
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "IREN - CIFR<br>weight=0.66<br>reasons=taxonomy_sector, history_corr",
+              "IREN - CIFR<br>weight=0.66<br>reasons=taxonomy_sector, history_corr"
+            ],
+            "x": [
+              0.05495828476693898,
+              0.0
+            ],
+            "y": [
+              2.882828263786396,
+              3.0313131458098943
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.682)",
+              "width": 4.24
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "AXTI - WOLF<br>weight=0.67<br>reasons=taxonomy_peer, tags",
+              "AXTI - WOLF<br>weight=0.67<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              0.6343618069693928,
+              0.8428707596177485
+            ],
+            "y": [
+              3.145391248765301,
+              3.1807018708996377
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.775)",
+              "width": 4.84
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "IOVA - ALNY<br>weight=0.74<br>reasons=taxonomy_peer, tags",
+              "IOVA - ALNY<br>weight=0.74<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.373705137574392,
+              2.450603246105698
+            ],
+            "y": [
+              0.4698148895723935,
+              0.6328854045781425
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.775)",
+              "width": 4.84
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "IOVA - TWST<br>weight=0.74<br>reasons=taxonomy_peer, tags",
+              "IOVA - TWST<br>weight=0.74<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.373705137574392,
+              2.470120254328095
+            ],
+            "y": [
+              0.4698148895723935,
+              0.539779456812691
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.775)",
+              "width": 4.84
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "GOOGL - GOOG<br>weight=0.74<br>reasons=taxonomy_peer, tags",
+              "GOOGL - GOOG<br>weight=0.74<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              0.32468642803782144,
+              0.22932273186012564
+            ],
+            "y": [
+              3.5353208272014807,
+              3.666763663400522
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.775)",
+              "width": 4.84
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "ALNY - TWST<br>weight=0.74<br>reasons=taxonomy_peer, tags",
+              "ALNY - TWST<br>weight=0.74<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.450603246105698,
+              2.470120254328095
+            ],
+            "y": [
+              0.6328854045781425,
+              0.539779456812691
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.775)",
+              "width": 4.84
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "INSM - BCAX<br>weight=0.74<br>reasons=taxonomy_peer, tags",
+              "INSM - BCAX<br>weight=0.74<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.3570930994050427,
+              2.501515903661375
+            ],
+            "y": [
+              0.5663537056375474,
+              0.43980392214757336
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.775)",
+              "width": 4.84
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "INSM - MRNA<br>weight=0.74<br>reasons=taxonomy_peer, tags",
+              "INSM - MRNA<br>weight=0.74<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.3570930994050427,
+              2.555267831745328
+            ],
+            "y": [
+              0.5663537056375474,
+              0.5654903361817896
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.775)",
+              "width": 4.84
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "MRNA - BCAX<br>weight=0.74<br>reasons=taxonomy_peer, tags",
+              "MRNA - BCAX<br>weight=0.74<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.555267831745328,
+              2.501515903661375
+            ],
+            "y": [
+              0.5654903361817896,
+              0.43980392214757336
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.800)",
+              "width": 5.0
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "IOVA - BCAX<br>weight=0.76<br>reasons=taxonomy_peer, tags",
+              "IOVA - BCAX<br>weight=0.76<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.373705137574392,
+              2.501515903661375
+            ],
+            "y": [
+              0.4698148895723935,
+              0.43980392214757336
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.800)",
+              "width": 5.0
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "IOVA - INSM<br>weight=0.76<br>reasons=taxonomy_peer, tags",
+              "IOVA - INSM<br>weight=0.76<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.373705137574392,
+              2.3570930994050427
+            ],
+            "y": [
+              0.4698148895723935,
+              0.5663537056375474
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.800)",
+              "width": 5.0
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "IOVA - MRNA<br>weight=0.76<br>reasons=taxonomy_peer, tags",
+              "IOVA - MRNA<br>weight=0.76<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.373705137574392,
+              2.555267831745328
+            ],
+            "y": [
+              0.4698148895723935,
+              0.5654903361817896
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.800)",
+              "width": 5.0
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "ALNY - BCAX<br>weight=0.76<br>reasons=taxonomy_peer, tags",
+              "ALNY - BCAX<br>weight=0.76<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.450603246105698,
+              2.501515903661375
+            ],
+            "y": [
+              0.6328854045781425,
+              0.43980392214757336
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.800)",
+              "width": 5.0
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "ALNY - INSM<br>weight=0.76<br>reasons=taxonomy_peer, tags",
+              "ALNY - INSM<br>weight=0.76<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.450603246105698,
+              2.3570930994050427
+            ],
+            "y": [
+              0.6328854045781425,
+              0.5663537056375474
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.800)",
+              "width": 5.0
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "ALNY - MRNA<br>weight=0.76<br>reasons=taxonomy_peer, tags",
+              "ALNY - MRNA<br>weight=0.76<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.450603246105698,
+              2.555267831745328
+            ],
+            "y": [
+              0.6328854045781425,
+              0.5654903361817896
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.800)",
+              "width": 5.0
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "INSM - TWST<br>weight=0.76<br>reasons=taxonomy_peer, tags",
+              "INSM - TWST<br>weight=0.76<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.3570930994050427,
+              2.470120254328095
+            ],
+            "y": [
+              0.5663537056375474,
+              0.539779456812691
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.800)",
+              "width": 5.0
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "MRNA - TWST<br>weight=0.76<br>reasons=taxonomy_peer, tags",
+              "MRNA - TWST<br>weight=0.76<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.555267831745328,
+              2.470120254328095
+            ],
+            "y": [
+              0.5654903361817896,
+              0.539779456812691
+            ],
+            "type": "scatter"
+          },
+          {
+            "hoverinfo": "text",
+            "line": {
+              "color": "rgba(203, 213, 225, 0.800)",
+              "width": 5.0
+            },
+            "mode": "lines",
+            "showlegend": false,
+            "text": [
+              "BCAX - TWST<br>weight=0.76<br>reasons=taxonomy_peer, tags",
+              "BCAX - TWST<br>weight=0.76<br>reasons=taxonomy_peer, tags"
+            ],
+            "x": [
+              2.501515903661375,
+              2.470120254328095
+            ],
+            "y": [
+              0.43980392214757336,
+              0.539779456812691
+            ],
+            "type": "scatter"
+          },
+          {
+            "cliponaxis": false,
+            "hoverinfo": "text",
+            "hovertext": [
+              "<b>GOOGL</b><br>company=Alphabet Inc. - Class A Common Stock<br>sector=Communication Services<br>industry=Internet Services<br>peer_group=Internet Services<br>change_pct=-13.47%<br>candidate_score=139.6<br>attention_score=0.0<br>node_size=26.4<br>degree=2<br>source=Communication Services<br>headline=GOOGL",
+              "<b>GOOG</b><br>company=Alphabet Inc. - Class C Capital Stock<br>sector=Communication Services<br>industry=Internet Services<br>peer_group=Internet Services<br>change_pct=-13.22%<br>candidate_score=138.0<br>attention_score=0.0<br>node_size=26.2<br>degree=1<br>source=Communication Services<br>headline=GOOG"
+            ],
+            "marker": {
+              "color": "#2dd4bf",
+              "line": {
+                "color": "#0f172a",
+                "width": 1.0
+              },
+              "opacity": 0.74,
+              "size": [
+                24.302112879884227,
+                24.14234442836469
+              ],
+              "symbol": [
+                "triangle-down",
+                "triangle-down"
+              ]
+            },
+            "mode": "markers+text",
+            "name": "Communication Services",
+            "text": [
+              "GOOGL<br>Alphabet Inc. - Class...",
+              ""
+            ],
+            "textfont": {
+              "color": "#e5e7eb",
+              "size": 10
+            },
+            "textposition": [
+              "middle right",
+              "top center"
+            ],
+            "x": [
+              0.32468642803782144,
+              0.22932273186012564
+            ],
+            "y": [
+              3.5353208272014807,
+              3.666763663400522
+            ],
+            "type": "scatter"
+          },
+          {
+            "cliponaxis": false,
+            "hoverinfo": "text",
+            "hovertext": [
+              "<b>CVNA</b><br>company=Carvana Co. Class A Common Stock<br>sector=Consumer Discretionary<br>industry=Auto Retail<br>peer_group=Auto Retail<br>change_pct=+15.63%<br>candidate_score=131.1<br>attention_score=0.0<br>node_size=25.5<br>degree=1<br>source=Consumer Discretionary<br>headline=CVNA",
+              "<b>NCLH</b><br>company=Norwegian Cruise Line Holdings Ltd. Ordinary Shares<br>sector=Consumer Discretionary<br>industry=Cruise Lines<br>peer_group=Cruise Lines<br>change_pct=+13.42%<br>candidate_score=131.1<br>attention_score=0.0<br>node_size=25.5<br>degree=1<br>source=Consumer Discretionary<br>headline=NCLH",
+              "<b>CROX</b><br>company=Crocs, Inc. - Common Stock<br>sector=Consumer Discretionary<br>industry=Footwear<br>peer_group=Footwear<br>change_pct=+25.67%<br>candidate_score=129.2<br>attention_score=0.0<br>node_size=25.3<br>degree=4<br>source=Consumer Discretionary<br>headline=CROX",
+              "<b>CMG</b><br>company=Chipotle Mexican Grill, Inc. Common Stock<br>sector=Consumer Discretionary<br>industry=Restaurants<br>peer_group=Restaurants<br>change_pct=+9.05%<br>candidate_score=116.3<br>attention_score=0.0<br>node_size=23.9<br>degree=1<br>source=Macro anchor<br>headline=CMG",
+              "<b>CAKE</b><br>company=The Cheesecake Factory Incorporated - Common Stock<br>sector=Consumer Discretionary<br>industry=Casual Dining Restaurants<br>peer_group=Casual Dining Restaurants<br>change_pct=+7.17%<br>candidate_score=103.6<br>attention_score=0.0<br>node_size=22.5<br>degree=2<br>source=Macro anchor<br>headline=CAKE"
+            ],
+            "marker": {
+              "color": "#60a5fa",
+              "line": {
+                "color": "#0f172a",
+                "width": 1.0
+              },
+              "opacity": 0.74,
+              "size": [
+                23.453342981186687,
+                23.453342981186687,
+                23.263617945007237,
+                21.97548480463097,
+                20.707322720694645
+              ],
+              "symbol": [
+                "triangle-up",
+                "triangle-up",
+                "triangle-up",
+                "triangle-up",
+                "triangle-up"
+              ]
+            },
+            "mode": "markers+text",
+            "name": "Consumer Discretionary",
+            "text": [
+              "",
+              "",
+              "",
+              "CMG<br>Chipotle Mexican...",
+              ""
+            ],
+            "textfont": {
+              "color": "#e5e7eb",
+              "size": 10
+            },
+            "textposition": [
+              "top center",
+              "top center",
+              "top center",
+              "bottom left",
+              "top center"
+            ],
+            "x": [
+              4.926244806632697,
+              4.991288346935108,
+              4.758091036314848,
+              5.890273128592547,
+              5.7089233077842625
+            ],
+            "y": [
+              4.82470525751709,
+              5.056654608436489,
+              5.017733668695839,
+              6.687718885365453,
+              6.499030858084056
+            ],
+            "type": "scatter"
+          },
+          {
+            "cliponaxis": false,
+            "hoverinfo": "text",
+            "hovertext": [
+              "<b>GKOS</b><br>company=Glaukos Corporation Common Stock<br>sector=Health Care<br>industry=Medical Devices<br>peer_group=Medical Devices<br>change_pct=+33.14%<br>candidate_score=144.5<br>attention_score=83.8<br>node_size=26.9<br>degree=2<br>source=Health Care<br>headline=GKOS is outperforming expectation",
+              "<b>IOVA</b><br>company=Iovance Biotherapeutics, Inc. - Common Stock<br>sector=Health Care<br>industry=Biotechnology<br>peer_group=Biotechnology<br>change_pct=-35.03%<br>candidate_score=140.6<br>attention_score=83.8<br>node_size=26.5<br>degree=6<br>source=Health Care<br>headline=IOVA is underperforming expectation",
+              "<b>ALNY</b><br>company=Alnylam Pharmaceuticals, Inc. - Common Stock<br>sector=Health Care<br>industry=Biotechnology<br>peer_group=Biotechnology<br>change_pct=-24.58%<br>candidate_score=132.7<br>attention_score=0.0<br>node_size=25.7<br>degree=6<br>source=Health Care<br>headline=ALNY",
+              "<b>INSM</b><br>company=Insmed Incorporated - Common Stock<br>sector=Health Care<br>industry=Biotechnology<br>peer_group=Biotechnology<br>change_pct=+12.67%<br>candidate_score=130.5<br>attention_score=0.0<br>node_size=25.4<br>degree=5<br>source=Health Care<br>headline=INSM",
+              "<b>TXG</b><br>company=10x Genomics, Inc. - Common Stock<br>sector=Health Care<br>industry=Genomics & Biotechnology<br>peer_group=Genomics & Biotechnology<br>change_pct=-2.44%<br>candidate_score=36.8<br>attention_score=83.8<br>node_size=15.3<br>degree=5<br>source=Health Care<br>headline=TXG is outperforming expectation",
+              "<b>MRNA</b><br>company=Moderna, Inc. - Common Stock<br>sector=Health Care<br>industry=Biotechnology<br>peer_group=Biotechnology<br>change_pct=+1.62%<br>candidate_score=34.9<br>attention_score=83.8<br>node_size=15.1<br>degree=5<br>source=Health Care<br>headline=MRNA is outperforming expectation",
+              "<b>SDGR</b><br>company=Schrodinger, Inc. - Common Stock<br>sector=Health Care<br>industry=Drug Discovery Software<br>peer_group=Drug Discovery Software<br>change_pct=-2.16%<br>candidate_score=30.2<br>attention_score=83.8<br>node_size=14.5<br>degree=5<br>source=Health Care<br>headline=SDGR is outperforming expectation",
+              "<b>CAI</b><br>company=Caris Life Sciences, Inc. - Common Stock<br>sector=Health Care<br>industry=Diagnostics & Precision Medicine<br>peer_group=Diagnostics & Precision Medicine<br>change_pct=+1.58%<br>candidate_score=27.8<br>attention_score=83.8<br>node_size=14.3<br>degree=2<br>source=Health Care<br>headline=CAI is outperforming expectation",
+              "<b>BCAX</b><br>company=Bicara Therapeutics Inc. - Common Stock<br>sector=Health Care<br>industry=Biotechnology<br>peer_group=Biotechnology<br>change_pct=+0.77%<br>candidate_score=22.9<br>attention_score=83.8<br>node_size=13.7<br>degree=7<br>source=Health Care<br>headline=BCAX is underperforming expectation",
+              "<b>TWST</b><br>company=Twist Bioscience Corporation - Common Stock<br>sector=Health Care<br>industry=Biotechnology<br>peer_group=Biotechnology<br>change_pct=-0.16%<br>candidate_score=21.5<br>attention_score=83.8<br>node_size=13.6<br>degree=5<br>source=Health Care<br>headline=TWST is outperforming expectation",
+              "<b>GRAL</b><br>company=GRAIL, Inc. - Common Stock<br>sector=Health Care<br>industry=Cancer Diagnostics<br>peer_group=Cancer Diagnostics<br>change_pct=+0.33%<br>candidate_score=21.3<br>attention_score=83.8<br>node_size=13.6<br>degree=2<br>source=Health Care<br>headline=GRAL is outperforming expectation",
+              "<b>HTFL</b><br>company=Heartflow, Inc. - Common Stock<br>sector=Health Care<br>industry=Medical Technology<br>peer_group=Medical Technology<br>change_pct=+0.85%<br>candidate_score=18.5<br>attention_score=83.8<br>node_size=13.3<br>degree=3<br>source=Health Care<br>headline=HTFL is outperforming expectation"
+            ],
+            "marker": {
+              "color": "#fb7185",
+              "line": {
+                "color": "#0f172a",
+                "width": 1.0
+              },
+              "opacity": 0.6,
+              "size": [
+                24.79140376266281,
+                24.401968162083936,
+                23.613111432706223,
+                23.39342981186686,
+                14.036989869753981,
+                13.84726483357453,
+                13.37794500723589,
+                13.138292329956586,
+                12.649001447178003,
+                12.50920405209841,
+                12.489232995658467,
+                12.209638205499276
+              ],
+              "symbol": [
+                "triangle-up",
+                "triangle-down",
+                "triangle-down",
+                "triangle-up",
+                "triangle-down",
+                "triangle-up",
+                "triangle-down",
+                "triangle-up",
+                "triangle-up",
+                "triangle-down",
+                "triangle-up",
+                "triangle-up"
+              ]
+            },
+            "mode": "markers+text",
+            "name": "Health Care",
+            "text": [
+              "",
+              "IOVA<br>Iovance...",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ],
+            "textfont": {
+              "color": "#e5e7eb",
+              "size": 10
+            },
+            "textposition": [
+              "top center",
+              "middle center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center"
+            ],
+            "x": [
+              2.7867163145316125,
+              2.373705137574392,
+              2.450603246105698,
+              2.3570930994050427,
+              2.512069830370252,
+              2.555267831745328,
+              2.5778219235926465,
+              2.41724352856148,
+              2.501515903661375,
+              2.470120254328095,
+              2.646089195944693,
+              2.321789619343569
+            ],
+            "y": [
+              0.1715578186052782,
+              0.4698148895723935,
+              0.6328854045781425,
+              0.5663537056375474,
+              0.1938506217723419,
+              0.5654903361817896,
+              0.22547469393946518,
+              0.0,
+              0.43980392214757336,
+              0.539779456812691,
+              0.008176323069666314,
+              0.2524092777481104
+            ],
+            "type": "scatter"
+          },
+          {
+            "cliponaxis": false,
+            "hoverinfo": "text",
+            "hovertext": [
+              "<b>ADT</b><br>company=ADT Inc. Common Stock<br>sector=Industrials<br>industry=Security & Alarm Services<br>peer_group=Security & Alarm Services<br>change_pct=+33.56%<br>candidate_score=153.8<br>attention_score=83.8<br>node_size=28.0<br>degree=3<br>source=Macro anchor<br>headline=ADT is outperforming expectation",
+              "<b>FCN</b><br>company=FTI Consulting, Inc. Common Stock<br>sector=Industrials<br>industry=Business Advisory and Consulting<br>peer_group=Business Advisory and Consulting<br>change_pct=+12.05%<br>candidate_score=134.4<br>attention_score=0.0<br>node_size=25.9<br>degree=1<br>source=Macro anchor<br>headline=FCN",
+              "<b>FLS</b><br>company=Flowserve Corporation Common Stock<br>sector=Industrials<br>industry=Industrial Pumps & Flow Control<br>peer_group=Industrial Pumps & Flow Control<br>change_pct=+10.18%<br>candidate_score=123.2<br>attention_score=0.0<br>node_size=24.6<br>degree=2<br>source=Macro anchor<br>headline=FLS",
+              "<b>CAT</b><br>company=Caterpillar, Inc. Common Stock<br>sector=Industrials<br>industry=Construction and mining equipment<br>peer_group=Construction and mining equipment<br>change_pct=-9.40%<br>candidate_score=122.8<br>attention_score=0.0<br>node_size=24.6<br>degree=1<br>source=Macro anchor<br>headline=CAT",
+              "<b>APG</b><br>company=APi Group Corporation Common Stock<br>sector=Industrials<br>industry=Safety & Specialty Services<br>peer_group=Safety & Specialty Services<br>change_pct=+7.29%<br>candidate_score=104.0<br>attention_score=0.0<br>node_size=22.6<br>degree=2<br>source=Macro anchor<br>headline=APG"
+            ],
+            "marker": {
+              "color": "#f97316",
+              "line": {
+                "color": "#0f172a",
+                "width": 1.0
+              },
+              "opacity": 0.74,
+              "size": [
+                25.720057887120117,
+                23.782865412445734,
+                22.664486251808974,
+                22.62454413892909,
+                20.747264833574533
+              ],
+              "symbol": [
+                "triangle-up",
+                "triangle-up",
+                "triangle-up",
+                "triangle-down",
+                "triangle-up"
+              ]
+            },
+            "mode": "markers+text",
+            "name": "Industrials",
+            "text": [
+              "ADT<br>ADT Inc. Common Stock",
+              "",
+              "",
+              "",
+              ""
+            ],
+            "textfont": {
+              "color": "#e5e7eb",
+              "size": 10
+            },
+            "textposition": [
+              "middle left",
+              "top center",
+              "top center",
+              "top center",
+              "top center"
+            ],
+            "x": [
+              4.477711972185368,
+              4.315450183568742,
+              4.0888877820388405,
+              0.825274256986402,
+              3.9172442615557967
+            ],
+            "y": [
+              4.973932008940091,
+              5.221381480170353,
+              4.555340349986105,
+              2.3651403387369947,
+              4.394761488625974
+            ],
+            "type": "scatter"
+          },
+          {
+            "cliponaxis": false,
+            "hoverinfo": "text",
+            "hovertext": [
+              "<b>FTNT</b><br>company=Fortinet, Inc. - Common Stock<br>sector=Information Technology<br>industry=Cybersecurity Software<br>peer_group=Cybersecurity Software<br>change_pct=-21.37%<br>candidate_score=154.2<br>attention_score=85.3<br>node_size=28.0<br>degree=3<br>source=Macro anchor<br>headline=FTNT is underperforming expectation",
+              "<b>MRVL</b><br>company=Marvell Technology, Inc. - Common Stock<br>sector=Information Technology<br>industry=Semiconductors<br>peer_group=Semiconductors<br>change_pct=-13.81%<br>candidate_score=139.2<br>attention_score=0.0<br>node_size=26.4<br>degree=2<br>source=Macro anchor<br>headline=MRVL",
+              "<b>GEN</b><br>company=Gen Digital Inc. - Common Stock<br>sector=Information Technology<br>industry=Cybersecurity Software<br>peer_group=Cybersecurity Software<br>change_pct=+15.55%<br>candidate_score=137.5<br>attention_score=0.0<br>node_size=26.2<br>degree=2<br>source=Macro anchor<br>headline=GEN",
+              "<b>ALGM</b><br>company=Allegro MicroSystems, Inc. - Common Stock<br>sector=Information Technology<br>industry=Analog Semiconductors<br>peer_group=Analog Semiconductors<br>change_pct=-11.27%<br>candidate_score=113.6<br>attention_score=0.0<br>node_size=23.6<br>degree=3<br>source=Macro anchor<br>headline=ALGM",
+              "<b>FORM</b><br>company=FormFactor, Inc. - Common Stock<br>sector=Information Technology<br>industry=Semiconductor Equipment<br>peer_group=Semiconductor Equipment<br>change_pct=-11.35%<br>candidate_score=107.4<br>attention_score=0.0<br>node_size=22.9<br>degree=2<br>source=Macro anchor<br>headline=FORM",
+              "<b>PLXS</b><br>company=Plexus Corp. - Common Stock<br>sector=Information Technology<br>industry=Electronics Manufacturing Services<br>peer_group=Electronics Manufacturing Services<br>change_pct=-8.82%<br>candidate_score=98.7<br>attention_score=0.0<br>node_size=22.0<br>degree=3<br>source=Macro anchor<br>headline=PLXS",
+              "<b>IREN</b><br>company=IREN Limited - Ordinary Shares<br>sector=Information Technology<br>industry=Cryptocurrency mining infrastructure<br>peer_group=Digital Asset<br>change_pct=-10.06%<br>candidate_score=97.0<br>attention_score=0.0<br>node_size=21.8<br>degree=2<br>source=Macro anchor<br>headline=IREN",
+              "<b>CIFR</b><br>company=Cipher Digital Inc. - Common Stock<br>sector=Information Technology<br>industry=bitcoin mining<br>peer_group=Bitcoin<br>change_pct=-9.78%<br>candidate_score=89.6<br>attention_score=0.0<br>node_size=21.0<br>degree=2<br>source=Macro anchor<br>headline=CIFR",
+              "<b>TENB</b><br>company=Tenable Holdings, Inc. - Common Stock<br>sector=Information Technology<br>industry=Cybersecurity Software<br>peer_group=Cybersecurity Software<br>change_pct=+6.94%<br>candidate_score=74.5<br>attention_score=0.0<br>node_size=19.3<br>degree=3<br>source=Macro anchor<br>headline=TENB",
+              "<b>CRDO</b><br>company=Credo Technology Group Holding Ltd - Ordinary Shares<br>sector=Information Technology<br>industry=Semiconductor Connectivity<br>peer_group=Semiconductor Connectivity<br>change_pct=-7.08%<br>candidate_score=74.4<br>attention_score=0.0<br>node_size=19.3<br>degree=2<br>source=Macro anchor<br>headline=CRDO",
+              "<b>TER</b><br>company=Teradyne, Inc. - Common Stock<br>sector=Information Technology<br>industry=Semiconductor Test Equipment<br>peer_group=Semiconductor Test Equipment<br>change_pct=-6.42%<br>candidate_score=72.9<br>attention_score=0.0<br>node_size=19.2<br>degree=3<br>source=Macro anchor<br>headline=TER",
+              "<b>NBIS</b><br>company=Nebius Group N.V. - Class A Ordinary Shares<br>sector=Information Technology<br>industry=Cloud Infrastructure and AI Services<br>peer_group=Cloud Infrastructure and AI Services<br>change_pct=-6.78%<br>candidate_score=71.9<br>attention_score=0.0<br>node_size=19.1<br>degree=3<br>source=Macro anchor<br>headline=NBIS",
+              "<b>AXTI</b><br>company=AXT Inc - Common Stock<br>sector=Information Technology<br>industry=Semiconductor Materials<br>peer_group=Semiconductor Materials<br>change_pct=-5.52%<br>candidate_score=70.7<br>attention_score=83.8<br>node_size=18.9<br>degree=2<br>source=Macro anchor<br>headline=AXTI is outperforming expectation",
+              "<b>DOCN</b><br>company=DigitalOcean Holdings, Inc. Common Stock<br>sector=Information Technology<br>industry=Cloud Infrastructure Services<br>peer_group=Cloud Infrastructure Services<br>change_pct=-6.87%<br>candidate_score=69.3<br>attention_score=0.0<br>node_size=18.8<br>degree=1<br>source=Macro anchor<br>headline=DOCN",
+              "<b>WOLF</b><br>company=Wolfspeed, Inc. Common Stock New<br>sector=Information Technology<br>industry=Semiconductor Materials<br>peer_group=Semiconductor Materials<br>change_pct=-7.17%<br>candidate_score=66.4<br>attention_score=0.0<br>node_size=18.5<br>degree=2<br>source=Macro anchor<br>headline=WOLF",
+              "<b>MXL</b><br>company=MaxLinear, Inc - Common Stock<br>sector=Information Technology<br>industry=Semiconductor Components<br>peer_group=Semiconductor Components<br>change_pct=-6.64%<br>candidate_score=64.2<br>attention_score=0.0<br>node_size=18.2<br>degree=4<br>source=Macro anchor<br>headline=MXL",
+              "<b>LITE</b><br>company=Lumentum Holdings Inc. - Common Stock<br>sector=Information Technology<br>industry=Optical Networking Components<br>peer_group=Optical Networking Components<br>change_pct=+1.45%<br>candidate_score=49.4<br>attention_score=85.1<br>node_size=16.6<br>degree=8<br>source=Macro anchor<br>headline=LITE is outperforming expectation"
+            ],
+            "marker": {
+              "color": "#38bdf8",
+              "line": {
+                "color": "#0f172a",
+                "width": 1.0
+              },
+              "opacity": 0.6,
+              "size": [
+                25.76,
+                24.262170767004342,
+                24.092416787264835,
+                21.705875542691754,
+                21.086772793053548,
+                20.218031837916065,
+                20.048277858176558,
+                19.309348769898698,
+                17.801534008683067,
+                17.7915484804631,
+                17.64176555716353,
+                17.541910274963822,
+                17.422083936324167,
+                17.282286541244574,
+                16.99270622286541,
+                16.77302460202605,
+                15.295166425470335
+              ],
+              "symbol": [
+                "triangle-down",
+                "triangle-down",
+                "triangle-up",
+                "triangle-down",
+                "triangle-down",
+                "triangle-down",
+                "triangle-down",
+                "triangle-down",
+                "triangle-up",
+                "triangle-down",
+                "triangle-down",
+                "triangle-down",
+                "triangle-down",
+                "triangle-down",
+                "triangle-down",
+                "triangle-down",
+                "triangle-up"
+              ]
+            },
+            "mode": "markers+text",
+            "name": "Information Technology",
+            "text": [
+              "FTNT<br>Fortinet, Inc. -...",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ],
+            "textfont": {
+              "color": "#e5e7eb",
+              "size": 10
+            },
+            "textposition": [
+              "middle center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center"
+            ],
+            "x": [
+              2.6820038732554488,
+              0.49591923386480685,
+              2.8734975322734213,
+              0.9641060306780356,
+              0.4748345038897177,
+              0.8372749412265448,
+              0.05495828476693898,
+              0.0,
+              2.8438681882674026,
+              0.7140243009711478,
+              0.6415144780952757,
+              0.280712585223176,
+              0.6343618069693928,
+              0.31328731446645985,
+              0.8428707596177485,
+              0.7935036840289778,
+              0.5630461799830275
+            ],
+            "y": [
+              3.227989324573419,
+              2.580808242011989,
+              3.1594789448126326,
+              2.8108342932706503,
+              2.78284448404261,
+              2.6344191467387397,
+              2.882828263786396,
+              3.0313131458098943,
+              3.409952226275711,
+              3.0572192313420326,
+              2.741809742458998,
+              2.985200700862641,
+              3.145391248765301,
+              2.773518696000844,
+              3.1807018708996377,
+              2.9356002509806887,
+              2.947949076363162
+            ],
+            "type": "scatter"
+          },
+          {
+            "cliponaxis": false,
+            "hoverinfo": "text",
+            "hovertext": [
+              "<b>observed_cohort:observed-cohort-sector-e31fa276cb</b><br>type=event<br>sector=Unknown<br>peer_group=observed_cohort:observed-cohort-sector-e31fa276cb<br>industry=observed_cohort:observed-cohort-sector-e31fa276cb<br>degree=2<br>source=intermediate path",
+              "<b>source_event:source-215cb2aa422446cd60e2</b><br>type=event<br>sector=Unknown<br>peer_group=source_event:source-215cb2aa422446cd60e2<br>industry=source_event:source-215cb2aa422446cd60e2<br>degree=2<br>source=intermediate path",
+              "<b>Analog Semiconductors</b><br>type=peer<br>sector=Information Technology<br>peer_group=Analog Semiconductors<br>industry=Analog Semiconductors<br>degree=2<br>source=intermediate path",
+              "<b>Asset Management</b><br>type=peer<br>sector=Financials<br>peer_group=Asset Management<br>industry=Asset Management<br>degree=2<br>source=intermediate path",
+              "<b>Biotechnology</b><br>type=peer<br>sector=Health Care<br>peer_group=Biotechnology<br>industry=Biotechnology<br>degree=2<br>source=intermediate path",
+              "<b>Casual Dining Restaurants</b><br>type=peer<br>sector=Consumer Discretionary<br>peer_group=Casual Dining Restaurants<br>industry=Casual Dining Restaurants<br>degree=2<br>source=intermediate path",
+              "<b>Cybersecurity Software</b><br>type=peer<br>sector=Information Technology<br>peer_group=Cybersecurity Software<br>industry=Cybersecurity Software<br>degree=2<br>source=intermediate path",
+              "<b>Footwear</b><br>type=peer<br>sector=Consumer Discretionary<br>peer_group=Footwear<br>industry=Footwear<br>degree=2<br>source=intermediate path",
+              "<b>Consumer Discretionary</b><br>type=sector<br>sector=Consumer Discretionary<br>peer_group=Consumer Discretionary<br>industry=Consumer Discretionary<br>degree=2<br>source=intermediate path",
+              "<b>Health Care</b><br>type=sector<br>sector=Health Care<br>peer_group=Health Care<br>industry=Health Care<br>degree=2<br>source=intermediate path",
+              "<b>Information Technology</b><br>type=sector<br>sector=Information Technology<br>peer_group=Information Technology<br>industry=Information Technology<br>degree=3<br>source=intermediate path",
+              "<b>Construction Cycle</b><br>type=tag<br>sector=Materials<br>peer_group=Construction Cycle<br>industry=Construction Cycle<br>degree=2<br>source=intermediate path",
+              "<b>Enterprise Software</b><br>type=tag<br>sector=Information Technology<br>peer_group=Enterprise Software<br>industry=Enterprise Software<br>degree=2<br>source=intermediate path",
+              "<b>ADSK</b><br>type=symbol<br>sector=Information Technology<br>peer_group=Engineering Design Software<br>industry=Engineering Design Software<br>degree=2<br>source=intermediate path"
+            ],
+            "marker": {
+              "color": "#94a3b8",
+              "line": {
+                "color": "#1f2937",
+                "width": 0.8
+              },
+              "opacity": 0.44,
+              "size": [
+                10.120000000000001,
+                10.120000000000001,
+                10.120000000000001,
+                10.120000000000001,
+                10.120000000000001,
+                10.120000000000001,
+                10.120000000000001,
+                10.120000000000001,
+                10.120000000000001,
+                10.120000000000001,
+                10.120000000000001,
+                10.120000000000001,
+                10.120000000000001,
+                10.120000000000001
+              ],
+              "symbol": [
+                "diamond-open",
+                "diamond-open",
+                "diamond-open",
+                "diamond-open",
+                "diamond-open",
+                "diamond-open",
+                "diamond-open",
+                "diamond-open",
+                "diamond-open",
+                "diamond-open",
+                "diamond-open",
+                "diamond-open",
+                "diamond-open",
+                "circle-open"
+              ]
+            },
+            "mode": "markers+text",
+            "name": "Path Nodes",
+            "text": [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "Information Technology",
+              "",
+              "",
+              ""
+            ],
+            "textfont": {
+              "color": "#94a3b8",
+              "size": 9
+            },
+            "textposition": [
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "top center",
+              "middle right",
+              "top center",
+              "top center",
+              "top center"
+            ],
+            "x": [
+              4.2889353155339665,
+              0.4371679053180031,
+              1.4091516141917726,
+              2.095392396243133,
+              2.357442698356374,
+              5.444077260549915,
+              2.351366909902874,
+              4.895460131949062,
+              5.1520064577184055,
+              2.2347742932098003,
+              1.9285194777735675,
+              3.6563843740243906,
+              3.1222963920567706,
+              3.393276622319158
+            ],
+            "y": [
+              4.748890664964559,
+              3.2639362260152978,
+              2.7200488180657345,
+              2.004542247768713,
+              1.0309130739572017,
+              6.21189864193072,
+              2.9206176480038883,
+              5.467481850080544,
+              5.862002352394503,
+              1.5029731664904225,
+              2.5495466194788405,
+              4.149133755959291,
+              3.659829713509504,
+              3.903007364482118
+            ],
+            "type": "scatter"
+          }
+        ],
+        "layout": {
+          "template": {
+            "data": {
+              "barpolar": [
+                {
+                  "marker": {
+                    "line": {
+                      "color": "rgb(17,17,17)",
+                      "width": 0.5
+                    },
+                    "pattern": {
+                      "fillmode": "overlay",
+                      "size": 10,
+                      "solidity": 0.2
+                    }
+                  },
+                  "type": "barpolar"
+                }
+              ],
+              "bar": [
+                {
+                  "error_x": {
+                    "color": "#f2f5fa"
+                  },
+                  "error_y": {
+                    "color": "#f2f5fa"
+                  },
+                  "marker": {
+                    "line": {
+                      "color": "rgb(17,17,17)",
+                      "width": 0.5
+                    },
+                    "pattern": {
+                      "fillmode": "overlay",
+                      "size": 10,
+                      "solidity": 0.2
+                    }
+                  },
+                  "type": "bar"
+                }
+              ],
+              "carpet": [
+                {
+                  "aaxis": {
+                    "endlinecolor": "#A2B1C6",
+                    "gridcolor": "#506784",
+                    "linecolor": "#506784",
+                    "minorgridcolor": "#506784",
+                    "startlinecolor": "#A2B1C6"
+                  },
+                  "baxis": {
+                    "endlinecolor": "#A2B1C6",
+                    "gridcolor": "#506784",
+                    "linecolor": "#506784",
+                    "minorgridcolor": "#506784",
+                    "startlinecolor": "#A2B1C6"
+                  },
+                  "type": "carpet"
+                }
+              ],
+              "choropleth": [
+                {
+                  "colorbar": {
+                    "outlinewidth": 0,
+                    "ticks": ""
+                  },
+                  "type": "choropleth"
+                }
+              ],
+              "contourcarpet": [
+                {
+                  "colorbar": {
+                    "outlinewidth": 0,
+                    "ticks": ""
+                  },
+                  "type": "contourcarpet"
+                }
+              ],
+              "contour": [
+                {
+                  "colorbar": {
+                    "outlinewidth": 0,
+                    "ticks": ""
+                  },
+                  "colorscale": [
+                    [
+                      0.0,
+                      "#0d0887"
+                    ],
+                    [
+                      0.1111111111111111,
+                      "#46039f"
+                    ],
+                    [
+                      0.2222222222222222,
+                      "#7201a8"
+                    ],
+                    [
+                      0.3333333333333333,
+                      "#9c179e"
+                    ],
+                    [
+                      0.4444444444444444,
+                      "#bd3786"
+                    ],
+                    [
+                      0.5555555555555556,
+                      "#d8576b"
+                    ],
+                    [
+                      0.6666666666666666,
+                      "#ed7953"
+                    ],
+                    [
+                      0.7777777777777778,
+                      "#fb9f3a"
+                    ],
+                    [
+                      0.8888888888888888,
+                      "#fdca26"
+                    ],
+                    [
+                      1.0,
+                      "#f0f921"
+                    ]
+                  ],
+                  "type": "contour"
+                }
+              ],
+              "heatmap": [
+                {
+                  "colorbar": {
+                    "outlinewidth": 0,
+                    "ticks": ""
+                  },
+                  "colorscale": [
+                    [
+                      0.0,
+                      "#0d0887"
+                    ],
+                    [
+                      0.1111111111111111,
+                      "#46039f"
+                    ],
+                    [
+                      0.2222222222222222,
+                      "#7201a8"
+                    ],
+                    [
+                      0.3333333333333333,
+                      "#9c179e"
+                    ],
+                    [
+                      0.4444444444444444,
+                      "#bd3786"
+                    ],
+                    [
+                      0.5555555555555556,
+                      "#d8576b"
+                    ],
+                    [
+                      0.6666666666666666,
+                      "#ed7953"
+                    ],
+                    [
+                      0.7777777777777778,
+                      "#fb9f3a"
+                    ],
+                    [
+                      0.8888888888888888,
+                      "#fdca26"
+                    ],
+                    [
+                      1.0,
+                      "#f0f921"
+                    ]
+                  ],
+                  "type": "heatmap"
+                }
+              ],
+              "histogram2dcontour": [
+                {
+                  "colorbar": {
+                    "outlinewidth": 0,
+                    "ticks": ""
+                  },
+                  "colorscale": [
+                    [
+                      0.0,
+                      "#0d0887"
+                    ],
+                    [
+                      0.1111111111111111,
+                      "#46039f"
+                    ],
+                    [
+                      0.2222222222222222,
+                      "#7201a8"
+                    ],
+                    [
+                      0.3333333333333333,
+                      "#9c179e"
+                    ],
+                    [
+                      0.4444444444444444,
+                      "#bd3786"
+                    ],
+                    [
+                      0.5555555555555556,
+                      "#d8576b"
+                    ],
+                    [
+                      0.6666666666666666,
+                      "#ed7953"
+                    ],
+                    [
+                      0.7777777777777778,
+                      "#fb9f3a"
+                    ],
+                    [
+                      0.8888888888888888,
+                      "#fdca26"
+                    ],
+                    [
+                      1.0,
+                      "#f0f921"
+                    ]
+                  ],
+                  "type": "histogram2dcontour"
+                }
+              ],
+              "histogram2d": [
+                {
+                  "colorbar": {
+                    "outlinewidth": 0,
+                    "ticks": ""
+                  },
+                  "colorscale": [
+                    [
+                      0.0,
+                      "#0d0887"
+                    ],
+                    [
+                      0.1111111111111111,
+                      "#46039f"
+                    ],
+                    [
+                      0.2222222222222222,
+                      "#7201a8"
+                    ],
+                    [
+                      0.3333333333333333,
+                      "#9c179e"
+                    ],
+                    [
+                      0.4444444444444444,
+                      "#bd3786"
+                    ],
+                    [
+                      0.5555555555555556,
+                      "#d8576b"
+                    ],
+                    [
+                      0.6666666666666666,
+                      "#ed7953"
+                    ],
+                    [
+                      0.7777777777777778,
+                      "#fb9f3a"
+                    ],
+                    [
+                      0.8888888888888888,
+                      "#fdca26"
+                    ],
+                    [
+                      1.0,
+                      "#f0f921"
+                    ]
+                  ],
+                  "type": "histogram2d"
+                }
+              ],
+              "histogram": [
+                {
+                  "marker": {
+                    "pattern": {
+                      "fillmode": "overlay",
+                      "size": 10,
+                      "solidity": 0.2
+                    }
+                  },
+                  "type": "histogram"
+                }
+              ],
+              "mesh3d": [
+                {
+                  "colorbar": {
+                    "outlinewidth": 0,
+                    "ticks": ""
+                  },
+                  "type": "mesh3d"
+                }
+              ],
+              "parcoords": [
+                {
+                  "line": {
+                    "colorbar": {
+                      "outlinewidth": 0,
+                      "ticks": ""
+                    }
+                  },
+                  "type": "parcoords"
+                }
+              ],
+              "pie": [
+                {
+                  "automargin": true,
+                  "type": "pie"
+                }
+              ],
+              "scatter3d": [
+                {
+                  "line": {
+                    "colorbar": {
+                      "outlinewidth": 0,
+                      "ticks": ""
+                    }
+                  },
+                  "marker": {
+                    "colorbar": {
+                      "outlinewidth": 0,
+                      "ticks": ""
+                    }
+                  },
+                  "type": "scatter3d"
+                }
+              ],
+              "scattercarpet": [
+                {
+                  "marker": {
+                    "colorbar": {
+                      "outlinewidth": 0,
+                      "ticks": ""
+                    }
+                  },
+                  "type": "scattercarpet"
+                }
+              ],
+              "scattergeo": [
+                {
+                  "marker": {
+                    "colorbar": {
+                      "outlinewidth": 0,
+                      "ticks": ""
+                    }
+                  },
+                  "type": "scattergeo"
+                }
+              ],
+              "scattergl": [
+                {
+                  "marker": {
+                    "line": {
+                      "color": "#283442"
+                    }
+                  },
+                  "type": "scattergl"
+                }
+              ],
+              "scattermap": [
+                {
+                  "marker": {
+                    "colorbar": {
+                      "outlinewidth": 0,
+                      "ticks": ""
+                    }
+                  },
+                  "type": "scattermap"
+                }
+              ],
+              "scatterpolargl": [
+                {
+                  "marker": {
+                    "colorbar": {
+                      "outlinewidth": 0,
+                      "ticks": ""
+                    }
+                  },
+                  "type": "scatterpolargl"
+                }
+              ],
+              "scatterpolar": [
+                {
+                  "marker": {
+                    "colorbar": {
+                      "outlinewidth": 0,
+                      "ticks": ""
+                    }
+                  },
+                  "type": "scatterpolar"
+                }
+              ],
+              "scatter": [
+                {
+                  "marker": {
+                    "line": {
+                      "color": "#283442"
+                    }
+                  },
+                  "type": "scatter"
+                }
+              ],
+              "scatterternary": [
+                {
+                  "marker": {
+                    "colorbar": {
+                      "outlinewidth": 0,
+                      "ticks": ""
+                    }
+                  },
+                  "type": "scatterternary"
+                }
+              ],
+              "surface": [
+                {
+                  "colorbar": {
+                    "outlinewidth": 0,
+                    "ticks": ""
+                  },
+                  "colorscale": [
+                    [
+                      0.0,
+                      "#0d0887"
+                    ],
+                    [
+                      0.1111111111111111,
+                      "#46039f"
+                    ],
+                    [
+                      0.2222222222222222,
+                      "#7201a8"
+                    ],
+                    [
+                      0.3333333333333333,
+                      "#9c179e"
+                    ],
+                    [
+                      0.4444444444444444,
+                      "#bd3786"
+                    ],
+                    [
+                      0.5555555555555556,
+                      "#d8576b"
+                    ],
+                    [
+                      0.6666666666666666,
+                      "#ed7953"
+                    ],
+                    [
+                      0.7777777777777778,
+                      "#fb9f3a"
+                    ],
+                    [
+                      0.8888888888888888,
+                      "#fdca26"
+                    ],
+                    [
+                      1.0,
+                      "#f0f921"
+                    ]
+                  ],
+                  "type": "surface"
+                }
+              ],
+              "table": [
+                {
+                  "cells": {
+                    "fill": {
+                      "color": "#506784"
+                    },
+                    "line": {
+                      "color": "rgb(17,17,17)"
+                    }
+                  },
+                  "header": {
+                    "fill": {
+                      "color": "#2a3f5f"
+                    },
+                    "line": {
+                      "color": "rgb(17,17,17)"
+                    }
+                  },
+                  "type": "table"
+                }
+              ]
+            },
+            "layout": {
+              "annotationdefaults": {
+                "arrowcolor": "#f2f5fa",
+                "arrowhead": 0,
+                "arrowwidth": 1
+              },
+              "autotypenumbers": "strict",
+              "coloraxis": {
+                "colorbar": {
+                  "outlinewidth": 0,
+                  "ticks": ""
+                }
+              },
+              "colorscale": {
+                "diverging": [
+                  [
+                    0,
+                    "#8e0152"
+                  ],
+                  [
+                    0.1,
+                    "#c51b7d"
+                  ],
+                  [
+                    0.2,
+                    "#de77ae"
+                  ],
+                  [
+                    0.3,
+                    "#f1b6da"
+                  ],
+                  [
+                    0.4,
+                    "#fde0ef"
+                  ],
+                  [
+                    0.5,
+                    "#f7f7f7"
+                  ],
+                  [
+                    0.6,
+                    "#e6f5d0"
+                  ],
+                  [
+                    0.7,
+                    "#b8e186"
+                  ],
+                  [
+                    0.8,
+                    "#7fbc41"
+                  ],
+                  [
+                    0.9,
+                    "#4d9221"
+                  ],
+                  [
+                    1,
+                    "#276419"
+                  ]
+                ],
+                "sequential": [
+                  [
+                    0.0,
+                    "#0d0887"
+                  ],
+                  [
+                    0.1111111111111111,
+                    "#46039f"
+                  ],
+                  [
+                    0.2222222222222222,
+                    "#7201a8"
+                  ],
+                  [
+                    0.3333333333333333,
+                    "#9c179e"
+                  ],
+                  [
+                    0.4444444444444444,
+                    "#bd3786"
+                  ],
+                  [
+                    0.5555555555555556,
+                    "#d8576b"
+                  ],
+                  [
+                    0.6666666666666666,
+                    "#ed7953"
+                  ],
+                  [
+                    0.7777777777777778,
+                    "#fb9f3a"
+                  ],
+                  [
+                    0.8888888888888888,
+                    "#fdca26"
+                  ],
+                  [
+                    1.0,
+                    "#f0f921"
+                  ]
+                ],
+                "sequentialminus": [
+                  [
+                    0.0,
+                    "#0d0887"
+                  ],
+                  [
+                    0.1111111111111111,
+                    "#46039f"
+                  ],
+                  [
+                    0.2222222222222222,
+                    "#7201a8"
+                  ],
+                  [
+                    0.3333333333333333,
+                    "#9c179e"
+                  ],
+                  [
+                    0.4444444444444444,
+                    "#bd3786"
+                  ],
+                  [
+                    0.5555555555555556,
+                    "#d8576b"
+                  ],
+                  [
+                    0.6666666666666666,
+                    "#ed7953"
+                  ],
+                  [
+                    0.7777777777777778,
+                    "#fb9f3a"
+                  ],
+                  [
+                    0.8888888888888888,
+                    "#fdca26"
+                  ],
+                  [
+                    1.0,
+                    "#f0f921"
+                  ]
+                ]
+              },
+              "colorway": [
+                "#636efa",
+                "#EF553B",
+                "#00cc96",
+                "#ab63fa",
+                "#FFA15A",
+                "#19d3f3",
+                "#FF6692",
+                "#B6E880",
+                "#FF97FF",
+                "#FECB52"
+              ],
+              "font": {
+                "color": "#f2f5fa"
+              },
+              "geo": {
+                "bgcolor": "rgb(17,17,17)",
+                "lakecolor": "rgb(17,17,17)",
+                "landcolor": "rgb(17,17,17)",
+                "showlakes": true,
+                "showland": true,
+                "subunitcolor": "#506784"
+              },
+              "hoverlabel": {
+                "align": "left"
+              },
+              "hovermode": "closest",
+              "paper_bgcolor": "rgb(17,17,17)",
+              "plot_bgcolor": "rgb(17,17,17)",
+              "polar": {
+                "angularaxis": {
+                  "gridcolor": "#506784",
+                  "linecolor": "#506784",
+                  "ticks": ""
+                },
+                "bgcolor": "rgb(17,17,17)",
+                "radialaxis": {
+                  "gridcolor": "#506784",
+                  "linecolor": "#506784",
+                  "ticks": ""
+                }
+              },
+              "scene": {
+                "xaxis": {
+                  "backgroundcolor": "rgb(17,17,17)",
+                  "gridcolor": "#506784",
+                  "gridwidth": 2,
+                  "linecolor": "#506784",
+                  "showbackground": true,
+                  "ticks": "",
+                  "zerolinecolor": "#C8D4E3"
+                },
+                "yaxis": {
+                  "backgroundcolor": "rgb(17,17,17)",
+                  "gridcolor": "#506784",
+                  "gridwidth": 2,
+                  "linecolor": "#506784",
+                  "showbackground": true,
+                  "ticks": "",
+                  "zerolinecolor": "#C8D4E3"
+                },
+                "zaxis": {
+                  "backgroundcolor": "rgb(17,17,17)",
+                  "gridcolor": "#506784",
+                  "gridwidth": 2,
+                  "linecolor": "#506784",
+                  "showbackground": true,
+                  "ticks": "",
+                  "zerolinecolor": "#C8D4E3"
+                }
+              },
+              "shapedefaults": {
+                "line": {
+                  "color": "#f2f5fa"
+                }
+              },
+              "sliderdefaults": {
+                "bgcolor": "#C8D4E3",
+                "bordercolor": "rgb(17,17,17)",
+                "borderwidth": 1,
+                "tickwidth": 0
+              },
+              "ternary": {
+                "aaxis": {
+                  "gridcolor": "#506784",
+                  "linecolor": "#506784",
+                  "ticks": ""
+                },
+                "baxis": {
+                  "gridcolor": "#506784",
+                  "linecolor": "#506784",
+                  "ticks": ""
+                },
+                "bgcolor": "rgb(17,17,17)",
+                "caxis": {
+                  "gridcolor": "#506784",
+                  "linecolor": "#506784",
+                  "ticks": ""
+                }
+              },
+              "title": {
+                "x": 0.05
+              },
+              "updatemenudefaults": {
+                "bgcolor": "#506784",
+                "borderwidth": 0
+              },
+              "xaxis": {
+                "automargin": true,
+                "gridcolor": "#283442",
+                "linecolor": "#506784",
+                "ticks": "",
+                "title": {
+                  "standoff": 15
+                },
+                "zerolinecolor": "#283442",
+                "zerolinewidth": 2
+              },
+              "yaxis": {
+                "automargin": true,
+                "gridcolor": "#283442",
+                "linecolor": "#506784",
+                "ticks": "",
+                "title": {
+                  "standoff": 15
+                },
+                "zerolinecolor": "#283442",
+                "zerolinewidth": 2
+              }
+            }
+          },
+          "font": {
+            "color": "#e5e7eb"
+          },
+          "hoverlabel": {
+            "font": {
+              "color": "#e5e7eb"
+            },
+            "bgcolor": "#111827",
+            "bordercolor": "#1f2937"
+          },
+          "legend": {
+            "font": {
+              "color": "#e5e7eb"
+            },
+            "title": {
+              "text": "Node color = sector"
+            },
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.01,
+            "xanchor": "left",
+            "x": 0.0,
+            "bgcolor": "rgba(17, 24, 39, 0.65)",
+            "bordercolor": "rgba(148, 163, 184, 0.20)",
+            "borderwidth": 1
+          },
+          "xaxis": {
+            "showgrid": false,
+            "zeroline": false,
+            "showticklabels": false,
+            "showline": false
+          },
+          "yaxis": {
+            "showgrid": false,
+            "zeroline": false,
+            "showticklabels": false,
+            "showline": false
+          },
+          "margin": {
+            "l": 12,
+            "r": 12,
+            "t": 26,
+            "b": 12
+          },
+          "title": {
+            "text": ""
+          },
+          "showlegend": false,
+          "paper_bgcolor": "#0e1117",
+          "plot_bgcolor": "#0e1117",
+          "height": 320,
+          "annotations": [
+            {
+              "align": "center",
+              "bgcolor": "rgba(15, 23, 42, 0.62)",
+              "bordercolor": "rgba(148, 163, 184, 0.20)",
+              "borderpad": 2,
+              "font": {
+                "color": "rgba(148, 163, 184, 0.78)",
+                "size": 9
+              },
+              "showarrow": false,
+              "text": "CC1: Biotechnology + Cybersecurity Software",
+              "x": 2.421808539534208,
+              "xref": "x",
+              "y": 7.407718885365453,
+              "yref": "y"
+            },
+            {
+              "align": "center",
+              "bgcolor": "rgba(15, 23, 42, 0.74)",
+              "bordercolor": "rgba(148, 163, 184, 0.18)",
+              "borderpad": 2,
+              "font": {
+                "color": "rgba(148, 163, 184, 0.64)",
+                "size": 8
+              },
+              "showarrow": false,
+              "text": "Biotechnology",
+              "x": 2.4513842454699883,
+              "xref": "x",
+              "y": 1.1128854045781424,
+              "yref": "y"
+            },
+            {
+              "align": "center",
+              "bgcolor": "rgba(15, 23, 42, 0.74)",
+              "bordercolor": "rgba(148, 163, 184, 0.18)",
+              "borderpad": 2,
+              "font": {
+                "color": "rgba(148, 163, 184, 0.64)",
+                "size": 8
+              },
+              "showarrow": false,
+              "text": "Cybersecurity Software",
+              "x": 2.7997898645987576,
+              "xref": "x",
+              "y": 3.889952226275711,
+              "yref": "y"
+            }
+          ]
+        }
+      },
+      "config": {
+        "displayModeBar": false,
+        "displaylogo": false,
+        "responsive": true,
+        "scrollZoom": false
+      }
+    },
+    "linked_selection_group": "home-attention",
+    "provenance": {
+      "mode": "materialized",
+      "datasets": [
+        "attention_home_snapshots_1d"
+      ],
+      "details": {
+        "dataset_name": "attention_home_snapshots_1d",
+        "dataset_version_id": "attention_home_snapshots_1d__20261029T185037Z__4351e04c__518ff976bb8a4975a662e0a432b87f5c",
+        "blob_path": "datasets/attention_home_snapshots_1d/dt=2026-10-29/asof=2026-10-29T18-50-37Z/universe=20260919/part-attention_home_snapshots_1d__20261029T185037Z__4351e04c__518ff976bb8a4975a662e0a432b87f5c.parquet",
+        "asof_time_utc": "2026-10-29T18:50:37.219566+00:00",
+        "ingested_at_utc": "2026-10-29T19:42:57.521924+00:00",
+        "row_count": 1
+      }
+    },
+    "performance": {
+      "row_count": 205,
+      "encoded_bytes": 58938,
+      "delivery": "inline",
+      "level_of_detail": "curated"
+    }
+  },
+  "calendar": {
+    "reference_date": "2026-10-29",
+    "days": [
+      {
+        "id": "2026-10-27",
+        "label": "Tue, 27 Oct",
+        "events": [
+          {
+            "id": "cpi",
+            "name": "CPI",
+            "type": "Inflation",
+            "time": "08:30",
+            "importance": 0.95,
+            "direction": "up",
+            "summary": "Inflation cools again",
+            "context": "Core inflation came in below the expected pace. Equities rose as Treasury yields eased after the release.",
+            "reaction": "SPY +0.7% · first 30 min",
+            "facts": [
+              [
+                "Core CPI, monthly",
+                "0.2%"
+              ],
+              [
+                "Expected",
+                "0.3%"
+              ],
+              [
+                "Previous",
+                "0.3%"
+              ]
+            ]
+          },
+          {
+            "id": "tesla",
+            "name": "Tesla",
+            "ticker": "TSLA",
+            "type": "Earnings",
+            "time": "16:05",
+            "importance": 0.82,
+            "direction": "down",
+            "summary": "Margins miss expectations",
+            "context": "Automotive margins disappointed despite higher deliveries. The earnings call focused on pricing and the cost of new vehicle programs.",
+            "reaction": "TSLA −4.2% · after hours",
+            "facts": [
+              [
+                "Revenue",
+                "$25.6B"
+              ],
+              [
+                "Revenue expected",
+                "$26.1B"
+              ],
+              [
+                "Adjusted EPS",
+                "$0.68 · $0.74 expected"
+              ]
+            ]
+          },
+          {
+            "id": "visa",
+            "name": "Visa",
+            "ticker": "V",
+            "type": "Earnings",
+            "time": "16:10",
+            "importance": 0.5,
+            "direction": "up",
+            "summary": "Spending growth steadies",
+            "context": "Payment volumes remained firm and cross-border activity supported revenue. Management maintained its outlook.",
+            "reaction": "V +1.1% · after hours",
+            "facts": [
+              [
+                "Revenue",
+                "$10.0B"
+              ],
+              [
+                "Revenue expected",
+                "$9.9B"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-10-28",
+        "label": "Wed, 28 Oct",
+        "events": [
+          {
+            "id": "boeing",
+            "name": "Boeing",
+            "ticker": "BA",
+            "type": "Earnings",
+            "time": "07:00",
+            "importance": 0.44,
+            "direction": "down",
+            "summary": "Cash burn persists",
+            "context": "Working capital and delivery timing weighed on cash generation. Investors focused on the path back to positive free cash flow.",
+            "reaction": "BA −2.1% · first hour"
+          },
+          {
+            "id": "microsoft",
+            "name": "Microsoft",
+            "ticker": "MSFT",
+            "type": "Earnings",
+            "time": "16:05",
+            "importance": 0.94,
+            "direction": "up",
+            "summary": "Cloud growth accelerates",
+            "context": "Cloud growth exceeded expectations and demand remained strong. Investors weighed that growth against higher infrastructure investment.",
+            "reaction": "MSFT +3.2% · after hours",
+            "facts": [
+              [
+                "Revenue",
+                "$73.4B"
+              ],
+              [
+                "Revenue expected",
+                "$72.1B"
+              ],
+              [
+                "Azure growth",
+                "33% · 31% expected"
+              ]
+            ]
+          },
+          {
+            "id": "alphabet",
+            "name": "Alphabet",
+            "ticker": "GOOGL",
+            "type": "Earnings",
+            "time": "16:05",
+            "importance": 0.9,
+            "direction": "up",
+            "summary": "Search revenue rebounds",
+            "context": "Search advertising and cloud revenue improved. Management discussed how AI products are changing engagement and infrastructure spending.",
+            "reaction": "GOOGL +2.4% · after hours",
+            "facts": [
+              [
+                "Revenue",
+                "$98.2B"
+              ],
+              [
+                "Revenue expected",
+                "$96.9B"
+              ]
+            ]
+          },
+          {
+            "id": "meta",
+            "name": "Meta",
+            "ticker": "META",
+            "type": "Earnings",
+            "time": "16:10",
+            "importance": 0.91,
+            "direction": "down",
+            "summary": "Spending pressures margins",
+            "context": "Advertising growth held up, but the investment outlook was higher than expected. The reaction reflected concern about the timing of returns on that spending.",
+            "reaction": "META −3.6% · after hours",
+            "facts": [
+              [
+                "Revenue",
+                "$48.3B"
+              ],
+              [
+                "Revenue expected",
+                "$47.9B"
+              ],
+              [
+                "Focus",
+                "Capital spending outlook"
+              ]
+            ]
+          },
+          {
+            "id": "servicenow",
+            "name": "ServiceNow",
+            "ticker": "NOW",
+            "type": "Earnings",
+            "time": "16:10",
+            "importance": 0.53,
+            "direction": "up",
+            "summary": "Subscriptions beat forecasts",
+            "context": "Subscription growth exceeded expectations and contracted revenue expanded. The next question is how that demand converts into renewals.",
+            "reaction": "NOW +2.0% · after hours"
+          },
+          {
+            "id": "ford",
+            "name": "Ford",
+            "ticker": "F",
+            "type": "Earnings",
+            "time": "16:15",
+            "importance": 0.27,
+            "direction": "down",
+            "summary": "Warranty costs increase",
+            "context": "Warranty costs pressured margins. Management outlined the operational changes it expects to improve profitability.",
+            "reaction": "F −1.7% · after hours"
+          }
+        ]
+      },
+      {
+        "id": "2026-10-29",
+        "label": "Thu, 29 Oct",
+        "today": true,
+        "events": [
+          {
+            "id": "ups",
+            "name": "UPS",
+            "ticker": "UPS",
+            "type": "Earnings",
+            "time": "06:30",
+            "importance": 0.42,
+            "direction": "down",
+            "summary": "Shipping volumes soften",
+            "context": "Lower shipping volumes weighed on operating leverage. The outlook depends on demand and cost reductions.",
+            "reaction": "UPS −1.5% · first hour"
+          },
+          {
+            "id": "gdp",
+            "shortLabel": "GDP",
+            "name": "US GDP",
+            "type": "Growth",
+            "time": "08:30",
+            "importance": 0.79,
+            "direction": "up",
+            "summary": "Growth beats estimates",
+            "context": "The growth estimate exceeded expectations, led by consumer demand. Equities moved higher during the first half hour after release.",
+            "reaction": "SPY +0.3% · first 30 min",
+            "facts": [
+              [
+                "Annualized growth",
+                "2.8%"
+              ],
+              [
+                "Expected",
+                "2.4%"
+              ]
+            ]
+          },
+          {
+            "id": "amazon",
+            "name": "Amazon",
+            "ticker": "AMZN",
+            "type": "Earnings",
+            "time": "16:01",
+            "importance": 0.92,
+            "direction": "future",
+            "context": "Watch AWS growth, retail margins and the capital spending outlook.",
+            "facts": [
+              [
+                "Session",
+                "After close"
+              ],
+              [
+                "Watch",
+                "AWS growth and margins"
+              ]
+            ]
+          },
+          {
+            "id": "intel",
+            "name": "Intel",
+            "ticker": "INTC",
+            "type": "Earnings",
+            "time": "16:05",
+            "importance": 0.55,
+            "direction": "future",
+            "context": "Watch product margins, foundry spending and the next-quarter outlook.",
+            "facts": [
+              [
+                "Session",
+                "After close"
+              ],
+              [
+                "Watch",
+                "Margins and foundry spending"
+              ]
+            ]
+          },
+          {
+            "id": "robinhood",
+            "name": "Robinhood",
+            "ticker": "HOOD",
+            "type": "Earnings",
+            "time": "16:10",
+            "importance": 0.37,
+            "direction": "future",
+            "context": "Watch trading activity, deposits and revenue per customer.",
+            "facts": [
+              [
+                "Session",
+                "After close"
+              ]
+            ]
+          },
+          {
+            "id": "apple",
+            "name": "Apple",
+            "ticker": "AAPL",
+            "type": "Earnings",
+            "time": "16:30",
+            "importance": 0.94,
+            "direction": "future",
+            "context": "Watch iPhone demand, services growth and the outlook for the holiday quarter.",
+            "facts": [
+              [
+                "Session",
+                "After close"
+              ],
+              [
+                "Watch",
+                "iPhone demand and services"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-10-30",
+        "label": "Fri, 30 Oct",
+        "events": [
+          {
+            "id": "exxon",
+            "name": "Exxon Mobil",
+            "ticker": "XOM",
+            "type": "Earnings",
+            "time": "06:30",
+            "importance": 0.57,
+            "direction": "future",
+            "context": "Watch refining margins, production and capital returns.",
+            "facts": [
+              [
+                "Session",
+                "Before open"
+              ]
+            ]
+          },
+          {
+            "id": "chevron",
+            "name": "Chevron",
+            "ticker": "CVX",
+            "type": "Earnings",
+            "time": "07:00",
+            "importance": 0.53,
+            "direction": "future",
+            "context": "Watch production, integration costs and cash generation.",
+            "facts": [
+              [
+                "Session",
+                "Before open"
+              ]
+            ]
+          },
+          {
+            "id": "pce",
+            "shortLabel": "PCE",
+            "name": "Core PCE",
+            "type": "Inflation",
+            "time": "08:30",
+            "importance": 0.96,
+            "direction": "future",
+            "context": "Watch the monthly pace of core inflation and revisions to the previous release.",
+            "facts": [
+              [
+                "Release",
+                "08:30 ET"
+              ],
+              [
+                "Watch",
+                "Core inflation, monthly"
+              ]
+            ]
+          },
+          {
+            "id": "eci",
+            "shortLabel": "ECI",
+            "name": "Employment costs",
+            "type": "Labor",
+            "time": "08:30",
+            "importance": 0.64,
+            "direction": "future",
+            "context": "Watch private-sector wage and benefit growth for signs of persistent labor cost pressure.",
+            "facts": [
+              [
+                "Release",
+                "08:30 ET"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-10-31",
+        "label": "Sat, 31 Oct",
+        "events": []
+      },
+      {
+        "id": "2026-11-01",
+        "label": "Sun, 1 Nov",
+        "events": []
+      },
+      {
+        "id": "2026-11-02",
+        "label": "Mon, 2 Nov",
+        "events": [
+          {
+            "id": "ism",
+            "shortLabel": "ISM",
+            "name": "ISM manufacturing",
+            "type": "Activity",
+            "time": "10:00",
+            "importance": 0.72,
+            "direction": "future",
+            "context": "Watch new orders, employment and prices paid alongside the headline index.",
+            "facts": [
+              [
+                "Release",
+                "10:00 ET"
+              ]
+            ]
+          },
+          {
+            "id": "palantir",
+            "name": "Palantir",
+            "ticker": "PLTR",
+            "type": "Earnings",
+            "time": "16:05",
+            "importance": 0.55,
+            "direction": "future",
+            "context": "Watch commercial growth and whether contracts are converting into revenue.",
+            "facts": [
+              [
+                "Session",
+                "After close"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-11-03",
+        "label": "Tue, 3 Nov",
+        "events": []
+      },
+      {
+        "id": "2026-11-04",
+        "label": "Wed, 4 Nov",
+        "events": [
+          {
+            "id": "fomc",
+            "shortLabel": "FOMC",
+            "name": "FOMC decision",
+            "type": "Rates",
+            "time": "14:00",
+            "importance": 1,
+            "direction": "future",
+            "context": "The rate decision and policy statement arrive first. The press conference is a separate event because its market reaction can differ.",
+            "facts": [
+              [
+                "Decision",
+                "14:00 ET"
+              ],
+              [
+                "Press conference",
+                "14:30 ET"
+              ]
+            ]
+          },
+          {
+            "id": "powell",
+            "shortLabel": "Q&A",
+            "name": "Fed press conference",
+            "type": "Rates",
+            "time": "14:30",
+            "importance": 0.95,
+            "direction": "future",
+            "context": "Watch the discussion of inflation progress, employment and the path of future policy decisions.",
+            "facts": [
+              [
+                "Starts",
+                "14:30 ET"
+              ]
+            ]
+          },
+          {
+            "id": "qualcomm",
+            "name": "Qualcomm",
+            "ticker": "QCOM",
+            "type": "Earnings",
+            "time": "16:05",
+            "importance": 0.54,
+            "direction": "future",
+            "context": "Watch handset demand, licensing revenue and diversification beyond phones.",
+            "facts": [
+              [
+                "Session",
+                "After close"
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2026-11-05",
+        "label": "Thu, 5 Nov",
+        "events": []
+      },
+      {
+        "id": "2026-11-06",
+        "label": "Fri, 6 Nov",
+        "events": [
+          {
+            "id": "nvidia",
+            "name": "NVIDIA",
+            "ticker": "NVDA",
+            "type": "Earnings",
+            "time": "16:20",
+            "importance": 0.97,
+            "direction": "future",
+            "context": "Watch data-center growth, gross margins, supply and the next-quarter outlook.",
+            "facts": [
+              [
+                "Session",
+                "After close"
+              ],
+              [
+                "Watch",
+                "Data-center revenue and margins"
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

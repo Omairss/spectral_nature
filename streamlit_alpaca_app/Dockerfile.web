@@ -1,12 +1,14 @@
 ARG DEPENDENCY_IMAGE
 FROM ${DEPENDENCY_IMAGE} AS dependencies
 
+RUN rm -rf /app
 WORKDIR /app
 COPY web/package.json web/package-lock.json ./
 RUN npm ci
 
 FROM ${DEPENDENCY_IMAGE} AS builder
 
+RUN rm -rf /app
 ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /app
 COPY --from=dependencies /app/node_modules ./node_modules
@@ -53,6 +55,7 @@ RUN node -e '\
 
 FROM ${DEPENDENCY_IMAGE} AS runner
 
+RUN rm -rf /app
 ARG DEPENDENCY_IMAGE
 ARG SOURCE_REVISION
 ARG SOURCE_INVENTORY_SHA256

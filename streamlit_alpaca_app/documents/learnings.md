@@ -1627,3 +1627,11 @@ The owner-accepted Exxon example did not transfer to the complete public feed. T
 The owner clarified that the feed is esoteric: it assumes readers understand financial jargon. The original prompt explicitly required 80% ASD-STE100-inspired writing; compression removed that requirement, and it was absent from both latest native system instructions. Restore the explicit preference and audience assumptions in the shared instructions and reviewer. Explain unfamiliar financial concepts through their business meaning, preserve useful figures and comparisons, and avoid glossary digressions. Both composed local instructions now include the rule; no fresh model output, spending or deployment verifies its effect yet. See verification/market-first-research-2026-10-30/casual-reader-instructions-2026-11-01.json.
 
 - Production trial acceptance can authorize a known imperfect candidate. Preserve that scope explicitly: operational qualification and accepted newer features remain mandatory, while editorial improvement continues against the actual released version.
+### Expandable prose needs paired grammatical replacements — October30
+
+An inline explanation must be authored as a replacement that fits the same prefix and suffix, including their punctuation. Joining structured plain and expandable runs into one native attributed paragraph preserves baselines, wrapping and independent phrase state. The brief composer should produce both readings together and review full sentences with simultaneous expansions; a generic explanation appended to arbitrary prose is insufficient. Keep authored interaction fixtures separate from evidence-backed generation, and retain Markdown/audio compatibility. [Native POC](verification/native-brief-expansion-2026-10-30/README.md).
+
+### November 1, 2026 — source-backed event calendar
+
+- FRED release dates include future schedules; realtime start/end describe vintages. Keep date-only fallback records date-only. Publisher monthly pages need an explicit requested-period check, and annual/monthly Fed meeting identities must match.
+- Bulk earnings produce hundreds of events on busy dates. Preserve all records, rank each day from shared data, and render visible carousel rows lazily. A live owner-key request establishes access; the public demo does not.

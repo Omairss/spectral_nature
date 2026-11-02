@@ -1,0 +1,110 @@
+[
+  {
+    "release_id": 10,
+    "date": "2026-12-10",
+    "release_name": "Consumer Price Index",
+    "link": "http://www.bls.gov/cpi/"
+  },
+  {
+    "release_id": 10,
+    "date": "2026-11-10",
+    "release_name": "Consumer Price Index",
+    "link": "http://www.bls.gov/cpi/"
+  },
+  {
+    "release_id": 46,
+    "date": "2026-11-13",
+    "release_name": "Producer Price Index",
+    "link": "http://www.bls.gov/ppi/"
+  },
+  {
+    "release_id": 47,
+    "date": "2026-12-08",
+    "release_name": "Productivity and Costs",
+    "link": "http://www.bls.gov/lpc/"
+  },
+  {
+    "release_id": 47,
+    "date": "2026-11-05",
+    "release_name": "Productivity and Costs",
+    "link": "http://www.bls.gov/lpc/"
+  },
+  {
+    "release_id": 50,
+    "date": "2026-12-04",
+    "release_name": "Employment Situation",
+    "link": "http://www.bls.gov/ces/"
+  },
+  {
+    "release_id": 50,
+    "date": "2026-11-06",
+    "release_name": "Employment Situation",
+    "link": "http://www.bls.gov/ces/"
+  },
+  {
+    "release_id": 112,
+    "date": "2026-11-20",
+    "release_name": "State Employment and Unemployment",
+    "link": "http://www.bls.gov/sae"
+  },
+  {
+    "release_id": 113,
+    "date": "2026-12-02",
+    "release_name": "Metropolitan Area Employment and Unemployment",
+    "link": "http://www.bls.gov/sae/"
+  },
+  {
+    "release_id": 188,
+    "date": "2026-11-17",
+    "release_name": "U.S. Import and Export Price Indexes",
+    "link": "http://www.bls.gov/mxp/"
+  },
+  {
+    "release_id": 192,
+    "date": "2026-12-01",
+    "release_name": "Job Openings and Labor Turnover Survey",
+    "link": "http://www.bls.gov/jlt/"
+  },
+  {
+    "release_id": 192,
+    "date": "2026-11-03",
+    "release_name": "Job Openings and Labor Turnover Survey",
+    "link": "http://www.bls.gov/jlt/"
+  },
+  {
+    "release_id": 334,
+    "date": "2026-12-04",
+    "release_name": "Labor Force Status Flows from the Current Population Survey",
+    "link": "http://www.bls.gov/cps/cps_flows.htm"
+  },
+  {
+    "release_id": 334,
+    "date": "2026-11-06",
+    "release_name": "Labor Force Status Flows from the Current Population Survey",
+    "link": "http://www.bls.gov/cps/cps_flows.htm"
+  },
+  {
+    "release_id": 362,
+    "date": "2026-12-02",
+    "release_name": "Quarterly Census of Employment and Wages",
+    "link": "http://www.bls.gov/cew/home.htm"
+  },
+  {
+    "release_id": 446,
+    "date": "2026-11-20",
+    "release_name": "Labor Force Participation by State",
+    "link": "https://www.bls.gov/lau/rdscnp16.htm"
+  },
+  {
+    "release_id": 454,
+    "date": "2026-12-10",
+    "release_name": "Average Price Data",
+    "link": "https://www.bls.gov/cpi/factsheets/average-prices.htm"
+  },
+  {
+    "release_id": 454,
+    "date": "2026-11-10",
+    "release_name": "Average Price Data",
+    "link": "https://www.bls.gov/cpi/factsheets/average-prices.htm"
+  }
+]

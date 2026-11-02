@@ -33,6 +33,7 @@ struct HomeSnapshot: Codable {
     let headline: String
     let markdown: String
     let audioAvailable: Bool
+    var expandableBrief: ExpandableBrief? = nil
   }
   struct Beat: Codable, Identifiable {
     let id: String
@@ -64,6 +65,7 @@ struct HomeSnapshot: Codable {
   let dailyDatapoints: [Datapoint]?
   let dailyDatapointsAsOf: String?
   let graph: JSONValue?
+  var calendar: MarketEventCalendar? = nil
 }
 
 struct TickerSnapshot: Codable, Identifiable {

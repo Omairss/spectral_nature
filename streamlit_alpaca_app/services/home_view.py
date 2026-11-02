@@ -11,6 +11,7 @@ from data_access.contracts import DataProvenance
 from data_access.query_service import QueryService
 from presentation.visualization_artifacts import build_plotly_figure_visualization_artifact
 from services.aql.summarizer import build_attention_home_narrative_beats
+from services.market_calendar import load_public_calendar
 
 
 def _clean(value: object, *, limit: int | None = 4000) -> str:
@@ -193,6 +194,7 @@ def build_public_home_view(
     replay_date = _validated_target_date(target_date)
     payload, ticker_snapshots, resolved_provenance, is_replay = _home_payload(resolved_service, target_date=replay_date)
     provenance = resolved_provenance.to_dict()
+    calendar = load_public_calendar(target_date=replay_date)
     if not payload:
         return {
             "status": "unavailable",
@@ -201,6 +203,7 @@ def build_public_home_view(
             "as_of": "",
             "run_id": "",
             "summary": None,
+            "calendar": calendar,
             "graph": None,
             "beats": [],
             "coverage": {},
@@ -326,6 +329,7 @@ def build_public_home_view(
         "as_of": _clean(payload.get("generated_at_utc"), limit=80),
         "run_id": _clean(payload.get("run_id"), limit=160),
         "summary": summary,
+        "calendar": calendar,
         "graph": graph,
         "beats": beats,
         "daily_datapoints": daily_datapoints,

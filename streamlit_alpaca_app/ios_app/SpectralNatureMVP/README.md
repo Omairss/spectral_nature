@@ -1,5 +1,9 @@
 # Spectral Nature for iPhone
 
+### October 30 inline brief expansion POC
+
+The native brief can now expand underlined phrases within a sentence and collapse them on another tap. Explanations reflow in the same paragraph; several phrases can be open independently. The current local experiment uses authored illustrative copy through the existing DEBUG loopback override, without a generation/provider change. [Native POC and screenshots](../../documents/verification/native-brief-expansion-2026-10-30/README.md). The approved carousel and older Markdown publications retain their existing behavior.
+
 Native SwiftUI client for the modern Spectral Nature workbench. Requires iOS 17 or later and Xcode 16 or later. The historical `SpectralNatureMVP` directory is retained; the application and shared scheme are named `SpectralNature`.
 
 Installed build **17** implements the portfolio-first Trading workspace, approval feed, fill-based call performance and position controls. Build 16’s Home, Markets, charts, feedback and session behavior are preserved. Trading verification and production delivery are recorded in [the October 29 source review](../../documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md).

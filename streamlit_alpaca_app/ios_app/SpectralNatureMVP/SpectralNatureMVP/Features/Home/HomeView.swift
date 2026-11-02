@@ -29,6 +29,16 @@ struct HomeView: View {
             }.font(.caption)
           }
         }
+        if let calendar = home?.calendar {
+          MarketEventCarousel(calendar: calendar).padding(.horizontal, -20)
+          if let graph = home?.graph {
+            NavigationLink {
+              AttentionGraphView(artifact: graph)
+            } label: {
+              AttentionNetworkPreview(artifact: graph)
+            }.buttonStyle(.plain)
+          }
+        }
         Picker("Daily Brief view", selection: $section) {
           Text("Brief").tag("Brief")
           Text("Attention").tag("Attention")
@@ -45,7 +55,11 @@ struct HomeView: View {
               if let summary = home.summary {
                 VStack(alignment: .leading, spacing: 16) {
                   Text(summary.headline).font(.title2.weight(.medium))
-                  MarkdownView(text: summary.markdown)
+                  if let brief = summary.expandableBrief, !brief.paragraphs.isEmpty {
+                    ExpandableBriefView(brief: brief).id(home.runId + "|" + home.asOf)
+                  } else {
+                    MarkdownView(text: summary.markdown)
+                  }
                   if summary.audioAvailable {
                     BriefAudio(player: player, date: targetDate,
                                publication: home.runId + home.asOf + summary.markdown)
@@ -99,7 +113,7 @@ struct HomeView: View {
                 }
               }
             }
-              if let graph = home.graph {
+              if home.calendar == nil, let graph = home.graph {
                 NavigationLink {
                   AttentionGraphView(artifact: graph)
                 } label: {

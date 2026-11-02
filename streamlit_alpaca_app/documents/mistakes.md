@@ -1560,3 +1560,11 @@ After the owner accepted the small Exxon explanation, full writing/review still 
 I replaced the original 80% ASD-STE100-inspired requirement with SEC/Microsoft guidance during prompt compression. Both latest native writer/reviewer instructions omitted it. I also focused too much on concision when the owner identified assumed financial knowledge as the main problem. Restored the explicit style and casual-reader understanding locally, including no assumed financial training for market reports. The current comparison predates this correction; no new inference or deployment ran, and restored wording is not evidence of restored output quality.
 
 - A release branch can lag independent accepted deployments. The November 1 live inventory includes 38 consumers and a newer calendar API/worker. Reconcile the accepted calendar Git source before packaging the data-first release; never promote the older source over it.
+### Native inline-link verification needs precise limits — October30
+
+Simulator exposed expandable paragraphs as single accessibility elements, and repeated coordinate taps returned `noWindowsAvailable`. Native accessibility activation did verify Intel, Microsoft and Fed expansion/collapse, including independent open paragraphs; it did not separately qualify the second Meta link, VoiceOver or larger text settings. Keep these limits in the receipt rather than modifying the product for automation or presenting authored sample explanations as qualified LLM generation. The actual paragraph layout and previous Markdown publication were personally inspected. [Review](verification/native-brief-expansion-2026-10-30/README.md).
+
+### November 1, 2026 — calendar integration corrections
+
+- The first local publication hit PyArrow26's NumPy2 requirement against the application's NumPy<2 constraint. Bound PyArrow below26 and verified a normal materialized publication with25.
+- Sparse mock calendars concealed clipping and eager rendering on busy days. Review the full provider dataset before release; fixed inner-text clamping and lazy event rows globally.

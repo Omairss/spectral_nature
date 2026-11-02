@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from functools import lru_cache
 import os
 import random
@@ -211,6 +211,47 @@ class FREDClient:
         payload = dict(params)
         payload.setdefault("format", "json")
         return self._request_json(path, payload, headers=headers, timeout=60)
+
+    def get_release_dates(self, release_id: int, *, start: date, end: date) -> list[dict[str, Any]]:
+        """Published release dates, including future dates without observations.
+
+        Filter calendar dates locally. FRED's realtime_start/end are vintage
+        controls and must not be set to an invented future observation vintage.
+        """
+        output, offset = [], 0
+        while True:
+            payload = self._request_v1("release/dates", {
+                "release_id": int(release_id), "include_release_dates_with_no_data": "true",
+                "sort_order": "desc", "limit": 1000, "offset": offset,
+            })
+            rows = payload.get("release_dates")
+            if not isinstance(rows, list):
+                raise FredAPIError("Release dates were not returned")
+            for row in rows:
+                when = date.fromisoformat(row["date"])
+                if start <= when <= end:
+                    output.append(dict(row))
+            offset += len(rows)
+            if not rows or offset >= int(payload.get("count", offset)) or date.fromisoformat(rows[-1]["date"]) < start:
+                return output
+
+    def get_source_release_calendar(self, source_id: int, *, start: date, end: date) -> list[dict[str, Any]]:
+        """A publisher's press-release dates; no exact release time is implied."""
+        releases, offset = [], 0
+        while True:
+            payload = self._request_v1("source/releases", {"source_id": int(source_id), "limit": 1000, "offset": offset})
+            rows = payload.get("releases")
+            if not isinstance(rows, list):
+                raise FredAPIError("Source releases were not returned")
+            releases.extend(row for row in rows if row.get("press_release"))
+            offset += len(rows)
+            if not rows or offset >= int(payload.get("count", offset)):
+                break
+        output = []
+        for release in releases:
+            for row in self.get_release_dates(release["id"], start=start, end=end):
+                output.append({**row, "release_name": release["name"], "link": release.get("link", "")})
+        return output
 
     def get_series_metadata(self, series_id: str) -> dict[str, Any]:
         payload = self._request_v1("series", {"series_id": series_id})
