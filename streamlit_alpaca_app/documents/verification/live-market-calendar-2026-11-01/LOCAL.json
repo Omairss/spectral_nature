@@ -1,6 +1,6 @@
 {
   "recorded_at": "2026-11-02T02:35:27.906424+00:00",
-  "status": "source_contract_review_complete_visual_and_image_review_pending",
+  "status": "local_visual_and_exact_image_packages_accepted",
   "data_namespace": "development",
   "retained_events": 61,
   "retained_sources": {
@@ -84,13 +84,36 @@
     "existing_fred_checks": 12,
     "web_gateway_auth_checks": 16,
     "typecheck": "passed",
-    "native_visual": "pending",
-    "web_visual": "pending",
-    "cloud_exact_image": "pending"
+    "native_visual": "passed_signed_simulator_busy_day_expansion_centering_and_collapse",
+    "web_visual": "passed_actual_web_busy_day_inline_expansion",
+    "cloud_exact_image": "all_three_package_probes_passed",
+    "native_touch_drag": "Automation drag/scroll did not move the carousel; date-button centering verified. No claim of physical-touch verification."
   },
   "limits": [
-    "Alpha Vantage owner key is not configured; no earnings records are enabled in shared serving.",
-    "Direct BLS access returned403 locally; FRED fallback provides dates without invented times.",
-    "No model invocation, production promotion or physical-phone update."
+    "Earnings are provider-expected dates; issuer confirmation is not implemented.",
+    "Direct BLS returned403 locally; FRED fallback supplies dates without invented clocks.",
+    "No model invocation, production promotion or physical-phone update.",
+    "retained-calendar.json preserves the initial61-event agency-only capture; keyed ingestion is recorded separately."
+  ],
+  "keyed_ingestion": {
+    "owner_key_in_key_vault": true,
+    "secret_name": "AlphaVantage",
+    "earnings_records": 3454,
+    "agency_records": 61,
+    "retained_total": 3515,
+    "public_event_count": 3502,
+    "as_of": "2026-11-02T02:58:06.064063+00:00",
+    "date_counts": {
+      "2026-11-02": 154,
+      "2026-11-05": 619,
+      "2026-11-25": 21,
+      "2026-12-09": 25
+    },
+    "prototype_rows_migrated": false
+  },
+  "screenshots": [
+    "native-calendar-compact.jpg",
+    "native-earnings-expanded.jpg",
+    "web-earnings-expanded.jpg"
   ]
 }

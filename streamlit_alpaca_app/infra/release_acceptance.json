@@ -624,9 +624,64 @@
       "baseline_images": [
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d7136ea473754fb3a6f941d202c4d800b4d1d7e215e5afdf51662571c9c7ef48"
       ],
-      "development_targets": [],
+      "development_targets": [
+        {
+          "name": "market-calendar-refresh-dev",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "development",
+          "new_resource": true,
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "ceee1951e7d748240c81b56d126e0a2758e192d5314cf26eb980668eaf6af0ce",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+            "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+            "evidence": "documents/verification/live-market-calendar-2026-11-01/SOURCE_REVIEW.md",
+            "package_evidence": "documents/verification/live-market-calendar-2026-11-01/PACKAGE_ACCEPTANCE.json"
+          },
+          "execution_binding": {
+            "name": "market-calendar-refresh-dev",
+            "role": "worker",
+            "pipeline_job": "market-calendar-refresh",
+            "dataset_namespace": "development",
+            "trigger": "Schedule",
+            "cron": "0 0,6,12,18 * * *",
+            "environment": {
+              "ALPHA_VANTAGE_SECRET_NAME": "AlphaVantage",
+              "PIPELINE_JOB_MAX_DURATION_SECONDS": "300"
+            }
+          }
+        }
+      ],
       "production_targets": [],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d": {
+          "status": "passed",
+          "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+          "runtime_files": 198,
+          "runtime_inventory_sha256": "215186b857e5a7d4ba391a6bbca5a39a06a3328be1e78a7297e09476a35c7e92",
+          "all_packaged_files_checked": true,
+          "checks": [
+            "complete Git package",
+            "API imports/OpenAPI",
+            "worker and broker imports",
+            "retained native performance API",
+            "flat account zero return and undefined Sharpe",
+            "calendar worker, adapters and timezone imports"
+          ],
+          "external_requests": 0,
+          "role": "worker",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+          "source_inventory_sha256": "bd0f4040e86a0d92d802818686734ed1f7b349a4b9556a565882ce2ab91647b6",
+          "complete_git_inventory_matches": true,
+          "qualification_run": "cj1dp",
+          "build_run": "cj1dk",
+          "evidence": "documents/verification/live-market-calendar-2026-11-01/PACKAGE_ACCEPTANCE.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
@@ -653,7 +708,32 @@
         }
       ],
       "production_targets": [],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16": {
+          "status": "passed",
+          "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+          "runtime_files": 198,
+          "runtime_inventory_sha256": "215186b857e5a7d4ba391a6bbca5a39a06a3328be1e78a7297e09476a35c7e92",
+          "all_packaged_files_checked": true,
+          "checks": [
+            "complete Git package",
+            "API imports/OpenAPI",
+            "worker and broker imports",
+            "retained native performance API",
+            "unauthenticated Trading read/write rejection",
+            "flat account zero return and undefined Sharpe",
+            "calendar worker, adapters and timezone imports"
+          ],
+          "external_requests": 0,
+          "role": "api-next",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
+          "source_inventory_sha256": "bd0f4040e86a0d92d802818686734ed1f7b349a4b9556a565882ce2ab91647b6",
+          "complete_git_inventory_matches": true,
+          "qualification_run": "cj1dn",
+          "build_run": "cj1dj",
+          "evidence": "documents/verification/live-market-calendar-2026-11-01/PACKAGE_ACCEPTANCE.json"
+        }
+      }
     },
     "web": {
       "dependency_image": "node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da",
@@ -680,7 +760,30 @@
         }
       ],
       "production_targets": [],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9": {
+          "status": "passed",
+          "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+          "source_inventory_sha256": "bd0f4040e86a0d92d802818686734ed1f7b349a4b9556a565882ce2ab91647b6",
+          "runtime_inventory_sha256": "e07e29d0ac11df77e8e03ee7fe01db1becc37e8aa7995cff54d93ccb09b79e67",
+          "input_files": 96,
+          "compiled_files": 1725,
+          "symlinks": 0,
+          "all_packaged_files_checked": true,
+          "checks": [
+            "complete compiled files and symlinks",
+            "accepted Git web inputs",
+            "Trading page, order and call routes",
+            "preserved Broad Economy route and outlook component input"
+          ],
+          "role": "web",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+          "complete_git_inventory_matches": true,
+          "qualification_run": "cj1dq",
+          "build_run": "cj1dh",
+          "evidence": "documents/verification/live-market-calendar-2026-11-01/PACKAGE_ACCEPTANCE.json"
+        }
+      },
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
         "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
@@ -1454,6 +1557,15 @@
     "base_budgets_and_schedules_preserved": true
   },
   "production_authorization": {},
-  "development_acceptance": {},
+  "development_acceptance": {
+    "status": "pending_runtime_qualification",
+    "images": {
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d"
+    },
+    "source_inventory_sha256": "bd0f4040e86a0d92d802818686734ed1f7b349a4b9556a565882ce2ab91647b6",
+    "evidence": "documents/verification/live-market-calendar-2026-11-01/DEVELOPMENT.json"
+  },
   "production_acceptance": {}
 }

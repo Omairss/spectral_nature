@@ -1,0 +1,22 @@
+{
+  "name": "market-calendar-refresh-dev",
+  "environment": "development",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+  "configuration_sha256": "ceee1951e7d748240c81b56d126e0a2758e192d5314cf26eb980668eaf6af0ce",
+  "schedule": {
+    "cronExpression": "0 0,6,12,18 * * *",
+    "parallelism": 1,
+    "replicaCompletionCount": 1
+  },
+  "timeout_seconds": 300,
+  "resources": {
+    "cpu": 1.0,
+    "ephemeralStorage": "",
+    "memory": "2Gi"
+  },
+  "key_vault_secret": "AlphaVantage",
+  "identity": "existing sn-pipeline managed identity",
+  "namespace": "development",
+  "new_access_grants": false,
+  "existing_consumers_preflight": 36
+}
