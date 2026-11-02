@@ -976,6 +976,7 @@ def test_evidence_navigation_cannot_consume_the_answer_reserve(core_wallet, monk
     assert result == {"value":"result"}
     assert len(calls) == 2 and calls[0][0]["routing"]["role"] == "research"
     assert calls[1][0]["routing"]["role"] == "core"
-    assert calls[1][1]["properties"]["decision"]["properties"]["action"]["enum"] == ["answer"]
+    assert calls[1][1]["properties"]["decision"] == {
+        "type": "object", "properties": {"value": {"type": "string"}}, "required": ["value"]}
     state = pipeline_store.read_execution_state(*execution._run_budget_key(), strict=True)
     assert len(state["attempts"]) == 1 and state["core_obligations"]["primary"]["remaining_microusd"] == 1_900_000
