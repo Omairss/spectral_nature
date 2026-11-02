@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Source/data contracts accepted for local packaging; native/web visual and exact-image development verification precede deployment.",
-  "source_revision": "94fc2a4a4eeef7b5c62700af47cd8065605e8917",
+  "source_revision": "3e6064a7eb4693217535fbec70e328d7c7562bf9",
   "review_base_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -299,8 +299,8 @@
     "web/components/home-workspace.tsx": "23d117c7a0bba0a2a07e34f4730a9562112ab36ab7ec4bb06c5bda4e2159440a",
     "web/components/icons.tsx": "b9decc77ad08d556bfe3bdee1a879303a034026ec7a608fd799b23c40203470d",
     "web/components/markdown.tsx": "743d7e7b2a85cead42cd851c5e4b1a75682bf5213cee422c127de8b6f09cfe8a",
-    "web/components/market-event-calendar.module.css": "fe60614fb32e7cb16c5a0d25f1bad3cd56c49abfe80d95d57ae9787fa7e37096",
-    "web/components/market-event-calendar.tsx": "7f04de84d1592a1288339b1e99c8db895ae9cc16060135f2c3ba5e179a30984a",
+    "web/components/market-event-calendar.module.css": "9ae69f52add5d46fc4e031a72684e91aea2fb4b4621b18b6ed56866d9cad1f2c",
+    "web/components/market-event-calendar.tsx": "be23e4a8d22379216b1614b4be0d0bfc41c3ee03d5df74dd434d347901c662fe",
     "web/components/page-research-summary.tsx": "1e4b7002d0783c3afa99e8603a36bab1fcc2300f573ebf7ee8d14472ebe253fa",
     "web/components/portfolio-lists.tsx": "f610e4c6174b2dda16ca57ab9ac0c1ea906fb4d25e7fcaa561c8d1490b008cd9",
     "web/components/shell-nav.tsx": "ca92bd44749334791eb8059d86852730400606b2e6a4ceb232811ba79a7d7491",
@@ -321,7 +321,7 @@
     "web/lib/server/backend.ts": "b97c9d02b433e2cf59b33e97f60f2b8d596536fad7f1c9c796c7511498f56f69",
     "web/lib/server/home.ts": "b01f860b48081fededeb54a227c07a31716b05ebf3070be78f1c2ac97751cf63",
     "web/lib/server/http.ts": "88b7c9dd4d74b6e9fe6fbdde729c7567ec6e1d30ad49509eca6928ae0ca2d1a2",
-    "web/lib/types.ts": "e01d3dc428e4b305a79af800e79a1cb2f6e60dc877cc0da0975f321df956a9d8",
+    "web/lib/types.ts": "c06fec432f5057d6a933c45a67993afb97b2744a93588ba9beb731fe552bee19",
     "web/next-env.d.ts": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
     "web/next.config.ts": "304db7c8cad0928ec4fd92fd1c56c1d6ec26b9078e45ed1a626bf95a92a8b440",
     "web/package-lock.json": "04f70dfd9398ad53693c7a481defd5be0b1ca2113943e5ace748b7b1670b0f6e",
@@ -652,8 +652,9 @@
   ],
   "roles": {
     "worker": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5064584ad0d3a5bf0bb4de4e7862a381d065b4f748de5a64a591fa75155d45ae",
       "baseline_images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5064584ad0d3a5bf0bb4de4e7862a381d065b4f748de5a64a591fa75155d45ae",
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae"
       ],
       "development_targets": [
@@ -664,14 +665,14 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "2883e0abb815896beb49e8d2c93e55b514b3300bceecfabb0d026b3f10b69075",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5064584ad0d3a5bf0bb4de4e7862a381d065b4f748de5a64a591fa75155d45ae",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5064584ad0d3a5bf0bb4de4e7862a381d065b4f748de5a64a591fa75155d45ae",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5064584ad0d3a5bf0bb4de4e7862a381d065b4f748de5a64a591fa75155d45ae",
+            "source_revision": "79d7e3fc7d8fd67c5f15d2005f2e44b15ed44a4e",
             "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-            "package_evidence": "documents/verification/market-first-research-2026-10-30/production-trial-packages-2026-11-01.json"
+            "package_evidence": "documents/verification/calendar-history-reactions-2026-11-01/PREVIOUS_PACKAGES.json"
           },
           "execution_binding": {
             "name": "market-calendar-refresh-dev",
@@ -718,34 +719,13 @@
           }
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5064584ad0d3a5bf0bb4de4e7862a381d065b4f748de5a64a591fa75155d45ae": {
-          "status": "passed",
-          "source_revision": "79d7e3fc7d8fd67c5f15d2005f2e44b15ed44a4e",
-          "runtime_files": 200,
-          "runtime_inventory_sha256": "fb0c1b5f0da01d4b51eb62918ea29ba2941d9ab58930d93b9fe75a39b0d9c7c5",
-          "all_packaged_files_checked": true,
-          "checks": [
-            "complete Git package",
-            "API imports/OpenAPI",
-            "worker and broker imports",
-            "retained native performance API",
-            "flat account zero return and undefined Sharpe",
-            "calendar producer, consolidated reaction imports and 121-day projection"
-          ],
-          "external_requests": 0,
-          "role": "worker",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5064584ad0d3a5bf0bb4de4e7862a381d065b4f748de5a64a591fa75155d45ae",
-          "source_inventory_sha256": "94a7337e7f2164043c7e8e5cd2e37825e30f27c0e0652adf406296d4206cd2a5",
-          "complete_git_inventory_matches": true,
-          "evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
-        }
-      }
+      "accepted_images": {}
     },
     "api-next": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15"
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15",
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330"
       ],
       "development_targets": [
         {
@@ -755,15 +735,15 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330",
+            "source_revision": "79d7e3fc7d8fd67c5f15d2005f2e44b15ed44a4e",
             "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-            "package_evidence": "documents/verification/market-first-research-2026-10-30/production-trial-packages-2026-11-01.json"
+            "package_evidence": "documents/verification/calendar-history-reactions-2026-11-01/PREVIOUS_PACKAGES.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330"
         }
       ],
       "production_targets": [
@@ -785,35 +765,13 @@
           "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15"
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330": {
-          "status": "passed",
-          "source_revision": "79d7e3fc7d8fd67c5f15d2005f2e44b15ed44a4e",
-          "runtime_files": 200,
-          "runtime_inventory_sha256": "fb0c1b5f0da01d4b51eb62918ea29ba2941d9ab58930d93b9fe75a39b0d9c7c5",
-          "all_packaged_files_checked": true,
-          "checks": [
-            "complete Git package",
-            "API imports/OpenAPI",
-            "worker and broker imports",
-            "retained native performance API",
-            "unauthenticated Trading read/write rejection",
-            "flat account zero return and undefined Sharpe",
-            "calendar producer, consolidated reaction imports and 121-day projection"
-          ],
-          "external_requests": 0,
-          "role": "api-next",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330",
-          "source_inventory_sha256": "94a7337e7f2164043c7e8e5cd2e37825e30f27c0e0652adf406296d4206cd2a5",
-          "complete_git_inventory_matches": true,
-          "evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
-        }
-      }
+      "accepted_images": {}
     },
     "web": {
       "dependency_image": "node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9"
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:dcc2774980652e5b67877fd5de1577ceaf6e9ef71a5eb89836a8ed2b73fc2a32"
       ],
       "development_targets": [
         {
@@ -823,15 +781,15 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:dcc2774980652e5b67877fd5de1577ceaf6e9ef71a5eb89836a8ed2b73fc2a32",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
-            "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:dcc2774980652e5b67877fd5de1577ceaf6e9ef71a5eb89836a8ed2b73fc2a32",
+            "source_revision": "79d7e3fc7d8fd67c5f15d2005f2e44b15ed44a4e",
             "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-            "package_evidence": "documents/verification/live-market-calendar-2026-11-01/PACKAGE_ACCEPTANCE.json"
+            "package_evidence": "documents/verification/calendar-history-reactions-2026-11-01/PREVIOUS_PACKAGES.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:dcc2774980652e5b67877fd5de1577ceaf6e9ef71a5eb89836a8ed2b73fc2a32"
         }
       ],
       "production_targets": [
@@ -870,28 +828,7 @@
           "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9"
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:dcc2774980652e5b67877fd5de1577ceaf6e9ef71a5eb89836a8ed2b73fc2a32": {
-          "status": "passed",
-          "source_revision": "79d7e3fc7d8fd67c5f15d2005f2e44b15ed44a4e",
-          "source_inventory_sha256": "94a7337e7f2164043c7e8e5cd2e37825e30f27c0e0652adf406296d4206cd2a5",
-          "runtime_inventory_sha256": "6854ce2efa1fe538eaa0f164b3a665818eb32f4ec4d9ff144a75fbefadc239df",
-          "input_files": 96,
-          "compiled_files": 1725,
-          "symlinks": 0,
-          "all_packaged_files_checked": true,
-          "checks": [
-            "complete compiled files and symlinks",
-            "accepted Git web inputs",
-            "Trading page, order and call routes",
-            "preserved Broad Economy route and outlook component input"
-          ],
-          "role": "web",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:dcc2774980652e5b67877fd5de1577ceaf6e9ef71a5eb89836a8ed2b73fc2a32",
-          "complete_git_inventory_matches": true,
-          "evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
-        }
-      },
+      "accepted_images": {},
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
         "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
@@ -958,8 +895,8 @@
         "web/components/home-workspace.tsx": "23d117c7a0bba0a2a07e34f4730a9562112ab36ab7ec4bb06c5bda4e2159440a",
         "web/components/icons.tsx": "b9decc77ad08d556bfe3bdee1a879303a034026ec7a608fd799b23c40203470d",
         "web/components/markdown.tsx": "743d7e7b2a85cead42cd851c5e4b1a75682bf5213cee422c127de8b6f09cfe8a",
-        "web/components/market-event-calendar.module.css": "fe60614fb32e7cb16c5a0d25f1bad3cd56c49abfe80d95d57ae9787fa7e37096",
-        "web/components/market-event-calendar.tsx": "7f04de84d1592a1288339b1e99c8db895ae9cc16060135f2c3ba5e179a30984a",
+        "web/components/market-event-calendar.module.css": "9ae69f52add5d46fc4e031a72684e91aea2fb4b4621b18b6ed56866d9cad1f2c",
+        "web/components/market-event-calendar.tsx": "be23e4a8d22379216b1614b4be0d0bfc41c3ee03d5df74dd434d347901c662fe",
         "web/components/page-research-summary.tsx": "1e4b7002d0783c3afa99e8603a36bab1fcc2300f573ebf7ee8d14472ebe253fa",
         "web/components/portfolio-lists.tsx": "f610e4c6174b2dda16ca57ab9ac0c1ea906fb4d25e7fcaa561c8d1490b008cd9",
         "web/components/shell-nav.tsx": "ca92bd44749334791eb8059d86852730400606b2e6a4ceb232811ba79a7d7491",
@@ -980,7 +917,7 @@
         "web/lib/server/backend.ts": "b97c9d02b433e2cf59b33e97f60f2b8d596536fad7f1c9c796c7511498f56f69",
         "web/lib/server/home.ts": "b01f860b48081fededeb54a227c07a31716b05ebf3070be78f1c2ac97751cf63",
         "web/lib/server/http.ts": "88b7c9dd4d74b6e9fe6fbdde729c7567ec6e1d30ad49509eca6928ae0ca2d1a2",
-        "web/lib/types.ts": "e01d3dc428e4b305a79af800e79a1cb2f6e60dc877cc0da0975f321df956a9d8",
+        "web/lib/types.ts": "c06fec432f5057d6a933c45a67993afb97b2744a93588ba9beb731fe552bee19",
         "web/next-env.d.ts": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
         "web/next.config.ts": "304db7c8cad0928ec4fd92fd1c56c1d6ec26b9078e45ed1a626bf95a92a8b440",
         "web/package-lock.json": "04f70dfd9398ad53693c7a481defd5be0b1ca2113943e5ace748b7b1670b0f6e",
