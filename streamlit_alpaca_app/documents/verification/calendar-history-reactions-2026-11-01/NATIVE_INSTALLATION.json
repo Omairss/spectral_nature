@@ -12,8 +12,11 @@
   "binary_sha256": "bccdbfb5d4ea9270accff0bbf676123c100d549f103ab51347ba80c82fbe1645",
   "independent_installed_build_readback": "19",
   "launch": {
-    "status": "blocked_by_device_lock",
-    "detail": "iOS rejected launch because the phone is locked"
+    "status": "verified",
+    "detail": "Remote paired-device launch succeeded; independent process readback matched the launched executable.",
+    "process_identifier": 6943,
+    "running_executable": "file:///private/var/containers/Bundle/Application/ED62562D-1BD6-4FD6-B40F-CFFFF930B9D6/SpectralNature.app/SpectralNature",
+    "verified_at_local": "2026-11-02T16:27:01-08:00"
   },
   "physical_screen_inspected": false,
   "simulator_production_screen": "native-production-minimal.jpg"

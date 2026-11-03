@@ -60,7 +60,7 @@ Keep normal simulator signing enabled: Keychain needs Xcode's simulated applicat
 
 ## Installation and validation
 
-Version 1.0.0 build 19 is installed on the owner's iPhone, with independent version readback and a verified local signature. Production native Simulator and browser screens confirm the color-only timeline and attention graph. The phone is locked, so its launch check remains pending. [Current installation record](../../documents/verification/calendar-history-reactions-2026-11-01/NATIVE_INSTALLATION.json).
+Version 1.0.0 build 19 is installed on the owner's iPhone, with independent version readback and a verified local signature. Production native Simulator and browser screens confirm the color-only timeline and attention graph. Remote launch and independent running-process verification succeeded. [Current installation record](../../documents/verification/calendar-history-reactions-2026-11-01/NATIVE_INSTALLATION.json).
 
 The current Personal Team profile expires 2026-11-09 at 02:43:50 UTC. The bundle identifier and development team remain the same, preserving application data and Keychain identity. Earlier [build 18 calendar delivery](../../documents/verification/live-market-calendar-2026-11-01/NATIVE_INSTALLATION.json) and [build 17 Trading delivery](../../documents/verification/trading-system-2026-10-29/README.md) remain recorded.
 
