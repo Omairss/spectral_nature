@@ -1099,7 +1099,7 @@
           "role": "worker",
           "environment": "production",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "006190f074b4aa15d79421f21124812374cbb938194b54628eff41b675bbf513",
+          "configuration_sha256": "725b07b050577788f0d07da70bef9dec939fde288be4136dd8895916d95d777f",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
