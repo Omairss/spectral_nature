@@ -1637,3 +1637,5 @@ The complete public continuation exposed a deeper contract conflict: economical 
 Receipt review found that replaying an older final outbox receipt could replace enriched SQL metadata from the same successful attempt. Merge metadata and retain known usage when the replay lacks usage. The original attempt identity and status ordering remain unchanged.
 
 The first chart continuation mistakenly used universe rows instead of native ticker histories. It is retained as a macro-only harness error. The corrected native histories produced five charts, but their captions inherited the unaccepted Brief; they are not qualitative acceptance.
+
+November 4 live-feed review: the headline, summary, explanation and Brief all repeated common-cause or missing-proof caveats while the saved research already contained specific memory-pricing, company-results and equipment-demand explanations. The compressed prompts weakened concrete editorial instructions. Restore those checks in the shared writer/reviewer and align the Home request; do not strip phrases from generated output or claim improvement without a real comparison.

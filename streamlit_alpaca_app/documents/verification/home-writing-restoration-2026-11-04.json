@@ -1,0 +1,47 @@
+{
+  "status": "prompt_revision_prepared_not_model_verified",
+  "observed_at_utc": "2026-11-04T09:07:30.481203+00:00",
+  "production_run_id": "168d03d7-a792-471c-ade4-0d343217fbad",
+  "production_asof": "2026-11-04T04:56:10.420662+00:00",
+  "observed_failure": {
+    "title": "Chip-equipment, optical, and memory shares rose sharply on Nov. 3 after a month-long slide, but the evidence points to several drivers rather than one common cause.",
+    "summary": "The rebound was broad but uneven and left most groups far below their earlier levels, so it is a partial recovery rather than a proved turn.",
+    "why": "No single company or policy event explains all groups. Memory pricing is one shared thread: Apple said higher memory costs would lower its hardware profit share, and Micron coverage said more than three-quarters of Micron's 2027 output was already committed. Lattice, Fabrinet, and Lam Research gave separate positive company news. Job openings and factory orders came in above forecasts, and the 10-year government bond rate rose to 4.95%, but those were not the main driver. AMD's pre-report gain reflected its own pending results, not a broad cause.",
+    "brief": "On Nov. 3, the market's moves were narrow and company-specific rather than one market-wide story. AI hardware and equipment rebounded from a month-long slide, but the gains were concentrated in smaller suppliers still down sharply, while Nvidia and large chipmakers lagged; memory costs created a clear split, lifting memory names and hurting Apple's profit outlook. Energy separated by business as lower oil from Iran-deal hopes weighed on producers and drillers, yet no actual supply change was confirmed. Restaurant suppliers fell on Sysco's traffic warning, and Shopify and Apple showed profit-share pressures tied to product mix and memory costs. Deal risk in Marvell-Lumentum and the unexplained crypto-mining rebound remain open. The overall evidence does not yet support a broad market turn: the prior real-estate and rail supports did not lead, and several large moves lack a confirmed cause."
+  },
+  "instruction_comparison": {
+    "before": "November 1 saved complete prompts",
+    "after": "Current source and owner-authorized compressed production defaults",
+    "findings": [
+      "Concrete instructions about explaining the actual development, business mechanism, distinct fields and material follow-ups became broad requests to select facts and explain connections.",
+      "The live headline, summary, explanation and Brief all repeat limitations about a common cause or a proven market turn.",
+      "The underlying saved research contains useful specific drivers and business information that the public text suppresses.",
+      "The latest candidate has not completed a qualitatively accepted writing comparison."
+    ]
+  },
+  "source_repairs": [
+    "Shared style requires direct explanation and removes rhetorical contrasts except material corrections.",
+    "Writer names and orders likely drivers, connects them to business effects and keeps structured fields distinct.",
+    "Reviewer restores independent business reasoning, numerical meaning, consequential omissions, actual-artifact editing and ordinary-language checks.",
+    "Home field descriptions and public request use positive instructions to explain developments, drivers and business consequences."
+  ],
+  "saved_source_driver_examples": [
+    {
+      "driver": "Higher memory prices support memory sellers and increase costs for buyers such as Apple",
+      "basis": "Dated retained chip investigation 99ea93be599b399cc3da171a3d258b083e78e2a9db3459e19d7626aa6c674575; Apple and Micron coverage; no claim that this explains every chip company"
+    },
+    {
+      "driver": "Fabrinet and Lattice reported results and gave forecasts above analyst expectations",
+      "source_url": "https://www.benzinga.com/trading-ideas/movers/26/11/62831428/fabrinet-everquote-lattice-semiconductor-fiserv-and-other-big-stocks-moving-higher-on-tuesday",
+      "captured_report_date": "2026-11-03T17:02:46Z"
+    },
+    {
+      "driver": "Lam forecast strong industry demand for chipmaking equipment in 2027",
+      "source_url": "https://www.tradingview.com/news/urn:summary_document_transcript:quartr.com:4440452:0-lrcx-2027-wfe-outlook-tops-200b-as-transitions-and-capacity-constraints-shape-growth/",
+      "captured_report_date": "2026-11-03T20:03:19Z"
+    }
+  ],
+  "verification_scope_next": "One actual live-feed story through the existing writer and reviewer with retained originals, before expanding to the complete feed. No repeat acquisition or common-planner run for the writing comparison.",
+  "paid_verification": "No new inference in this turn. The same $13 cap has $10.221 counted exposure; the previously approved two-hour window has ended. Time-continuation approval remains required.",
+  "deployment": "No candidate build, deployment or feed replacement. Earlier local and DEV acceptance gates remain."
+}

@@ -504,7 +504,7 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
                     "description": "Exact source index/reader identities. Primary research first, then supporting originals or observations."},
                 "supporting_symbols": {"type": "array", "items": {"type": "string"}},
                 "time_basis": _STORY_TIME_BASIS_SCHEMA,
-                "event_title": {"type": "string", "description": "The substantive development, with chronology and strength of explanation intact. A hypothesized cause remains a hypothesis in the headline; a caveat later in the story cannot correct an asserted cause."},
+                "event_title": {"type": "string", "description": "State the central current development and its business meaning. Express a likely explanation at the evidence's strength, with chronology intact."},
                 "surface_summary_text": {"type": "string", "description": "The development's essential meaning for an investor, without duplicating the headline or detailed account."},
                 "what_happened_text": {"type": "string", "description": "Explain the material business, policy or market development. Keep figures that add meaning, with their baseline or comparison."},
                 "why_happened_text": {"type": "string", "description": "Explain the leading likely mechanism and its business consequence, qualifying the interpretation within the claim. Leave empty if already explained."},
@@ -521,7 +521,7 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
         "market_summary": {
             "type": "object", "additionalProperties": False,
             "properties": {
-                "summary_text": {"type": "string", "description": "Summarize the finished Attention stories and their investment implications in connected prose. Lead with the substantive business developments. This is not a sector-performance inventory or a second analysis of unused context."},
+                "summary_text": {"type": "string", "description": "Explain the finished Attention stories' main developments, leading likely drivers and wider economic or business meaning in connected prose. Select the comparisons that help the reader understand the theme."},
                 "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
                 "limitations": {"type": "array", "items": {"type": "string"}},
             }, "required": ["summary_text", "confidence", "limitations"],
@@ -1950,8 +1950,8 @@ def _review_home_public_surface(
         "research spending. Write distinct Attention stories first, then summarize their main themes in Brief: "
         "what changed, the business developments behind it and the wider economic or investment significance. "
         "Preserve evidence that supports or challenges the central thesis. Treat numerical groups as observations "
-        "and explain likely mechanisms at their actual strength, including several causes acting together. "
-        "Lead with the interpretation and its importance; keep proof-seeking and research-status commentary internal. "
+        "and name the leading likely drivers, which developments they explain and how they affect businesses. "
+        "Lead with the explanation and its importance; keep research-status commentary internal. "
         "Read the dated calendar to check material releases already due before assigning future follow-ups. "
         "Use the latest completed observations and keep earlier source snapshots dated. Use original sources when the explanation "
         "depends on a material detail. Section limits are ceilings; leave redundant fields empty and include only "
