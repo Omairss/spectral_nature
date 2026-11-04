@@ -192,13 +192,19 @@ def collect_reported_earnings(api_key: str, *, now: datetime, start: date, end: 
     snapshots = client.history_snapshot(list(companies))
     today = now.astimezone(NY).date().isoformat()
     reported = {e["id"] for e in previous_events if e.get("confirmation_status") == "reported"}
-    pending = {e["ticker"] for e in previous_events if e.get("type") == "earnings" and e["id"] not in reported
-               and e.get("confirmation_status") != "reported" and start.isoformat() <= e["date"] < today}
+    pending = {}
+    for event in previous_events:
+        if (event.get("type") == "earnings" and event["id"] not in reported
+                and event.get("confirmation_status") != "reported" and start.isoformat() <= event["date"] < today):
+            symbol = event["ticker"]
+            pending[symbol] = max(pending.get(symbol, ""), event["date"])
     due = [s for s in companies
            if now.timestamp() - float(snapshots.get(s, {}).get("last_attempt_at", 0)) >= 86400
            and (not snapshots.get(s, {}).get("fetched_at") or
                 now.timestamp() - float(snapshots[s]["fetched_at"]) >= (86400 if s in pending else 30 * 86400))]
-    due.sort(key=lambda s: (-(priorities or ranks).get(s, 0), s not in pending,
+    due.sort(key=lambda s: (s not in pending,
+                           -date.fromisoformat(pending[s]).toordinal() if s in pending else 0,
+                           -(priorities or ranks).get(s, 0),
                            float(snapshots.get(s, {}).get("fetched_at", 0)), s))
     attempted, failures, limited = 0, {}, False
     for symbol in due[:batch_size]:

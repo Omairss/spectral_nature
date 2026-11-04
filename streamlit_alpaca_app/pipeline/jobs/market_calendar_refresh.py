@@ -62,14 +62,14 @@ def run_market_calendar_refresh(ctx, conn, *, persist_dataset_fn, load_materiali
         ctx.degraded_components["calendar_sessions"] = type(exc).__name__
     benchmark = os.getenv("MARKET_CALENDAR_REACTION_BENCHMARK", "SPY").strip().upper()
     symbols = sorted({benchmark, *[e["ticker"] for e in state["events"] if e.get("ticker")
-        and e.get("confirmation_status") == "reported" and e["date"] < reference.isoformat()]})
+        and not e.get("cancelled") and not e.get("market_reaction") and e["date"] < reference.isoformat()]})
     prices = pd.DataFrame()
     try:
         if api is None:
             raise RuntimeError("Alpaca is not configured")
         prices = fetch_reaction_prices(api, symbols,
             start=datetime.combine(start - timedelta(days=10), time(), NY),
-            end=datetime.combine(reference, time(), NY))
+            end=ctx.asof - timedelta(minutes=15))
         if prices.empty:
             ctx.degraded_components["calendar_reactions"] = "no_consolidated_closes"
     except Exception as exc:

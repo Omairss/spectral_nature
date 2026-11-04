@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from bisect import bisect_right
-from datetime import datetime, timezone
+from datetime import date, datetime, time, timedelta, timezone
 import math
 
 import pandas as pd
@@ -22,6 +22,21 @@ def observe_reactions(state: dict, prices: pd.DataFrame, *, as_of: datetime,
                       price_version: str, benchmark: str = "SPY") -> dict:
     """Measure complete regular sessions without inferring a release timestamp."""
     today = as_of.astimezone(NY).date().isoformat()
+    # Historical SIP is available with a 15-minute delay on the existing plan.
+    # A calendar date alone cannot establish that today's regular session ended.
+    cutoff = as_of - timedelta(minutes=15)
+    completed = set()
+    for session in state.get("market_sessions", []):
+        try:
+            day = date.fromisoformat(session["date"])
+            if session.get("close"):
+                close = datetime.combine(day, time.fromisoformat(session["close"]), NY)
+                if close <= cutoff:
+                    completed.add(session["date"])
+            elif session["date"] < today:
+                completed.add(session["date"])
+        except (KeyError, TypeError, ValueError):
+            continue
     observations: dict[str, dict[str, float]] = {}
     if {"symbol", "timestamp", "close"}.issubset(prices.columns):
         frame = prices[["symbol", "timestamp", "close"]].copy()
@@ -29,8 +44,7 @@ def observe_reactions(state: dict, prices: pd.DataFrame, *, as_of: datetime,
         frame["close"] = pd.to_numeric(frame["close"], errors="coerce")
         frame = frame.dropna().sort_values("timestamp")
         frame["session"] = frame["timestamp"].dt.tz_convert(NY).dt.strftime("%Y-%m-%d")
-        # A daily bar can be partial during its session. Prior dates are complete.
-        frame = frame[(frame["session"] < today) & (frame["close"] > 0)]
+        frame = frame[frame["session"].isin(completed) & (frame["close"] > 0)]
         for row in frame.itertuples():
             if math.isfinite(row.close):
                 observations.setdefault(str(row.symbol).upper(), {})[row.session] = float(row.close)
@@ -41,8 +55,8 @@ def observe_reactions(state: dict, prices: pd.DataFrame, *, as_of: datetime,
         if event.get("cancelled") or event["date"] >= today or not sessions:
             continue
         is_earnings = event.get("type") == "earnings"
-        if is_earnings and event.get("confirmation_status") != "reported":
-            continue
+        # Price observations do not depend on the separate EPS/history lookup.
+        # Preserve the source's expected/reported status; prices cannot confirm it.
         symbol = event.get("ticker") if is_earnings else benchmark
         # One owner-selected convention for every event: the next trading day's
         # close versus its preceding close, irrespective of report session.
@@ -51,7 +65,7 @@ def observe_reactions(state: dict, prices: pd.DataFrame, *, as_of: datetime,
         if start < 0 or end >= len(sessions):
             continue
         first, last = sessions[start], sessions[end]
-        if last >= today:
+        if first not in completed or last not in completed:
             continue
         if previous and (previous.get("symbol"), previous.get("start_session"), previous.get("end_session"),
                          previous.get("price_feed"), previous.get("price_adjustment")) == (symbol, first, last, "sip", "all"):

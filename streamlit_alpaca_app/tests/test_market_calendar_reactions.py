@@ -42,13 +42,16 @@ def test_missing_close_does_not_skip_to_another_session_and_today_is_partial():
     assert "market_reaction" not in measure([report(day="2026-10-30")])[0]
 
 
-def test_future_expected_and_cancelled_events_never_have_a_color():
+def test_price_observation_is_independent_of_expected_status_but_not_future_or_cancelled():
     expected, cancelled, future = report(), report(), report(day="2026-11-02")
     expected["confirmation_status"] = "expected"
     cancelled["cancelled"] = True
     for event in (expected, cancelled, future):
         event["market_reaction"] = {"return_pct": 100}
-    assert all("market_reaction" not in event for event in measure([expected, cancelled, future]))
+    expected, cancelled, future = measure([expected, cancelled, future])
+    assert expected["confirmation_status"] == "expected"
+    assert expected["market_reaction"]["return_pct"] == pytest.approx(-10)
+    assert "market_reaction" not in cancelled and "market_reaction" not in future
 
 
 def test_valid_consolidated_reaction_survives_quote_outage_but_other_feed_does_not():
@@ -121,3 +124,50 @@ def test_failed_history_keeps_good_rows_and_records_retry_cooldown(provider_stor
     assert provider_store[key]["rows"] == [{"reportedDate": "2026-10-29"}]
     assert provider_store[key]["fetched_at"] == 1
     assert provider_store[key]["last_attempt_at"] == NOW.timestamp()
+
+
+def test_current_session_is_eligible_only_after_its_official_close_and_data_delay():
+    prices = pd.DataFrame([
+        {"symbol": "IBM", "timestamp": "2026-10-30T04:00:00Z", "close": 100},
+        {"symbol": "IBM", "timestamp": "2026-11-02T05:00:00Z", "close": 105},
+    ])
+    state = {"market_sessions": [{"date": d, "close": "16:00"} for d in SESSIONS],
+             "events": [report(day="2026-10-30")]}
+    # The November DST change makes this 16:15 New York, not 16:15 UTC.
+    for minute, colored in [(14, False), (15, True)]:
+        result = observe_reactions(deepcopy(state), prices,
+            as_of=datetime(2026, 11, 2, 21, minute, tzinfo=timezone.utc), price_version="fixture")
+        assert bool(result["events"][0].get("market_reaction")) == colored
+    state["market_sessions"][-1].pop("close")
+    result = observe_reactions(state, prices,
+        as_of=datetime(2026, 11, 2, 23, tzinfo=timezone.utc), price_version="fixture")
+    assert "market_reaction" not in result["events"][0]
+
+
+def test_early_close_and_holiday_use_the_exchange_schedule():
+    prices = pd.DataFrame([
+        {"symbol": "IBM", "timestamp": d + "T05:00:00Z", "close": close}
+        for d, close in [("2026-11-25", 100), ("2026-11-27", 95)]])
+    state = {"market_sessions": [{"date": "2026-11-25", "close": "16:00"},
+                                 {"date": "2026-11-27", "close": "13:00"}],
+             "events": [report(day="2026-11-25")]}
+    result = observe_reactions(state, prices,
+        as_of=datetime(2026, 11, 27, 18, 15, tzinfo=timezone.utc), price_version="fixture")
+    assert result["events"][0]["market_reaction"]["return_pct"] == pytest.approx(-5)
+
+
+def test_latest_pending_reports_precede_larger_historical_backfill(monkeypatch):
+    from services.market_calendar import collect_reported_earnings
+    companies = {"LARGE": "Large", "RECENT": "Recent", "OLDER": "Older"}
+    checked = []
+    monkeypatch.setattr(AlphaVantageClient, "history_snapshot", lambda self, symbols: {})
+    def history(self, symbol):
+        checked.append(symbol)
+        return {"symbol": symbol, "fetched_at": NOW.timestamp(), "rows": []}
+    monkeypatch.setattr(AlphaVantageClient, "history", history)
+    pending = [{**report(day=day), "ticker": symbol, "id": symbol, "confirmation_status": "expected"}
+               for symbol, day in [("RECENT", "2026-10-30"), ("OLDER", "2026-10-29")]]
+    collect_reported_earnings("test-key", now=NOW, start=date(2026, 10, 1), end=date(2027, 1, 1),
+        companies=companies, ranks={}, priorities={"LARGE": 1000, "OLDER": 100, "RECENT": 1},
+        previous_events=pending, batch_size=2)
+    assert checked == ["RECENT", "OLDER"]
