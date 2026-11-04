@@ -1875,8 +1875,6 @@ def _review_home_public_surface(
             "content": to_jsonable({
                 **{key: artifact.get(key) for key in ("artifact_id", "subject", "created_at_utc")},
                 "research_asof_time_utc": context.get("asof_time_utc"), "payload": research,
-                "quality_review": {key: (agent.get("quality_review") or {}).get(key) for key in (
-                    "status", "verdict", "critique_summary", "unsupported_claims", "evidence_gaps", "research_requests")},
                 "limitations": agent.get("limitations") or [],
                 "source_documents": [*(context.get("source_documents") or []),
                     *materialize_research_artifacts(agent, candidate_id="retained-research:" + artifact["artifact_id"],
@@ -1893,16 +1891,16 @@ def _review_home_public_surface(
                          "asof_time_utc": bundle.get("asof_time_utc"),
                          **{key: bundle.get(key) for key in ("research_action", "research_asof_time_utc", "research_completed_at_utc", "current_assessment_asof_time_utc")},
                          "symbols": bundle.get("supporting_symbols") or [bundle.get("symbol")]},
-            "content": to_jsonable(bundle),
+            # Prior review verdicts are audit records, not evidence for an
+            # independent public explanation. The stored bundle stays intact.
+            "content": to_jsonable({key: value for key, value in bundle.items() if key != "quality_review"}),
         }
         answer = bundle.get("findings_markdown") or bundle.get("research_result")
         if answer:
             findings.append({"source_id": source_id, "findings": answer,
                 "recorded_claims": [{key: claim.get(key) for key in (
                     "claim_text", "source_id", "source_url", "evidence_role", "citation_status")}
-                    for claim in bundle.get("claims") or []],
-                "research_review": {key: (bundle.get("quality_review") or {}).get(key)
-                                    for key in ("status", "verdict", "critique_summary", "unsupported_claims", "evidence_gaps")}})
+                    for claim in bundle.get("claims") or []]})
     for index, row in enumerate(enrichment_rows or []):
         if row.get("research_origin") == "common_market_agenda":
             continue
