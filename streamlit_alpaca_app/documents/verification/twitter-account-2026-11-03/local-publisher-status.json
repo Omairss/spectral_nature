@@ -1,0 +1,11 @@
+{
+  "checked_at_utc": "2026-11-04T06:49:42.987847+00:00",
+  "account": "OmairS2",
+  "automatic_publisher_running": false,
+  "confirmed_post_urls": [
+    "https://x.com/OmairS2/status/2117853238674546770"
+  ],
+  "prepared_headlines": 8,
+  "uncertain_submissions": 1,
+  "next_action": "Reconcile the uncertain submission before any retry. No automatic retry or deployment."
+}

@@ -30,9 +30,11 @@
       115,
       187
     ],
-    "new_model_calls_in_simplified_publisher": 0
+    "new_model_calls_in_simplified_publisher": 0,
+    "headline_publishing": "Not accepted: creation response timed out and readback did not confirm the attempted headline.",
+    "confirmed_live_posts": 1
   },
-  "status": "Simplified local publisher running in process 9804; nine existing feed headlines queued. No Azure deployment.",
+  "status": "Simplified implementation retained. Automatic posting is not locally accepted: X did not return a receipt for the first feed-headline attempt, and the authenticated profile check did not confirm it. Publisher stopped; no retry.",
   "files": [
     "services/x_publishing.py",
     "services/attention_x.py",
@@ -50,6 +52,9 @@
     "pid": 9804,
     "command": "publish_attention_x.py watch --account OmairS2 --publish --maximum 9",
     "started_on": "2026-11-03 America/Los_Angeles",
-    "restart": "Run the same command with the existing local environment. Saved receipts and account limits survive restart."
-  }
+    "restart": "Reconcile the uncertain submission before restarting delivery.",
+    "running": false,
+    "last_outcome": "One uncertain submission; eight prepared headlines. Only the earlier SHOP post is confirmed live."
+  },
+  "local_automatic_publishing_accepted": false
 }
