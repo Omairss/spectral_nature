@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Shared X reactions in research and completion-triggered Attention publishing with charts and exact saved-event links. Owner authorized development qualification and production rollout November 4.",
-  "source_revision": "2296c56b9785371ac1765fdb57184e18035e8229",
+  "source_revision": "6d9379075d732c23aef76392376edf8d312d2053",
   "review_base_revision": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -180,7 +180,7 @@
     "services/fundamentals.py": "7fe7900992c223eb042c3816878a38b1e61c87f85bb6d912a17bb8ce4a0a3217",
     "services/historical_corpus.py": "b7bd57baf77d675a3d4f1e7afb85ccc5287e77fe7eafb7ea046fe0a88b588ebc",
     "services/historical_training.py": "f36b5c9d792538d438bb66bfda8ca80b8e73e59666cd9ffd8f39bbeb226617ac",
-    "services/home_view.py": "0c7120482999ef9183f510ce2f95bb91e1e4fe3f993f430606f1cdb9a34a320b",
+    "services/home_view.py": "3857920711adb89271b74e706eef0dfea76ee6f0cfb89cbe15c0c8f6d0e76333",
     "services/homepage_support.py": "143a973c91c57420d60c16a8811fe79c75b154cf1be7efffce4f82714968be7e",
     "services/inference_policy.py": "671bdef06941e110139df0382e4656652bbe8823f07c6c93e45eca790cda6dcc",
     "services/json_utils.py": "5f18985844cbfb425afb98cc0d16753c33fa929592acef8151b7825ebf858735",
@@ -326,7 +326,7 @@
     "web/lib/client/api.ts": "201417ee7b63542b681f8413b497a5ac02c6e357b5a073ecf282652009b86d84",
     "web/lib/client/portfolio.ts": "fd30d19290b5d2ea5de957cf05989b6059d7ad9c50280f95066ddaacf7ae49e1",
     "web/lib/client/session.ts": "e72697ac958a90841b4809a1bb162faea8175c523961a74d55e53d31e0468c9b",
-    "web/lib/server/attention-event.ts": "6b355f5e91aa079929c908015df5dd5908180d937827a0d78a1cfe8d5f276588",
+    "web/lib/server/attention-event.ts": "ac1d434c296bbf121f1e80ff35c9ef3d0b0927850f5cae2185ebcca8b6cdd7a8",
     "web/lib/server/auth.ts": "7a87f662a5d51f146327a055478aa98e3f1b6d35e2ca49051d8c3b8cd1ea5066",
     "web/lib/server/backend.ts": "b97c9d02b433e2cf59b33e97f60f2b8d596536fad7f1c9c796c7511498f56f69",
     "web/lib/server/home.ts": "cf21718a6e3a5e17cc25cd2abaf1f91515650440dee05ae994ad0a2a61401a9b",
@@ -487,7 +487,7 @@
     "services/fundamentals.py": "7fe7900992c223eb042c3816878a38b1e61c87f85bb6d912a17bb8ce4a0a3217",
     "services/historical_corpus.py": "b7bd57baf77d675a3d4f1e7afb85ccc5287e77fe7eafb7ea046fe0a88b588ebc",
     "services/historical_training.py": "f36b5c9d792538d438bb66bfda8ca80b8e73e59666cd9ffd8f39bbeb226617ac",
-    "services/home_view.py": "0c7120482999ef9183f510ce2f95bb91e1e4fe3f993f430606f1cdb9a34a320b",
+    "services/home_view.py": "3857920711adb89271b74e706eef0dfea76ee6f0cfb89cbe15c0c8f6d0e76333",
     "services/homepage_support.py": "143a973c91c57420d60c16a8811fe79c75b154cf1be7efffce4f82714968be7e",
     "services/inference_policy.py": "671bdef06941e110139df0382e4656652bbe8823f07c6c93e45eca790cda6dcc",
     "services/json_utils.py": "5f18985844cbfb425afb98cc0d16753c33fa929592acef8151b7825ebf858735",
@@ -562,7 +562,7 @@
     "Dockerfile.runtime": "Preserve each role's Python package versions and launch command. Copy only the accepted worker's pinned Chromium assets to /opt/ms-playwright, remove inherited browser caches before flattening, and declare one browser path. Install native libraries through the pinned Patchright install-deps command and restore standard /tmp permissions before installation and in the final image. No inherited application crosses the browser dependency stage. Actual API native preflight cj1f9 passed complete source checks and JavaScript DOM execution before rebuilding.",
     "api/main.py": "Add the optional exact publication version to the public Home read. AST review confirms public_home is the only changed API definition; all authentication and financial routes remain intact.",
     "services/attention_x_media.py": "Use existing Chromium and Home React image page. Verify version, run and bundle identity, fit each complete panel in the viewport, and capture PNGs. Existing immutable Blob archive verifies checksums; account-wide receipts survive process/environment changes. No image-generation model or duplicated chart implementation.",
-    "services/home_view.py": "Exact-version reads use embedded snapshots without current quote merges. Shared card selection skips data-empty company placeholders while retaining all company identities and order. Latest/replay loaders, summary/audio, calendar, graph, chart transformations and financial metric definitions remain.",
+    "services/home_view.py": "Exact-version reads use embedded snapshots without current quote merges. Shared card selection skips data-empty company placeholders while retaining all company identities and order. Latest/replay loaders, summary/audio, calendar, graph, chart transformations and financial metric definitions remain. Exact-version reads also validate the owning namespace prefix, preserving namespace isolation for development and production.",
     "web/app/attention/[version]/[event]/page.tsx": "Anonymous saved-event detail route; exact version and event only, with interactive Home ticker charts and stock-investigator links.",
     "web/app/attention/[version]/[event]/images/page.tsx": "Read-only image layout for the same saved event. No research or mutation.",
     "web/components/attention-event.tsx": "Shared Home story and ticker components produce chart-first panels, the complete story, source date and brand. Single-company layouts use full width; up to four visible data-bearing company cards are retained.",
@@ -570,7 +570,7 @@
     "web/components/home-workspace.tsx": "Reuse shared story renderer, including the already-public reviewed development field. Calendar, graph, highlights, dates, audio, background polling and ticker components retained.",
     "web/components/workbench-shell.tsx": "Only the image route renders without navigation/agent rails or an irrelevant auth request; normal pages retain the shell and session behavior.",
     "web/app/globals.css": "Event page and image typography, source-sized charts, single/two-company grids. Export overrides follow base card rules. Existing trading/calendar/mobile rules retained.",
-    "web/lib/server/attention-event.ts": "Validate version syntax, decode event route parameter, load the exact publication and require an exact event. Missing versions/events return 404 rather than the latest story.",
+    "web/lib/server/attention-event.ts": "Validate version syntax, decode event route parameter, load the exact publication and require an exact event. Missing versions/events return 404 rather than the latest story. Accept the producer-owned optional namespace prefix; API exact namespace and manifest validation remains authoritative.",
     "web/lib/server/home.ts": "Existing no-store public loader accepts optional version. Default/current and date-based requests retain the same paths and ETag behavior.",
     "web/lib/types.ts": "Optional source_version added to public Home DTO. Existing fields/types retained; additive field is ignored by native decoders.",
     "web/next.config.ts": "Disable development status overlay so exports and previews contain the product only. Security headers and production behavior unchanged.",
@@ -752,6 +752,15 @@
         "pipeline/jobs/market_calendar_refresh.py"
       ],
       "evidence": "documents/verification/calendar-opening-reactions-2026-11-04/SOURCE_REVIEW.md"
+    },
+    {
+      "name": "Namespaced immutable Attention links",
+      "status": "accepted",
+      "files": [
+        "services/home_view.py",
+        "web/lib/server/attention-event.ts"
+      ],
+      "evidence": "documents/verification/twitter-account-2026-11-03/namespace-links-2026-11-04.json"
     }
   ],
   "roles": {
@@ -1481,7 +1490,7 @@
         "web/lib/client/api.ts": "201417ee7b63542b681f8413b497a5ac02c6e357b5a073ecf282652009b86d84",
         "web/lib/client/portfolio.ts": "fd30d19290b5d2ea5de957cf05989b6059d7ad9c50280f95066ddaacf7ae49e1",
         "web/lib/client/session.ts": "e72697ac958a90841b4809a1bb162faea8175c523961a74d55e53d31e0468c9b",
-        "web/lib/server/attention-event.ts": "6b355f5e91aa079929c908015df5dd5908180d937827a0d78a1cfe8d5f276588",
+        "web/lib/server/attention-event.ts": "ac1d434c296bbf121f1e80ff35c9ef3d0b0927850f5cae2185ebcca8b6cdd7a8",
         "web/lib/server/auth.ts": "7a87f662a5d51f146327a055478aa98e3f1b6d35e2ca49051d8c3b8cd1ea5066",
         "web/lib/server/backend.ts": "b97c9d02b433e2cf59b33e97f60f2b8d596536fad7f1c9c796c7511498f56f69",
         "web/lib/server/home.ts": "cf21718a6e3a5e17cc25cd2abaf1f91515650440dee05ae994ad0a2a61401a9b",
