@@ -1677,3 +1677,7 @@ Recheck all live consumers immediately before mutation. The X rollout preflight 
 ### November 4, 2026 — saved publication namespaces
 
 Saved Attention versions carry the owning dataset namespace. Validate the actual producer ID and exact manifest in each environment; the read service must enforce current-namespace isolation while the shared web route admits the canonical namespaced format.
+
+### November 4, 2026 — verified Attention X rollout
+
+Qualify real managed-identity browser reads, image uploads and completion delivery separately. The accepted release publishes the existing headline, retained React chart/story PNGs and exact saved-version link without an extra editor. All11 current events and27 images are confirmed; callback replay produces zero new posts. Keep the accepted calendar producer in the same Git source and preserve the account-wide pacing and immutable receipts.

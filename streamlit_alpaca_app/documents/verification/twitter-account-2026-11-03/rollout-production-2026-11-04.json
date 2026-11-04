@@ -1,6 +1,6 @@
 {
-  "status": "publishing_current_batch",
-  "recorded_at": "2026-11-04T19:22:41.426770+00:00",
+  "status": "accepted",
+  "recorded_at": "2026-11-04T19:43:44.634276+00:00",
   "source_inventory_sha256": "4dd75ada249e8b94e9227ba3cd39a50d48a5b1d3ae455dae9d395e1f219926db",
   "images": {
     "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f7d76f4f2869c88913af10627376883f171b91f876fde265dd7569125e34dc0d",
@@ -297,12 +297,524 @@
   "personally_reviewed_images": "Live production page panels and actual retained Uber upload PNGs: complete, readable charts, fundamentals and explanation.",
   "current_batch": {
     "events": 11,
-    "published_verified": 1,
-    "remaining": 10,
-    "execution": "cleanup-trial-observer-dev-lw10x8k",
-    "function": "publish_completed_attention",
-    "repeat_callback_check": "Runs after delivery"
+    "published": 11,
+    "confirmed_images": 27,
+    "minimum_submission_gap_seconds": 120.479184,
+    "repeat_callback_new_posts": 0,
+    "unconfirmed": 0,
+    "posts": [
+      {
+        "event_id": "home-158fbea40948dd5c7e9d837b9c084e3db56ed65d5c4d966effdc329bcb7c121b",
+        "status": "published",
+        "x_post_url": "https://x.com/OmairS2/status/2118059951067439354",
+        "published_at": "2026-11-04T19:16:59.826513+00:00",
+        "submitted_at": "2026-11-04T19:16:58.195478+00:00",
+        "image_count": 2,
+        "response_photo_count": 2,
+        "media_ids": [
+          "2118059925737766912",
+          "2118059925838483457"
+        ],
+        "attention_url": "https://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af/event%3A%3Ahome-158fbea40948dd5c7e9d837b9c084e3db56ed65d5c4d966effdc329bcb7c121b"
+      },
+      {
+        "event_id": "home-1b7db1caa1389ec3e7f314d3701b84ed74382fb0b7b80917dff5691127d34fa0",
+        "status": "published",
+        "x_post_url": "https://x.com/OmairS2/status/2118061431421624575",
+        "published_at": "2026-11-04T19:22:52.791562+00:00",
+        "submitted_at": "2026-11-04T19:22:51.347529+00:00",
+        "image_count": 3,
+        "response_photo_count": 3,
+        "media_ids": [
+          "2118061404649381888",
+          "2118061404947156992",
+          "2118061405475672064"
+        ],
+        "attention_url": "https://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af/event%3A%3Ahome-1b7db1caa1389ec3e7f314d3701b84ed74382fb0b7b80917dff5691127d34fa0"
+      },
+      {
+        "event_id": "home-20f1de96810d872b2a18981f3d9ef42ea9b7add26002cf8f7806abab92633b69",
+        "status": "published",
+        "x_post_url": "https://x.com/OmairS2/status/2118061936885534772",
+        "published_at": "2026-11-04T19:24:53.228980+00:00",
+        "submitted_at": "2026-11-04T19:24:51.870883+00:00",
+        "image_count": 3,
+        "response_photo_count": 3,
+        "media_ids": [
+          "2118061453324279808",
+          "2118061453710106625",
+          "2118061454146330624"
+        ],
+        "attention_url": "https://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af/event%3A%3Ahome-20f1de96810d872b2a18981f3d9ef42ea9b7add26002cf8f7806abab92633b69"
+      },
+      {
+        "event_id": "home-3bbff75c2b78584a1eae773bb298822439d3bbcaa446a11ce4d9b5a7f0e140be",
+        "status": "published",
+        "x_post_url": "https://x.com/OmairS2/status/2118062443230576855",
+        "published_at": "2026-11-04T19:26:53.850100+00:00",
+        "submitted_at": "2026-11-04T19:26:52.350067+00:00",
+        "image_count": 2,
+        "response_photo_count": 2,
+        "media_ids": [
+          "2118061950466740224",
+          "2118061950730936320"
+        ],
+        "attention_url": "https://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af/event%3A%3Ahome-3bbff75c2b78584a1eae773bb298822439d3bbcaa446a11ce4d9b5a7f0e140be"
+      },
+      {
+        "event_id": "home-668b5c49b4e88f13bdeb978754c9aa25d456a7dbff2bb51891f1fd8a68b94d2d",
+        "status": "published",
+        "x_post_url": "https://x.com/OmairS2/status/2118062948039999802",
+        "published_at": "2026-11-04T19:28:54.118463+00:00",
+        "submitted_at": "2026-11-04T19:28:52.925743+00:00",
+        "image_count": 3,
+        "response_photo_count": 3,
+        "media_ids": [
+          "2118062456249434112",
+          "2118062456777887744",
+          "2118062457386098688"
+        ],
+        "attention_url": "https://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af/event%3A%3Ahome-668b5c49b4e88f13bdeb978754c9aa25d456a7dbff2bb51891f1fd8a68b94d2d"
+      },
+      {
+        "event_id": "home-68cb12f719749028df4f771983fdf351b8438efe5e6c45f63a936e52ed3b87c0",
+        "status": "published",
+        "x_post_url": "https://x.com/OmairS2/status/2118063454909259782",
+        "published_at": "2026-11-04T19:30:54.995613+00:00",
+        "submitted_at": "2026-11-04T19:30:53.574085+00:00",
+        "image_count": 2,
+        "response_photo_count": 2,
+        "media_ids": [
+          "2118062959855300608",
+          "2118062960278949888"
+        ],
+        "attention_url": "https://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af/event%3A%3Ahome-68cb12f719749028df4f771983fdf351b8438efe5e6c45f63a936e52ed3b87c0"
+      },
+      {
+        "event_id": "home-697445b393cdc271503c10311dcdf47c90fff0a9e2c4d82999b2aebffd543c0a",
+        "status": "published",
+        "x_post_url": "https://x.com/OmairS2/status/2118063960742125824",
+        "published_at": "2026-11-04T19:32:55.429323+00:00",
+        "submitted_at": "2026-11-04T19:32:54.319575+00:00",
+        "image_count": 2,
+        "response_photo_count": 2,
+        "media_ids": [
+          "2118063467529744384",
+          "2118063467965865984"
+        ],
+        "attention_url": "https://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af/event%3A%3Ahome-697445b393cdc271503c10311dcdf47c90fff0a9e2c4d82999b2aebffd543c0a"
+      },
+      {
+        "event_id": "home-6d2d955cc6be063db5072de200c031435a08159525501eb84d8af07c0149166b",
+        "status": "published",
+        "x_post_url": "https://x.com/OmairS2/status/2118064467754066346",
+        "published_at": "2026-11-04T19:34:56.453846+00:00",
+        "submitted_at": "2026-11-04T19:34:55.020121+00:00",
+        "image_count": 2,
+        "response_photo_count": 2,
+        "media_ids": [
+          "2118063973580910592",
+          "2118063973706682368"
+        ],
+        "attention_url": "https://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af/event%3A%3Ahome-6d2d955cc6be063db5072de200c031435a08159525501eb84d8af07c0149166b"
+      },
+      {
+        "event_id": "home-acefc7fb0528ebe3115b20cc613eb87225bb205b095757bc31fddf511855cf08",
+        "status": "published",
+        "x_post_url": "https://x.com/OmairS2/status/2118064973024780549",
+        "published_at": "2026-11-04T19:36:56.900314+00:00",
+        "submitted_at": "2026-11-04T19:36:55.691317+00:00",
+        "image_count": 3,
+        "response_photo_count": 3,
+        "media_ids": [
+          "2118064480890310656",
+          "2118064481322278912",
+          "2118064481741807616"
+        ],
+        "attention_url": "https://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af/event%3A%3Ahome-acefc7fb0528ebe3115b20cc613eb87225bb205b095757bc31fddf511855cf08"
+      },
+      {
+        "event_id": "home-d28974ece8be17cd5b6599d4728b6c1c0b0535bffdb556dbeaa82dabe15e4939",
+        "status": "published",
+        "x_post_url": "https://x.com/OmairS2/status/2118065478711038295",
+        "published_at": "2026-11-04T19:38:57.504538+00:00",
+        "submitted_at": "2026-11-04T19:38:56.305468+00:00",
+        "image_count": 3,
+        "response_photo_count": 3,
+        "media_ids": [
+          "2118064985217646592",
+          "2118064985653874688",
+          "2118064985897123840"
+        ],
+        "attention_url": "https://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af/event%3A%3Ahome-d28974ece8be17cd5b6599d4728b6c1c0b0535bffdb556dbeaa82dabe15e4939"
+      },
+      {
+        "event_id": "home-efb106af9ac0436cece4c8a336355c29a1421ce9f48463dc57c22101f1a6ec51",
+        "status": "published",
+        "x_post_url": "https://x.com/OmairS2/status/2118065984732832245",
+        "published_at": "2026-11-04T19:40:58.378817+00:00",
+        "submitted_at": "2026-11-04T19:40:56.886588+00:00",
+        "image_count": 2,
+        "response_photo_count": 2,
+        "media_ids": [
+          "2118065491495227392",
+          "2118065491931471873"
+        ],
+        "attention_url": "https://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af/event%3A%3Ahome-efb106af9ac0436cece4c8a336355c29a1421ce9f48463dc57c22101f1a6ec51"
+      }
+    ]
   },
   "company_reaction_review": "Actual sampled SHOP posts distinguish operating growth from valuation and price expectations. Estimates and EPS labels differ between authors; preserve them as dated attributed reactions, not company facts. Truncated posts retain their flag and can be read through the existing full-post path.",
-  "new_inference_calls": 0
+  "new_inference_calls": 0,
+  "completion": {
+    "repeat": {
+      "run_id": "83f3aad5-5d3a-4041-b77f-69e2e3a6255a",
+      "status": "delivered",
+      "receipts": [
+        "https://x.com/OmairS2/status/2118065984732832245",
+        "https://x.com/OmairS2/status/2118065478711038295",
+        "https://x.com/OmairS2/status/2118064973024780549",
+        "https://x.com/OmairS2/status/2118064467754066346",
+        "https://x.com/OmairS2/status/2118063960742125824",
+        "https://x.com/OmairS2/status/2118063454909259782",
+        "https://x.com/OmairS2/status/2118062948039999802",
+        "https://x.com/OmairS2/status/2118062443230576855",
+        "https://x.com/OmairS2/status/2118061936885534772",
+        "https://x.com/OmairS2/status/2118061431421624575",
+        "https://x.com/OmairS2/status/2118059951067439354"
+      ],
+      "event_ids": [
+        "home-20f1de96810d872b2a18981f3d9ef42ea9b7add26002cf8f7806abab92633b69",
+        "home-6d2d955cc6be063db5072de200c031435a08159525501eb84d8af07c0149166b",
+        "home-1b7db1caa1389ec3e7f314d3701b84ed74382fb0b7b80917dff5691127d34fa0",
+        "home-d28974ece8be17cd5b6599d4728b6c1c0b0535bffdb556dbeaa82dabe15e4939",
+        "home-acefc7fb0528ebe3115b20cc613eb87225bb205b095757bc31fddf511855cf08",
+        "home-3bbff75c2b78584a1eae773bb298822439d3bbcaa446a11ce4d9b5a7f0e140be",
+        "home-158fbea40948dd5c7e9d837b9c084e3db56ed65d5c4d966effdc329bcb7c121b",
+        "home-668b5c49b4e88f13bdeb978754c9aa25d456a7dbff2bb51891f1fd8a68b94d2d",
+        "home-68cb12f719749028df4f771983fdf351b8438efe5e6c45f63a936e52ed3b87c0",
+        "home-efb106af9ac0436cece4c8a336355c29a1421ce9f48463dc57c22101f1a6ec51",
+        "home-697445b393cdc271503c10311dcdf47c90fff0a9e2c4d82999b2aebffd543c0a"
+      ],
+      "new_post_count": 0,
+      "source_version": "attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af"
+    },
+    "run_id": "83f3aad5-5d3a-4041-b77f-69e2e3a6255a",
+    "status": "verified",
+    "completion": {
+      "run_id": "83f3aad5-5d3a-4041-b77f-69e2e3a6255a",
+      "status": "delivered",
+      "receipts": [
+        "https://x.com/OmairS2/status/2118065984732832245",
+        "https://x.com/OmairS2/status/2118065478711038295",
+        "https://x.com/OmairS2/status/2118064973024780549",
+        "https://x.com/OmairS2/status/2118064467754066346",
+        "https://x.com/OmairS2/status/2118063960742125824",
+        "https://x.com/OmairS2/status/2118063454909259782",
+        "https://x.com/OmairS2/status/2118062948039999802",
+        "https://x.com/OmairS2/status/2118062443230576855",
+        "https://x.com/OmairS2/status/2118061936885534772",
+        "https://x.com/OmairS2/status/2118061431421624575",
+        "https://x.com/OmairS2/status/2118059951067439354"
+      ],
+      "event_ids": [
+        "home-20f1de96810d872b2a18981f3d9ef42ea9b7add26002cf8f7806abab92633b69",
+        "home-6d2d955cc6be063db5072de200c031435a08159525501eb84d8af07c0149166b",
+        "home-1b7db1caa1389ec3e7f314d3701b84ed74382fb0b7b80917dff5691127d34fa0",
+        "home-d28974ece8be17cd5b6599d4728b6c1c0b0535bffdb556dbeaa82dabe15e4939",
+        "home-acefc7fb0528ebe3115b20cc613eb87225bb205b095757bc31fddf511855cf08",
+        "home-3bbff75c2b78584a1eae773bb298822439d3bbcaa446a11ce4d9b5a7f0e140be",
+        "home-158fbea40948dd5c7e9d837b9c084e3db56ed65d5c4d966effdc329bcb7c121b",
+        "home-668b5c49b4e88f13bdeb978754c9aa25d456a7dbff2bb51891f1fd8a68b94d2d",
+        "home-68cb12f719749028df4f771983fdf351b8438efe5e6c45f63a936e52ed3b87c0",
+        "home-efb106af9ac0436cece4c8a336355c29a1421ce9f48463dc57c22101f1a6ec51",
+        "home-697445b393cdc271503c10311dcdf47c90fff0a9e2c4d82999b2aebffd543c0a"
+      ],
+      "new_post_count": 10,
+      "source_version": "attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af"
+    },
+    "source_version": "attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af",
+    "started_at_utc": "2026-11-04T19:20:48.997216+00:00",
+    "finished_at_utc": "2026-11-04T19:41:01.737488+00:00",
+    "source_revision": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
+    "new_inference_calls": 0
+  },
+  "account_final": {
+    "total_published": 21,
+    "current_run_published": 11,
+    "previous_published_preserved": 10,
+    "account_lease_active": false
+  },
+  "owned_executions": [
+    {
+      "name": "cleanup-trial-observer-dev-h38fmcd",
+      "status": "Succeeded",
+      "startTime": "2026-11-04T18:59:53+00:00",
+      "endTime": "2026-11-04T19:05:09+00:00"
+    },
+    {
+      "name": "cleanup-trial-observer-dev-dp1i8i5",
+      "status": "Succeeded",
+      "startTime": "2026-11-04T19:14:47+00:00",
+      "endTime": "2026-11-04T19:18:30+00:00"
+    },
+    {
+      "name": "cleanup-trial-observer-dev-lw10x8k",
+      "status": "Succeeded",
+      "startTime": "2026-11-04T19:20:18+00:00",
+      "endTime": "2026-11-04T19:41:05+00:00"
+    }
+  ],
+  "final_consumers": {
+    "status": "verified",
+    "consumer_count": 38,
+    "source_inventory_sha256": "4dd75ada249e8b94e9227ba3cd39a50d48a5b1d3ae455dae9d395e1f219926db",
+    "configuration_matches_committed_review": true,
+    "all_images_match_qualified_roles": true,
+    "consumers": [
+      {
+        "name": "sn-streamlit-ui",
+        "role": "web",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:8a30c17b11f934431954e163f47840576cbbd111593320f786eede4f8264904c",
+        "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9"
+      },
+      {
+        "name": "sn-api-next-dev",
+        "role": "api-next",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f7d76f4f2869c88913af10627376883f171b91f876fde265dd7569125e34dc0d",
+        "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6"
+      },
+      {
+        "name": "sn-next-ui-dev",
+        "role": "web",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:8a30c17b11f934431954e163f47840576cbbd111593320f786eede4f8264904c",
+        "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d"
+      },
+      {
+        "name": "sn-next-ui",
+        "role": "web",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:8a30c17b11f934431954e163f47840576cbbd111593320f786eede4f8264904c",
+        "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6"
+      },
+      {
+        "name": "sn-api-next",
+        "role": "api-next",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f7d76f4f2869c88913af10627376883f171b91f876fde265dd7569125e34dc0d",
+        "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732"
+      },
+      {
+        "name": "universe-builder",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed"
+      },
+      {
+        "name": "equities-intraday-preload",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662"
+      },
+      {
+        "name": "macro-fred-daily",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95"
+      },
+      {
+        "name": "commodities-regime",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d"
+      },
+      {
+        "name": "options-liquid-universe",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1"
+      },
+      {
+        "name": "news-ingest-and-features",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "08d16a9ed58ad153576b6278c68e4cdc5d3a228aa035c569c36beeb70d15ff74"
+      },
+      {
+        "name": "entity-taxonomy-refresh",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda"
+      },
+      {
+        "name": "attention-home-build",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "725b07b050577788f0d07da70bef9dec939fde288be4136dd8895916d95d777f"
+      },
+      {
+        "name": "fundamentals-quarterly-refresh",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083"
+      },
+      {
+        "name": "company-baseline-prefetch",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5"
+      },
+      {
+        "name": "trading-agent-build",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645"
+      },
+      {
+        "name": "zopedia-maintenance",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6"
+      },
+      {
+        "name": "zopedia-learning",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "fab966688263776cc208a6d0de8341d6f0bde52cb332c52dcba9383f515df9d0"
+      },
+      {
+        "name": "system-health",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a"
+      },
+      {
+        "name": "trading-agent-build-dev",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad"
+      },
+      {
+        "name": "macro-fred-daily-dev",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97"
+      },
+      {
+        "name": "sn-research-run-dev",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba"
+      },
+      {
+        "name": "robinhood-main-sync-dev",
+        "role": "broker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:8bc402d6da8a77554cb4f54fcd883016443f5b1e56226169f5c5fedab165461e",
+        "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3"
+      },
+      {
+        "name": "robinhood-main-sync-prod",
+        "role": "broker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:8bc402d6da8a77554cb4f54fcd883016443f5b1e56226169f5c5fedab165461e",
+        "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7"
+      },
+      {
+        "name": "dataset-refresh-dev",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09"
+      },
+      {
+        "name": "attention-home-next-dev",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "b307da9a8aeb66a26d800e66b5e602d5300542114a1f4af4275f416f083e023b"
+      },
+      {
+        "name": "attention-ticker-next-dev",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884"
+      },
+      {
+        "name": "daily-datapoints-next-dev",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b"
+      },
+      {
+        "name": "technical-history-next-dev",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca"
+      },
+      {
+        "name": "sn-research-run",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a"
+      },
+      {
+        "name": "equities-next-dev",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5"
+      },
+      {
+        "name": "evidence-index-dev",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e"
+      },
+      {
+        "name": "system-recovery-dev",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329"
+      },
+      {
+        "name": "system-recovery",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e"
+      },
+      {
+        "name": "cleanup-trial-observer-dev",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "a2c020dace093967fddc70cf28d1dfa7d823f94df764256a85e99cce486b3b09"
+      },
+      {
+        "name": "zopedia-maintenance-dev",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1"
+      },
+      {
+        "name": "market-calendar-refresh-dev",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "2883e0abb815896beb49e8d2c93e55b514b3300bceecfabb0d026b3f10b69075"
+      },
+      {
+        "name": "market-calendar-refresh",
+        "role": "worker",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+        "configuration_sha256": "30bab0b60534d0c56819e6f6a6fdbb0a8ed9ef937466c250624c3e0696cbe853"
+      }
+    ]
+  },
+  "operator_archive": {
+    "kind": "spectral_nature_retired_release_sources",
+    "status": "complete",
+    "completed_at": "2026-11-04T19:43:44.634276+00:00",
+    "expires_at": "2026-12-04T19:43:44.634276+00:00",
+    "archive": "/Users/omairs/Library/Application Support/SpectralNature/retired-release-sources/20261104T194344Z/operator-records.tar.gz",
+    "sha256": "b88272f6a37fbab323e99b6389245af2da6e033d78d9fcdbe596ec616f033f0a",
+    "files": 437,
+    "original_roots": [
+      "/tmp/sn-x-rollout-20261104",
+      "/tmp/sn-x-dev-release-20261103"
+    ],
+    "verified_before_removal": true,
+    "cleanup": "Existing daily archive-maintenance LaunchAgent; scripts/cleanup_retired_releases.py"
+  }
 }

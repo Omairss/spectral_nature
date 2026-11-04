@@ -1,6 +1,6 @@
 {
   "status": "accepted_locally",
-  "scope": "Shared X reactions in research and completion-triggered Attention publishing with charts and exact saved-event links. Owner authorized development qualification and production rollout November 4.",
+  "scope": "Live and verified: shared company X reactions, completion-triggered Attention publishing with Home chart/story images and exact saved-event links. Accepted next-open calendar behavior and other application consumers preserved.",
   "source_revision": "6d9379075d732c23aef76392376edf8d312d2053",
   "review_base_revision": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
   "files": {
@@ -1683,7 +1683,7 @@
     "evidence": "documents/verification/twitter-account-2026-11-03/rollout-development-2026-11-04.json"
   },
   "production_acceptance": {
-    "status": "publishing_current_batch",
+    "status": "accepted",
     "source_inventory_sha256": "4dd75ada249e8b94e9227ba3cd39a50d48a5b1d3ae455dae9d395e1f219926db",
     "images": {
       "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f7d76f4f2869c88913af10627376883f171b91f876fde265dd7569125e34dc0d",
@@ -1691,7 +1691,10 @@
       "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
       "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:8bc402d6da8a77554cb4f54fcd883016443f5b1e56226169f5c5fedab165461e"
     },
-    "evidence": "documents/verification/twitter-account-2026-11-03/rollout-production-2026-11-04.json"
+    "evidence": "documents/verification/twitter-account-2026-11-03/rollout-production-2026-11-04.json",
+    "events_published": 11,
+    "images_confirmed": 27,
+    "repeat_callback_new_posts": 0
   },
   "previous_x_packages": {
     "worker": {

@@ -20,53 +20,35 @@
     "login_attempt_interval_seconds": 900
   },
   "verification": {
-    "current_completed_run": "168d03d7-a792-471c-ade4-0d343217fbad",
-    "current_feed_event_count": 9,
-    "current_feed_published_receipts": 9,
-    "example_post": "https://x.com/OmairS2/status/2117879517570339136",
-    "shared_research_tool_actual_shop_posts": 12,
-    "original_sources_preserved": true,
-    "shared_cache_readback": "hit",
-    "new_paid_inference_calls_this_continuation": 0,
-    "previous_editor_billing": "Retired provider attempts and one unresolved actual charge remain in original evidence. They are not zeroed by this continuation.",
-    "fresh_profile_exact_text_readbacks": 9,
+    "completed_run": "83f3aad5-5d3a-4041-b77f-69e2e3a6255a",
+    "source_version": "attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af",
+    "current_events_published": 11,
+    "confirmed_images": 27,
+    "minimum_submission_gap_seconds": 120.479184,
     "repeat_callback_new_posts": 0,
-    "minimum_post_receipt_gap_seconds": 124.723379,
-    "full_company_post_characters": 398,
-    "full_company_post_truncated": false,
-    "cloud_auth_title": "Just a moment...",
-    "cloud_auth_input": "cf-turnstile-response",
-    "cloud_login_retry_stopped": true,
-    "media_extension": {
-      "captured_events": 9,
-      "images": 24,
-      "charts": 147,
-      "anonymous_event_links": 9,
-      "desktop_and_phone_examples": 3,
-      "missing_event_http_status": 404,
-      "focused_operational_tests_passed": 22,
-      "new_inference_calls": 0,
-      "new_public_posts": 0,
-      "preview_directory": "../../output/visualizations/attention-x-20261104/",
-      "actual_x_uploads_finalized": 3,
-      "composer_post_enabled": true,
-      "post_clicked": false,
-      "media_replacement_refused": true,
-      "media_dispatch_guard_cases": 5
-    },
-    "cloudflare_follow_up": "cloudflare-resolution.json: authenticated in two Azure sessions; public API bootstrap passed; zero sign-in attempts or posts."
+    "previous_posts_preserved": 10,
+    "company_reactions_live_shop": 23,
+    "example_post": "https://x.com/OmairS2/status/2118059951067439354",
+    "new_inference_calls_for_rollout": 0,
+    "all_38_consumers_verified": true,
+    "owned_probe_executions": "Succeeded",
+    "account_lease_active_at_completion": false,
+    "evidence": "documents/verification/twitter-account-2026-11-03/rollout-production-2026-11-04.json"
   },
-  "status": "Live on development and production. Company reactions are available to shared research; the production completion publisher is enabled. First chart post is published and read back; the remaining ten current events are publishing at the account rate limit.",
+  "status": "Live and verified in development and production. Company reactions enter shared research. Every completed production Attention refresh publishes new events with chart/story images and saved-event links. All eleven current events are published; replay creates zero duplicates.",
   "source": {
     "worktree": "/Users/omairs/Documents/code/spectral_nature_x_publishing_20261103",
     "branch": "feature/attention-x-publishing-20261103",
     "accepted_runtime_base": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
-    "unrelated_original_checkout_changes": "Preserved; not packaging source."
+    "unrelated_original_checkout_changes": "Preserved; not packaging source.",
+    "accepted_application_revision": "6d9379075d732c23aef76392376edf8d312d2053",
+    "packaging_revision": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
+    "accepted_next_open_calendar_integrated": true
   },
   "local_worker": {
     "running": false,
-    "operation": "One completed-run callback finished; there is no standalone watch process.",
-    "automatic_service_running": false
+    "required": false,
+    "operation": "Existing Azure production completion hook; no Mac worker or standalone service."
   },
   "development": {
     "status": "accepted",
@@ -77,25 +59,27 @@
     "evidence": "documents/verification/twitter-account-2026-11-03/rollout-development-2026-11-04.json"
   },
   "production": {
-    "status": "publishing_current_batch",
+    "status": "accepted",
     "owner_permission": "Roll it out \u2014 November 4, 2026",
     "posting_enabled": true,
     "azure_consumers_updated": 22,
     "first_chart_post": "https://x.com/OmairS2/status/2118059951067439354",
-    "evidence": "documents/verification/twitter-account-2026-11-03/rollout-production-2026-11-04.json"
+    "evidence": "documents/verification/twitter-account-2026-11-03/rollout-production-2026-11-04.json",
+    "events_published": 11,
+    "images_confirmed": 27,
+    "repeat_callback_new_posts": 0
   },
   "evidence": "../verification/twitter-account-2026-11-03/",
-  "last_updated_utc": "2026-11-04T18:23:17.177812+00:00",
+  "last_updated_utc": "2026-11-04T19:43:44.634276+00:00",
   "runtime_decision": {
     "pending": false,
     "requires_mac_awake": false,
     "origin": "Owner AGENTS.md instruction to double-check complexity/reliability before a workaround.",
     "bridge_implemented": false,
-    "resolution": "Existing Scrapling handling works from Azure; a Mac bridge and a paid browser/proxy service are unnecessary.",
-    "previous_question": "Use this Mac as the X browser worker for cloud research and publishing via the existing database, or keep the changes local?"
+    "resolution": "Existing Scrapling handling works from Azure; a Mac bridge and a paid browser/proxy service are unnecessary."
   },
   "rollout_2026_11_04": {
-    "status": "publishing_current_batch",
+    "status": "complete",
     "owner_instruction": "Roll it out",
     "consumers": 38,
     "production_authorized": true,
@@ -108,6 +92,14 @@
     "development_consumers": 16,
     "production_consumers": 22,
     "first_chart_post": "https://x.com/OmairS2/status/2118059951067439354",
-    "remaining_current_events": 10
+    "remaining_current_events": 0,
+    "operator_archive": "/Users/omairs/Library/Application Support/SpectralNature/retired-release-sources/20261104T194344Z/manifest.json"
+  },
+  "earlier_qualification": {
+    "text_only_completed_run": "168d03d7-a792-471c-ade4-0d343217fbad",
+    "local_media_panels": 24,
+    "local_chart_views": 147,
+    "evidence": "documents/verification/twitter-account-2026-11-03/",
+    "billing": "Retired editor attempts and the unresolved old charge remain in original evidence; this rollout made no new inference calls."
   }
 }
