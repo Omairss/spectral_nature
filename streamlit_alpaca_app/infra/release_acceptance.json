@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
-  "scope": "Shared company reactions, completed Attention publication, saved-event deep links and Home chart images; development remains held at the actual Azure X verification boundary.",
-  "source_revision": "0bcec9b108b21a0b5161c0c5da78168823c2b44e",
+  "scope": "Shared X research, completion-triggered chart posts and saved-event links, with locally accepted native challenge handling verified from Azure. Application images and rollout remain pending.",
+  "source_revision": "4fa474acb8c4602c2ec0180e291114061f631e64",
   "review_base_revision": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -228,7 +228,7 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "158ad038e144fb5e37c87f53af6f6dfb551c7231d2b542e48a89a555d968e9ee",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/x_publishing.py": "f65e0f547d5a339cec40832c1ed00c13a5c983b0684096d5908ab9beb55f49d9",
+    "services/x_publishing.py": "24dcd21766510f4e8f70ff8a2fac0f0f8b954b6ef1f0867735a137d2be1ea0c1",
     "services/x_research.py": "9bdc1a5bfeabb3a7af8d1d4236ff32e4aa5fcd384fe8ce82bb6e239ec2009c70",
     "services/zopedia_agent.py": "a5f17f97a12e0520503c85f97b88c2fe9a96278e07107afa9425278aba4e8bdc",
     "services/zopedia_analysis.py": "56d1a2cb099073122996574fdf3187b61d641c43d207f9e3ed5efd3ad4d09f53",
@@ -535,7 +535,7 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "158ad038e144fb5e37c87f53af6f6dfb551c7231d2b542e48a89a555d968e9ee",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/x_publishing.py": "f65e0f547d5a339cec40832c1ed00c13a5c983b0684096d5908ab9beb55f49d9",
+    "services/x_publishing.py": "24dcd21766510f4e8f70ff8a2fac0f0f8b954b6ef1f0867735a137d2be1ea0c1",
     "services/x_research.py": "9bdc1a5bfeabb3a7af8d1d4236ff32e4aa5fcd384fe8ce82bb6e239ec2009c70",
     "services/zopedia_agent.py": "a5f17f97a12e0520503c85f97b88c2fe9a96278e07107afa9425278aba4e8bdc",
     "services/zopedia_analysis.py": "56d1a2cb099073122996574fdf3187b61d641c43d207f9e3ed5efd3ad4d09f53",
@@ -556,7 +556,7 @@
     "services/aql/events.py": "Existing company investigations request company reactions as attributed opinions within shared research. No extra model/stage and existing wiki handoff preserved.",
     "services/attention_x.py": "Queue headline plus exact-version link on new event IDs; retain existing published content and receipts. Render missing media once before opening X; pin immutable PNG receipts before dispatch. Research completion and failure isolation remain unchanged.",
     "services/pipeline_store.py": "Add exact immutable dataset-version and finished job-receipt readers. latest receipt delegates to the same existing latest pointer. All other definitions, financial authority, database lifecycle and dataset publication remain AST-identical to accepted source.",
-    "services/x_publishing.py": "Owned composer uploads the retained files, verifies attachment count and enabled Post. CreateTweet requires the expected unique numeric media IDs. PostgreSQL refuses replacement images after pinning. Existing lease, pacing, credentials, dispatch ownership, receipts and uncertain-submission rules remain.",
+    "services/x_publishing.py": "Retain all owned media, durable pacing, encrypted session, account lease and submission receipt behavior. On an observed challenge, use bounded public Scrapling fetch in the same browser context, then reopen the cleared owned tab. Page setup retains failure tracking, navigation pacing covers all main frames, and an uncleared challenge cannot initiate password retries. Two real Azure probes cleared fresh challenges and authenticated the intended account; the public API and local reader passed. See cloudflare-resolution.json.",
     "services/x_research.py": "Acquire attributed Top/Latest reactions and selected full post through the same browser. Shared 15-minute cache, timezone/as-of filtering, dated source documents and complete model context. Existing model interprets sentiment; no lexicon, score or extra inference.",
     "services/zopedia_agent.py": "Expose source in existing deferred discovery and planner guidance only when web policy permits it. Existing shared synthesis/review/memory logic unchanged.",
     "Dockerfile.runtime": "Preserve each role's Python package versions and launch command. Copy only the accepted worker's pinned Chromium assets to /opt/ms-playwright, remove inherited browser caches before flattening, and declare one browser path. Install native libraries through the pinned Patchright install-deps command and restore standard /tmp permissions before installation and in the final image. No inherited application crosses the browser dependency stage. Actual API native preflight cj1f9 passed complete source checks and JavaScript DOM execution before rebuilding.",
@@ -732,6 +732,14 @@
         "web/lib/server/home.ts",
         "web/lib/types.ts",
         "web/next.config.ts"
+      ]
+    },
+    {
+      "name": "Native X browser challenge handling",
+      "status": "accepted",
+      "evidence": "documents/verification/twitter-account-2026-11-03/cloudflare-resolution.json",
+      "files": [
+        "services/x_publishing.py"
       ]
     }
   ],
@@ -1570,8 +1578,8 @@
   },
   "production_authorization": {},
   "development_acceptance": {
-    "status": "held",
-    "reason": "Azure X verification remains blocked pending the owner runtime-placement decision. The chart/deep-link extension is accepted locally but has not been built into any application image or deployed. Previous X package evidence covers earlier source only."
+    "status": "held_pending_release",
+    "reason": "The real Azure challenge is now cleared by installed Scrapling handling. New startup and media source need current accepted-source packaging and release review. No application image build or deployment includes these changes."
   },
   "production_acceptance": {},
   "previous_x_packages": {
