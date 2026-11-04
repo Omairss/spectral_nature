@@ -1,5 +1,9 @@
 # Mistakes — Active Guidelines
 
+## Shipped calendar history without current-results coverage — 2026-11-03
+
+I accepted older red/green examples and successful refreshes without verifying the next reporting day's results. On November 3 production has 152 November 2 scheduled earnings entries and zero confirmations/reactions. The application history allowance is full; market-cap backfill ranks ahead of pending reports and only 14 of 1,000 companies have cached history. The observer also excludes current-date closes after the market has closed, adding a day of delay. The scanner is incomplete for current daily results; this is an unresolved backend defect, not a successful release merely because the scheduled job passes.
+
 ## Added unrequested detail to a minimal calendar — 2026-11-02
 
 The owner asked for red/green labels. I added percentage and closing-date text in expanded details, despite the established minimal design. Removed those blocks from both clients. Keep calculation/provenance metadata internal unless the owner asks to display it; an expandable surface is not permission to add analytics.

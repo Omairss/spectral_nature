@@ -47,3 +47,8 @@ Signed Release build 19 is installed on the owner’s iPhone and independently r
 
 
 The owner requested remote verification. The existing paired connection became reachable, iOS accepted launch, and independent process readback matched the installed executable (PID6943). Build19 installation and launch are now verified. No additional build or installation was needed; the earlier device-lock rejection remains historical. Physical screen inspection is not claimed.
+
+
+## Open current-results defect — November 3
+
+Current publication and successful refreshes do not establish current earnings results. Production has 152 November 2 expected entries, zero confirmed results and zero reactions; history coverage is 14/1,000 companies and the application history allowance is full. General backfill precedes pending-report priority, and current-date session closes are excluded even after market close. The [follow-up diagnosis](../../plans/CALENDAR_HISTORY_REACTIONS_2026-11-01.md#november-3-follow-up-missing-november-2-results--unresolved) remains unresolved. No application change or deployment occurred during this inspection.

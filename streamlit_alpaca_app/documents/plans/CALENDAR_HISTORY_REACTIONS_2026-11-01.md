@@ -16,3 +16,10 @@ Use an isolated checkout based on the accepted calendar production source. Prese
 
 
 Delivered November 2: color-only calendar is accepted on DEV and live in production; normal job and both gateways verified. Build 19 is installed on the owner’s phone; remote launch and independent running-process verification succeeded. [Production](../verification/calendar-history-reactions-2026-11-01/PRODUCTION.json), [native installation](../verification/calendar-history-reactions-2026-11-01/NATIVE_INSTALLATION.json).
+
+
+## November 3 follow-up: missing November 2 results — unresolved
+
+Read-only production inspection found 152 November 2 earnings entries, all still expected and none carrying a reaction. The producer is current (`2026-11-04T00:00:40.626312+00:00`) and the latest six executions succeeded. The historical source reports only 14 cached companies out of 1,000, with the shared application allowance reached. The rolling request ledger contains 12 history calls and five calendar calls. These are application limits, not proof that the provider account has exhausted its own allowance. AAPL and PLTR history was last fetched before their scheduled date; the retained responses contain only the preceding report. General market-cap priority sorts before pending-report priority, so fresh reporting competes with broad backfill. A successful producer execution is not current results coverage.
+
+A second defect delays otherwise measurable reactions: the producer requests prices only before today's New York midnight and the observer rejects every current-date bar, even after the official regular session has closed. Thus a November 2 report cannot receive its November 3 close reaction during November 3. Correction needs current-report scheduling ahead of backfill, sustainable provider capacity for claimed coverage, and completeness based on official market-session close and quote availability. No quota bypass, data mutation, application change or deployment was performed during this diagnosis. These defects remain open; do not describe this record as a repair or complete results coverage.

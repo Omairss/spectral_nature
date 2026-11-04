@@ -1,5 +1,9 @@
 # Learnings — Active Guidelines
 
+## Calendar publication freshness is not results coverage — 2026-11-03
+
+Verify the latest reporting date's actual confirmations and colored events separately from job success, calendar timestamp and older positive/negative examples. A shared per-company free-history budget cannot establish broad daily reporting coverage. Current pending reports must take priority over historical backfill, and completed-session eligibility must use the official close rather than blanket exclusion of today's date. Keep any coverage gap explicit in release acceptance.
+
 ## Calendar history and reaction windows — 2026-11-01
 
 Expected earnings calendars cannot backfill reported dates. Retain actual company earnings history separately and share the free provider request allowance across environments. Use publisher trading sessions and one explicitly chosen reaction convention. The owner selected only the next trading day’s close-to-close return for this carousel. Consolidated SIP prices match official issuer closes; IEX-only closes can differ and must not silently determine a consolidated-market reaction. A missing close is unavailable data, not a holiday. Share-price reaction is distinct from an earnings surprise. Keep colors neutral until the required sessions are complete, and keep measurement metadata internal when the requested UI is color only. See [the calendar design](plans/CALENDAR_HISTORY_REACTIONS_2026-11-01.md).
