@@ -1,5 +1,5 @@
 {
-  "status": "implementation_checkpoint_awaiting_full_model_acceptance",
+  "status": "implemented_qualitative_acceptance_incomplete",
   "source_checkpoint": "4cbc475b",
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
   "offline_verification": {
@@ -75,7 +75,38 @@
       "verification_guard_failures": 2,
       "quality": "Not accepted: gross-profit meaning, supplier/buyer interpretation, proof commentary and overdue-event follow-up.",
       "chart": "Original study clock clipped synthesis; no fresh chart selection accepted."
-    }
+    },
+    "latest_operational_checks": 46,
+    "latest_public_continuation": "Retained reads work in economical completion; full composition timed out. No release acceptance."
   },
-  "schedule_decision": "Keep run counts; final UTC data/news/Home cycle moves from hour20 to21, after the U.S. close in both DST seasons. This is 13:50 Pacific in winter and14:50 in summer; no timezone scheduler service added."
+  "schedule_decision": "Keep run counts; final UTC data/news/Home cycle moves from hour20 to21, after the U.S. close in both DST seasons. This is 13:50 Pacific in winter and14:50 in summer; no timezone scheduler service added.",
+  "current_source_revision": "9a92931581329c0ea6f79712bec283b33381ef98",
+  "current_verification_record": "documents/verification/home-reliability-completion-2026-11-04.json",
+  "remaining": [
+    {
+      "id": 1,
+      "task": "Complete the two refused investigations through the native data-first flow using saved inputs and completed findings",
+      "state": "needs_authorized_verification_window"
+    },
+    {
+      "id": 2,
+      "task": "Complete corrected public composition and review; generate charts from that completed Brief; personally assess complete outputs",
+      "state": "not_accepted"
+    },
+    {
+      "id": 3,
+      "task": "Review changed runtime source and all 38 consumers; prepare committed source acceptance after qualitative acceptance",
+      "state": "source_review_in_progress"
+    },
+    {
+      "id": 4,
+      "task": "Build accepted Git source, deploy exact images to development, verify managed-identity SQL/Blob receipt recovery and API contracts",
+      "state": "not_started"
+    },
+    {
+      "id": 5,
+      "task": "Promote the same qualified images to production, apply reviewed closing-cycle schedules, reconcile five retained production receipts, regenerate and read back the live feed",
+      "state": "authorized_not_started"
+    }
+  ]
 }

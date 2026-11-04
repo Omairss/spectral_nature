@@ -1,0 +1,67 @@
+{
+  "status": "not_accepted_for_release",
+  "source_revision": "9a92931581329c0ea6f79712bec283b33381ef98",
+  "asof_utc": "2026-11-04T09:00:03.553927+00:00",
+  "owner_authorization": "Implement deploy and test end to end. Production authorized after local and development acceptance.",
+  "provider_exception": {
+    "cumulative_cap_usd": 13,
+    "approved_total_window_seconds": 7200,
+    "window_ended_utc": "2026-11-04T08:55:39Z",
+    "known_conservative_estimate_usd": 7.48583,
+    "unresolved_maximum_usd": 2.73517,
+    "total_counted_exposure_usd": 10.221,
+    "active_requests": 0,
+    "additional_time_request": "30 minutes requested with the same $13 cap; not approved yet"
+  },
+  "observed": {
+    "native_data_first_flow": {
+      "planner_selected_questions": 7,
+      "fresh_reviewed_investigations_completed": 3,
+      "assessed_prior_reuses_completed": 2,
+      "completed_wiki_checks": 5,
+      "audited_wiki_mutations": 4,
+      "verification_guard_blocked_investigations": 2
+    },
+    "retained_evidence_in_economical_completion": "Real full-Pro requests successfully listed and read the retained market groups and saved research after the source correction.",
+    "public_surface": "Latest continuation timed out before completing composition and review; no public output accepted.",
+    "chart_selection": "Five valid source-backed selections completed. Captions inherited unaccepted Brief errors; not accepted for release.",
+    "receipt_replay": "Actual isolated PostgreSQL passed same-attempt replay, metadata enrichment preservation, known-usage preservation, late-start ordering. No inference.",
+    "operational_checks": "46 relevant checks passed after the latest source corrections. These do not grade writing quality.",
+    "semantic_first": "Actual read-only SQL probe exercised semantic success and keyword fallback.",
+    "settings_retirement": "20 unused settings plus four forced-catalyst prompt overrides archived and retired; nine active settings preserved."
+  },
+  "remaining": [
+    {
+      "id": 1,
+      "task": "Complete the two refused investigations through the native data-first flow using saved inputs and completed findings",
+      "state": "needs_authorized_verification_window"
+    },
+    {
+      "id": 2,
+      "task": "Complete corrected public composition and review; generate charts from that completed Brief; personally assess complete outputs",
+      "state": "not_accepted"
+    },
+    {
+      "id": 3,
+      "task": "Review changed runtime source and all 38 consumers; prepare committed source acceptance after qualitative acceptance",
+      "state": "source_review_in_progress"
+    },
+    {
+      "id": 4,
+      "task": "Build accepted Git source, deploy exact images to development, verify managed-identity SQL/Blob receipt recovery and API contracts",
+      "state": "not_started"
+    },
+    {
+      "id": 5,
+      "task": "Promote the same qualified images to production, apply reviewed closing-cycle schedules, reconcile five retained production receipts, regenerate and read back the live feed",
+      "state": "authorized_not_started"
+    }
+  ],
+  "production": {
+    "candidate_images_deployed": false,
+    "candidate_feed_published": false,
+    "closing_schedule_changed": false,
+    "current_release_preserved": true
+  },
+  "private_evidence": "Operations/home-reliability-completion-20261103 retains native frames, source-pinned requests/responses, immutable cost ledger, failed continuations and isolated database."
+}
