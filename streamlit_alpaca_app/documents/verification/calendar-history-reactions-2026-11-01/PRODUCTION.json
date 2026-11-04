@@ -80,5 +80,6 @@
   "native_installation": "NATIVE_INSTALLATION.json",
   "native_production_screenshot": "native-production-minimal.jpg",
   "web_production_screenshot": "production-minimal-expanded.jpg",
-  "phone_launch_status": "verified"
+  "phone_launch_status": "verified",
+  "current_results_correction": "CURRENT_RESULTS_PRODUCTION.json"
 }

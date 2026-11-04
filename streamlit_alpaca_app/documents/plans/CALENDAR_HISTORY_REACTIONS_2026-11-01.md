@@ -1,5 +1,7 @@
 # Calendar history and measured reactions — November 1, 2026
 
+Current status — November 3: the worker correction is live in DEV and production, and both public gateways plus native Simulator are verified. All 152 November 2 entries have measured next-session prices: 76 green, 74 red and two unchanged/neutral. Optional EPS confirmation remains independent. Existing iPhone build 19 reads the corrected publication; no reinstall is required. [Current delivery](../verification/calendar-history-reactions-2026-11-01/CURRENT_RESULTS_PRODUCTION.json).
+
 Extend the accepted calendar to thirty past days and retain its ninety-day future horizon. Past event labels use green/red from a numeric price observation; future and incomplete observations stay neutral. Keep the five-position lens, stacked labels, inline detail and attention graph.
 
 Alpha Vantage's bulk calendar supplies future dates only. Its historical EARNINGS response supplies actual reported dates, fiscal periods, reported/estimated EPS and report session. Backfill companies progressively by retained company importance; do not substitute filing dates or infer earnings dates from headlines. The public Nasdaq endpoint timed out both locally and in an Azure read-only probe, so it is not a reliable fallback. The owner has been asked about gradual free backfill versus macro-only history; proceed with gradual backfill if no different preference arrives.
@@ -18,14 +20,14 @@ Use an isolated checkout based on the accepted calendar production source. Prese
 Delivered November 2: color-only calendar is accepted on DEV and live in production; normal job and both gateways verified. Build 19 is installed on the owner’s phone; remote launch and independent running-process verification succeeded. [Production](../verification/calendar-history-reactions-2026-11-01/PRODUCTION.json), [native installation](../verification/calendar-history-reactions-2026-11-01/NATIVE_INSTALLATION.json).
 
 
-## November 3 follow-up: missing November 2 results — unresolved
+## November 3 follow-up: initial missing-results diagnosis
 
 Read-only production inspection found 152 November 2 earnings entries, all still expected and none carrying a reaction. The producer is current (`2026-11-04T00:00:40.626312+00:00`) and the latest six executions succeeded. The historical source reports only 14 cached companies out of 1,000, with the shared application allowance reached. The rolling request ledger contains 12 history calls and five calendar calls. These are application limits, not proof that the provider account has exhausted its own allowance. AAPL and PLTR history was last fetched before their scheduled date; the retained responses contain only the preceding report. General market-cap priority sorts before pending-report priority, so fresh reporting competes with broad backfill. A successful producer execution is not current results coverage.
 
-A second defect delays otherwise measurable reactions: the producer requests prices only before today's New York midnight and the observer rejects every current-date bar, even after the official regular session has closed. Thus a November 2 report cannot receive its November 3 close reaction during November 3. Correction needs current-report scheduling ahead of backfill, sustainable provider capacity for claimed coverage, and completeness based on official market-session close and quote availability. No quota bypass, data mutation, application change or deployment was performed during this diagnosis. These defects remain open; do not describe this record as a repair or complete results coverage.
+A second defect delays otherwise measurable reactions: the producer requests prices only before today's New York midnight and the observer rejects every current-date bar, even after the official regular session has closed. Thus a November 2 report cannot receive its November 3 close reaction during November 3. Correction needs current-report scheduling ahead of backfill, sustainable provider capacity for claimed coverage, and completeness based on official market-session close and quote availability. No quota bypass, data mutation, application change or deployment was performed during this diagnosis. This initial diagnosis preceded the completed correction documented above. Confirmation coverage is optional and remains gradual; the price-color gap is resolved.
 
 
-## November 3 correction in progress
+## November 3 accepted correction
 
 The requested result is a red/green price observation for each retained past calendar event, not a mandatory EPS-confirmation lookup before a color can appear. Decouple those contracts at the owning producer: scheduled events retain their honest expected/reported status while Alpaca consolidated prices independently measure the next trading session. Fundamental earnings confirmation remains optional enrichment under the existing shared free allowance, with recent pending reports prioritized before historical backfill. Do not pretend that a price move confirms an earnings release or an EPS value. Revisions/cancellations still invalidate or remove observations.
 

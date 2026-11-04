@@ -1,5 +1,7 @@
 # Spectral Nature for iPhone
 
+The November 3 server correction restores November 2 reaction colors in the existing build 19; no phone reinstall is required. [Current results delivery](../../documents/verification/calendar-history-reactions-2026-11-01/CURRENT_RESULTS_PRODUCTION.json).
+
 ### October 30 inline brief expansion POC
 
 The native brief can now expand underlined phrases within a sentence and collapse them on another tap. Explanations reflow in the same paragraph; several phrases can be open independently. The current local experiment uses authored illustrative copy through the existing DEBUG loopback override, without a generation/provider change. [Native POC and screenshots](../../documents/verification/native-brief-expansion-2026-10-30/README.md). The approved carousel and older Markdown publications retain their existing behavior.
