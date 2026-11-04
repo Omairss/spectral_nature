@@ -1,0 +1,70 @@
+{
+  "account": "OmairS2",
+  "source_dataset_version": "attention_home_snapshots_1d__20261103T165038Z__fc30fd02__a031069238784fd69da9daf2e05da515",
+  "source_as_of": "2026-11-03T16:50:38.890972+00:00",
+  "draft_author": "primary agent; illustrative previews, not application-generated output",
+  "publishing_authorized_by": "Owner: each event in the Attention feed should be published to X",
+  "published_count": 0,
+  "drafts": [
+    {
+      "event_id": "home-53a81a2d2124f69b5e16a58935f30fb3e9d6d4febcbed38e257d01263098ccd5",
+      "bundle_id": "event::home-53a81a2d2124f69b5e16a58935f30fb3e9d6d4febcbed38e257d01263098ccd5",
+      "section": "top_events",
+      "source_title": "AI-hardware shares bounce in an unfinished session, while their month-long fall still has no single proven cause.",
+      "text": "AI-hardware shares bounced in early trading Nov 3 after a sharp month-long slide. AEHR, LSCC and FN led. The rebound leaves separate questions about China access, AI-cloud financing and deal risk; AMD earnings are the next demand check.",
+      "weighted_characters": 236,
+      "status": "local_preview_only",
+      "x_post_id": null
+    },
+    {
+      "event_id": "home-cf1ed402b7507f46e8835c30b94c3e7ac41750fc5a3abe571f3cb2efd1209adc",
+      "bundle_id": "event::home-cf1ed402b7507f46e8835c30b94c3e7ac41750fc5a3abe571f3cb2efd1209adc",
+      "section": "top_events",
+      "source_title": "Energy shares stay weak after oil falls on Iran deal hopes, but no supply change is confirmed.",
+      "text": "Energy shares fell as oil dropped about 7% on Nov 2 amid hopes for a US-Iran deal. The move prices in possible easing of supply risks; no agreement or production change was confirmed in the Nov 3 morning briefing. $XOM $OXY",
+      "weighted_characters": 223,
+      "status": "local_preview_only",
+      "x_post_id": null
+    },
+    {
+      "event_id": "home-ce39634d43bd180a02aa1c803d9a97be9a1d50ad179cd2f8b96af1b3e3d0261e",
+      "bundle_id": "event::home-ce39634d43bd180a02aa1c803d9a97be9a1d50ad179cd2f8b96af1b3e3d0261e",
+      "section": "top_events",
+      "source_title": "Oracle seeks $20 billion through new shares and bonds to fund AI data centers, and its stock falls as investors weigh the cost.",
+      "text": "$ORCL plans $10B of new shares and $10B of bonds to fund AI-cloud expansion. The buildout adds capacity, but the financing brings dilution and interest costs. Offering terms will show what investors charge for the next stage of AI infrastructure.",
+      "weighted_characters": 246,
+      "status": "local_preview_only",
+      "x_post_id": null
+    },
+    {
+      "event_id": "home-b24ac81ce66e0f8580309d4775e5ac65f9091068035edad71820618f030e5cd2",
+      "bundle_id": "event::home-b24ac81ce66e0f8580309d4775e5ac65f9091068035edad71820618f030e5cd2",
+      "section": "must_read_movers",
+      "source_title": "Shopify shares fall after strong sales growth and a softer profit outlook; a separate filing allows future share and debt sales.",
+      "text": "$SHOP grew revenue 32% and delivered a 22% free cash flow margin, but sales slightly missed estimates. Q4 gross profit is guided to grow more slowly than revenue. The question is how much of that sales growth converts into profit.",
+      "weighted_characters": 230,
+      "status": "local_preview_only",
+      "x_post_id": null
+    },
+    {
+      "event_id": "home-6c567a47b4273529f14e8c1ef7695e84d3ed61ec9355c714480bb62eb29e031d",
+      "bundle_id": "event::home-6c567a47b4273529f14e8c1ef7695e84d3ed61ec9355c714480bb62eb29e031d",
+      "section": "must_read_movers",
+      "source_title": "ADT agrees to be bought by Thrive Holdings for $10 a share in cash.",
+      "text": "$ADT agreed to a $10-a-share cash takeover by Thrive Holdings. At its Nov 2 close of $9.85, the remaining gap reflects deal timing and closing risk. The go-shop period runs through Nov 28; closing is expected in early 2027.",
+      "weighted_characters": 223,
+      "status": "local_preview_only",
+      "x_post_id": null
+    },
+    {
+      "event_id": "home-a52cb54d2a2815e93180a1346563b4fc16cc09cf9ab332740b73b605a881c628",
+      "bundle_id": "event::home-a52cb54d2a2815e93180a1346563b4fc16cc09cf9ab332740b73b605a881c628",
+      "section": "unresolved_large_moves",
+      "source_title": "Lumentum's discount to the fixed Marvell share package points to deal doubt rather than weak operations.",
+      "text": "$LITE traded 11.3% below the value of its agreed 4.5-for-1 $MRVL share exchange on Nov 2. The discount points to closing uncertainty, while the broader AI-hardware selloff complicates the picture. Deal updates and the exchange value both matter.",
+      "weighted_characters": 245,
+      "status": "local_preview_only",
+      "x_post_id": null
+    }
+  ]
+}

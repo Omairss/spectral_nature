@@ -1,5 +1,11 @@
 # Mistakes — Active Guidelines
 
+## Overcomplicated Attention publishing — 2026-11-03
+
+I added a separate shared-agent editor and semantic reconciliation for posts even though Attention already supplies reviewed headlines that fit X. It incurred unnecessary paid calls and delay. The owner explicitly told me to simplify it. Removed that pipeline and all related shared-agent changes; the publisher now sends the existing headline. Eight unsent generated drafts were archived, not published. Preserve the retired attempts and unresolved billing in the task evidence; the initial timed-out attempt has a $0.273145 reservation estimate and unknown actual charge.
+
+The first browser guard also throttled every static asset at one per second and stalled initialization. Separate total browser traffic from data requests and user actions. Verify the operator identity's existing permissions before selecting storage; it has Blob read access, while the existing PostgreSQL store supports the account state we need.
+
 ## Shipped calendar history without current-results coverage — 2026-11-03
 
 I accepted older red/green examples and successful refreshes without verifying the next reporting day's results. The initial November 3 inspection found 152 November 2 scheduled earnings entries and zero confirmations/reactions. The application history allowance is full; market-cap backfill ranks ahead of pending reports and only 14 of 1,000 companies have cached history. The observer also excludes current-date closes after the market has closed, adding a day of delay. The deeper mistake was gating a directly measurable share-price color on an optional per-company earnings-history lookup. The correction separates those paths, uses the official session close, and prioritizes recent optional confirmations. All 152 November 2 entries are measured in a fresh provider replay (76 green, 74 red, two unchanged/neutral); the exact qualified image is now verified live in DEV and production. I also stopped after diagnosis and a status answer instead of carrying the owner’s repair through. A successful job or a diagnosis is not completion.

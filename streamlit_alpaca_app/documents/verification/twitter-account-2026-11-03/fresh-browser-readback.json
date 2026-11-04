@@ -1,0 +1,12 @@
+{
+  "account": "OmairS2",
+  "post_id": "2117853238674546770",
+  "url": "https://x.com/OmairS2/status/2117853238674546770",
+  "text_matches": true,
+  "encrypted_session_restored": true,
+  "bounded_read_retry_used": true,
+  "minimum_network_gap_seconds": 0.10005941602867097,
+  "minimum_data_gap_seconds": 1.3658071670215577,
+  "requests": 256,
+  "posts_sent": 0
+}

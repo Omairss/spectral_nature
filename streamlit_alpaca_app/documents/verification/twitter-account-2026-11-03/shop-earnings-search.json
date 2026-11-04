@@ -1,0 +1,1105 @@
+{
+  "query": "($SHOP OR Shopify) (earnings OR guidance OR revenue OR GMV) since:2026-11-03 until:2026-11-05",
+  "fetched_at": "2026-11-03T20:10:52.187093-08:00",
+  "source": "authenticated X search via Scrapling",
+  "searches": [
+    {
+      "mode": "top",
+      "url": "https://x.com/search?q=%28%24SHOP+OR+Shopify%29+%28earnings+OR+guidance+OR+revenue+OR+GMV%29+since%3A2026-11-03+until%3A2026-11-05&src=typed_query&f=top",
+      "posts": [
+        {
+          "text": "The Kobeissi Letter\n@KobeissiLetter\n·\n15h\nBREAKING: Shopify stock, \n$SHOP\n, falls over -15% after reporting weaker than expected Q3 earnings.\n200\n311\n3K\n314K",
+          "links": [
+            {
+              "text": "",
+              "href": "/KobeissiLetter"
+            },
+            {
+              "text": "The Kobeissi Letter",
+              "href": "/KobeissiLetter"
+            },
+            {
+              "text": "@KobeissiLetter",
+              "href": "/KobeissiLetter"
+            },
+            {
+              "text": "15h",
+              "href": "/KobeissiLetter/status/2117603303940874745"
+            },
+            {
+              "text": "$SHOP",
+              "href": "/search?q=%24SHOP&src=cashtag_click"
+            },
+            {
+              "text": "",
+              "href": "/KobeissiLetter/status/2117603303940874745/photo/1"
+            },
+            {
+              "text": "314K",
+              "href": "/KobeissiLetter/status/2117603303940874745/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "15h",
+              "datetime": "2026-11-03T13:02:25.000Z"
+            }
+          ],
+          "url": "https://x.com/KobeissiLetter/status/2117603303940874745"
+        },
+        {
+          "text": "Evan\n@StockMKTNewz\n·\n14h\nShopify \n$SHOP\n just said on its earnings call that\n\n- AI shopping volume remains small but adoption is still growing. Shopify said that AI traffic rose by 2.6x YoY and orders rose by 3.3x YoY\n22\n8\n77\n33K",
+          "links": [
+            {
+              "text": "",
+              "href": "/StockMKTNewz"
+            },
+            {
+              "text": "Evan",
+              "href": "/StockMKTNewz"
+            },
+            {
+              "text": "@StockMKTNewz",
+              "href": "/StockMKTNewz"
+            },
+            {
+              "text": "14h",
+              "href": "/StockMKTNewz/status/2117613400687866025"
+            },
+            {
+              "text": "$SHOP",
+              "href": "/search?q=%24SHOP&src=cashtag_click"
+            },
+            {
+              "text": "33K",
+              "href": "/StockMKTNewz/status/2117613400687866025/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "14h",
+              "datetime": "2026-11-03T13:42:32.000Z"
+            }
+          ],
+          "url": "https://x.com/StockMKTNewz/status/2117613400687866025"
+        },
+        {
+          "text": "Wall St Engine\n@wallstengine\n·\n16h\nSHOPIFY \n$SHOP\n Q3’26 EARNINGS HIGHLIGHTS\n\n🔹 Revenue: $3.74B (Est. $3.75B) 🔴; +32% YoY\n🔹 GMV: $119.15B (Est. $118.73B) 🟢; +29% YoY\n🔹 Free Cash Flow: $816M (Est. $721M) 🟢; +61% YoY\n🔹 FCF Margin: 22%\n\nQ4 Guide:\n🔹 Revenue Growth: Low-thirties % YoY\n🔹 Gross Profit Growth:\nShow more\n19\n45\n171\n30K",
+          "links": [
+            {
+              "text": "",
+              "href": "/wallstengine"
+            },
+            {
+              "text": "Wall St Engine",
+              "href": "/wallstengine"
+            },
+            {
+              "text": "@wallstengine",
+              "href": "/wallstengine"
+            },
+            {
+              "text": "16h",
+              "href": "/wallstengine/status/2117588471078379939"
+            },
+            {
+              "text": "$SHOP",
+              "href": "/search?q=%24SHOP&src=cashtag_click"
+            },
+            {
+              "text": "",
+              "href": "/wallstengine/status/2117588471078379939/photo/1"
+            },
+            {
+              "text": "30K",
+              "href": "/wallstengine/status/2117588471078379939/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "16h",
+              "datetime": "2026-11-03T12:03:29.000Z"
+            }
+          ],
+          "url": "https://x.com/wallstengine/status/2117588471078379939"
+        },
+        {
+          "text": "Evan\n@StockMKTNewz\n·\n14h\nShopify \n$SHOP\n just missed analyst expectations on Revenue for the first time since 2022 - Bloomberg\n20\n7\n67\n28K",
+          "links": [
+            {
+              "text": "",
+              "href": "/StockMKTNewz"
+            },
+            {
+              "text": "Evan",
+              "href": "/StockMKTNewz"
+            },
+            {
+              "text": "@StockMKTNewz",
+              "href": "/StockMKTNewz"
+            },
+            {
+              "text": "14h",
+              "href": "/StockMKTNewz/status/2117607176948658292"
+            },
+            {
+              "text": "$SHOP",
+              "href": "/search?q=%24SHOP&src=cashtag_click"
+            },
+            {
+              "text": "",
+              "href": "/StockMKTNewz/status/2117607176948658292/photo/1"
+            },
+            {
+              "text": "28K",
+              "href": "/StockMKTNewz/status/2117607176948658292/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "14h",
+              "datetime": "2026-11-03T13:17:48.000Z"
+            }
+          ],
+          "url": "https://x.com/StockMKTNewz/status/2117607176948658292"
+        },
+        {
+          "text": "Wealth Signal\n@WealthSignalNYC\n·\n11h\nShopify fell about 15% this morning.\n\nRevenue grew 32% to $3.74 billion. Analysts expected $3.75 billion.\n\nThat's a miss of about $10 million on a $3.7 billion quarter.\n\nSubscription revenue and sales volume on the platform also came in a little light.\n\nThis is what a\nShow more\n5",
+          "links": [
+            {
+              "text": "",
+              "href": "/WealthSignalNYC"
+            },
+            {
+              "text": "Wealth Signal",
+              "href": "/WealthSignalNYC"
+            },
+            {
+              "text": "@WealthSignalNYC",
+              "href": "/WealthSignalNYC"
+            },
+            {
+              "text": "11h",
+              "href": "/WealthSignalNYC/status/2117651836865806525"
+            },
+            {
+              "text": "5",
+              "href": "/WealthSignalNYC/status/2117651836865806525/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "11h",
+              "datetime": "2026-11-03T16:15:16.000Z"
+            }
+          ],
+          "url": "https://x.com/WealthSignalNYC/status/2117651836865806525"
+        },
+        {
+          "text": "Shay Boloor\n@StockSavvyShay\n·\n15h\n$SHOP\n Q3 EARNINGS\n\n• Revenue $3.74B vs Est. $3.75B\n• EPS $0.49 vs. Est. $0.46\n• FCF $816M vs. Est. $721M\n• GMV $119.2B vs Est. $118.7B\n\nQ4 Guidance \n• Revenue +32% vs Est. +30%\n69\n72\n735\n184K",
+          "links": [
+            {
+              "text": "",
+              "href": "/StockSavvyShay"
+            },
+            {
+              "text": "Shay Boloor",
+              "href": "/StockSavvyShay"
+            },
+            {
+              "text": "@StockSavvyShay",
+              "href": "/StockSavvyShay"
+            },
+            {
+              "text": "15h",
+              "href": "/StockSavvyShay/status/2117590593270673735"
+            },
+            {
+              "text": "$SHOP",
+              "href": "/search?q=%24SHOP&src=cashtag_click"
+            },
+            {
+              "text": "",
+              "href": "/StockSavvyShay/status/2117590593270673735/photo/1"
+            },
+            {
+              "text": "184K",
+              "href": "/StockSavvyShay/status/2117590593270673735/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "15h",
+              "datetime": "2026-11-03T12:11:55.000Z"
+            }
+          ],
+          "url": "https://x.com/StockSavvyShay/status/2117590593270673735"
+        },
+        {
+          "text": "The Earnings Correspondent\n@earnings_guy\n·\n16h\n$SHOP\n (Shopify) #earnings are out:\n9\n6\n169\n26K",
+          "links": [
+            {
+              "text": "",
+              "href": "/earnings_guy"
+            },
+            {
+              "text": "The Earnings Correspondent",
+              "href": "/earnings_guy"
+            },
+            {
+              "text": "@earnings_guy",
+              "href": "/earnings_guy"
+            },
+            {
+              "text": "16h",
+              "href": "/earnings_guy/status/2117587655646990574"
+            },
+            {
+              "text": "$SHOP",
+              "href": "/search?q=%24SHOP&src=cashtag_click"
+            },
+            {
+              "text": "#earnings",
+              "href": "/hashtag/earnings?src=hashtag_click"
+            },
+            {
+              "text": "",
+              "href": "/earnings_guy/status/2117587655646990574/photo/1"
+            },
+            {
+              "text": "26K",
+              "href": "/earnings_guy/status/2117587655646990574/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "16h",
+              "datetime": "2026-11-03T12:00:14.000Z"
+            }
+          ],
+          "url": "https://x.com/earnings_guy/status/2117587655646990574"
+        },
+        {
+          "text": "FinVibe\n@finvibelive\n·\n11h\nShopify \n$SHOP\n slid 8.42% to $143.07 this morning despite an adjusted earnings beat and an upgraded holiday sales view.\n17",
+          "links": [
+            {
+              "text": "",
+              "href": "/finvibelive"
+            },
+            {
+              "text": "FinVibe",
+              "href": "/finvibelive"
+            },
+            {
+              "text": "@finvibelive",
+              "href": "/finvibelive"
+            },
+            {
+              "text": "11h",
+              "href": "/finvibelive/status/2117659917066862873"
+            },
+            {
+              "text": "$SHOP",
+              "href": "/search?q=%24SHOP&src=cashtag_click"
+            },
+            {
+              "text": "17",
+              "href": "/finvibelive/status/2117659917066862873/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "11h",
+              "datetime": "2026-11-03T16:47:23.000Z"
+            }
+          ],
+          "url": "https://x.com/finvibelive/status/2117659917066862873"
+        },
+        {
+          "text": "Harley Finkelstein\n@harleyf\n·\n13h\nQ3 was signature \n@Shopify\n (again).\n\n→ $119B in GMV, up 29.5%. Our 13th straight quarter above 20%.\n→ $3.7B in revenue, up 32%. Our 14th straight quarter at 25%+.\n→ 22% free cash flow margin.\n48\n38\n399\n37K",
+          "links": [
+            {
+              "text": "",
+              "href": "/harleyf"
+            },
+            {
+              "text": "Harley Finkelstein",
+              "href": "/harleyf"
+            },
+            {
+              "text": "@harleyf",
+              "href": "/harleyf"
+            },
+            {
+              "text": "13h",
+              "href": "/harleyf/status/2117628680977391774"
+            },
+            {
+              "text": "@Shopify",
+              "href": "/Shopify"
+            },
+            {
+              "text": "37K",
+              "href": "/harleyf/status/2117628680977391774/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "13h",
+              "datetime": "2026-11-03T14:43:15.000Z"
+            }
+          ],
+          "url": "https://x.com/harleyf/status/2117628680977391774"
+        },
+        {
+          "text": "Market Scanner\n@MarketScanerNW\n·\n8h\n$SHOP\n — Shopify's Q3 revenue and GMV miss, coupled with a weak holiday outlook, drove a sharp selloff and technical weakness.\n\nOn the upside: Price remains above the 200-day SMA.\n\n\nhttps://\nmarket-scanner.net/tickers/SHOP.US\n\n#ai #trading\nShopify Inc. (SHOP) Stock Price & Forecast\nFrom market-scanner.net\n5",
+          "links": [
+            {
+              "text": "",
+              "href": "/MarketScanerNW"
+            },
+            {
+              "text": "Market Scanner",
+              "href": "/MarketScanerNW"
+            },
+            {
+              "text": "@MarketScanerNW",
+              "href": "/MarketScanerNW"
+            },
+            {
+              "text": "8h",
+              "href": "/MarketScanerNW/status/2117698332646948944"
+            },
+            {
+              "text": "$SHOP",
+              "href": "/search?q=%24SHOP&src=cashtag_click"
+            },
+            {
+              "text": "https://\nmarket-scanner.net/tickers/SHOP.US",
+              "href": "https://t.co/CdDIi47b39"
+            },
+            {
+              "text": "#ai",
+              "href": "/hashtag/ai?src=hashtag_click"
+            },
+            {
+              "text": "#trading",
+              "href": "/hashtag/trading?src=hashtag_click"
+            },
+            {
+              "text": "Shopify Inc. (SHOP) Stock Price & Forecast",
+              "href": "https://t.co/CdDIi47b39"
+            },
+            {
+              "text": "From market-scanner.net",
+              "href": "https://t.co/CdDIi47b39"
+            },
+            {
+              "text": "5",
+              "href": "/MarketScanerNW/status/2117698332646948944/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "8h",
+              "datetime": "2026-11-03T19:20:02.000Z"
+            }
+          ],
+          "url": "https://x.com/MarketScanerNW/status/2117698332646948944"
+        },
+        {
+          "text": "🌊💙 Viking Resistance 💙🌊\n@BlueCrewViking\n·\n12h\nShopify falls 9% after Q3 revenue and merchandise volume miss estimates - Shopify stock fell after the e-commerce platform's Q3 revenue and gross merchandise volume missed estimates, despite an adjusted earnings beat. Via \n@CNBC\n:\nShopify falls 9% after Q3 revenue and merchandise volume miss estimates\nFrom cnbc.com\n1\n13",
+          "links": [
+            {
+              "text": "",
+              "href": "/BlueCrewViking"
+            },
+            {
+              "text": "🌊💙 Viking Resistance 💙🌊",
+              "href": "/BlueCrewViking"
+            },
+            {
+              "text": "@BlueCrewViking",
+              "href": "/BlueCrewViking"
+            },
+            {
+              "text": "12h",
+              "href": "/BlueCrewViking/status/2117637352990384306"
+            },
+            {
+              "text": "@CNBC",
+              "href": "/CNBC"
+            },
+            {
+              "text": "Shopify falls 9% after Q3 revenue and merchandise volume miss estimates",
+              "href": "https://t.co/hLqu5BaYrR"
+            },
+            {
+              "text": "From cnbc.com",
+              "href": "https://t.co/hLqu5BaYrR"
+            },
+            {
+              "text": "13",
+              "href": "/BlueCrewViking/status/2117637352990384306/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "12h",
+              "datetime": "2026-11-03T15:17:43.000Z"
+            }
+          ],
+          "url": "https://x.com/BlueCrewViking/status/2117637352990384306"
+        }
+      ]
+    },
+    {
+      "mode": "live",
+      "url": "https://x.com/search?q=%28%24SHOP+OR+Shopify%29+%28earnings+OR+guidance+OR+revenue+OR+GMV%29+since%3A2026-11-03+until%3A2026-11-05&src=typed_query&f=live",
+      "posts": [
+        {
+          "text": "Danny cheng\n@dannycheng2022\n·\n2m\n$SHOP\n (November 4, 2026-Daily Chart)\n\n\n$SHOP\n pulled back after earnings, but zooming out, the stock continues to form higher lows, with near-term support holding around $135.\n\nThe previous descending blue ribbon (mid term downtrend) lasted about a month. A new one began on\nShow more\n1\n1\n1\n2.2K",
+          "links": [
+            {
+              "text": "",
+              "href": "/dannycheng2022"
+            },
+            {
+              "text": "Danny cheng",
+              "href": "/dannycheng2022"
+            },
+            {
+              "text": "@dannycheng2022",
+              "href": "/dannycheng2022"
+            },
+            {
+              "text": "2m",
+              "href": "/dannycheng2022/status/2117831243446513896"
+            },
+            {
+              "text": "$SHOP",
+              "href": "/search?q=%24SHOP&src=cashtag_click"
+            },
+            {
+              "text": "$SHOP",
+              "href": "/search?q=%24SHOP&src=cashtag_click"
+            },
+            {
+              "text": "",
+              "href": "/dannycheng2022/status/2117831243446513896/photo/1"
+            },
+            {
+              "text": "2.2K",
+              "href": "/dannycheng2022/status/2117831243446513896/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "2m",
+              "datetime": "2026-11-04T04:08:10.000Z"
+            }
+          ],
+          "url": "https://x.com/dannycheng2022/status/2117831243446513896"
+        },
+        {
+          "text": "Breaking Pocket\n@BreakingPocket\n·\n29m\n🌎 BREAKINGPOCKET — TODAY IN MARKETS\nTuesday, November 3, 2026 — Election Day\n\nTHE 3 BIGGEST STORIES\n\n1. America voted — and markets waited. US midterm results are still being counted tonight and neither chamber has been called. The dedicated Pocket Vote coverage is tracking\nShow more\n78",
+          "links": [
+            {
+              "text": "",
+              "href": "/BreakingPocket"
+            },
+            {
+              "text": "Breaking Pocket",
+              "href": "/BreakingPocket"
+            },
+            {
+              "text": "@BreakingPocket",
+              "href": "/BreakingPocket"
+            },
+            {
+              "text": "29m",
+              "href": "/BreakingPocket/status/2117824596380357111"
+            },
+            {
+              "text": "78",
+              "href": "/BreakingPocket/status/2117824596380357111/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "29m",
+              "datetime": "2026-11-04T03:41:45.000Z"
+            }
+          ],
+          "url": "https://x.com/BreakingPocket/status/2117824596380357111"
+        },
+        {
+          "text": "먼지\n@Dust73437556518\n·\n37m\n쇼피파이(SHOP) 2026년 3분기 실적 발표 매출 32% 증가에도 주가 하락\n\n- 4분기 매출 성장 가이던스를 30%대 초반으로 제시하면서 연말 쇼핑 시즌에 대한 가파른 프리미엄 기대감을 충족시키지 못했습니다.\n \nhttps://\nmay2october.blogspot.com/2026/11/shopif\ny-shop-q3-2026-earnings-result.html?spref=tw\n…\n5",
+          "links": [
+            {
+              "text": "",
+              "href": "/Dust73437556518"
+            },
+            {
+              "text": "먼지",
+              "href": "/Dust73437556518"
+            },
+            {
+              "text": "@Dust73437556518",
+              "href": "/Dust73437556518"
+            },
+            {
+              "text": "37m",
+              "href": "/Dust73437556518/status/2117822622025289819"
+            },
+            {
+              "text": "https://\nmay2october.blogspot.com/2026/11/shopif\ny-shop-q3-2026-earnings-result.html?spref=tw\n…",
+              "href": "https://t.co/ALWqr9eILL"
+            },
+            {
+              "text": "5",
+              "href": "/Dust73437556518/status/2117822622025289819/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "37m",
+              "datetime": "2026-11-04T03:33:54.000Z"
+            }
+          ],
+          "url": "https://x.com/Dust73437556518/status/2117822622025289819"
+        },
+        {
+          "text": "YUBIT\n@YUBIT_Exchange\n·\n40m\nYUBIT Earnings Calendar 🗓️ | Nov 3 – 8 (Q3 2026)\n\nWatchlist this week:\n🟢 \n$SHOP\n | Nov 3 Pre\nEPS: $0.46 | Rev: $3.74B\n\n🔴 \n$AMD\n | Nov 3 Post\nEPS: $1.94 | Rev: $13.09B\n\n🟢 \n$CRCL\n | Nov 4 Pre\nEPS: $0.42 | Rev: $788.55M\n\n🔴 \n$QCOM\n | Nov 4 Post\nEPS: $2.16 | Rev: $10.15B\n\nWhich ticker are\nShow more\n1\n102",
+          "links": [
+            {
+              "text": "",
+              "href": "/YUBIT_Exchange"
+            },
+            {
+              "text": "YUBIT",
+              "href": "/YUBIT_Exchange"
+            },
+            {
+              "text": "@YUBIT_Exchange",
+              "href": "/YUBIT_Exchange"
+            },
+            {
+              "text": "40m",
+              "href": "/YUBIT_Exchange/status/2117821665107206302"
+            },
+            {
+              "text": "$SHOP",
+              "href": "/search?q=%24SHOP&src=cashtag_click"
+            },
+            {
+              "text": "$AMD",
+              "href": "/search?q=%24AMD&src=cashtag_click"
+            },
+            {
+              "text": "$CRCL",
+              "href": "/search?q=%24CRCL&src=cashtag_click"
+            },
+            {
+              "text": "$QCOM",
+              "href": "/search?q=%24QCOM&src=cashtag_click"
+            },
+            {
+              "text": "",
+              "href": "/YUBIT_Exchange/status/2117821665107206302/photo/1"
+            },
+            {
+              "text": "102",
+              "href": "/YUBIT_Exchange/status/2117821665107206302/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "40m",
+              "datetime": "2026-11-04T03:30:06.000Z"
+            }
+          ],
+          "url": "https://x.com/YUBIT_Exchange/status/2117821665107206302"
+        },
+        {
+          "text": "dumisanitatiana\n@dumisanitatiana\n·\n1h\nPalantir revenue up 96% to $2.31B, but next quarter's growth looks slower. Down about 6% premarket, with Shopify off about 15%.\n8",
+          "links": [
+            {
+              "text": "",
+              "href": "/dumisanitatiana"
+            },
+            {
+              "text": "dumisanitatiana",
+              "href": "/dumisanitatiana"
+            },
+            {
+              "text": "@dumisanitatiana",
+              "href": "/dumisanitatiana"
+            },
+            {
+              "text": "1h",
+              "href": "/dumisanitatiana/status/2117815169413992542"
+            },
+            {
+              "text": "8",
+              "href": "/dumisanitatiana/status/2117815169413992542/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "1h",
+              "datetime": "2026-11-04T03:04:18.000Z"
+            }
+          ],
+          "url": "https://x.com/dumisanitatiana/status/2117815169413992542"
+        },
+        {
+          "text": "Nick Lang\n@linktulu\n·\n1h\nA service Shopify brands will pay for that most AI freelancers aren't selling yet: the full launch.\n\nPerplexity Computer now connects Shopify, Meta ads and Klaviyo in one workflow. Their own case: it ran $30K of Get Maine Lobster's Meta spend and drove 3.5x the revenue of an\nShow more\n39",
+          "links": [
+            {
+              "text": "",
+              "href": "/linktulu"
+            },
+            {
+              "text": "Nick Lang",
+              "href": "/linktulu"
+            },
+            {
+              "text": "@linktulu",
+              "href": "/linktulu"
+            },
+            {
+              "text": "1h",
+              "href": "/linktulu/status/2117814380813296118"
+            },
+            {
+              "text": "",
+              "href": "/linktulu/status/2117814380813296118/photo/1"
+            },
+            {
+              "text": "39",
+              "href": "/linktulu/status/2117814380813296118/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "1h",
+              "datetime": "2026-11-04T03:01:10.000Z"
+            }
+          ],
+          "url": "https://x.com/linktulu/status/2117814380813296118"
+        },
+        {
+          "text": "The APY% Guy Crypto & Stock Market News\n@The_APY_Guy\n·\n1h\n🔥 Earnings Night Recap: AI chips are BACK 🔥 Tue, Nov 3\n\n📊 THE CLOSE\n📈 S&P 500 +0.36% to 7,568.92 (snapped a 3-day skid)\n🚀 Nasdaq +0.83% to 25,372.01\n🔻 Dow -0.38% to 51,786.72 (Apple dragged)\nMidterm nerves plus Iran headlines, and chips still led the bounce.\n\n🌙 AFTER-HOURS\nShow more\n82",
+          "links": [
+            {
+              "text": "",
+              "href": "/The_APY_Guy"
+            },
+            {
+              "text": "The APY% Guy Crypto & Stock Market News",
+              "href": "/The_APY_Guy"
+            },
+            {
+              "text": "@The_APY_Guy",
+              "href": "/The_APY_Guy"
+            },
+            {
+              "text": "1h",
+              "href": "/The_APY_Guy/status/2117814229872808073"
+            },
+            {
+              "text": "82",
+              "href": "/The_APY_Guy/status/2117814229872808073/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "1h",
+              "datetime": "2026-11-04T03:00:34.000Z"
+            }
+          ],
+          "url": "https://x.com/The_APY_Guy/status/2117814229872808073"
+        },
+        {
+          "text": "猫掌柜\n@wdmzjgh\n·\n1h\n利润涨了66%，股价盘中先跌了两成。\n\nShopify今天这份三季报，营收37.4亿美元，同比涨32%，分析师预期是37.5到37.7亿，差了一点，也是2022年以来第一次没够着。\n\n真正被盯住的是流水：GMV 1191亿美元，涨29%，预期1201亿，上季还有31%到32%。订阅收入8.36亿涨20%，也低于预期的8.5亿上下。\nShow more\n17",
+          "links": [
+            {
+              "text": "",
+              "href": "/wdmzjgh"
+            },
+            {
+              "text": "猫掌柜",
+              "href": "/wdmzjgh"
+            },
+            {
+              "text": "@wdmzjgh",
+              "href": "/wdmzjgh"
+            },
+            {
+              "text": "1h",
+              "href": "/wdmzjgh/status/2117811971626246299"
+            },
+            {
+              "text": "17",
+              "href": "/wdmzjgh/status/2117811971626246299/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "1h",
+              "datetime": "2026-11-04T02:51:35.000Z"
+            }
+          ],
+          "url": "https://x.com/wdmzjgh/status/2117811971626246299"
+        },
+        {
+          "text": "Udayan Nagdeote\n@udnagdeote\n·\n1h\nMarkets & investing — morning digest (4 Nov 2026 IST)\n\n1/ Major developments\n\nMidterms: Democrats on track for the House, Senate in play. CNBC's Election Desk says House control \"leans Democratic\", with Democrats at a minimum of 210 seats vs 160 for Republicans (218 needed). In\nShow more\n1\n357",
+          "links": [
+            {
+              "text": "",
+              "href": "/udnagdeote"
+            },
+            {
+              "text": "Udayan Nagdeote",
+              "href": "/udnagdeote"
+            },
+            {
+              "text": "@udnagdeote",
+              "href": "/udnagdeote"
+            },
+            {
+              "text": "1h",
+              "href": "/udnagdeote/status/2117809277230526802"
+            },
+            {
+              "text": "",
+              "href": "/udnagdeote/status/2117809277230526802/photo/1"
+            },
+            {
+              "text": "357",
+              "href": "/udnagdeote/status/2117809277230526802/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "1h",
+              "datetime": "2026-11-04T02:40:53.000Z"
+            }
+          ],
+          "url": "https://x.com/udnagdeote/status/2117809277230526802"
+        },
+        {
+          "text": "NewYorkboy\n@newyorkyemen\n·\n1h\nReplying to \n@alphatradingpro\nThe clean way to read \n$BKNG\n: strip the $900M FTC charge and the quarter actually beat — adj. revenue $9.79B, gross bookings +10%, room nights +7%. What the tape is charging it for is the forward line: Q4 guided to just +1–3% growth. That's the same tax \n$PLTR\n and \n$SHOP\n paid today\nShow more\nBooking Holdings Inc.\nBKNG\n$155.67\n+1.25%\nTrade BKNG\n43",
+          "links": [
+            {
+              "text": "",
+              "href": "/newyorkyemen"
+            },
+            {
+              "text": "NewYorkboy",
+              "href": "/newyorkyemen"
+            },
+            {
+              "text": "@newyorkyemen",
+              "href": "/newyorkyemen"
+            },
+            {
+              "text": "1h",
+              "href": "/newyorkyemen/status/2117807715200217428"
+            },
+            {
+              "text": "@alphatradingpro",
+              "href": "/alphatradingpro"
+            },
+            {
+              "text": "$BKNG",
+              "href": "/search?q=%24BKNG&src=cashtag_click"
+            },
+            {
+              "text": "$PLTR",
+              "href": "/search?q=%24PLTR&src=cashtag_click"
+            },
+            {
+              "text": "$SHOP",
+              "href": "/search?q=%24SHOP&src=cashtag_click"
+            },
+            {
+              "text": "Booking Holdings Inc.\nBKNG\n$155.67\n+1.25%\nTrade BKNG",
+              "href": "/search?q=%24BKNG&src=typeahead_click"
+            },
+            {
+              "text": "43",
+              "href": "/newyorkyemen/status/2117807715200217428/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "1h",
+              "datetime": "2026-11-04T02:34:40.000Z"
+            }
+          ],
+          "url": "https://x.com/newyorkyemen/status/2117807715200217428"
+        },
+        {
+          "text": "NewYorkboy\n@newyorkyemen\n·\n1h\nReplying to \n@robot2trade1\nThe call completed the story your scorecard started: Q4 revenue guide ~$17B (±3%) vs ~$16.2B consensus, and 2027 growth talked up at +80%-plus — that's why \n$AMD\n kept its +7.7% after-hours bid while \n$PLTR\n and \n$SHOP\n got sold on beats. The one soft spot: gross margin guided ~55%.\nShow more\n53",
+          "links": [
+            {
+              "text": "",
+              "href": "/newyorkyemen"
+            },
+            {
+              "text": "NewYorkboy",
+              "href": "/newyorkyemen"
+            },
+            {
+              "text": "@newyorkyemen",
+              "href": "/newyorkyemen"
+            },
+            {
+              "text": "1h",
+              "href": "/newyorkyemen/status/2117807299452432669"
+            },
+            {
+              "text": "@robot2trade1",
+              "href": "/robot2trade1"
+            },
+            {
+              "text": "$AMD",
+              "href": "/search?q=%24AMD&src=cashtag_click"
+            },
+            {
+              "text": "$PLTR",
+              "href": "/search?q=%24PLTR&src=cashtag_click"
+            },
+            {
+              "text": "$SHOP",
+              "href": "/search?q=%24SHOP&src=cashtag_click"
+            },
+            {
+              "text": "53",
+              "href": "/newyorkyemen/status/2117807299452432669/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "1h",
+              "datetime": "2026-11-04T02:33:01.000Z"
+            }
+          ],
+          "url": "https://x.com/newyorkyemen/status/2117807299452432669"
+        },
+        {
+          "text": "Longbridge Dolphin Research\n@dolphinR123\n·\n1h\nUS closed Tuesday and after hours was strong: AMD +7% on a faster Q4 guide, Arista and Super Micro ~+10%. Texas data-center names ran ahead of the governor count. \nOur read: AI hardware orders are still speeding up. \n$AMD\n Article\nDolphin Daily | Good AI Prints Finally Get Paid! Is It Front-Running the Texas \"Do-or-Die\" Vote?\nIt's Wednesday morning, Nov 4, in Singapore. US stocks have closed for Tuesday and the after-hours earnings are in. Here is Dolphin Research's one-glance read on global markets.\nKey Takeaways\nWhat's...\n1\n5\n816",
+          "links": [
+            {
+              "text": "",
+              "href": "/dolphinR123"
+            },
+            {
+              "text": "Longbridge Dolphin Research",
+              "href": "/dolphinR123"
+            },
+            {
+              "text": "@dolphinR123",
+              "href": "/dolphinR123"
+            },
+            {
+              "text": "1h",
+              "href": "/dolphinR123/status/2117806411233329398"
+            },
+            {
+              "text": "$AMD",
+              "href": "/search?q=%24AMD&src=cashtag_click"
+            },
+            {
+              "text": "816",
+              "href": "/dolphinR123/status/2117806411233329398/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "1h",
+              "datetime": "2026-11-04T02:29:30.000Z"
+            }
+          ],
+          "url": "https://x.com/dolphinR123/status/2117806411233329398"
+        },
+        {
+          "text": "Mr.Quin\n@mrQuin51\n·\n1h\nShopify流通口径营收大约三十七点四亿略低于大约三十七点五预期，EPS大约零点四九超预期，自由现金流大约八点一六亿，GMV大约加百分之二十九点五。基本面一列，收盘大约负百分之八是估值反应另开一列。ARM今天日历只留进场空格。\n1\n1\n18",
+          "links": [
+            {
+              "text": "",
+              "href": "/mrQuin51"
+            },
+            {
+              "text": "Mr.Quin",
+              "href": "/mrQuin51"
+            },
+            {
+              "text": "@mrQuin51",
+              "href": "/mrQuin51"
+            },
+            {
+              "text": "1h",
+              "href": "/mrQuin51/status/2117804772455772600"
+            },
+            {
+              "text": "18",
+              "href": "/mrQuin51/status/2117804772455772600/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "1h",
+              "datetime": "2026-11-04T02:22:59.000Z"
+            }
+          ],
+          "url": "https://x.com/mrQuin51/status/2117804772455772600"
+        },
+        {
+          "text": "MikeCaymanTrades\n@MikeJTrades\n·\n1h\nDaily Digest-11/3\n\n📷S&P 500 NASDAQ DOW RUSSELL 2000\n\nUS stocks ended mixed on election day as tech rebound offset broader weakness after stronger-than-expected JOLTS data\n\nUS stocks finished mixed, with the S&P 500 ($SPX) up 0.36% to 7,568.92, the Nasdaq (\n$COMP\n) gaining 0.83% to\nShow more\n1\n1\n1\n243",
+          "links": [
+            {
+              "text": "",
+              "href": "/MikeJTrades"
+            },
+            {
+              "text": "MikeCaymanTrades",
+              "href": "/MikeJTrades"
+            },
+            {
+              "text": "@MikeJTrades",
+              "href": "/MikeJTrades"
+            },
+            {
+              "text": "1h",
+              "href": "/MikeJTrades/status/2117804752369316264"
+            },
+            {
+              "text": "$SPX",
+              "href": "/search?q=%24SPX&src=cashtag_click"
+            },
+            {
+              "text": "$COMP",
+              "href": "/search?q=%24COMP&src=cashtag_click"
+            },
+            {
+              "text": "243",
+              "href": "/MikeJTrades/status/2117804752369316264/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "1h",
+              "datetime": "2026-11-04T02:22:54.000Z"
+            }
+          ],
+          "url": "https://x.com/MikeJTrades/status/2117804752369316264"
+        },
+        {
+          "text": "Quality Equities\n@qualityequities\n·\n1h\nReplying to \n@EugeneNg\n$SHOP\n Shopify's operating margin rose about 310 bps to 15.2% even as gross margin fell about 130 bps, a clean example of operating leverage. Free cash flow grew 61% as reported vs revenue up 32%, so growth is converting into cash.\n1\n57",
+          "links": [
+            {
+              "text": "",
+              "href": "/qualityequities"
+            },
+            {
+              "text": "Quality Equities",
+              "href": "/qualityequities"
+            },
+            {
+              "text": "@qualityequities",
+              "href": "/qualityequities"
+            },
+            {
+              "text": "1h",
+              "href": "/qualityequities/status/2117803033115742395"
+            },
+            {
+              "text": "@EugeneNg",
+              "href": "/EugeneNg"
+            },
+            {
+              "text": "$SHOP",
+              "href": "/search?q=%24SHOP&src=cashtag_click"
+            },
+            {
+              "text": "57",
+              "href": "/qualityequities/status/2117803033115742395/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "1h",
+              "datetime": "2026-11-04T02:16:04.000Z"
+            }
+          ],
+          "url": "https://x.com/qualityequities/status/2117803033115742395"
+        },
+        {
+          "text": "PrimeXBT South Asia\n@PrimeXBTSA\n·\n1h\n📊 Earnings day: Shopify and AMD.\n\nShopify reports before the US open. Analysts expect ~$3.77B.\nAMD reports after the close, ~21:00 UTC. The number that matters most: its Q4 forecast.\nOptions price in a ~12% move for SHOP, ~9% for AMD.\n\n\nhttps://\neng.primexbt.com/iZ8q66\n11",
+          "links": [
+            {
+              "text": "",
+              "href": "/PrimeXBTSA"
+            },
+            {
+              "text": "PrimeXBT South Asia",
+              "href": "/PrimeXBTSA"
+            },
+            {
+              "text": "@PrimeXBTSA",
+              "href": "/PrimeXBTSA"
+            },
+            {
+              "text": "1h",
+              "href": "/PrimeXBTSA/status/2117802073865728297"
+            },
+            {
+              "text": "https://\neng.primexbt.com/iZ8q66",
+              "href": "https://t.co/ahKj1nukXz"
+            },
+            {
+              "text": "",
+              "href": "/PrimeXBTSA/status/2117802073865728297/photo/1"
+            },
+            {
+              "text": "11",
+              "href": "/PrimeXBTSA/status/2117802073865728297/analytics"
+            }
+          ],
+          "times": [
+            {
+              "text": "1h",
+              "datetime": "2026-11-04T02:12:15.000Z"
+            }
+          ],
+          "url": "https://x.com/PrimeXBTSA/status/2117802073865728297"
+        }
+      ]
+    }
+  ],
+  "opened_posts": [
+    {
+      "url": "https://x.com/WealthSignalNYC/status/2117651836865806525",
+      "text": "Wealth Signal\n@WealthSignalNYC\nShopify fell about 15% this morning.\n\nRevenue grew 32% to $3.74 billion. Analysts expected $3.75 billion.\n\nThat's a miss of about $10 million on a $3.7 billion quarter.\n\nSubscription revenue and sales volume on the platform also came in a little light.\n\nThis is what a high-expectations market looks like: close isn't good enough.\n\nDoes a 15% drop on a tiny miss make sense to you?\n\n\n$SHOP\n #Earnings\n8:15 AM · Nov 3, 2026\n·\n5\n Views",
+      "times": [
+        {
+          "text": "8:15 AM · Nov 3, 2026",
+          "datetime": "2026-11-03T16:15:16.000Z"
+        }
+      ]
+    },
+    {
+      "url": "https://x.com/StockMKTNewz/status/2117613400687866025",
+      "text": "Evan\n@StockMKTNewz\nFollow\nShopify \n$SHOP\n just said on its earnings call that\n\n- AI shopping volume remains small but adoption is still growing. Shopify said that AI traffic rose by 2.6x YoY and orders rose by 3.3x YoY\n5:42 AM · Nov 3, 2026\n·\n33.7K\n Views\n22\n8\n77\n10\nRelevant\nView quotes",
+      "times": [
+        {
+          "text": "5:42 AM · Nov 3, 2026",
+          "datetime": "2026-11-03T13:42:32.000Z"
+        }
+      ]
+    }
+  ]
+}

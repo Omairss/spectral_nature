@@ -1,5 +1,9 @@
 # Learnings — Active Guidelines
 
+## Attention publishing — 2026-11-03
+
+Use the existing reviewed Attention headline verbatim for each X post. The owner rejected a separate editing pipeline as unnecessary complexity. Reuse feed event IDs and save actual X receipts; do not introduce another model call or semantic identity system. Keep the saved credential/session connection and hard pacing the owner requested. Account ownership, encrypted cookies and posting limits live in the existing PostgreSQL store; secrets remain in Key Vault. Lost or ambiguous submissions stop delivery. [Current implementation and evidence](plans/ATTENTION_X_PUBLISHING_2026-11-03.json).
+
 ## Calendar publication freshness is not results coverage — 2026-11-03
 
 Verify the latest reporting date's actual price colors separately from job success, publication timestamp, old positive/negative examples and optional EPS confirmation. The requested next-session price observation comes from consolidated bars; it must not depend on a per-company fundamental-history allowance. Preserve source confirmation status honestly rather than making a price move confirm a report. Prioritize recent optional confirmations over backfill, and use official session close plus provider data delay instead of excluding today's date. Real November 2 replay and both production gateways measure all 152 entries despite the history allowance being full; two unchanged prices remain neutral. [Delivery](verification/calendar-history-reactions-2026-11-01/CURRENT_RESULTS_PRODUCTION.json).

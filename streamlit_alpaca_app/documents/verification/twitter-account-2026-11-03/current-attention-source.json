@@ -1,0 +1,219 @@
+{
+  "metadata": {
+    "dataset_name": "attention_home_snapshots_1d",
+    "dataset_version_id": "attention_home_snapshots_1d__20261103T165038Z__fc30fd02__a031069238784fd69da9daf2e05da515",
+    "blob_path": "datasets/attention_home_snapshots_1d/dt=2026-11-03/asof=2026-11-03T16-50-38Z/universe=20260919/part-attention_home_snapshots_1d__20261103T165038Z__fc30fd02__a031069238784fd69da9daf2e05da515.parquet",
+    "asof_time_utc": "2026-11-03T16:50:38.890972+00:00",
+    "ingested_at_utc": "2026-11-03T17:16:49.854575+00:00",
+    "row_count": 1,
+    "partitioning": {}
+  },
+  "run_id": "fc30fd02-6662-4740-9dd2-574689c53155",
+  "generated_at_utc": "2026-11-03T16:50:38.890972+00:00",
+  "events": [
+    {
+      "section": "top_events",
+      "bundle_id": "event::home-53a81a2d2124f69b5e16a58935f30fb3e9d6d4febcbed38e257d01263098ccd5",
+      "event_id": "home-53a81a2d2124f69b5e16a58935f30fb3e9d6d4febcbed38e257d01263098ccd5",
+      "event_title": "AI-hardware shares bounce in an unfinished session, while their month-long fall still has no single proven cause.",
+      "headline": "AI-hardware shares bounce in an unfinished session, while their month-long fall still has no single proven cause.",
+      "surface_summary_text": "The rebound may be a stabilization, not proof that the AI-hardware concerns are resolved. Investors still face separate demand, financing and deal risks.",
+      "what_happened_text": "Stocks tied to AI computing chips, optical parts, equipment and memory have fallen sharply over the past month. In the unfinished 3 November session, several of them rose sharply: AEHR +19.29%, LSCC +12.72%, FN +12.40%, and COHR +4.10%. The same day brought a report that NVIDIA will require its cloud partners to limit business with Chinese customers. AMD is scheduled to report results today.",
+      "why_happened_text": "The month-long slide began before the NVIDIA report. The available evidence separates several possible pressures: NVIDIA's new China rule, financing strain at Oracle, CoreWeave and Nebius, doubt about the Marvell-Lumentum deal, and memory-industry concerns. The bounce does not yet show which pressure is easing.",
+      "business_context_text": "These shares depend on heavy spending on AI data centers, which has become a major driver of chip and networking demand.",
+      "watch_next_text": "AMD's actual results could reset near-term demand expectations. Whether the bounce survives the full trading day will show if buyers are treating the concerns as temporary.",
+      "anchor_symbol": "AEHR",
+      "symbol": "AEHR",
+      "supporting_symbols": [
+        "AEHR",
+        "LSCC",
+        "FN",
+        "COHR",
+        "NVDA",
+        "AMD",
+        "SPY"
+      ],
+      "source_ids": [
+        "doc::event-news::9a29a5963fd60c0837fe",
+        "doc::event-news::3d1bc16d55cf00ba39fd"
+      ],
+      "publish": true,
+      "public_surface_reviewed": true
+    },
+    {
+      "section": "top_events",
+      "bundle_id": "event::home-cf1ed402b7507f46e8835c30b94c3e7ac41750fc5a3abe571f3cb2efd1209adc",
+      "event_id": "home-cf1ed402b7507f46e8835c30b94c3e7ac41750fc5a3abe571f3cb2efd1209adc",
+      "event_title": "Energy shares stay weak after oil falls on Iran deal hopes, but no supply change is confirmed.",
+      "headline": "Energy shares stay weak after oil falls on Iran deal hopes, but no supply change is confirmed.",
+      "surface_summary_text": "Lower oil prices reduce the revenue that energy producers and refiners can expect. The move rests on diplomacy, not a confirmed increase in supply, so it could reverse quickly.",
+      "what_happened_text": "On 2 November, energy shares fell broadly as oil sank about 7%. Reports tied the drop to hopes for a U.S.-Iran deal, with Qatari mediators in Tehran and President Trump saying Iran wants a deal. In the unfinished 3 November session, energy names are mixed, and no supply change has appeared.",
+      "why_happened_text": "The diplomatic track could ease supply fears, but no agreement or production change is confirmed. The mixed tape on 3 November suggests traders are not yet uniformly pushing the move further.",
+      "business_context_text": "Energy earnings depend heavily on oil prices, so a diplomatic headline can move the group before any barrels change hands.",
+      "watch_next_text": "A signed deal or confirmed supply change would solidify the oil-price effect. Failure to reach a deal could unwind the 2 November drop.",
+      "anchor_symbol": "XOM",
+      "symbol": "XOM",
+      "supporting_symbols": [
+        "XOM",
+        "PBF",
+        "VLO",
+        "MPC",
+        "OXY"
+      ],
+      "source_ids": [
+        "doc::event-news::b74f245c1587842980ca",
+        "saa_doc::7aa0fb38866d2cef72d0cecf",
+        "saa_doc::ccae609748ed19bc7b6c6e8f",
+        "doc::event-news::dd1bc81e376d0cf750f8",
+        "doc::event-news::dc6d228dc8dc7d5f10b8",
+        "doc::event-news::a9a85c06a0b67125f950",
+        "saa_doc::e30fb378b8c5d31ba21680a4",
+        "saa_doc::58a21dee05e88cd6f4262c4c",
+        "saa_doc::114ffd20b5982afee31978a6",
+        "agent_source::1aacfd78c74d367672f3",
+        "agent_source::89053a92dee20af768b6",
+        "agent_source::525b8434ad7f99f7642b",
+        "agent_source::643e6b34a9008e521c82",
+        "agent_source::adf13f8185ec4d71c5ed",
+        "agent_source::5e300f76e617eb40856c",
+        "agent_source::4fcbe7997fd9b9b1a16d",
+        "agent_source::a906a607764a3460087e",
+        "agent_source::1ca4d7e5ab2d61b444ef"
+      ],
+      "publish": true,
+      "public_surface_reviewed": true
+    },
+    {
+      "section": "top_events",
+      "bundle_id": "event::home-ce39634d43bd180a02aa1c803d9a97be9a1d50ad179cd2f8b96af1b3e3d0261e",
+      "event_id": "home-ce39634d43bd180a02aa1c803d9a97be9a1d50ad179cd2f8b96af1b3e3d0261e",
+      "event_title": "Oracle seeks $20 billion through new shares and bonds to fund AI data centers, and its stock falls as investors weigh the cost.",
+      "headline": "Oracle seeks $20 billion through new shares and bonds to fund AI data centers, and its stock falls as investors weigh the cost.",
+      "surface_summary_text": "The financing is a live test of how much investors will charge for large AI data-center growth when funding comes partly from new shares.",
+      "what_happened_text": "On 2 November, Oracle announced a $10 billion sale of new shares and a $10 billion bond sale. The combined $20 billion plan is meant to fund its AI cloud expansion. Reports said the stock was under pressure from the new financing.",
+      "why_happened_text": "Selling new shares can reduce the value of each existing share, and selling bonds adds interest costs. The funding supports Oracle's AI buildout, but the market is now charging for that cost.",
+      "business_context_text": "Oracle is expanding AI cloud capacity, which requires large upfront spending. This offering is a direct market test of how much that capital costs.",
+      "watch_next_text": "The pricing and demand for both offerings will show whether the cost of AI data-center funding is rising. Other AI borrowers may follow.",
+      "anchor_symbol": "ORCL",
+      "symbol": "ORCL",
+      "supporting_symbols": [
+        "ORCL",
+        "CRWV",
+        "NBIS"
+      ],
+      "source_ids": [
+        "saa_doc::33d308b34dfb45b3de4afa6b",
+        "saa_doc::2fedbc4794d23df7d703a278",
+        "doc::event-news::1a491be460c81c30bb06",
+        "saa_doc::02e95167c69c6a7347d29b68",
+        "saa_doc::934942f244a1c72182e42440",
+        "doc::event-news::6907875eacb0378dda9b",
+        "agent_source::8a4388ff9bac20905ec0",
+        "agent_source::7bff8ac1e80cc731f456",
+        "agent_source::8b17780a449377faad43",
+        "agent_source::c57a291b6e8425304ec4",
+        "agent_source::9e00cc6bbaa97dfdd84f",
+        "agent_source::39bf32eaf8c113810f60"
+      ],
+      "publish": true,
+      "public_surface_reviewed": true
+    },
+    {
+      "section": "must_read_movers",
+      "bundle_id": "event::home-b24ac81ce66e0f8580309d4775e5ac65f9091068035edad71820618f030e5cd2",
+      "event_id": "home-b24ac81ce66e0f8580309d4775e5ac65f9091068035edad71820618f030e5cd2",
+      "event_title": "Shopify shares fall after strong sales growth and a softer profit outlook; a separate filing allows future share and debt sales.",
+      "headline": "Shopify shares fall after strong sales growth and a softer profit outlook; a separate filing allows future share and debt sales.",
+      "surface_summary_text": "The business is still growing quickly, but investors are weighing slower expected profit growth. The filing is a separate disclosure and the evidence does not yet connect it to the price drop.",
+      "what_happened_text": "Shopify said its sales grew 32% from a year earlier and that it kept 22 cents of every sales dollar as cash after operating costs. Its profit per share, after removing one-time items, beat the estimate, while sales came in just below the estimate. The company expects sales in the current quarter to grow at about the same low-thirties pace, but it expects its gross profit—the money left after paying the direct costs of sales—to grow only in the high-twenties percent. It also filed papers allowing future sales of shares, debt or other securities.",
+      "why_happened_text": "The current decline appears tied to the slower expected profit growth. The evidence does not yet connect the shelf filing to the price move, and the full trading day is still needed to confirm the drop.",
+      "business_context_text": "Shopify sells software and services that let merchants run online stores. Its appeal has been fast sales growth, so slower expected profit growth can change what investors will pay.",
+      "watch_next_text": "Watch the full-day close and any management comments about whether the profit slowdown is temporary.",
+      "anchor_symbol": "SHOP",
+      "symbol": "SHOP",
+      "supporting_symbols": [
+        "SHOP"
+      ],
+      "source_ids": [
+        "doc::event-news::012339732998ec846e96",
+        "doc::event-news::1abee18faa651a631d1d",
+        "doc::event-news::f91b06d436d2584c1d64",
+        "doc::event-news::f92a5ff38a01bfa1dfbc",
+        "doc::event-news::a9a81b4151b6a915296a",
+        "saa_doc::a3b4c0d17109ac90c88b2f2f",
+        "agent_source::fd3dea817f8c022c3634",
+        "agent_source::77f9d2acdf131bf3fac3"
+      ],
+      "publish": true,
+      "public_surface_reviewed": true
+    },
+    {
+      "section": "must_read_movers",
+      "bundle_id": "event::home-6c567a47b4273529f14e8c1ef7695e84d3ed61ec9355c714480bb62eb29e031d",
+      "event_id": "home-6c567a47b4273529f14e8c1ef7695e84d3ed61ec9355c714480bb62eb29e031d",
+      "event_type": "market_research",
+      "event_title": "ADT agrees to be bought by Thrive Holdings for $10 a share in cash.",
+      "headline": "ADT agrees to be bought by Thrive Holdings for $10 a share in cash.",
+      "surface_summary_text": "The fixed cash price sets a near-term value for ADT shares. The gap below $10 reflects closing risk and the chance of a better offer.",
+      "what_happened_text": "On 29 October 2026, Thrive Holdings agreed to buy every ADT share for $10 in cash, and ADT's board approved the offer. The payment was 45.6% above ADT's close on 27 October. ADT closed at $9.85 on 2 November, and the deal is expected to close in early 2027 after shareholder and U.S. competition reviews.",
+      "why_happened_text": "In a signed all-cash sale, a stock price usually moves close to the cash amount but stays a little below it because the deal could fail or be delayed. ADT's price fits that pattern. The agreement also lets ADT seek a better offer until 28 November, which can explain part of the remaining gap.",
+      "business_context_text": "ADT sells monitored security and alarm services for homes and businesses. Thrive Holdings, led by Josh Kushner and backed by OpenAI, buys service businesses for the long term and plans to add AI to ADT's monitoring work.",
+      "watch_next_text": "A competing offer before 28 November would move the price toward or above $10. A failed shareholder or competition review would send it back down.",
+      "anchor_symbol": "ADT",
+      "symbol": "ADT",
+      "supporting_symbols": [
+        "ADT"
+      ],
+      "source_ids": [
+        "saa_doc::f485b1427725a4b5a0ab45e1",
+        "agent_source::f4cb83528f81342cddba",
+        "agent_source::47d78288dc264da8bf20",
+        "agent_source::3c5322125a63b01d6990",
+        "agent_source::deab2d481b4d876de14b",
+        "agent_source::e9d975ad8c7ede5499fc",
+        "agent_source::c370356c0c2aa36ed43d",
+        "agent_source::a9aa054e64b7340ce715"
+      ],
+      "publish": true,
+      "public_surface_reviewed": true
+    },
+    {
+      "section": "unresolved_large_moves",
+      "bundle_id": "event::home-a52cb54d2a2815e93180a1346563b4fc16cc09cf9ab332740b73b605a881c628",
+      "event_id": "home-a52cb54d2a2815e93180a1346563b4fc16cc09cf9ab332740b73b605a881c628",
+      "event_title": "Lumentum's discount to the fixed Marvell share package points to deal doubt rather than weak operations.",
+      "headline": "Lumentum's discount to the fixed Marvell share package points to deal doubt rather than weak operations.",
+      "surface_summary_text": "The discount is large enough to suggest investors doubt the deal will close on current terms, but the broad AI-hardware selloff is also pushing the gap wider.",
+      "what_happened_text": "Marvell agreed to buy Lumentum in a $115 billion deal paid in Marvell stock. Each Lumentum share would become 4.5 Marvell shares. On 2 November, Lumentum's price was 11.3% below the value of that share package. New analyst downgrades and the wider AI-hardware fall arrived on 3 November, so the earlier reading needs updating.",
+      "why_happened_text": "A gap larger than the deal's mechanical terms usually means investors doubt the deal will close. The evidence still favors doubt about closing over weak Lumentum operations, but the group decline and analyst actions now also widen the gap, so the two causes cannot be fully separated.",
+      "business_context_text": "In a fixed-share deal, the target's price should track the buyer's share price times the exchange ratio. A discount below that package shows extra risk or uncertainty.",
+      "watch_next_text": "Deal-closing updates or signs of regulatory or shareholder resistance would show whether the discount is durable. If analyst actions shift Marvell's value, the package value will change too.",
+      "anchor_symbol": "MRVL",
+      "symbol": "MRVL",
+      "supporting_symbols": [
+        "MRVL",
+        "LITE"
+      ],
+      "source_ids": [
+        "doc::event-news::23d8090e760ff8865262",
+        "doc::event-news::94c91b131eb25221b5a4",
+        "saa_doc::d688818d5318d926f315718b",
+        "saa_doc::343e9d2bbe272191e65d0d9c",
+        "saa_doc::09fa023a23ba8b280fc06ba6",
+        "saa_doc::42c77a76cc1bbc7b3316968f",
+        "saa_doc::6241da64551e032137efc7c3",
+        "doc::event-news::d2d610bb18340cfabad1",
+        "saa_doc::6c2687c03b873941bf4cf435",
+        "agent_source::ca4d807423e212adc05c",
+        "agent_source::e95879aa6bcf97c536ef",
+        "agent_source::074ffe49191a68c70eba",
+        "agent_source::616ffd91b52ca8f92761",
+        "agent_source::b8664bc5207fd889fb41",
+        "agent_source::581e28d7ee8c33d3c9c6",
+        "agent_source::7f31532dac41b526ce3d"
+      ],
+      "publish": true,
+      "public_surface_reviewed": true
+    }
+  ]
+}

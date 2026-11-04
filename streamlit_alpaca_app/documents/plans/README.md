@@ -1,5 +1,7 @@
 # Plans Index
 
+- [Attention events published to X](ATTENTION_X_PUBLISHING_2026-11-03.json) — existing Attention headlines published through @OmairS2 with saved login and hard pacing.
+
 - [Calendar history and color-only reactions](CALENDAR_HISTORY_REACTIONS_2026-11-01.md) — production and build19 delivery; no reaction text in either client.
 
 - [Market-First Research](MARKET_FIRST_RESEARCH_2026-10-30.json) — implemented data-first Home selection, focused context and research reuse; matched outputs reviewed and not accepted. Financial precision and continuing coverage remain unresolved; deployment held.

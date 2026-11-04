@@ -1,0 +1,55 @@
+{
+  "title": "Publish Attention events to X",
+  "account": "OmairS2",
+  "date": "2026-11-03",
+  "owner_request": "Each Attention event becomes an X post. Use Key Vault credentials, full JavaScript Chrome and cookies, with hard pacing. Keep it simple.",
+  "implementation": {
+    "text": "Use the existing reviewed event_title verbatim. No separate writer, reviewer, research call, rewriting or clipping.",
+    "identity": "Use the event ID already supplied by Attention. Save the X receipt; the same event ID is not sent twice. A new feed event ID is a new publication entry.",
+    "connection": "Scrapling Chrome with JavaScript, cookies and localStorage. Bootstrap from saved state; use Key Vault username/password if sign-in expires. Check the actual account. Stop on verification challenges.",
+    "credentials": "spectral-nature-kvault: twitter-username and twitter-password. Browser-state key stays in Key Vault; the refreshed browser state is encrypted in PostgreSQL.",
+    "guard": "One renewable account lease across workers/environments. Hard network and posting limits survive a process restart. Uncertain submissions stop further delivery.",
+    "feed": "Read completed Attention publications. Persist a starting boundary and acknowledge each retained batch so downtime does not silently skip indexed publications.",
+    "operation": "One local watch process prepares existing headlines and publishes pending events. No Azure application deployment or cloud schedule is changed."
+  },
+  "limits": {
+    "total_browser_requests_per_second": 10,
+    "data_requests_per_second": 1,
+    "navigation_interval_seconds": 10,
+    "post_interval_seconds": 120,
+    "login_attempt_interval_seconds": 900
+  },
+  "verification": {
+    "initial_shop_post": "https://x.com/OmairS2/status/2117853238674546770",
+    "fresh_encrypted_session_readback": true,
+    "duplicate_receipt_with_zero_new_requests": true,
+    "restart_post_gap_seconds": 120.87815,
+    "catch_up_boundary_and_acknowledgement": "passed",
+    "current_feed_events": 9,
+    "headline_character_range": [
+      115,
+      187
+    ],
+    "new_model_calls_in_simplified_publisher": 0
+  },
+  "status": "Simplified local publisher running in process 9804; nine existing feed headlines queued. No Azure deployment.",
+  "files": [
+    "services/x_publishing.py",
+    "services/attention_x.py",
+    "scripts/publish_attention_x.py"
+  ],
+  "source": {
+    "worktree": "/Users/omairs/Documents/code/spectral_nature_x_publishing_20261103",
+    "branch": "feature/attention-x-publishing-20261103",
+    "base": "3fcfb706",
+    "azure_deployments": 0
+  },
+  "retired_work": "Separate editor pipeline and all shared-agent changes were removed after the owner requested simplification. Eight unsent drafts were archived and removed from delivery. Original provider attempts and unknown billing remain in the verification record.",
+  "evidence": "../verification/twitter-account-2026-11-03/",
+  "local_worker": {
+    "pid": 9804,
+    "command": "publish_attention_x.py watch --account OmairS2 --publish --maximum 9",
+    "started_on": "2026-11-03 America/Los_Angeles",
+    "restart": "Run the same command with the existing local environment. Saved receipts and account limits survive restart."
+  }
+}

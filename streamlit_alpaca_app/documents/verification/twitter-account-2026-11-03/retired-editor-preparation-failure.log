@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/omairs/Documents/code/spectral_nature_x_publishing_20261103/streamlit_alpaca_app/scripts/publish_attention_x.py", line 58, in <module>
+    main()
+    ~~~~^^
+  File "/Users/omairs/Documents/code/spectral_nature_x_publishing_20261103/streamlit_alpaca_app/scripts/publish_attention_x.py", line 47, in main
+    result=prepare_attention_posts(deserialize_attention_home_payload(frame),
+                                   source_version=metadata.dataset_version_id,account=args.account)
+  File "/Users/omairs/Documents/code/spectral_nature_x_publishing_20261103/streamlit_alpaca_app/services/attention_x.py", line 77, in prepare_attention_posts
+    raise XPublishingError("The shared editor did not complete the X publication.")
+services.x_publishing.XPublishingError: The shared editor did not complete the X publication.

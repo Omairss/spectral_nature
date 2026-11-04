@@ -1,0 +1,21 @@
+{
+  "account": "OmairS2",
+  "verified_at": "2026-11-03T19:16:02.811694-08:00",
+  "vault": "spectral-nature-kvault",
+  "secrets": [
+    "twitter-username",
+    "twitter-password",
+    "twitter-browser-session"
+  ],
+  "scraper": "Scrapling StealthySession 0.4.6 with installed Chrome",
+  "credential_login": "passed",
+  "fresh_browser_session_restore": "passed",
+  "restored_from": "Key Vault session cookies",
+  "read_only_probe": {
+    "url": "https://x.com/home",
+    "profile_path": "/OmairS2",
+    "visible_posts": 12
+  },
+  "application_runtime_changes": false,
+  "deployment": false
+}

@@ -1,0 +1,6 @@
+{
+  "original_provider_response_key": "96063ecd99d1a89f826b0112affd14faeba2380cbdcff55b409783cefdabda74",
+  "inference_requests_sent": 0,
+  "complete_invalid_candidate_retained": true,
+  "validation_feedback": "Invalid response. Contract violations: [{\"path\": [\"decision\", \"posts\", 7, \"text\"], \"rule\": \"maxLength\", \"expected\": 280, \"observed_length\": 291, \"message\": \"'Marvell rose slightly and Lumentum fell slightly on Nov. 3 while optical peers gained about 5.1%. Lumentum closed 12.1% below the Marvell share package, wider than 11.3% the prior day. Analysts tied the deal to Marvell and cut targets to $225. Pattern fits closing risk, not weak operations.' is too long\"}, {\"path\": [\"decision\", \"posts\", 8, \"text\"], \"rule\": \"maxLength\", \"expected\": 280, \"observed_length\": 285, \"message\": \"'Crypto-mining and computing-hosting shares rebounded about 14.6% on Nov. 3 while Bitcoin stayed near $77,000 and rose about 1%. The nine had fallen sharply over 20 sessions; wider crypto names rose less. No same-day company cause established; consistent with a rebound from low prices.' is too long\"}]"
+}
