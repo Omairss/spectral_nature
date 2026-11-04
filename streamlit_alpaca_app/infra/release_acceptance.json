@@ -1184,7 +1184,15 @@
           }
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83": {
+          "status": "accepted",
+          "source_inventory_sha256": "67ff153303e2d2b52d1251d1f4d012711ff309f8c50f7fc61634ca573ebde7ed",
+          "runtime_inventory_sha256": "e5e2cc2726d1c7bbc3e7fc0c6bef8a04edc6343599176f739806c9b3e0bd06ef",
+          "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+          "evidence": "documents/verification/home-wiki-packages-2026-11-03.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
@@ -1227,7 +1235,15 @@
           }
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf": {
+          "status": "accepted",
+          "source_inventory_sha256": "67ff153303e2d2b52d1251d1f4d012711ff309f8c50f7fc61634ca573ebde7ed",
+          "runtime_inventory_sha256": "e5e2cc2726d1c7bbc3e7fc0c6bef8a04edc6343599176f739806c9b3e0bd06ef",
+          "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+          "evidence": "documents/verification/home-wiki-packages-2026-11-03.json"
+        }
+      }
     },
     "web": {
       "dependency_image": "node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da",
@@ -1377,7 +1393,15 @@
           }
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75": {
+          "status": "accepted",
+          "source_inventory_sha256": "67ff153303e2d2b52d1251d1f4d012711ff309f8c50f7fc61634ca573ebde7ed",
+          "runtime_inventory_sha256": "e5e2cc2726d1c7bbc3e7fc0c6bef8a04edc6343599176f739806c9b3e0bd06ef",
+          "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+          "evidence": "documents/verification/home-wiki-packages-2026-11-03.json"
+        }
+      }
     }
   },
   "untouched_consumers": [
