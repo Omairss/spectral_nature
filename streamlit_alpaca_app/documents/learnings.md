@@ -1673,3 +1673,7 @@ Match a new producer to the reader’s explicit production namespace; legacy mac
 ### November 4, 2026 — concurrent release reconciliation
 
 Recheck all live consumers immediately before mutation. The X rollout preflight caught the separately promoted next-open calendar producer after packaging and stopped with zero deployments. Integrate its two accepted calendar modules from Git, retain the existing research source, and rebuild/requalify all selected roles against the combined source. Do not import the calendar worktree’s unrelated held writing experiments.
+
+### November 4, 2026 — saved publication namespaces
+
+Saved Attention versions carry the owning dataset namespace. Validate the actual producer ID and exact manifest in each environment; the read service must enforce current-namespace isolation while the shared web route admits the canonical namespaced format.

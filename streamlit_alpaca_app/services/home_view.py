@@ -165,9 +165,11 @@ def _home_payload(
     if source_version:
         import re
         from services.attention_materialized import deserialize_attention_home_payload
-        from services.pipeline_store import dataset_metadata_for_version, load_dataset_frame
+        from services.pipeline_store import dataset_metadata_for_version, dataset_namespace, load_dataset_frame
 
-        if not re.fullmatch(r"attention_home_snapshots_1d__[A-Za-z0-9_]+", source_version):
+        namespace = dataset_namespace()
+        prefix = re.escape(namespace + "__") if namespace else ""
+        if not re.fullmatch(prefix + r"attention_home_snapshots_1d__[A-Za-z0-9_]+", source_version):
             raise ValueError("Invalid Attention publication version.")
         metadata = dataset_metadata_for_version("attention_home_snapshots_1d", source_version)
         payload = deserialize_attention_home_payload(load_dataset_frame(metadata)) if metadata else {}

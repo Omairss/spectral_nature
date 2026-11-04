@@ -1,0 +1,17 @@
+{
+  "status": "accepted_locally",
+  "issue": "Saved-event validation initially only admitted production version IDs. Development stores its namespace prefix in immutable version IDs.",
+  "change": "Backend accepts only the current namespace prefix; frontend accepts syntactically valid namespaced IDs and leaves authoritative namespace isolation to the backend. Exact manifest identity and namespace checks stay enforced.",
+  "development_actual_version": "development__attention_home_snapshots_1d__20261018T202434Z__972a1ceb",
+  "development_actual_run": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+  "development_exact_manifest_found": true,
+  "development_event_count": 6,
+  "new_inference_calls": 0,
+  "deployments_before_correction": 0,
+  "superseded_builds": [
+    "cj1fu",
+    "cj1fv",
+    "cj1fw",
+    "cj1fx"
+  ]
+}

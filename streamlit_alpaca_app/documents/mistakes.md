@@ -1629,3 +1629,7 @@ The first release draft assumed a shared previous image for each role. Grouping 
 ### November 4, 2026 — source moved during X packaging
 
 The calendar jobs changed images while X packages were building. The mandatory consumer guard stopped before mutation; the first package set cannot be promoted over that newer producer. Reconcile the accepted calendar behavior and fresh consumer baselines before resuming.
+
+### November 4, 2026 — saved publication namespaces
+
+The first saved-link validation was qualified only with production IDs. A real development read exposed its rejected namespace prefix before deployment. Correct the backend and frontend version contract together and requalify the source; do not strip identity or fall back to latest data.
