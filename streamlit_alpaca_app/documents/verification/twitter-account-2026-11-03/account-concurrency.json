@@ -6,5 +6,8 @@
   "read_completed_after_owner_released": true,
   "read_post_url": "https://x.com/WealthSignalNYC/status/2117651836865806525",
   "read_characters": 398,
-  "new_posts": 0
+  "new_posts": 0,
+  "waiting_read_deadline_cancelled": true,
+  "original_owner_retained": true,
+  "cancelled_reader_left_no_browser": true
 }
