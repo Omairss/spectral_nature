@@ -1669,3 +1669,7 @@ Verify investigation storage, completed review and retained wiki knowledge separ
 ### November 1, 2026 — production calendar and physical-device verification
 
 Match a new producer to the reader’s explicit production namespace; legacy macro producers may use the canonical unscoped production path. Promote only the exact DEV-qualified images. For native installation, independently verify bundle version and the matching running executable; local signature validation does not establish that iOS will launch a renewed development profile.
+
+### November 4, 2026 — concurrent release reconciliation
+
+Recheck all live consumers immediately before mutation. The X rollout preflight caught the separately promoted next-open calendar producer after packaging and stopped with zero deployments. Integrate its two accepted calendar modules from Git, retain the existing research source, and rebuild/requalify all selected roles against the combined source. Do not import the calendar worktree’s unrelated held writing experiments.

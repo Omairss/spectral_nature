@@ -1,0 +1,63 @@
+{
+  "status": "accepted",
+  "environment": "development",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ce3bb89965a700e80b441cf717089a18dea869917ee3595151fda931ebdfe8ee"
+  },
+  "source_inventory_sha256": "54973ef9f375856124a7c39b5e995885a432f04312f227fbf3ab9a896dcf4629",
+  "calendar_as_of": "2026-11-04T18:32:35.339957+00:00",
+  "days": {
+    "2026-11-02": {
+      "events": 147,
+      "measured": 147,
+      "colors": {
+        "red": 81,
+        "green": 61,
+        "unchanged": 5
+      }
+    },
+    "2026-11-03": {
+      "events": 279,
+      "measured": 279,
+      "colors": {
+        "green": 177,
+        "red": 99,
+        "unchanged": 3
+      }
+    },
+    "2026-11-04": {
+      "events": 485,
+      "measured": 0,
+      "colors": {}
+    }
+  },
+  "execution": {
+    "status": "Succeeded",
+    "startTime": "2026-11-04T18:31:48+00:00",
+    "endTime": "2026-11-04T18:33:22+00:00"
+  },
+  "execution_name": "market-calendar-refresh-dev-lpy72i0",
+  "http": 200,
+  "conditional_old_http": 200,
+  "conditional_current_http": 304,
+  "all_configurations_preserved": 38,
+  "other_images_preserved": 37,
+  "client_changes": 0,
+  "paid_inference_calls": 0,
+  "native_visual_evidence": "native-development.png",
+  "native_visual_check": {
+    "client_build": 22,
+    "selected_day": "2026-11-03",
+    "green_examples": [
+      "AMD",
+      "SHOP"
+    ],
+    "red_examples": [
+      "VRNS",
+      "ETN",
+      "ALAB"
+    ],
+    "future_day_neutral": "2026-11-04",
+    "reaction_display": "label color only"
+  }
+}

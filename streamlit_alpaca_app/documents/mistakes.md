@@ -1625,3 +1625,7 @@ The live 08:50PST Home story retained “no single proven cause” after complet
 iOS rejected the first build 18 launch despite a valid signature, matching provisioning certificate and registered device. Keep installation and launch as separate verification states; the later matching process and successful ordinary launch established completion. Do not rebuild or change signing access merely because the generic iOS security error lists several possible causes.
 
 The first release draft assumed a shared previous image for each role. Grouping the fresh inventory by digest exposed newer calendar API/web and dedicated-worker source before any build. Preserve each consumer’s actual accepted Git package; a role name or older deployment summary is insufficient. The accepted calendar branch was merged before packaging.
+
+### November 4, 2026 — source moved during X packaging
+
+The calendar jobs changed images while X packages were building. The mandatory consumer guard stopped before mutation; the first package set cannot be promoted over that newer producer. Reconcile the accepted calendar behavior and fresh consumer baselines before resuming.

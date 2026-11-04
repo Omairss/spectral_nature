@@ -10,7 +10,7 @@ from services.alpaca_api import AlpacaAPI
 from services.config import load_config
 from services.fred import load_fred_api_key
 from services.market_calendar import DATASET, NY, SourceResult, calendar_from_frame, collect_reported_earnings, collect_sources, merge_calendar
-from services.market_calendar_reactions import fetch_reaction_prices, observe_reactions
+from services.market_calendar_reactions import REACTION_BASIS, fetch_reaction_prices, observe_reactions
 
 
 def run_market_calendar_refresh(ctx, conn, *, persist_dataset_fn, load_materialized_frame_fn):
@@ -62,7 +62,8 @@ def run_market_calendar_refresh(ctx, conn, *, persist_dataset_fn, load_materiali
         ctx.degraded_components["calendar_sessions"] = type(exc).__name__
     benchmark = os.getenv("MARKET_CALENDAR_REACTION_BENCHMARK", "SPY").strip().upper()
     symbols = sorted({benchmark, *[e["ticker"] for e in state["events"] if e.get("ticker")
-        and not e.get("cancelled") and not e.get("market_reaction") and e["date"] < reference.isoformat()]})
+        and not e.get("cancelled") and (e.get("market_reaction") or {}).get("price_basis") != REACTION_BASIS
+        and e["date"] < reference.isoformat()]})
     prices = pd.DataFrame()
     try:
         if api is None:

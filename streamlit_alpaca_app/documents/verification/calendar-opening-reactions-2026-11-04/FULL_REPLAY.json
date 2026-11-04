@@ -1,0 +1,40 @@
+{
+  "status": "accepted_locally",
+  "as_of": "2026-11-04T18:17:58.356287+00:00",
+  "symbols": 431,
+  "price_rows": 12499,
+  "total_observations": 448,
+  "days": {
+    "2026-11-02": {
+      "events": 147,
+      "measured": 147,
+      "colors": {
+        "red": 81,
+        "green": 61,
+        "unchanged": 5
+      },
+      "unavailable": []
+    },
+    "2026-11-03": {
+      "events": 279,
+      "measured": 279,
+      "colors": {
+        "green": 177,
+        "red": 99,
+        "unchanged": 3
+      },
+      "unavailable": []
+    },
+    "2026-11-04": {
+      "events": 485,
+      "measured": 0,
+      "colors": {},
+      "not_yet_eligible": 485
+    }
+  },
+  "future_and_same_day_neutral": true,
+  "all_observations_use_next_open": true,
+  "production_writes": 0,
+  "inference_calls": 0,
+  "targeted_checks": 28
+}
