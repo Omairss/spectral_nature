@@ -1,0 +1,26 @@
+{
+  "profile_posts": [
+    {
+      "text": "Lumentum's discount to the Marvell share package widened to 12.1% on Nov. 3 even as optical peers rallied; the pattern remains more consistent with deal-closing risk than weak operations.",
+      "url": "https://x.com/OmairS2/status/2117879517570339136",
+      "published_at": "2026-11-04T07:19:59.000Z"
+    },
+    {
+      "text": "$SHOP grew revenue 32% and delivered a 22% free cash flow margin, but sales slightly missed estimates. Q4 gross profit is guided to grow more slowly than revenue. The question is how much of that sales growth converts into profit.",
+      "url": "https://x.com/OmairS2/status/2117853238674546770",
+      "published_at": "2026-11-04T05:35:34.000Z"
+    }
+  ],
+  "uncertain_observations": [
+    {
+      "event_id": "home-1d64eaedb6f21ed635e124780a104c6a0657e82b655b39ea4ed41bc211b18174",
+      "text": "Crypto-mining and computing-hosting shares rebounded about 14.6% while Bitcoin stayed near $77,000; the same-day cause is not established.",
+      "matches": [],
+      "profile_latest_time": "2026-11-04T07:19:59.000Z",
+      "profile_earliest_time": "2025-02-03T22:40:09.000Z",
+      "article_count": 5
+    }
+  ],
+  "posts_sent": 0,
+  "min_network_gap_seconds": 0.10010870895348489
+}

@@ -7,15 +7,16 @@ content generation runs inside this transport.
 """
 from __future__ import annotations
 
-from contextlib import closing, contextmanager
+from contextlib import closing, contextmanager, asynccontextmanager
 from datetime import datetime, timezone
+import asyncio
 import json
 import logging
 import platform
 import threading
 import time
 import uuid
-from typing import Any, Iterator
+from typing import Any, Iterator, AsyncIterator
 from urllib.parse import urlparse
 
 from azure.core.exceptions import ResourceNotFoundError
@@ -25,6 +26,8 @@ from cryptography.fernet import Fernet
 from services.secrets import build_azure_credential, runtime_env_value
 
 
+# Explicit search/open-post operations. Browser-generated HTTP traffic shares
+# the separate network cap so its own JavaScript can finish normally.
 REQUEST_INTERVAL_SECONDS = 1.0
 NETWORK_INTERVAL_SECONDS = 0.1
 NAVIGATION_INTERVAL_SECONDS = 10.0
@@ -61,6 +64,16 @@ def _vault() -> SecretClient:
     if not url:
         raise XPublishingError("X account Key Vault is not configured.")
     return SecretClient(vault_url=url, credential=build_azure_credential())
+
+
+def configured_x_account() -> str:
+    account = runtime_env_value("X_ACCOUNT_USERNAME")
+    if not account:
+        name = runtime_env_value("X_USERNAME_SECRET_NAME") or "twitter-username"
+        account = _vault().get_secret(name).value
+    if not account:
+        raise XPublishingError("The X account is not configured.")
+    return account.strip().removeprefix("@")
 
 
 class XAccountStore:
@@ -102,7 +115,6 @@ class XAccountStore:
             cur.execute("""ALTER TABLE x_publishing_accounts
                 ADD COLUMN IF NOT EXISTS next_network_at TIMESTAMPTZ NOT NULL DEFAULT '-infinity',
                 ADD COLUMN IF NOT EXISTS next_navigation_at TIMESTAMPTZ NOT NULL DEFAULT '-infinity',
-                ADD COLUMN IF NOT EXISTS attention_started_at TIMESTAMPTZ,
                 ADD COLUMN IF NOT EXISTS session_ciphertext TEXT""")
             cur.execute("""CREATE TABLE IF NOT EXISTS x_publishing_posts (
                 account TEXT NOT NULL, event_id TEXT NOT NULL, payload JSONB NOT NULL,
@@ -227,7 +239,7 @@ class XAccountStore:
                 raise XPublishingError("Post receipt write refused: lease or immutable event content changed.")
 
     def records(self) -> list[dict[str, Any]]:
-        """Read-only history for the shared editor; never owns browser access."""
+        """Read-only account history; never owns browser access."""
         self._ensure_schema()
         with self._db() as cur:
             cur.execute("SELECT payload FROM x_publishing_posts WHERE account=%s ORDER BY updated_at DESC",
@@ -274,233 +286,285 @@ class XAccountStore:
 
 
 class XBrowser:
-    """Full JavaScript browser; every page request is paced before release."""
+    """Full JavaScript browser with nonblocking, serialized request pacing."""
 
     def __init__(self, store: XAccountStore, *, headless: bool = True):
         self.store = store
         self.vault = _vault()
-        key_name=runtime_env_value("X_SESSION_ENCRYPTION_KEY_SECRET_NAME") or "twitter-browser-encryption-key"
-        self.cipher=Fernet((self.vault.get_secret(key_name).value or "").encode("ascii"))
+        key_name = runtime_env_value("X_SESSION_ENCRYPTION_KEY_SECRET_NAME") or "twitter-browser-encryption-key"
+        self.cipher = Fernet((self.vault.get_secret(key_name).value or "").encode("ascii"))
         self.headless = headless
         self.session: Any = None
         self.page: Any = None
         self._submitting: dict[str, Any] | None = None
         self._submission_sent = False
         self._authenticated = False
-        self._request_count = 0
+        self._dispatch_lock = asyncio.Lock()
         self._request_times: list[float] = []
         self._data_times: list[float] = []
         self._navigation_times: list[float] = []
         self._last_post_release = 0.0
+        self._post_network_failure: str | None = None
+        self._closing = False
 
-    def _guard_request(self, route: Any) -> None:
+    async def _guard_request(self, route: Any) -> None:
         try:
-            request = route.request
-            operation = urlparse(request.url).path.rsplit("/", 1)[-1]
-            posting = request.method == "POST" and operation in {"CreateTweet", "CreateNoteTweet"}
-            if posting:
-                if not self._submitting or self._submission_sent:
-                    raise XPublishingError("An unowned or repeated post request was blocked.")
-            navigating = request.is_navigation_request()
-            data_request = request.resource_type in {"xhr", "fetch"} or posting
-            if navigating:
-                self.store.permit("navigation")
-            if data_request:
-                self.store.permit("request")
-            # The exclusive renewable account lease serializes all browser
-            # traffic. Static assets use its local monotonic clock, avoiding a
-            # database connection for each image/script. Database-clock permits
-            # still govern navigations, data requests and post submissions.
-            deadline = (self._request_times[-1] + NETWORK_INTERVAL_SECONDS) if self._request_times else 0
-            if data_request and self._data_times:
-                deadline = max(deadline,self._data_times[-1]+REQUEST_INTERVAL_SECONDS)
-            if navigating and self._navigation_times:
-                deadline = max(deadline,self._navigation_times[-1]+NAVIGATION_INTERVAL_SECONDS)
-            if posting and self._last_post_release:
-                deadline = max(deadline, self._last_post_release + POST_INTERVAL_SECONDS)
-            while time.monotonic() < deadline:
-                time.sleep(min(deadline-time.monotonic(),0.1))
-            if posting:
-                self._submitting.update(status="submitting", submitted_at=_now())
-                self.store.save_post(self._submitting)
-                self._submission_sent = True
-            self.store._check()
-            self._request_count += 1
-            self._request_times.append(time.monotonic())
-            if data_request:
-                self._data_times.append(self._request_times[-1])
-            if navigating:
-                self._navigation_times.append(self._request_times[-1])
-            if posting:
-                self._last_post_release = self._request_times[-1]
-            route.continue_()
-            if posting:
-                self.store.mark_post_dispatched()
-        except BaseException:
-            route.abort()
-            raise
-
-    def __enter__(self) -> XBrowser:
-        from scrapling.fetchers import StealthySession
-        secret_name = runtime_env_value("X_BROWSER_SESSION_SECRET_NAME") or "twitter-browser-session"
-        state = self.store.session(self.cipher)
-        if state is None:
+            async with self._dispatch_lock:
+                request = route.request
+                operation = urlparse(request.url).path.rsplit("/", 1)[-1]
+                posting = request.method == "POST" and operation in {"CreateTweet", "CreateNoteTweet"}
+                if posting:
+                    body = request.post_data_json or {}
+                    text = (body.get("variables") or {}).get("tweet_text")
+                    if not self._submitting or self._submission_sent or text != self._submitting["text"]:
+                        raise XPublishingError("An unowned or repeated post request was blocked.")
+                navigating = request.is_navigation_request() and request.frame == self.page.main_frame
+                data_request = request.resource_type in {"xhr", "fetch"} or posting
+                if navigating:
+                    await asyncio.to_thread(self.store.permit, "navigation")
+                deadline = self._request_times[-1] + NETWORK_INTERVAL_SECONDS if self._request_times else 0
+                if navigating and self._navigation_times:
+                    deadline = max(deadline, self._navigation_times[-1] + NAVIGATION_INTERVAL_SECONDS)
+                if posting and self._last_post_release:
+                    deadline = max(deadline, self._last_post_release + POST_INTERVAL_SECONDS)
+                await asyncio.sleep(max(0, deadline - time.monotonic()))
+                if posting:
+                    self._submitting.update(status="submitting", submitted_at=_now())
+                    await asyncio.to_thread(self.store.save_post, self._submitting)
+                    self._submission_sent = True
+                self.store._check()
+                released = time.monotonic()
+                self._request_times.append(released)
+                if data_request:
+                    self._data_times.append(released)
+                if navigating:
+                    self._navigation_times.append(released)
+                if posting:
+                    self._last_post_release = released
+                await route.continue_()
+                if posting:
+                    await asyncio.to_thread(self.store.mark_post_dispatched)
+        except Exception as exc:
+            if not self._closing:
+                logging.getLogger(__name__).warning("X request stopped (%s)", type(exc).__name__)
             try:
-                state = json.loads(self.vault.get_secret(secret_name).value or "{}")
+                await route.abort()
+            except Exception:
+                pass
+
+    async def __aenter__(self) -> XBrowser:
+        from scrapling.fetchers import AsyncStealthySession
+        state = await asyncio.to_thread(self.store.session, self.cipher)
+        if state is None:
+            secret_name = runtime_env_value("X_BROWSER_SESSION_SECRET_NAME") or "twitter-browser-session"
+            try:
+                secret = await asyncio.to_thread(self.vault.get_secret, secret_name)
+                state = json.loads(secret.value or "{}")
             except ResourceNotFoundError:
                 state = {}
-        self.session = StealthySession(
-            headless=self.headless, real_chrome=platform.system() in {"Darwin","Windows"}, cookies=state.get("cookies") or [],
-            google_search=False, solve_cloudflare=False, retries=1, timeout=300_000,
-            additional_args={"service_workers": "block"},
+        self.session = AsyncStealthySession(
+            headless=self.headless, real_chrome=platform.system() in {"Darwin", "Windows"},
+            cookies=state.get("cookies") or [], google_search=False, solve_cloudflare=False,
+            retries=1, timeout=180_000, additional_args={"service_workers": "block"},
         )
         try:
-            self.session.start()
+            await self.session.start()
             context = self.session.context
             if state.get("origins"):
-                # A Playwright storage state includes local storage as well as
-                # cookies. Restore it before X's own JavaScript initializes.
-                context.add_init_script("""(states => {
+                await context.add_init_script("""(states => {
                     for (const state of states) {
                         if (location.origin !== state.origin || sessionStorage.getItem('sn_x_restored')) continue;
                         for (const item of state.localStorage || []) localStorage.setItem(item.name,item.value);
                         sessionStorage.setItem('sn_x_restored','1');
                     }
                 })(""" + json.dumps(state["origins"]) + ");")
-            context.route("**/*", self._guard_request)
-            # No service-worker or WebSocket path may send unmetered traffic.
-            context.route_web_socket("**/*", lambda socket: socket.close())
-            self.page = context.new_page()
-            self.page.set_default_timeout(120_000)
-            self.store.permit("network")
-            self.page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=300_000)
-            self._authenticate()
-            self._save_session()
+            await context.route("**/*", self._guard_request)
+            async def close_socket(socket: Any) -> None:
+                await socket.close()
+            await context.route_web_socket("**/*", close_socket)
+            self.page = await context.new_page()
+            self.page.set_default_timeout(90_000)
+            def failed(request: Any) -> None:
+                if request.method == "POST" and urlparse(request.url).path.rsplit("/", 1)[-1] in {"CreateTweet", "CreateNoteTweet"}:
+                    self._post_network_failure = request.failure
+            self.page.on("requestfailed", failed)
+            await asyncio.to_thread(self.store.permit, "network")
+            await self.page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=180_000)
+            await self._authenticate()
+            await self._save_session()
             return self
         except BaseException:
-            self.__exit__(None, None, None)
+            await self.__aexit__(None, None, None)
             raise
 
-    def __exit__(self, *_: Any) -> None:
+    async def __aexit__(self, *_: Any) -> None:
         if self.session:
             try:
                 if self._authenticated:
                     try:
-                        self._save_session()
+                        await self._save_session()
                     except Exception as exc:
-                        logging.getLogger(__name__).warning("X session refresh unavailable (%s)",type(exc).__name__)
+                        logging.getLogger(__name__).warning("X session refresh unavailable (%s)", type(exc).__name__)
             finally:
-                self.session.close()
+                self._closing = True
+                await self.session.close()
                 self.session = None
 
-    def _authenticate(self) -> None:
+    async def _authenticate(self) -> None:
         profile = self.page.get_by_role("link", name="Profile", exact=True)
         try:
-            profile.wait_for(timeout=30_000)
+            await profile.wait_for(timeout=30_000)
         except Exception:
-            self.store.permit("login")
-            self.page.goto("https://x.com/i/flow/login", wait_until="domcontentloaded", timeout=300_000)
+            await asyncio.to_thread(self.store.permit, "login")
+            await self.page.goto("https://x.com/i/flow/login", wait_until="domcontentloaded", timeout=180_000)
             try:
-                username = self.vault.get_secret(runtime_env_value("X_USERNAME_SECRET_NAME") or "twitter-username").value
-                password = self.vault.get_secret(runtime_env_value("X_PASSWORD_SECRET_NAME") or "twitter-password").value
+                username = (await asyncio.to_thread(self.vault.get_secret, runtime_env_value("X_USERNAME_SECRET_NAME") or "twitter-username")).value
+                password = (await asyncio.to_thread(self.vault.get_secret, runtime_env_value("X_PASSWORD_SECRET_NAME") or "twitter-password")).value
                 if not username or not password or username.lower().removeprefix("@") != self.store.account.lower():
                     raise XPublishingError("Key Vault credentials do not match the selected X account.")
-                self.page.locator('input[name="username_or_email"]').fill(username)
-                self.page.get_by_role("button", name="Continue", exact=True).click()
-                self.page.locator('input[name="password"][autocomplete="current-password"]').fill(password)
-                self.page.get_by_role("button", name="Continue", exact=True).click()
-                profile.wait_for(timeout=120_000)
+                await self.page.locator('input[name="username_or_email"]').fill(username)
+                await self.page.get_by_role("button", name="Continue", exact=True).click()
+                await self.page.locator('input[name="password"][autocomplete="current-password"]').fill(password)
+                await self.page.get_by_role("button", name="Continue", exact=True).click()
+                await profile.wait_for(timeout=90_000)
             except Exception as exc:
-                raise XVerificationRequired("X sign-in needs attention. No challenge or account restriction was bypassed.") from exc
-        if str(profile.get_attribute("href") or "").lower() != "/" + self.store.account.lower():
+                raise XVerificationRequired("X sign-in needs attention.") from exc
+        if str(await profile.get_attribute("href") or "").lower() != "/" + self.store.account.lower():
             raise XPublishingError("The browser signed in to a different X account.")
         self._authenticated = True
 
-    def _save_session(self) -> None:
-        state = self.page.context.storage_state()
-        state["cookies"] = [item for item in state["cookies"]
-                            if item["domain"].lstrip(".") in {"x.com", "twitter.com"}]
-        state["origins"] = [item for item in state["origins"]
-                            if item["origin"] in {"https://x.com", "https://twitter.com"}]
-        self.store.save_session(state,self.cipher)
+    async def _save_session(self) -> None:
+        state = await self.page.context.storage_state()
+        state["cookies"] = [item for item in state["cookies"] if item["domain"].lstrip(".") in {"x.com", "twitter.com"}]
+        state["origins"] = [item for item in state["origins"] if item["origin"] in {"https://x.com", "https://twitter.com"}]
+        await asyncio.to_thread(self.store.save_session, state, self.cipher)
 
-    def inspect_composer(self) -> dict[str, Any]:
-        self._open_composer()
-        return {"url": self.page.url, "textboxes": self.page.get_by_role("textbox").evaluate_all(
-                    "els => els.map(e => ({role:e.getAttribute('role'),label:e.getAttribute('aria-label'),testid:e.getAttribute('data-testid')}))"),
-                "buttons": self.page.get_by_role("button").all_text_contents(),
-                "request_count": self._request_count,
-                "minimum_request_gap_seconds": min((b-a for a,b in zip(self._request_times,self._request_times[1:])),default=None)}
-
-    def _open_composer(self) -> None:
+    async def _open_composer(self) -> None:
         if urlparse(self.page.url).path != "/compose/post":
-            # Use X's own navigation so its JavaScript and loaded assets are
-            # retained between posts, as in an ordinary browser session.
-            self.page.get_by_role("link",name="Post",exact=True).click()
-        self.page.get_by_role("dialog").get_by_role("textbox",name="Post text",exact=True).wait_for()
+            await self.page.get_by_role("link", name="Post", exact=True).click()
+        await self.page.get_by_role("dialog").get_by_role("textbox", name="Post text", exact=True).wait_for()
 
-    def publish(self, record: dict[str, Any]) -> dict[str, Any]:
-        existing = self.store.read_post(record["event_id"])
+    async def inspect_composer(self) -> dict[str, Any]:
+        await self._open_composer()
+        return {"url": self.page.url, "buttons": await self.page.get_by_role("button").all_text_contents(),
+                "request_count": len(self._request_times)}
+
+    async def read_posts(self) -> list[dict[str, Any]]:
+        articles = self.page.locator('article[data-testid="tweet"]')
+        try:
+            await articles.first.wait_for(timeout=45_000)
+        except Exception:
+            retry = self.page.get_by_role("button", name="Retry", exact=True)
+            if await retry.count() == 1:
+                await retry.click()
+                await articles.first.wait_for(timeout=45_000)
+            elif await self.page.get_by_text("No results for", exact=False).count():
+                return []
+            else:
+                raise
+        return await articles.evaluate_all("""els => els.map(el => ({
+            text: el.querySelector('[data-testid="tweetText"]')?.textContent || '',
+            url: el.querySelector('a:has(time)')?.href || '',
+            published_at: el.querySelector('time')?.getAttribute('datetime') || '',
+            author: el.querySelector('[data-testid="User-Name"]')?.innerText || '',
+            truncated: Boolean(el.querySelector('[data-testid="tweet-text-show-more-link"]')),
+            quoted_text: Array.from(el.querySelectorAll('[data-testid="tweetText"]')).slice(1).map(e => e.textContent)
+        })).filter(post => post.url)""")
+
+    async def search(self, query: str, *, mode: str = "latest", limit: int = 12) -> list[dict[str, Any]]:
+        from urllib.parse import urlencode
+        if mode not in {"top", "latest"}:
+            raise XPublishingError("Choose top or latest X search results.")
+        await asyncio.to_thread(self.store.permit, "request")
+        url = "https://x.com/search?" + urlencode({"q": query, "src": "typed_query", "f": "live" if mode == "latest" else "top"})
+        await self.page.goto(url, wait_until="domcontentloaded", timeout=180_000)
+        posts: dict[str, dict[str, Any]] = {}
+        for _ in range(3):
+            captured = await self.read_posts()
+            for post in captured:
+                posts[post["url"]] = {**post, "search_mode": mode, "captured_at": _now()}
+            if len(posts) >= limit or not captured:
+                break
+            await self.page.mouse.wheel(0, 900)
+            await self.page.wait_for_timeout(1500)
+        return list(posts.values())[:limit]
+
+    async def profile_posts(self) -> list[dict[str, Any]]:
+        await self.page.get_by_role("link", name="Profile", exact=True).click()
+        return await self.read_posts()
+
+    async def read_post(self, url: str) -> dict[str, Any]:
+        parsed = urlparse(url)
+        parts = parsed.path.strip("/").split("/")
+        if (parsed.scheme != "https" or parsed.netloc not in {"x.com", "www.x.com", "twitter.com"}
+                or len(parts) != 3 or parts[1] != "status" or not parts[2].isdigit()):
+            raise XPublishingError("An HTTPS X post URL is required.")
+        await asyncio.to_thread(self.store.permit, "request")
+        await self.page.goto("https://x.com" + parsed.path, wait_until="domcontentloaded", timeout=180_000)
+        posts = await self.read_posts()
+        for post in posts:
+            if urlparse(post["url"]).path.rstrip("/").endswith("/status/" + parts[2]):
+                return {**post, "captured_at": _now()}
+        raise XPublishingError("The selected X post was not readable.")
+
+    async def publish(self, record: dict[str, Any]) -> dict[str, Any]:
+        existing = await asyncio.to_thread(self.store.read_post, record["event_id"])
         if existing and existing.get("status") == "published":
             return existing
         if existing and existing.get("status") in {"submitting", "uncertain"}:
             raise XSubmissionUncertain("This event has an unresolved submission; automatic retry is blocked.")
-        if any(item.get("status") in {"submitting", "uncertain"} for item in self.store.records()):
-            raise XSubmissionUncertain("The account has an unresolved submission; reconcile it before posting again.")
         if existing and existing.get("text") != record["text"]:
-            raise XPublishingError("A prepared event cannot be silently rewritten during delivery.")
+            raise XPublishingError("A prepared event cannot be rewritten during delivery.")
         if not record.get("text", "").strip() or len(record["text"]) > 280:
             raise XPublishingError("A standalone post of at most 280 characters is required.")
-        self._open_composer()
-        composer = self.page.get_by_role("dialog").get_by_role("textbox", name="Post text", exact=True)
-        composer.fill(record["text"])
-        if composer.inner_text().replace("\r\n", "\n") != record["text"].replace("\r\n", "\n"):
-            raise XPublishingError("The browser composer does not contain the exact prepared post.")
+        await self._open_composer()
         dialog = self.page.get_by_role("dialog")
+        composer = dialog.get_by_role("textbox", name="Post text", exact=True)
+        await composer.fill(record["text"])
+        if (await composer.inner_text()).replace("\r\n", "\n") != record["text"].replace("\r\n", "\n"):
+            raise XPublishingError("The composer does not contain the exact prepared post.")
         button = dialog.get_by_role("button", name="Post", exact=True)
-        if not button.is_enabled():
-            raise XPublishingError("X has disabled submission; check its length or account requirements.")
+        if not await button.is_enabled():
+            raise XPublishingError("X has disabled submission.")
         prepared = {**record, "account": self.store.account, "status": "prepared", "prepared_at": _now()}
-        self.store.save_post(prepared)
-        # Reserve before clicking, so an unfamiliar X request/response shape
-        # can never leave a potentially sent event looking safe to retry.
-        self.store.permit("post")
-        prepared.update(status="submitting",submission_started_at=_now())
-        self.store.save_post(prepared)
+        await asyncio.to_thread(self.store.save_post, prepared)
+        await asyncio.to_thread(self.store.permit, "post")
+        prepared.update(status="submitting", submission_started_at=_now())
+        await asyncio.to_thread(self.store.save_post, prepared)
         self._submitting = prepared
         self._submission_sent = False
+        self._post_network_failure = None
         try:
-            with self.page.expect_response(lambda response: response.request.method == "POST"
+            async with self.page.expect_response(lambda response: response.request.method == "POST"
                     and urlparse(response.url).path.rsplit("/", 1)[-1] in {"CreateTweet", "CreateNoteTweet"},
-                    timeout=300_000) as pending:
-                button.click(timeout=300_000)
-            response = pending.value
-            payload = response.json()
+                    timeout=120_000) as pending:
+                await button.click(timeout=120_000)
+            response = await pending.value
+            payload = await response.json()
             data = payload.get("data", {}).get("create_tweet", {}).get("tweet_results", {}).get("result", {})
             post_id = str(data.get("rest_id") or "")
             if not response.ok or not post_id.isdigit() or payload.get("errors"):
                 raise XSubmissionUncertain("X did not return an unambiguous post receipt.")
             result = {**prepared, "status": "published", "x_post_id": post_id,
                       "x_post_url": f"https://x.com/{self.store.account}/status/{post_id}", "published_at": _now()}
-            self.store.save_post(result)
+            await asyncio.to_thread(self.store.save_post, result)
         except BaseException as exc:
-            if self._submitting:
-                self.store.save_post({**prepared, "status": "uncertain", "error_type": type(exc).__name__})
-                raise XSubmissionUncertain("Submission may have reached X; reconcile it before any retry.") from exc
-            raise
+            await asyncio.to_thread(self.store.save_post, {
+                **prepared, "status": "uncertain", "error_type": type(exc).__name__,
+                "network_failure": self._post_network_failure,
+            })
+            raise XSubmissionUncertain("Submission is unconfirmed; this event will not be retried automatically.") from exc
         finally:
             self._submitting = None
-        # Credential refresh is independent of an already committed receipt.
-        # Its failure must never erase a known post ID or invite a second send.
         try:
-            self._save_session()
+            await self._save_session()
         except Exception:
             result["session_refresh"] = "failed"
         return result
 
 
-@contextmanager
-def open_x_account(account: str, *, headless: bool = True) -> Iterator[XBrowser]:
+@asynccontextmanager
+async def open_x_account(account: str, *, headless: bool = True) -> AsyncIterator[XBrowser]:
     with XAccountStore(account) as store:
-        with XBrowser(store, headless=headless) as browser:
+        async with XBrowser(store, headless=headless) as browser:
             yield browser

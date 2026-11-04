@@ -1,60 +1,52 @@
 {
-  "title": "Publish Attention events to X",
-  "account": "OmairS2",
+  "title": "Company reactions in research and Attention posts on X",
   "date": "2026-11-03",
-  "owner_request": "Each Attention event becomes an X post. Use Key Vault credentials, full JavaScript Chrome and cookies, with hard pacing. Keep it simple.",
-  "implementation": {
-    "text": "Use the existing reviewed event_title verbatim. No separate writer, reviewer, research call, rewriting or clipping.",
-    "identity": "Use the event ID already supplied by Attention. Save the X receipt; the same event ID is not sent twice. A new feed event ID is a new publication entry.",
-    "connection": "Scrapling Chrome with JavaScript, cookies and localStorage. Bootstrap from saved state; use Key Vault username/password if sign-in expires. Check the actual account. Stop on verification challenges.",
-    "credentials": "spectral-nature-kvault: twitter-username and twitter-password. Browser-state key stays in Key Vault; the refreshed browser state is encrypted in PostgreSQL.",
-    "guard": "One renewable account lease across workers/environments. Hard network and posting limits survive a process restart. Uncertain submissions stop further delivery.",
-    "feed": "Read completed Attention publications. Persist a starting boundary and acknowledge each retained batch so downtime does not silently skip indexed publications.",
-    "operation": "One local watch process prepares existing headlines and publishes pending events. No Azure application deployment or cloud schedule is changed."
+  "account": "OmairS2",
+  "owner_request": "Company-specific sentiment comes into the research. Each Attention event is posted after its run finishes. Keep it simple.",
+  "architecture": {
+    "research": "research.company_sentiment is a read-only web tool in the existing shared planner. It collects attributed Top/Latest company reactions, original times, URLs, text and truncation. The existing research model interprets agreement, disagreement and expectations; there is no extra model or coded sentiment score.",
+    "acquisition": "Existing shared execution-state cache, 15 minutes, with original capture dates and caller as-of/timezone filtering. Source documents and links use the shared research evidence contract. Unavailable collection is distinct from neutral sentiment.",
+    "publishing": "The Home worker calls publish_completed_attention after native completion receipt and database tracking finish, outside the research clock. It queues that run's exact immutable Attention version. The existing reviewed event_title is sent verbatim as one post per event ID; the writer now knows the 280-character platform limit. No extra editor or polling worker.",
+    "recovery": "Durable prepared events resume on the next completion. Published event IDs are skipped. An ambiguous submission blocks retry of that event until reconciliation; independent records are retained. X failure cannot fail or repeat completed research.",
+    "account": "Full JavaScript Scrapling asynchronous browser, real local Chrome or bundled Linux Chromium, persisted cookies/localStorage. Credentials and encryption key remain in spectral-nature-kvault; refreshed session is encrypted in PostgreSQL. One renewable account lease spans processes/environments."
   },
-  "limits": {
-    "total_browser_requests_per_second": 10,
-    "data_requests_per_second": 1,
-    "navigation_interval_seconds": 10,
+  "hard_limits": {
+    "browser_http_requests_per_second": 10,
+    "explicit_search_or_post_read_operations_per_second": 1,
+    "main_frame_navigation_interval_seconds": 10,
     "post_interval_seconds": 120,
     "login_attempt_interval_seconds": 900
   },
   "verification": {
-    "initial_shop_post": "https://x.com/OmairS2/status/2117853238674546770",
-    "fresh_encrypted_session_readback": true,
-    "duplicate_receipt_with_zero_new_requests": true,
-    "restart_post_gap_seconds": 120.87815,
-    "catch_up_boundary_and_acknowledgement": "passed",
-    "current_feed_events": 9,
-    "headline_character_range": [
-      115,
-      187
-    ],
-    "new_model_calls_in_simplified_publisher": 0,
-    "headline_publishing": "Not accepted: creation response timed out and readback did not confirm the attempted headline.",
-    "confirmed_live_posts": 1
+    "current_completed_run": "168d03d7-a792-471c-ade4-0d343217fbad",
+    "current_feed_event_count": 9,
+    "current_feed_published_receipts": 9,
+    "example_post": "https://x.com/OmairS2/status/2117879517570339136",
+    "shared_research_tool_actual_shop_posts": 12,
+    "original_sources_preserved": true,
+    "shared_cache_readback": "hit",
+    "new_paid_inference_calls_this_continuation": 0,
+    "previous_editor_billing": "Retired provider attempts and one unresolved actual charge remain in original evidence. They are not zeroed by this continuation."
   },
-  "status": "Simplified implementation retained. Automatic posting is not locally accepted: X did not return a receipt for the first feed-headline attempt, and the authenticated profile check did not confirm it. Publisher stopped; no retry.",
-  "files": [
-    "services/x_publishing.py",
-    "services/attention_x.py",
-    "scripts/publish_attention_x.py"
-  ],
+  "status": "Local acquisition and completed-run delivery qualified; fresh readback and development release in progress. Production deployment requires explicit permission.",
   "source": {
     "worktree": "/Users/omairs/Documents/code/spectral_nature_x_publishing_20261103",
     "branch": "feature/attention-x-publishing-20261103",
-    "base": "3fcfb706",
-    "azure_deployments": 0
+    "accepted_runtime_base": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
+    "unrelated_original_checkout_changes": "Preserved; not packaging source."
   },
-  "retired_work": "Separate editor pipeline and all shared-agent changes were removed after the owner requested simplification. Eight unsent drafts were archived and removed from delivery. Original provider attempts and unknown billing remain in the verification record.",
-  "evidence": "../verification/twitter-account-2026-11-03/",
   "local_worker": {
-    "pid": 9804,
-    "command": "publish_attention_x.py watch --account OmairS2 --publish --maximum 9",
-    "started_on": "2026-11-03 America/Los_Angeles",
-    "restart": "Reconcile the uncertain submission before restarting delivery.",
     "running": false,
-    "last_outcome": "One uncertain submission; eight prepared headlines. Only the earlier SHOP post is confirmed live."
+    "operation": "One completed-run callback finished; there is no standalone watch process."
   },
-  "local_automatic_publishing_accepted": false
+  "development": {
+    "status": "pending",
+    "posting_enabled": false,
+    "preserve_production_and_current_web_native": true
+  },
+  "production": {
+    "status": "not_deployed",
+    "owner_permission": "required by AGENTS.md"
+  },
+  "evidence": "../verification/twitter-account-2026-11-03/"
 }

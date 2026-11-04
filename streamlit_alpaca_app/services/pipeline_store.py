@@ -734,12 +734,19 @@ def retain_job_execution_receipt(receipt: dict[str, Any]) -> str:
     return archive.point("latest.json", stored)
 
 
-def latest_job_execution_receipt(job_name: str) -> dict[str, Any] | None:
+def job_execution_receipt(job_name: str, run_id: str) -> dict[str, Any] | None:
+    """Read one finished run's immutable receipt, independently of latest."""
     if not re.fullmatch(r"[a-z0-9_-]+", job_name):
         raise ValueError("Invalid job receipt name")
+    if not re.fullmatch(r"[a-zA-Z0-9_-]{1,128}", run_id):
+        raise ValueError("Invalid job receipt run")
     archive = ImmutableBlobArchive(namespace=dataset_namespace(), root="job-executions/" + job_name)
-    pointer = _read_blob_json(archive.root + "/latest.json")
+    pointer = _read_blob_json(archive.root + "/" + run_id + ".json")
     return json.loads(archive.get(pointer)) if pointer else None
+
+
+def latest_job_execution_receipt(job_name: str) -> dict[str, Any] | None:
+    return job_execution_receipt(job_name, "latest")
 
 
 def _blob_service_client() -> Any | None:
@@ -1233,6 +1240,18 @@ def _latest_manifest_metadata(dataset_name: str) -> PipelineDataset | None:
         dataset = _coerce_manifest_dataset(manifest)
         if dataset is not None:
             return dataset
+    return None
+
+
+def dataset_metadata_for_version(dataset_name: str, version_id: str) -> PipelineDataset | None:
+    """Read an immutable published version without substituting latest data."""
+    check_work()
+    manifest = _read_blob_json(dataset_blob_path(f"manifests/{dataset_name}/{version_id}.json"))
+    if not manifest or manifest.get("dataset_namespace", "") != dataset_namespace():
+        return None
+    dataset = _coerce_manifest_dataset(manifest)
+    if dataset and dataset.dataset_name == dataset_name and dataset.dataset_version_id == version_id:
+        return dataset
     return None
 
 

@@ -1,0 +1,4 @@
+{
+  "unchanged_analysis_tool_contract": true,
+  "existing_failure": "test expects analysis.run_python objective+code; accepted implementation requires code only."
+}

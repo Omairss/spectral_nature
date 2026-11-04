@@ -1,11 +1,8 @@
 {
-  "checked_at_utc": "2026-11-04T06:49:42.987847+00:00",
-  "account": "OmairS2",
-  "automatic_publisher_running": false,
-  "confirmed_post_urls": [
-    "https://x.com/OmairS2/status/2117853238674546770"
-  ],
-  "prepared_headlines": 8,
-  "uncertain_submissions": 1,
-  "next_action": "Reconcile the uncertain submission before any retry. No automatic retry or deployment."
+  "status": "completed",
+  "running": false,
+  "standalone_watcher": false,
+  "current_feed_events_published": 9,
+  "automatic_route": "Home completion hook after finished-run receipt; production flag is not activated.",
+  "source": "documents/plans/ATTENTION_X_PUBLISHING_2026-11-03.json"
 }

@@ -1,43 +1,11 @@
 """Publish existing, reviewed Attention headlines through the owned X browser."""
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from services.x_publishing import SECTIONS, XAccountStore, XBrowser, XPublishingError
-
-
-def pending_attention_publications(account: str, latest: Any) -> list[Any]:
-    """Catch up every indexed publication since this account's activation.
-
-    Persist the starting boundary once; a restart cannot silently jump to the
-    newest version. Completed batches are the acknowledgement, not a cursor
-    advanced before their content has been retained.
-    """
-    from services.pipeline_store import PipelineDataset, dataset_storage_name
-
-    with XAccountStore(account) as store:
-        with store._db() as cur:
-            cur.execute("""UPDATE x_publishing_accounts
-                SET attention_started_at=coalesce(attention_started_at,%s::timestamptz)
-                WHERE account=%s AND owner=%s AND lease_until>clock_timestamp()
-                RETURNING attention_started_at""",
-                (latest.ingested_at_utc, store.account.lower(), store.owner))
-            row = cur.fetchone()
-            if row is None:
-                raise XPublishingError("The publication lease was lost before activation.")
-            cur.execute("""SELECT d.dataset_version_id,d.blob_path,d.asof_time_utc,
-                    d.ingested_at_utc,d.row_count
-                FROM dataset_versions d LEFT JOIN x_publishing_batches b
-                  ON b.account=%s AND b.source_version=d.dataset_version_id
-                WHERE d.dataset_name=%s AND d.status='ready' AND d.ingested_at_utc>=%s
-                  AND coalesce(b.payload->>'status','') NOT IN ('prepared','empty')
-                ORDER BY d.ingested_at_utc,d.dataset_version_id""",
-                (store.account.lower(), dataset_storage_name("attention_home_snapshots_1d"), row[0]))
-            return [PipelineDataset(
-                dataset_name="attention_home_snapshots_1d", dataset_version_id=str(item[0]),
-                blob_path=str(item[1]), asof_time_utc=str(item[2]),
-                ingested_at_utc=str(item[3]), row_count=int(item[4] or 0),
-            ) for item in cur.fetchall()]
+from services.secrets import runtime_env_value
 
 
 def attention_events(payload: dict[str, Any]) -> list[dict[str, Any]]:
@@ -86,16 +54,59 @@ def prepare_attention_posts(
 
 
 def deliver_attention_posts(account: str, *, headless: bool = True, maximum: int = 1) -> list[dict[str, Any]]:
-    """Bounded explicit delivery; pending/uncertain submissions stop the account."""
+    """Deliver prepared events; unconfirmed event IDs are never blindly retried."""
     if maximum < 1:
         raise XPublishingError("A positive delivery bound is required.")
     with XAccountStore(account) as store:
         records = store.records()
-        if any(record.get("status") in {"submitting","uncertain"} for record in records):
-            raise XPublishingError("Reconcile the account's unresolved submission before delivery.")
         pending = sorted((record for record in records if record.get("status") == "prepared"),
                          key=lambda record:(record.get("source_as_of") or "",record["event_id"]))[:maximum]
         if not pending:
             return []
-        with XBrowser(store,headless=headless) as browser:
-            return [browser.publish(record) for record in pending]
+        async def deliver():
+            async with XBrowser(store, headless=headless) as browser:
+                return [await browser.publish(record) for record in pending]
+        return asyncio.run(deliver())
+
+
+def publish_completed_attention(*, run_id: str, source_version: str) -> dict[str, Any]:
+    """Called after the run completion receipt, outside the research clock."""
+    if (runtime_env_value("ATTENTION_X_PUBLISH_ENABLED") or "false").lower() not in {"true", "1", "yes"}:
+        return {"status": "disabled"}
+    from services.attention_materialized import deserialize_attention_home_payload
+    from services.pipeline_store import (dataset_metadata_for_version, load_dataset_frame, write_execution_state,
+                                        dataset_namespace, job_execution_receipt)
+    from services.x_publishing import configured_x_account
+
+    state = {"run_id": run_id, "source_version": source_version, "status": "preparing"}
+    try:
+        completion = job_execution_receipt("attention-home-build", run_id)
+        if (not completion or completion.get("status") not in {"Succeeded", "Warning"}
+                or (completion.get("datasets") or {}).get("attention_home_snapshots_1d") != source_version):
+            raise XPublishingError("The exact Attention version needs its finished run receipt.")
+        metadata = dataset_metadata_for_version("attention_home_snapshots_1d", source_version)
+        if metadata is None:
+            raise XPublishingError("The completed run's Attention version is not readable.")
+        frame = load_dataset_frame(metadata)
+        if frame.empty:
+            raise XPublishingError("The completed Attention publication is empty.")
+        payload = deserialize_attention_home_payload(frame)
+        if str(payload.get("run_id")) != run_id:
+            raise XPublishingError("The Attention version belongs to another run.")
+        account = configured_x_account()
+        prepared = prepare_attention_posts(payload, source_version=source_version, account=account)
+        state.update(status="queued", event_ids=[post["event_id"] for post in prepared["posts"]])
+        write_execution_state("attention_x_completion:" + dataset_namespace(), run_id, state)
+        queued_count = sum(post.get("status") == "prepared" for post in XAccountStore(account).records())
+        delivered = deliver_attention_posts(account, maximum=queued_count) if queued_count else []
+        current = [post for post in XAccountStore(account).records() if post["event_id"] in state["event_ids"]]
+        state.update(status="delivered", new_post_count=len(delivered),
+                     receipts=[post["x_post_url"] for post in current if post.get("status") == "published"])
+        unresolved = [post["event_id"] for post in current if post.get("status") != "published"]
+        if unresolved:
+            state["status"] = "partial"
+            state["unconfirmed_event_ids"] = unresolved
+    except Exception as exc:
+        state.update(status="pending", error_type=type(exc).__name__)
+    write_execution_state("attention_x_completion:" + dataset_namespace(), run_id, state)
+    return state

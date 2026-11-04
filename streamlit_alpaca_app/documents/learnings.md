@@ -1,8 +1,8 @@
 # Learnings — Active Guidelines
 
-## Attention publishing — 2026-11-03
+## X research and Attention publishing — 2026-11-03
 
-Use the existing reviewed Attention headline verbatim for each X post. The owner rejected a separate editing pipeline as unnecessary complexity. Reuse feed event IDs and save actual X receipts; do not introduce another model call or semantic identity system. Keep the saved credential/session connection and hard pacing the owner requested. Account ownership, encrypted cookies and posting limits live in the existing PostgreSQL store; secrets remain in Key Vault. Lost or ambiguous submissions stop delivery. [Current implementation and evidence](plans/ATTENTION_X_PUBLISHING_2026-11-03.json).
+Use attributed, dated Top/Latest company reactions as source material for the existing research model. Retain differing opinions and original links; do not add a score or another model stage. Send each existing reviewed Attention headline verbatim after the owning run's completion receipt, using its exact version and existing event ID. The owner rejected a separate post editor. Shared PostgreSQL ownership, encrypted cookies and durable post pacing support the saved Key Vault connection. Async browser handlers must yield while waiting so JavaScript and responses can complete. Hold ambiguous event IDs for reconciliation rather than repeating them or blocking unrelated research forever. [Implementation and live evidence](plans/ATTENTION_X_PUBLISHING_2026-11-03.json).
 
 ## Calendar publication freshness is not results coverage — 2026-11-03
 

@@ -1,0 +1,177 @@
+{
+  "url": "https://x.com/search?q=%24SHOP+earnings&src=typed_query&f=top",
+  "body": "To view keyboard shortcuts, press question mark\nView keyboard shortcuts\nHome\nExplore\nNotifications\nChat\nCalls\nGrok\nMoney\nHistory\nCreator Studio\nPremium\nProfile\nMore\nPost\nO\n@OmairS2\nTop\nLatest\nPeople\nMedia\nLists",
+  "events": [
+    {
+      "type": "response",
+      "op": "dcm_local_id",
+      "status": 201
+    },
+    {
+      "type": "response",
+      "op": "timeline.json",
+      "status": 200
+    },
+    {
+      "type": "response",
+      "op": "viewer_context.json",
+      "status": 200
+    },
+    {
+      "type": "response",
+      "op": "timeline.json",
+      "status": 200
+    },
+    {
+      "type": "response",
+      "op": "DataSaverMode",
+      "status": 200
+    },
+    {
+      "type": "failed",
+      "op": "HomeTimeline",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "hashflags.json",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "timeline.json",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "settings.json",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "viewer_context.json",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "permissionsState",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "timeline.json",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "response",
+      "op": "timeline.json",
+      "status": 200
+    },
+    {
+      "type": "failed",
+      "op": "usePremiumPaywallOnLoadMutation",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "ViewerBadgeCounts",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "CreatorStudioTabBarItemQuery",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "PinnedTimelines",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "grokAccountJwtQuery",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "response",
+      "op": "timeline.json",
+      "status": 200
+    },
+    {
+      "type": "failed",
+      "op": "p2",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "response",
+      "op": "timeline.json",
+      "status": 200
+    },
+    {
+      "type": "failed",
+      "op": "app_context.json",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "app_context.json",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "app_context.json",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "app_context.json",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "app_context.json",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "failed",
+      "op": "app_context.json",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "response",
+      "op": "timeline.json",
+      "status": 200
+    },
+    {
+      "type": "failed",
+      "op": "app_context.json",
+      "failure": "net::ERR_ABORTED"
+    },
+    {
+      "type": "response",
+      "op": "timeline.json",
+      "status": 200
+    },
+    {
+      "type": "response",
+      "op": "jsdapi-9i2m1o",
+      "status": 200
+    },
+    {
+      "type": "response",
+      "op": "viewer_context.json",
+      "status": 200
+    },
+    {
+      "type": "response",
+      "op": "DataSaverMode",
+      "status": 200
+    },
+    {
+      "type": "response",
+      "op": "hashflags.json",
+      "status": 200
+    }
+  ],
+  "requests": 246
+}

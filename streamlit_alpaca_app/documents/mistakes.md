@@ -2,11 +2,11 @@
 
 ## Overcomplicated Attention publishing — 2026-11-03
 
-The simplified watch process subsequently timed out waiting for X’s creation response. An authenticated profile read did not confirm that headline. It stopped with one uncertain submission and eight prepared entries; only the earlier SHOP post is confirmed. A running process and one earlier successful post do not establish unattended publishing reliability. No deployment or blind retry followed.
+I added a separate model editor and semantic reconciliation even though Attention already supplies reviewed headlines. It incurred unnecessary paid calls and delay; the owner told me to simplify it. Removed that pipeline, archived its eight unsent drafts and preserved its original usage records, including the $0.273145 reservation estimate with unknown actual charge.
 
-I added a separate shared-agent editor and semantic reconciliation for posts even though Attention already supplies reviewed headlines that fit X. It incurred unnecessary paid calls and delay. The owner explicitly told me to simplify it. Removed that pipeline and all related shared-agent changes; the publisher now sends the existing headline. Eight unsent generated drafts were archived, not published. Preserve the retired attempts and unresolved billing in the task evidence; the initial timed-out attempt has a $0.273145 reservation estimate and unknown actual charge.
+The first browser request guard blocked the synchronous event loop while pacing every internal request, causing aborted background requests and an unconfirmed post. Two authenticated profile reads established that attempt was absent; it was deliberately released once after replacing the transport with nonblocking asynchronous handlers. All nine current Attention events then received real X receipts. Human actions and browser-generated resource traffic need separate caps. A running process or one successful old post does not establish a complete delivery path. The completion hook now uses a finished run receipt, exact source version and per-event immutable receipt.
 
-The first browser guard also throttled every static asset at one per second and stalled initialization. Separate total browser traffic from data requests and user actions. Verify the operator identity's existing permissions before selecting storage; it has Blob read access, while the existing PostgreSQL store supports the account state we need.
+The operator identity could read Blob but not write it. Reuse the existing PostgreSQL store and Vault encryption key rather than expanding permissions. In the ACR dependency probe, its overridden HOME hid the already-installed browser; setting the probe's browser path resolved launch without installing or changing runtime dependencies.
 
 ## Shipped calendar history without current-results coverage — 2026-11-03
 

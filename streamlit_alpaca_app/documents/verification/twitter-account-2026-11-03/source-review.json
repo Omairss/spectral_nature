@@ -1,0 +1,55 @@
+{
+  "status": "accepted_locally",
+  "recorded_at_utc": "2026-11-04T07:49:37.708245+00:00",
+  "review_base_revision": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
+  "scope": "X company reactions in shared research and exact Attention headlines after completed runs.",
+  "reviewed_changes": {
+    ".env.example": "Document optional account override and explicit post activation; default disabled. No secret values.",
+    "pipeline/jobs/attention_home_build.py": "Existing final Attention writer produces a complete 280-character headline for both the feed and X; all research, wiki policy, source references, public fields and consumer projections retained.",
+    "pipeline/jobs/main.py": "Only main changes: X delivery follows the native completion receipt and SQL completion outside the research clock, for completed Home runs with an Attention version. Failure is isolated; other job handlers and completion behavior remain.",
+    "scripts/publish_attention_x.py": "Manual inspect/prepare/deliver/status use the same account transport. Preparation requires finished receipt and exact version. Retired polling route removed. Not a new runtime job.",
+    "services/agent_tools.py": "Add read-only web company_sentiment tool, typed bounded acquisition arguments and dispatch with inherited as-of/timezone. Existing tool and permissions retained; no posting tool exposed to research.",
+    "services/aql/events.py": "Existing company investigations request company reactions as attributed opinions within shared research. No extra model/stage and existing wiki handoff preserved.",
+    "services/attention_x.py": "Queue existing event headline and existing event ID from the exact completed version. No editor/model. Resume prepared records, persist actual receipts and skip published IDs on repeated completion. Ambiguous event IDs require reconciliation.",
+    "services/pipeline_store.py": "Add exact immutable dataset-version and finished job-receipt readers. latest receipt delegates to the same existing latest pointer. All other definitions, financial authority, database lifecycle and dataset publication remain AST-identical to accepted source.",
+    "services/x_publishing.py": "Async full-JavaScript owned browser fixes blocked response processing. Existing PostgreSQL account lease and durable post/login/navigation pacing, Vault credentials, encrypted cookies/localStorage, exact-text submission guard and immutable receipts. Actual 9-event delivery, fresh exact readback and repeat with zero new posts qualify the transport.",
+    "services/x_research.py": "Acquire attributed Top/Latest reactions and selected full post through the same browser. Shared 15-minute cache, timezone/as-of filtering, dated source documents and complete model context. Existing model interprets sentiment; no lexicon, score or extra inference.",
+    "services/zopedia_agent.py": "Expose source in existing deferred discovery and planner guidance only when web policy permits it. Existing shared synthesis/review/memory logic unchanged."
+  },
+  "preservation": {
+    "latest_accepted_home_wiki_calendar_source": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
+    "all_unmodified_application_files_match_base": true,
+    "web_and_ios_inputs_unchanged": true,
+    "research_model_provider_budget_and_schedules_unchanged": true,
+    "trading_broker_authority_unchanged": true,
+    "complete_consumer_count": 38,
+    "python_consumers": 35,
+    "development_python_targets": 15,
+    "development_posting": "disabled; owner account is not an experimental feed destination",
+    "production_azure_deployment": "not authorized for this change"
+  },
+  "verification": {
+    "actual_company_posts_in_shared_tool": 12,
+    "original_times_authors_urls_and_model_evidence_preserved": true,
+    "cache_repeat": "hit with original fetched date",
+    "selected_full_post_characters": 398,
+    "selected_full_post_truncated": false,
+    "current_attention_events": 9,
+    "actual_exact_post_readbacks": 9,
+    "repeat_callback_new_posts": 0,
+    "minimum_actual_post_receipt_gap_seconds": 124.723379,
+    "minimum_actual_http_dispatch_gap_seconds": 0.10012099996674806,
+    "targeted_operational_checks": "67 passing plus 4 completion-order cases; older unrelated failures retained in operational-checks.json",
+    "new_paid_model_calls_this_continuation": 0
+  },
+  "evidence": [
+    "shared-company-sentiment-tool.json",
+    "shared-company-sentiment-cache.json",
+    "full-company-reaction-readback.json",
+    "completed-run-x-delivery.json",
+    "completed-run-repeat.json",
+    "completed-feed-profile-readback.json",
+    "operational-checks.json",
+    "pinned-browser-dependencies.json"
+  ]
+}
