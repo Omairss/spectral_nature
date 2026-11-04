@@ -9,7 +9,7 @@
     "publishing": "The Home worker calls publish_completed_attention after native completion receipt and database tracking finish, outside the research clock. It queues that run's exact immutable Attention version. The existing reviewed event_title is sent verbatim as one post per event ID; the writer now knows the 280-character platform limit. No extra editor or polling worker.",
     "recovery": "Queue insertion is independent of browser ownership and cannot overwrite existing event content or receipts. Prepared events resume on the next completion. Parallel research readers wait within their own acquisition deadline for account access. Published IDs are skipped; ambiguous event IDs require reconciliation. X failures cannot fail or repeat completed research.",
     "account": "Full JavaScript Scrapling asynchronous browser, real local Chrome or bundled Linux Chromium, persisted cookies/localStorage. Credentials and encryption key remain in spectral-nature-kvault; refreshed session is encrypted in PostgreSQL. One renewable account lease spans processes/environments.",
-    "browser_dependencies": "All Python roles use the existing accepted worker's pinned Chromium binaries at /opt/ms-playwright. Only browser assets are copied from that dependency image; each role retains its own installed packages and current Git application source."
+    "browser_dependencies": "All Python roles use the existing accepted worker's pinned Chromium binaries at /opt/ms-playwright. Only browser assets are copied from that dependency image; each role retains its own installed packages and current Git application source. The pinned browser driver installs the required system libraries; shared /tmp uses standard 1777 permissions. Python package versions remain at each role's pinned dependency image."
   },
   "hard_limits": {
     "browser_http_requests_per_second": 10,
@@ -41,7 +41,7 @@
     "operation": "One completed-run callback finished; there is no standalone watch process."
   },
   "development": {
-    "status": "Packaging correction: API lacked its browser binary. Uniform pinned browser assets and actual per-role JavaScript output must pass before deployment.",
+    "status": "Native browser dependency preflight passed; final images must return actual package and JavaScript output before deployment.",
     "posting_enabled": false,
     "preserve_production_and_current_web_native": true
   },
