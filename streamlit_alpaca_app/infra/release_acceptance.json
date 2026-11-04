@@ -1,8 +1,8 @@
 {
   "status": "accepted_locally",
-  "scope": "Source/data contracts accepted for local packaging; native/web visual and exact-image development verification precede deployment.",
-  "source_revision": "3e6064a7eb4693217535fbec70e328d7c7562bf9",
-  "review_base_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
+  "scope": "Worker-only calendar price observations and recent-report refresh priority; optional fundamentals and current-session completion are independent. Retain API, web, native and every other worker.",
+  "source_revision": "44f5a2be17f244ba0c0f03058ecd324850d85ab5",
+  "review_base_revision": "3e6064a7eb4693217535fbec70e328d7c7562bf9",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
     ".env.example": "d4bf338c68c5a6db29e8de3c42e3b942066c4611689510129553b2f8db1cbb5e",
@@ -77,7 +77,7 @@
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "4ad026ee19bad85615ed847f4e2ab9533b59949b11ae9d7d4a42460acb12f6ee",
-    "pipeline/jobs/market_calendar_refresh.py": "fb512f853218061e170b372b68a7842bbb9539cf92805810d5842c3f114a614f",
+    "pipeline/jobs/market_calendar_refresh.py": "4aec1f2baf918c981da69cdf43fd3645e4f4b2ad29dfebf36a5359206b165164",
     "pipeline/jobs/namespace_refresh.py": "3fab4caf73873cdc71c5fca478145695ced57f001e08e80aa829ba825791f0be",
     "presentation/__init__.py": "e7f0199725582c52f1f32ee3a5fe82db29b0b4dbbc24d27e33e2125077a5462f",
     "presentation/plotly.py": "7ef6af17b02eab45f29a43e1e19ae7130f326d25bd592b9f026e2baf2bfda918",
@@ -188,8 +188,8 @@
     "services/llm_execution.py": "a43fddf9dd402ef5e83c0ca195e0267c06918002b1ea2b8f13bac12f79361dd3",
     "services/llm_prices.json": "248fac18ed76e8bda0e9c778fa052fcae1cfa6f6b77f15972b1f6414ae0b4595",
     "services/market.py": "682e2e9bcd074ff8d879cd2fe0b6363a820f4387a248d92fbe409561c27ed553",
-    "services/market_calendar.py": "12e1f83b79f4e4fee3efb848c6a5252385aa5d6a77a77dbdc33a13547ff7313b",
-    "services/market_calendar_reactions.py": "5adf67243f3c3a4da79b94803cf9ce1b5bc05467068a79d480e815975a5cc41c",
+    "services/market_calendar.py": "c1452a32a0a29bfa8669105654b60dcf53b5e58a9539694fde7737e5228c17a8",
+    "services/market_calendar_reactions.py": "aa89a05226f6771d253d6cfb323b8b66d63bd32385983ee873e0e44b35557b2d",
     "services/market_data/__init__.py": "1cd9045454c9059ba48989fab44e19930b065076b8c9f7d2a287f3c4625d22d8",
     "services/market_opportunity.py": "c8222b52b472818d3bc593e7144275a250a22fd28ea538da696b868642be0588",
     "services/market_view.py": "05a55098f1c245fec2a8d7f55b16e6c536840f3d2fd99c4d120ef5b3c8cdb852",
@@ -397,7 +397,7 @@
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "4ad026ee19bad85615ed847f4e2ab9533b59949b11ae9d7d4a42460acb12f6ee",
-    "pipeline/jobs/market_calendar_refresh.py": "fb512f853218061e170b372b68a7842bbb9539cf92805810d5842c3f114a614f",
+    "pipeline/jobs/market_calendar_refresh.py": "4aec1f2baf918c981da69cdf43fd3645e4f4b2ad29dfebf36a5359206b165164",
     "pipeline/jobs/namespace_refresh.py": "3fab4caf73873cdc71c5fca478145695ced57f001e08e80aa829ba825791f0be",
     "presentation/__init__.py": "e7f0199725582c52f1f32ee3a5fe82db29b0b4dbbc24d27e33e2125077a5462f",
     "presentation/plotly.py": "7ef6af17b02eab45f29a43e1e19ae7130f326d25bd592b9f026e2baf2bfda918",
@@ -486,8 +486,8 @@
     "services/llm_execution.py": "a43fddf9dd402ef5e83c0ca195e0267c06918002b1ea2b8f13bac12f79361dd3",
     "services/llm_prices.json": "248fac18ed76e8bda0e9c778fa052fcae1cfa6f6b77f15972b1f6414ae0b4595",
     "services/market.py": "682e2e9bcd074ff8d879cd2fe0b6363a820f4387a248d92fbe409561c27ed553",
-    "services/market_calendar.py": "12e1f83b79f4e4fee3efb848c6a5252385aa5d6a77a77dbdc33a13547ff7313b",
-    "services/market_calendar_reactions.py": "5adf67243f3c3a4da79b94803cf9ce1b5bc05467068a79d480e815975a5cc41c",
+    "services/market_calendar.py": "c1452a32a0a29bfa8669105654b60dcf53b5e58a9539694fde7737e5228c17a8",
+    "services/market_calendar_reactions.py": "aa89a05226f6771d253d6cfb323b8b66d63bd32385983ee873e0e44b35557b2d",
     "services/market_data/__init__.py": "1cd9045454c9059ba48989fab44e19930b065076b8c9f7d2a287f3c4625d22d8",
     "services/market_opportunity.py": "c8222b52b472818d3bc593e7144275a250a22fd28ea538da696b868642be0588",
     "services/market_view.py": "05a55098f1c245fec2a8d7f55b16e6c536840f3d2fd99c4d120ef5b3c8cdb852",
@@ -534,13 +534,9 @@
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
   "reviewed_changes": {
-    "pipeline/jobs/market_calendar_refresh.py": "Reviewed source and preserved behavior in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-    "services/alpha_vantage.py": "Reviewed source and preserved behavior in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-    "services/market_calendar.py": "Reviewed source and preserved behavior in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-    "services/market_calendar_reactions.py": "Reviewed source and preserved behavior in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-    "web/components/market-event-calendar.module.css": "Reviewed source and preserved behavior in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-    "web/components/market-event-calendar.tsx": "Reviewed source and preserved behavior in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-    "web/lib/types.ts": "Reviewed source and preserved behavior in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md"
+    "services/market_calendar.py": "Current-results correction and retained consumer review in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
+    "services/market_calendar_reactions.py": "Current-results correction and retained consumer review in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
+    "pipeline/jobs/market_calendar_refresh.py": "Current-results correction and retained consumer review in documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md"
   },
   "retired_files": [
     "scripts/eval_critique_harness.py",
@@ -648,14 +644,23 @@
         "web/lib/types.ts"
       ],
       "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md"
+    },
+    {
+      "name": "independent_calendar_price_observations",
+      "status": "accepted",
+      "files": [
+        "services/market_calendar.py",
+        "services/market_calendar_reactions.py",
+        "pipeline/jobs/market_calendar_refresh.py"
+      ],
+      "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md"
     }
   ],
   "roles": {
     "worker": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5064584ad0d3a5bf0bb4de4e7862a381d065b4f748de5a64a591fa75155d45ae",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5064584ad0d3a5bf0bb4de4e7862a381d065b4f748de5a64a591fa75155d45ae",
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae"
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280"
       ],
       "development_targets": [
         {
@@ -665,14 +670,14 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "2883e0abb815896beb49e8d2c93e55b514b3300bceecfabb0d026b3f10b69075",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5064584ad0d3a5bf0bb4de4e7862a381d065b4f748de5a64a591fa75155d45ae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5064584ad0d3a5bf0bb4de4e7862a381d065b4f748de5a64a591fa75155d45ae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5064584ad0d3a5bf0bb4de4e7862a381d065b4f748de5a64a591fa75155d45ae",
-            "source_revision": "79d7e3fc7d8fd67c5f15d2005f2e44b15ed44a4e",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
+            "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
             "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-            "package_evidence": "documents/verification/calendar-history-reactions-2026-11-01/PREVIOUS_PACKAGES.json"
+            "package_evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
           },
           "execution_binding": {
             "name": "market-calendar-refresh-dev",
@@ -696,14 +701,14 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "30bab0b60534d0c56819e6f6a6fdbb0a8ed9ef937466c250624c3e0696cbe853",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
+            "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
             "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-            "package_evidence": "documents/verification/market-first-research-2026-10-30/production-trial-packages-2026-11-01.json"
+            "package_evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
           },
           "execution_binding": {
             "name": "market-calendar-refresh",
@@ -719,29 +724,7 @@
           }
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280": {
-          "status": "passed",
-          "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
-          "runtime_files": 200,
-          "runtime_inventory_sha256": "fb0c1b5f0da01d4b51eb62918ea29ba2941d9ab58930d93b9fe75a39b0d9c7c5",
-          "all_packaged_files_checked": true,
-          "checks": [
-            "complete Git package",
-            "API imports/OpenAPI",
-            "worker and broker imports",
-            "retained native performance API",
-            "flat account zero return and undefined Sharpe",
-            "calendar producer imports and 121-day projection"
-          ],
-          "external_requests": 0,
-          "role": "worker",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
-          "source_inventory_sha256": "d635767c0c166150fbb048f0e0b528994803e0b07841325355fc284030e561ac",
-          "complete_git_inventory_matches": true,
-          "evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
-        }
-      }
+      "accepted_images": {}
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330",
@@ -749,68 +732,9 @@
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15",
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330"
       ],
-      "development_targets": [
-        {
-          "name": "sn-api-next-dev",
-          "kind": "containerApps",
-          "role": "api-next",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330",
-            "source_revision": "79d7e3fc7d8fd67c5f15d2005f2e44b15ed44a4e",
-            "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-            "package_evidence": "documents/verification/calendar-history-reactions-2026-11-01/PREVIOUS_PACKAGES.json"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330"
-        }
-      ],
-      "production_targets": [
-        {
-          "name": "sn-api-next",
-          "kind": "containerApps",
-          "role": "api-next",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-            "package_evidence": "documents/verification/market-first-research-2026-10-30/production-trial-packages-2026-11-01.json"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2056995990b4693a3090ba620ff2cb663ad894d065317a4843db5d3222c70d15"
-        }
-      ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7": {
-          "status": "passed",
-          "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
-          "runtime_files": 200,
-          "runtime_inventory_sha256": "fb0c1b5f0da01d4b51eb62918ea29ba2941d9ab58930d93b9fe75a39b0d9c7c5",
-          "all_packaged_files_checked": true,
-          "checks": [
-            "complete Git package",
-            "API imports/OpenAPI",
-            "worker and broker imports",
-            "retained native performance API",
-            "unauthenticated Trading read/write rejection",
-            "flat account zero return and undefined Sharpe",
-            "calendar producer imports and 121-day projection"
-          ],
-          "external_requests": 0,
-          "role": "api-next",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
-          "source_inventory_sha256": "d635767c0c166150fbb048f0e0b528994803e0b07841325355fc284030e561ac",
-          "complete_git_inventory_matches": true,
-          "evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
-        }
-      }
+      "development_targets": [],
+      "production_targets": [],
+      "accepted_images": {}
     },
     "web": {
       "dependency_image": "node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da",
@@ -818,83 +742,9 @@
         "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
         "snpipelineacr03130136.azurecr.io/accepted-web@sha256:dcc2774980652e5b67877fd5de1577ceaf6e9ef71a5eb89836a8ed2b73fc2a32"
       ],
-      "development_targets": [
-        {
-          "name": "sn-next-ui-dev",
-          "kind": "containerApps",
-          "role": "web",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:dcc2774980652e5b67877fd5de1577ceaf6e9ef71a5eb89836a8ed2b73fc2a32",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:dcc2774980652e5b67877fd5de1577ceaf6e9ef71a5eb89836a8ed2b73fc2a32",
-            "source_revision": "79d7e3fc7d8fd67c5f15d2005f2e44b15ed44a4e",
-            "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-            "package_evidence": "documents/verification/calendar-history-reactions-2026-11-01/PREVIOUS_PACKAGES.json"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:dcc2774980652e5b67877fd5de1577ceaf6e9ef71a5eb89836a8ed2b73fc2a32"
-        }
-      ],
-      "production_targets": [
-        {
-          "name": "sn-streamlit-ui",
-          "kind": "containerApps",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
-            "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
-            "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-            "package_evidence": "documents/verification/live-market-calendar-2026-11-01/PACKAGE_ACCEPTANCE.json"
-          },
-          "role": "web",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9"
-        },
-        {
-          "name": "sn-next-ui",
-          "kind": "containerApps",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
-            "source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
-            "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
-            "package_evidence": "documents/verification/live-market-calendar-2026-11-01/PACKAGE_ACCEPTANCE.json"
-          },
-          "role": "web",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9"
-        }
-      ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113": {
-          "status": "passed",
-          "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
-          "source_inventory_sha256": "d635767c0c166150fbb048f0e0b528994803e0b07841325355fc284030e561ac",
-          "runtime_inventory_sha256": "6a016f5456929b18c2b3601dd7e614a8f0e397f9c1cb59f9b836df8e379898cb",
-          "input_files": 96,
-          "compiled_files": 1725,
-          "symlinks": 0,
-          "all_packaged_files_checked": true,
-          "checks": [
-            "complete compiled files and symlinks",
-            "accepted Git web inputs",
-            "Trading page, order and call routes",
-            "preserved Broad Economy route and outlook component input"
-          ],
-          "role": "web",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
-          "complete_git_inventory_matches": true,
-          "evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
-        }
-      },
+      "development_targets": [],
+      "production_targets": [],
+      "accepted_images": {},
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
         "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
@@ -1550,6 +1400,91 @@
         "package_evidence": "documents/verification/market-first-research-2026-10-30/production-trial-packages-2026-11-01.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae"
+    },
+    {
+      "name": "sn-api-next-dev",
+      "kind": "containerApps",
+      "role": "api-next",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
+        "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
+        "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
+        "package_evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7"
+    },
+    {
+      "name": "sn-api-next",
+      "kind": "containerApps",
+      "role": "api-next",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
+        "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
+        "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
+        "package_evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7"
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "kind": "containerApps",
+      "role": "web",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+        "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
+        "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
+        "package_evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113"
+    },
+    {
+      "name": "sn-streamlit-ui",
+      "kind": "containerApps",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+        "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
+        "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
+        "package_evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
+      },
+      "role": "web",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113"
+    },
+    {
+      "name": "sn-next-ui",
+      "kind": "containerApps",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+        "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
+        "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md",
+        "package_evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
+      },
+      "role": "web",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113"
     }
   ],
   "retired_consumers": [
@@ -1618,18 +1553,11 @@
   },
   "production_authorization": {
     "owner_instruction": "Is the real earnings scan deployed in prod as a job? If not, deploy it. Then update the phone with this app. Follow-up: Include past events. For those events, use reaction as red/green. Use only the next days reaction. Presentation correction: I just want it to show red or green. This is supposed to be minimal.",
-    "scope": "Calendar job and clients; after local and exact-image DEV acceptance. Preserve other jobs and configuration.",
+    "scope": "Correct the previously owner-authorized calendar producer after local and exact-image DEV acceptance. Keep current color-only clients, other images, configuration and schedules.",
     "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md"
   },
   "development_acceptance": {
-    "status": "accepted",
-    "images": {
-      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
-      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
-      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113"
-    },
-    "source_inventory_sha256": "d635767c0c166150fbb048f0e0b528994803e0b07841325355fc284030e561ac",
-    "evidence": "documents/verification/calendar-history-reactions-2026-11-01/DEVELOPMENT.json"
+    "status": "pending"
   },
   "production_acceptance": {
     "status": "accepted",
