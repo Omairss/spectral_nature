@@ -42,7 +42,18 @@
     "focused_operational_tests": "22 passed",
     "typescript_and_changed_frontend_lint": "passed",
     "visual_review": "Reviewed story, paired fundamentals, single-company price and tall financial panels; corrected tiny labels, empty cards, development overlay and ancestor clipping. Dates, units and all 147 chart views retained.",
-    "new_inference_calls": 0
+    "new_inference_calls": 0,
+    "current_home_consumer": {
+      "status": 200,
+      "signals": 9,
+      "tickers": 30,
+      "calendar": 1,
+      "brief": 1,
+      "highlights": 1,
+      "graph": 1,
+      "audio": 1
+    },
+    "release_source_checks": "Passed all four roles against committed, locally accepted source; no build or deployment."
   },
   "limitations": {
     "public_media_submission": "Not sent: the public route has not been deployed. Actual browser upload, enabled composer and the existing proven CreateTweet path are separate evidence.",
@@ -55,7 +66,10 @@
     "chart-upload-draft.json",
     "chart-upload-diagnostic.json",
     "chart-media-immutability.json",
-    "media-queue-and-guard.json"
+    "media-queue-and-guard.json",
+    "home-consumer-readback.json",
+    "media-source-checks.json",
+    "media-final-account-status.json"
   ],
   "platform_references": [
     "https://help.x.com/en/using-x/how-to-post",
