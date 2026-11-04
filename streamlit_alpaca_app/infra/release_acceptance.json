@@ -1672,8 +1672,15 @@
     "scope": "Qualify development then promote the exact images to production and enable publishing after every Attention refresh."
   },
   "development_acceptance": {
-    "status": "held_pending_release",
-    "reason": "The real Azure challenge is now cleared by installed Scrapling handling. New startup and media source need current accepted-source packaging and release review. No application image build or deployment includes these changes."
+    "status": "accepted",
+    "source_inventory_sha256": "4dd75ada249e8b94e9227ba3cd39a50d48a5b1d3ae455dae9d395e1f219926db",
+    "images": {
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f7d76f4f2869c88913af10627376883f171b91f876fde265dd7569125e34dc0d",
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:8a30c17b11f934431954e163f47840576cbbd111593320f786eede4f8264904c",
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:8bc402d6da8a77554cb4f54fcd883016443f5b1e56226169f5c5fedab165461e"
+    },
+    "evidence": "documents/verification/twitter-account-2026-11-03/rollout-development-2026-11-04.json"
   },
   "production_acceptance": {},
   "previous_x_packages": {

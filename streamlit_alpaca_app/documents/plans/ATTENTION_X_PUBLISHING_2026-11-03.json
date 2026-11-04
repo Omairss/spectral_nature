@@ -92,7 +92,7 @@
     "previous_question": "Use this Mac as the X browser worker for cloud research and publishing via the existing database, or keep the changes local?"
   },
   "rollout_2026_11_04": {
-    "status": "deploying_development",
+    "status": "deploying_production",
     "owner_instruction": "Roll it out",
     "consumers": 38,
     "production_authorized": true,
@@ -100,6 +100,8 @@
     "accepted_source": "6d9379075d732c23aef76392376edf8d312d2053",
     "packaging_revision": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
     "calendar_opening_preserved": true,
-    "namespace_links_verified": true
+    "namespace_links_verified": true,
+    "development_acceptance": "documents/verification/twitter-account-2026-11-03/rollout-development-2026-11-04.json",
+    "development_consumers": 16
   }
 }
