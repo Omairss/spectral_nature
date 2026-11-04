@@ -24,33 +24,20 @@ def prepare_attention_posts(
     """Queue one existing feed headline per event, with no extra model call."""
     if not source_version or not payload.get("run_id"):
         raise XPublishingError("A completed, versioned Attention publication is required.")
-    events = attention_events(payload)
-    with XAccountStore(account) as store:
-        prepared = []
-        for event in events:
-            event_id = str(event.get("event_id") or event.get("bundle_id") or "")
-            text = str(event.get("event_title") or "").strip()
-            if not event_id or not text or len(text) > 280:
-                raise XPublishingError("The feed event needs an identity and a headline that fits X.")
-            existing = store.read_post(event_id)
-            if existing:
-                prepared.append(existing)
-                continue
-            record = {
-                "event_id": event_id, "text": text, "account": account,
-                "source_title": text, "source_ref": event["source_ref"],
-                "source_version": source_version, "source_as_of": payload.get("generated_at_utc"),
-                "source_bundle_id": event.get("bundle_id"), "source_run_id": payload["run_id"],
-                "status": "prepared", "composition": "attention_feed_headline",
-            }
-            store.save_post(record)
-            prepared.append(record)
-        result = {
-            "status": "prepared" if events else "empty", "source_version": source_version,
-            "composition": "attention_feed_headline", "posts": prepared,
-        }
-        store.save_batch(source_version, result)
-        return result
+    records = []
+    for event in attention_events(payload):
+        event_id = str(event.get("event_id") or event.get("bundle_id") or "")
+        text = str(event.get("event_title") or "").strip()
+        if not event_id or not text or len(text) > 280:
+            raise XPublishingError("The feed event needs an identity and a headline that fits X.")
+        records.append({
+            "event_id": event_id, "text": text, "account": account,
+            "source_title": text, "source_ref": event["source_ref"],
+            "source_version": source_version, "source_as_of": payload.get("generated_at_utc"),
+            "source_bundle_id": event.get("bundle_id"), "source_run_id": payload["run_id"],
+            "status": "prepared", "composition": "attention_feed_headline",
+        })
+    return XAccountStore(account).enqueue_batch(source_version, records)
 
 
 def deliver_attention_posts(account: str, *, headless: bool = True, maximum: int = 1) -> list[dict[str, Any]]:

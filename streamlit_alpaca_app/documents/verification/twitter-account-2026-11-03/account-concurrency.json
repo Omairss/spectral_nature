@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "enqueue_while_browser_owned": true,
+  "existing_published_receipts_preserved": 9,
+  "read_waited_for_account": true,
+  "read_completed_after_owner_released": true,
+  "read_post_url": "https://x.com/WealthSignalNYC/status/2117651836865806525",
+  "read_characters": 398,
+  "new_posts": 0
+}

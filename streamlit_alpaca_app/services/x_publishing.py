@@ -246,13 +246,31 @@ class XAccountStore:
                         (self.account.lower(),))
             return [dict(row[0]) for row in cur.fetchall()]
 
-    def read_batch(self, source_version: str) -> dict[str, Any] | None:
-        self._check()
+    def enqueue_batch(self, source_version: str, records: list[dict[str, Any]]) -> dict[str, Any]:
+        """Retain new events without needing the browser's exclusive lease.
+
+        Queue creation cannot rewrite an existing event or submission receipt.
+        Only the browser owner can advance delivery state through save_post.
+        """
+        self._ensure_schema()
         with self._db() as cur:
-            cur.execute("SELECT payload FROM x_publishing_batches WHERE account=%s AND source_version=%s",
-                        (self.account.lower(),source_version))
-            row=cur.fetchone()
-            return dict(row[0]) if row else None
+            for record in records:
+                if record.get("status") != "prepared" or not record.get("event_id") or not record.get("text"):
+                    raise XPublishingError("Only prepared events can enter the delivery queue.")
+                cur.execute("""INSERT INTO x_publishing_posts(account,event_id,payload)
+                    VALUES(%s,%s,%s::jsonb) ON CONFLICT(account,event_id) DO NOTHING""",
+                    (self.account.lower(), record["event_id"], json.dumps(record)))
+            cur.execute("SELECT event_id,payload FROM x_publishing_posts WHERE account=%s AND event_id=ANY(%s)",
+                        (self.account.lower(), [record["event_id"] for record in records]))
+            stored = {event_id: dict(payload) for event_id, payload in cur.fetchall()}
+            batch = {"status": "prepared" if records else "empty", "source_version": source_version,
+                     "composition": "attention_feed_headline",
+                     "posts": [stored[record["event_id"]] for record in records]}
+            cur.execute("""INSERT INTO x_publishing_batches(account,source_version,payload)
+                VALUES(%s,%s,%s::jsonb) ON CONFLICT(account,source_version) DO UPDATE
+                SET payload=excluded.payload,updated_at=clock_timestamp()""",
+                (self.account.lower(), source_version, json.dumps(batch)))
+        return batch
 
     def session(self, cipher: Fernet) -> dict[str, Any] | None:
         self._check()
@@ -272,19 +290,6 @@ class XAccountStore:
             if cur.fetchone() is None:
                 raise XPublishingError("The account lease was lost before browser-state persistence.")
 
-    def save_batch(self, source_version: str, payload: dict[str, Any]) -> None:
-        self._check()
-        with self._db() as cur:
-            cur.execute("""INSERT INTO x_publishing_batches(account,source_version,payload)
-                SELECT %s,%s,%s::jsonb WHERE EXISTS(SELECT 1 FROM x_publishing_accounts
-                    WHERE account=%s AND owner=%s AND lease_until>clock_timestamp())
-                ON CONFLICT(account,source_version) DO UPDATE
-                SET payload=excluded.payload,updated_at=clock_timestamp() RETURNING source_version""",
-                (self.account.lower(),source_version,json.dumps(payload),self.account.lower(),self.owner))
-            if cur.fetchone() is None:
-                raise XPublishingError("The preparation lease was lost before saving its batch.")
-
-
 class XBrowser:
     """Full JavaScript browser with nonblocking, serialized request pacing."""
 
@@ -301,7 +306,6 @@ class XBrowser:
         self._authenticated = False
         self._dispatch_lock = asyncio.Lock()
         self._request_times: list[float] = []
-        self._data_times: list[float] = []
         self._navigation_times: list[float] = []
         self._last_post_release = 0.0
         self._post_network_failure: str | None = None
@@ -319,7 +323,6 @@ class XBrowser:
                     if not self._submitting or self._submission_sent or text != self._submitting["text"]:
                         raise XPublishingError("An unowned or repeated post request was blocked.")
                 navigating = request.is_navigation_request() and request.frame == self.page.main_frame
-                data_request = request.resource_type in {"xhr", "fetch"} or posting
                 if navigating:
                     await asyncio.to_thread(self.store.permit, "navigation")
                 deadline = self._request_times[-1] + NETWORK_INTERVAL_SECONDS if self._request_times else 0
@@ -335,8 +338,6 @@ class XBrowser:
                 self.store._check()
                 released = time.monotonic()
                 self._request_times.append(released)
-                if data_request:
-                    self._data_times.append(released)
                 if navigating:
                     self._navigation_times.append(released)
                 if posting:
@@ -565,6 +566,17 @@ class XBrowser:
 
 @asynccontextmanager
 async def open_x_account(account: str, *, headless: bool = True) -> AsyncIterator[XBrowser]:
-    with XAccountStore(account) as store:
+    store = XAccountStore(account)
+    # Parallel investigations share one account. Waiting yields to the caller's
+    # acquisition deadline; cancellation before ownership leaves no live lease.
+    while True:
+        try:
+            store.__enter__()
+            break
+        except XAccountBusy:
+            await asyncio.sleep(1)
+    try:
         async with XBrowser(store, headless=headless) as browser:
             yield browser
+    finally:
+        store.__exit__(None, None, None)
