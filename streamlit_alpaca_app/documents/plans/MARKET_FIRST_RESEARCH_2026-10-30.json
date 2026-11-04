@@ -2,7 +2,7 @@
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
   "revision": 20,
-  "status": "complete_data_first_attempt_degraded_quality_rejected_no_deployment",
+  "status": "production_trial_deployed_home_wiki_handoff_in_progress",
   "recorded_at_utc": "2026-10-31T03:18:50.047478+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
   "source_of_truth": "This named plan owns the implemented Market-First change and its remaining qualification. Existing release acceptance remains the authority for packaged runtime.",
@@ -260,7 +260,7 @@
     "latest_public_artifact": "../verification/market-first-research-2026-10-30/candidate-output.json",
     "latest_editorial_verification": "../verification/market-first-research-2026-10-30/compressed-current-production-2026-11-01.json"
   },
-  "next_action": "The owner identified assumed financial knowledge as the main writing failure. The original explicit 80% ASD-STE100-inspired rule was omitted during compression and is now restored locally, with casual-reader understanding made explicit in the shared writer/style and reviewer. Current comparison predates this correction. No new paid run or deployment; conceptual clarity remains unverified in fresh output.",
+  "next_action": "Finish Home-to-wiki qualification, then deploy the accepted change to DEV. Keep the accepted production trial and held writing experiments distinct.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",
@@ -602,5 +602,31 @@
       "evidence": "documents/verification/market-first-research-2026-10-30/writing-iterations-2026-11-02.json",
       "reason": "Not reliably better: a fully funded Pro reviewer still changed financial meaning. The initial owner-authorized trial remains live."
     }
+  },
+  "home_wiki_handoff_2026_11_03": {
+    "owner_instruction": "Complete Home-to-wiki updates so later research can extend existing knowledge instead of repeating full investigations.",
+    "source_base": "d2cfd7bc6605327d05aaa8e06f1cf6bbfa7d5665",
+    "branch": "fix/home-wiki-continuity-20261103",
+    "state": "wiki_handoff_and_cached_reuse_verified_next_planner_verification_in_progress",
+    "design": [
+      "Keep the existing data-first planner, investigation workers, native review and final public editor. Research and public writing retain read-only tools.",
+      "After an investigation or assessed reuse, call the existing shared post-answer wiki maintenance step. Only the existing completed-review authorization can permit a knowledge write.",
+      "The memory step can search/read canonical wiki pages and original supplied evidence. Preserve event dates, useful history and sources; unchanged knowledge needs no write.",
+      "Use existing execution-state ownership and saved outcomes to avoid repeated wiki work; retry failed handoffs without rerunning research.",
+      "Bind automatic page upserts to the observed revision. Unread existing-page collisions and concurrent edits fail without overwriting the page.",
+      "Fund wiki reflection with the shared run ledger and original deadline. Retain valid reports when the wiki step fails, and expose the failure in research health."
+    ],
+    "scope_limits": [
+      "No production deployment is authorized by this acceptance record.",
+      "No implementation of the separate priority-allocation proposal, news-provider replacement or held editorial prompts."
+    ],
+    "checks": [
+      "Reviewed real retained investigation wrote a dated wiki page through the existing audited mutation.",
+      "Same finding reused the completed handoff with zero additional model calls or wiki edits.",
+      "Unreviewed answer skipped wiki writes.",
+      "Independent creation races reject overwrites; actual unsaved mutation results stay retryable.",
+      "106 combined operational checks and six subsequent focused wiki checks pass; actual planner qualification continues."
+    ],
+    "evidence": "documents/verification/home-wiki-continuity-2026-11-03.json"
   }
 }

@@ -1576,3 +1576,8 @@ The initial release receipt checked a nonexistent summary.audio_url and incorrec
 ### Keep the qualification contract faithful — November2,2026
 
 The two-report writing sample initially allowed arbitrary strings in source_ids and admitted source URLs. The real public schema enumerates supplied source handles. The final sample now uses those same identity constraints; this is a reference contract check, not a prose-quality test. All writing outputs remain recorded, including material reviewer errors. No further writing candidate was promoted.
+
+
+### November 3, 2026 — Home wiki continuity
+
+Home wiki writes were disabled in the October27 qualification follow-up, and the data-first release did not reconnect reviewed investigations to the wiki. Saving research for reuse did not provide wiki continuity. The November3 repair remains held until actual model-generated wiki updates and subsequent reuse are inspected.

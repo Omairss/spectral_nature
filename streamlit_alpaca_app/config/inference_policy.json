@@ -45,6 +45,10 @@
   },
   "core_tasks": [
     {
+      "surface": "zopedia.memory",
+      "purpose": "agent.memory_reflection*"
+    },
+    {
       "surface": "*",
       "purpose": "agent.final_synthesis"
     },

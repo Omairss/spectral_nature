@@ -26,7 +26,11 @@ def policy() -> dict:
     # a whole-run configuration rollback. Deployment overrides may predate it.
     defaults = json.loads((Path(__file__).parents[1] / "config/inference_policy.json").read_text())
     value["best_effort_model"] = deepcopy(document.get("best_effort_model", defaults["best_effort_model"]))
-    value["core_tasks"] = deepcopy(document.get("core_tasks", defaults["core_tasks"]))
+    # Saved routing documents can add core tasks, but cannot remove the
+    # engine's required completion protection when a new stage is introduced.
+    value["core_tasks"] = deepcopy(defaults["core_tasks"])
+    value["core_tasks"].extend(deepcopy(rule) for rule in document.get("core_tasks", [])
+                              if rule not in value["core_tasks"])
     value["profile"] = name
     value["version"] = document["version"]
     value["not_before_pacific"] = not_before

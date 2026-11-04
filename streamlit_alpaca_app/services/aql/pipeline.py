@@ -152,6 +152,7 @@ def build_bottom_up_attention_artifacts(
     search_clients: list[Any] | tuple[Any, ...] | None = None,
     economic_context: dict[str, Any] | None = None,
     previous_publication: dict[str, Any] | None = None,
+    write_policy: str = "none",
     progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
 ) -> AgenticAttentionArtifacts:
     import uuid
@@ -192,7 +193,7 @@ def build_bottom_up_attention_artifacts(
     selected = research_source_events(source_news, market_frame=observed,
         universe_frame=topology_universe_frame, asof_time_utc=asof, run_id=run_id,
         llm_client=llm_client, market_context=numerical, macro_context=economic,
-        previous_publication=previous_publication,
+        previous_publication=previous_publication, write_policy=write_policy,
         progress_callback=(lambda event: progress_callback(0, 1, event)) if progress_callback else None)
     # Selection narrows research and its display adapters, never numerical data.
     symbols = list(dict.fromkeys(
@@ -266,6 +267,9 @@ def build_bottom_up_attention_artifacts(
         universe_frame=topology_universe_frame if isinstance(topology_universe_frame, pd.DataFrame) else entity_rows)
     home["coverage_summary"].update({"source_event_research_status": selected["status"],
         "source_event_nominated_count": len(selected["plans"]), "source_event_completed_count": len(bundles),
+        "wiki_update_status": ("disabled" if write_policy == "none" else "partial" if any(
+            row.get("memory_status") in {"failed", "timeout", "blocked", "deferred"}
+            for row in selected["results"]) else "completed"),
         "source_event_input_count": selected["input_count"], "research_selection": "common_market_agenda",
         "numerical_coverage": numerical["coverage"]})
     frames = {

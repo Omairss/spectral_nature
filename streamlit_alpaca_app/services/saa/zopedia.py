@@ -961,7 +961,7 @@ def _prepare_zopedia_pages_for_commit(
         existing = existing_by_id.get(_coerce_text(incoming.get("page_id")))
         metadata = _json_dict(incoming.get("metadata") or incoming.get("metadata_json"))
         expected_version = metadata.pop("expected_version", None)
-        if expected_version is not None and (not existing or int(expected_version) != existing["version"]):
+        if expected_version is not None and int(expected_version) != (existing["version"] if existing else 0):
             raise ZopediaVersionConflict(f"Reload page {incoming['page_id']}; its publication context changed.")
         incoming["metadata"] = metadata
         incoming["metadata_json"] = json.dumps(metadata, ensure_ascii=False, default=str)
@@ -3397,6 +3397,11 @@ def _load_zopedia_pages_by_ids(*, page_ids: list[str], conn: Any, lock: bool = F
     if not normalized_ids:
         return []
     with conn.cursor() as cur:
+        if lock:
+            # Row locks cannot protect a page that does not exist yet.
+            for page_id in sorted(set(normalized_ids)):
+                cur.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+                            ("zopedia_page:" + page_id,))
         cur.execute(
             _select_page_rows_sql(
                 where_sql="page_id = ANY(%s)",

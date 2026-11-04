@@ -68,6 +68,148 @@ def test_run_and_wallet_reservation_rollback_together(store):
     assert pipeline_store.read_execution_state(*execution._run_budget_key(), strict=True) is None
 
 
+def test_reviewed_finding_commits_wiki_once_across_concurrent_reuse(store, monkeypatch):
+    import psycopg
+    from services.saa import zopedia
+
+    monkeypatch.setenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", "wiki-contract-" + uuid.uuid4().hex)
+    page_id = "wiki-contract-" + uuid.uuid4().hex
+    commits = []
+
+    @execution.checkpoint_memory_update
+    def handoff(**kwargs):
+        with psycopg.connect(store) as conn:
+            result = zopedia.apply_zopedia_typed_mutation(
+                mutation_type="upsert_pages", pages=[{
+                    "page_id": page_id, "page_type": "theme", "title": page_id,
+                    "summary": "Dated finding", "body_markdown": "Observation recorded on October 30.",
+                    "source_urls": ["https://example.invalid/original"],
+                    "metadata": {"expected_version": 0},
+                }], evidence_refs=[{"kind": "source_link", "url": "https://example.invalid/original"}],
+                rationale="Persist the reviewed observation.", conn=conn)
+        commits.append(result["mutation_audit"]["mutation_id"])
+        return {"status": "completed", "mutation_id": commits[-1]}
+
+    kwargs = dict(llm=SimpleNamespace(), run_id=page_id, query="question", answer_markdown="reviewed",
+                  quality_review={"status": "completed", "verdict": "accept"},
+                  write_policy="safe_auto", timeout_seconds=15, tool_calls=[])
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        results = list(pool.map(lambda _: handoff(**kwargs), range(4)))
+    assert len(commits) == 1
+    assert all(result == results[0] for result in results)
+    with psycopg.connect(store) as conn:
+        assert conn.execute("SELECT version FROM saa_zopedia_pages WHERE page_id=%s", (page_id,)).fetchone()[0] == 1
+
+
+def test_saved_runtime_policy_preserves_required_wiki_completion(monkeypatch):
+    from services import inference_policy
+    from pathlib import Path
+
+    old = json.loads((Path(__file__).parents[1] / "config/inference_policy.json").read_text())
+    old["core_tasks"] = [rule for rule in old["core_tasks"] if rule["surface"] != "zopedia.memory"]
+    monkeypatch.setenv("LLM_POLICY_JSON", json.dumps(old))
+    assert inference_policy.is_core_task(surface="zopedia.memory", purpose="agent.memory_reflection")
+    assert inference_policy.is_core_task(surface="zopedia.memory", purpose="agent.memory_reflection_repair")
+
+
+def test_failed_wiki_handoff_retries_only_handoff(store, monkeypatch):
+    monkeypatch.setenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", "wiki-contract-" + uuid.uuid4().hex)
+    attempts = []
+
+    @execution.checkpoint_memory_update
+    def handoff(**kwargs):
+        attempts.append(1)
+        return {"status": "failed" if len(attempts) == 1 else "completed"}
+
+    kwargs = dict(llm=SimpleNamespace(), run_id=uuid.uuid4().hex, query="question", answer_markdown="reviewed",
+                  quality_review={"status": "completed", "verdict": "revise"},
+                  write_policy="safe_auto", timeout_seconds=5, tool_calls=[])
+    assert handoff(**kwargs)["status"] == "failed"
+    assert handoff(**kwargs)["status"] == "completed"
+    assert handoff(**kwargs)["status"] == "completed"
+    assert len(attempts) == 2
+
+
+def test_unsaved_memory_action_remains_retryable(store, monkeypatch):
+    from services import zopedia_agent
+
+    monkeypatch.setenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", "wiki-contract-" + uuid.uuid4().hex)
+    calls = []
+    decision = {"action": "apply_mutation", "mutation_type": "link_pages", "page_id": "one",
+                "target_page_id": "two", "pages": [], "metadata_patch": {}, "payload": {},
+                "evidence_refs": [{"kind": "source_link", "url": "https://example.invalid/original"}],
+                "rationale": "Retain reviewed relationship", "allow_risky": False}
+
+    def reflect(**kwargs):
+        calls.append(1)
+        return decision.copy()
+
+    outcomes = iter(["no_database", "committed"])
+    monkeypatch.setattr(zopedia_agent, "_run_evidence_model_step", reflect)
+    monkeypatch.setattr(zopedia_agent, "invoke_tool", lambda **kwargs:
+        {"result_type": "research", "payload": {"status": next(outcomes)}, "provenance": None})
+    kwargs = dict(llm=SimpleNamespace(), service=SimpleNamespace(), run_id=uuid.uuid4().hex,
+                  query="question", answer_markdown="reviewed answer", confidence="high", limitations=[],
+                  quality_review={"status": "completed", "verdict": "accept"},
+                  tool_calls=[{"tool_call_id": "original", "tool_name": "research.supplied_context",
+                               "status": "completed", "result_summary": {"llm_context_text": "Original evidence"}}],
+                  conversation_history=None, prefetched_context="", timeout_seconds=5,
+                  progress_callback=None, write_policy="safe_auto")
+    assert zopedia_agent._run_post_answer_memory_agent(**kwargs)["status"] == "failed"
+    assert zopedia_agent._run_post_answer_memory_agent(**kwargs)["status"] == "completed"
+    assert zopedia_agent._run_post_answer_memory_agent(**kwargs)["status"] == "completed"
+    assert len(calls) == 2
+
+
+def test_creation_only_and_stale_wiki_updates_cannot_overwrite_existing_knowledge(store):
+    import psycopg
+    from services.saa import zopedia
+
+    page = {"page_id": "wiki-contract-" + uuid.uuid4().hex, "page_type": "theme", "title": "Knowledge",
+            "summary": "Original", "body_markdown": "Original history and dated sources.",
+            "source_urls": ["https://example.invalid/original"], "metadata": {"expected_version": 0}}
+    with psycopg.connect(store) as conn:
+        def write(value):
+            return zopedia.apply_zopedia_typed_mutation(mutation_type="upsert_pages", pages=[value],
+                evidence_refs=[{"kind": "source_link", "url": "https://example.invalid/original"}],
+                rationale="Version contract.", conn=conn)
+        write(page)
+        with pytest.raises(zopedia.ZopediaVersionConflict):
+            write({**page, "body_markdown": "Blind replacement"})
+        write({**page, "summary": "Updated", "metadata": {"expected_version": 1}})
+        with pytest.raises(zopedia.ZopediaVersionConflict):
+            write({**page, "body_markdown": "Stale replacement", "metadata": {"expected_version": 1}})
+        body, version = conn.execute("SELECT body_markdown,version FROM saa_zopedia_pages WHERE page_id=%s",
+                                     (page["page_id"],)).fetchone()
+        assert "Original history and dated sources." in body and version == 2
+
+
+def test_independent_findings_cannot_race_to_replace_a_new_wiki_page(store):
+    import psycopg
+    from services.saa import zopedia
+
+    page_id = "wiki-race-" + uuid.uuid4().hex
+    ready = threading.Barrier(2)
+
+    def write(index):
+        ready.wait()
+        with psycopg.connect(store) as conn:
+            try:
+                zopedia.apply_zopedia_typed_mutation(mutation_type="upsert_pages", pages=[{
+                    "page_id": page_id, "page_type": "theme", "title": "Shared knowledge",
+                    "summary": str(index), "body_markdown": str(index),
+                    "metadata": {"expected_version": 0},
+                }], rationale="Concurrent findings", conn=conn)
+                return "committed"
+            except zopedia.ZopediaVersionConflict:
+                return "conflict"
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        assert sorted(pool.map(write, range(2))) == ["committed", "conflict"]
+    with psycopg.connect(store) as conn:
+        assert conn.execute("SELECT version FROM saa_zopedia_pages WHERE page_id=%s", (page_id,)).fetchone()[0] == 1
+
+
 def test_research_listing_preserves_task_subject_and_unfiltered_queries(store):
     namespace = 'research-list-contract-' + uuid.uuid4().hex
     for identity, subject, task in [('one', 'company:X', 'a'), ('two', 'company:X', 'ba'), ('three', 'company:Y', 'a')]:

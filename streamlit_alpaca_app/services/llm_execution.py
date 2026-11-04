@@ -1433,6 +1433,64 @@ def latest_research_artifact(*, access_scope: str, subject: str, task: str) -> d
     }
 
 
+def checkpoint_memory_update(function):
+    """Retry a reviewed finding's wiki handoff without repeating its research."""
+    @wraps(function)
+    def run(**kwargs):
+        review = kwargs.get("quality_review") or {}
+        if (kwargs.get("write_policy") == "none" or not kwargs.get("answer_markdown")
+                or review.get("status") != "completed" or review.get("verdict") not in {"accept", "revise"}):
+            return function(**kwargs)
+        from . import pipeline_store
+        from .llm import llm_settings_scope
+        from .work_scope import remaining_work_seconds
+        seconds = max(0, min(float(kwargs["timeout_seconds"]), remaining_work_seconds(float("inf"))))
+        deadline = time.monotonic() + seconds
+        if not seconds:
+            return {"status": "timeout", "reason": "Original research window ended before wiki update."}
+        evidence = {key: kwargs.get(key) for key in (
+            "run_id", "query", "answer_markdown", "quality_review", "write_policy")}
+        key = hashlib.sha256(json.dumps(evidence, sort_keys=True, default=str).encode()).hexdigest()
+        access = current_research_access_scope()
+        namespace = f"research_memory:{llm_settings_scope()}:{access}"
+
+        def update():
+            if access:
+                saved = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
+                if saved.get("status") == "completed":
+                    return saved
+            kwargs["timeout_seconds"] = max(0, deadline - time.monotonic())
+            if not kwargs["timeout_seconds"]:
+                return {"status": "timeout", "reason": "Original research window ended before wiki update."}
+            core_id = _CALL.get().get("core_work_id") or "wiki:" + key
+            own_core = not _CALL.get().get("core_work_id")
+            config = getattr(kwargs.get("llm"), "config", None)
+            with model_call_context(core_work_id=core_id):
+                if own_core and config is not None and not protect_core_research(config=config,
+                        work={core_id: {**evidence, "tool_calls": kwargs.get("tool_calls")}}, stages=1, required=False):
+                    return {"status": "blocked", "reason": "Wiki update could not reserve completion funds."}
+                try:
+                    result = function(**kwargs)
+                    if access and not pipeline_store.write_execution_state(namespace, key, result):
+                        record_execution_issue("wiki_update_checkpoint", RuntimeError("Wiki result checkpoint was not saved"))
+                    return result
+                finally:
+                    if own_core and config is not None:
+                        complete_core_research(core_id)
+        try:
+            if not access:
+                return update()
+            with execution_ownership(namespace + ":leases", key, wait_seconds=min(seconds, 30),
+                                     lease_seconds=seconds + 30) as owned:
+                if not owned:
+                    return {"status": "deferred", "reason": "Another worker owns this finding's wiki update."}
+                return update()
+        except Exception as exc:
+            record_execution_issue("wiki_update", exc)
+            return {"status": "failed", "reason": f"{type(exc).__name__}: {exc}"}
+    return run
+
+
 def checkpoint_structured_research(function):
     """Opt-in, environment-owned replay of completed supplied-evidence stages.
 

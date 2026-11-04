@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from copy import deepcopy
 from contextvars import copy_context
 import hashlib
 import json
 import os
+import time
 from typing import Any, Callable
 
 import pandas as pd
@@ -98,6 +100,9 @@ _NOMINATION_PROMPT = register_narrative_prompt(
         "Choose N focused questions needing investigation across this common agenda using usefulness, available allowance and the "
         "original deadline; limits are ceilings, not quotas. Reserve completion resources for core review and "
         "publication. On a quiet run choose fewer investigations, while still assessing current conditions. "
+        "Read relevant Zopedia wiki pages and their source dates before commissioning repeated research. "
+        "Use existing knowledge to identify the specific changed fact or unanswered question; read its originals "
+        "when needed. Wiki knowledge is fallible analysis, not independent confirmation. "
         "Compare dated retained research and the prior publication against the current observations. Decide what "
         "needs new work separately from what remains important to explain now. Completed research remains available "
         "to final writing even when it needs no new investigation; the paid agenda is not the whole current market. "
@@ -170,6 +175,7 @@ def research_source_events(
     macro_context: dict[str, Any] | None = None,
     market_context: dict[str, Any] | None = None,
     previous_publication: dict[str, Any] | None = None,
+    write_policy: str = "none",
     progress_callback: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Select all optional Home investigations after numerical preparation.
@@ -523,6 +529,7 @@ def research_source_events(
     def investigate(
         plan: dict[str, Any], index: int
     ) -> tuple[dict[str, Any], dict[str, Any] | None]:
+        deadline = time.monotonic() + max(int(get_config_param(_P_EVENT_TIMEOUT)), 1)
         selected = [
             by_id[source_id] for source_id in plan["source_ids"] if source_id in by_id
         ]
@@ -636,7 +643,23 @@ def research_source_events(
                 initial_evidence=[{key: doc.get(key) for key in model_source_fields} for doc in selected],
                 progress_callback=progress_callback,
             )
-        agent = dict(result.get("agent_result") or {})
+            agent = deepcopy(result.get("agent_result") or {})
+            if (write_policy != "none" and result.get("status") == "completed"
+                    and isinstance(result.get("payload"), dict)
+                    and not list(Draft202012Validator(_EVENT_SCHEMA).iter_errors(result["payload"]))):
+                from ..zopedia_agent import _run_post_answer_memory_agent
+
+                agent["memory_update"] = _run_post_answer_memory_agent(
+                    llm=llm_client, service=service, run_id=agent.get("run_id") or event_id,
+                    query=agent.get("original_query") or agent.get("query") or query,
+                    answer_markdown=agent.get("answer_markdown") or "",
+                    confidence=agent.get("confidence") or "low", limitations=agent.get("limitations") or [],
+                    quality_review=agent.get("quality_review") or {}, tool_calls=agent.get("tool_calls") or [],
+                    conversation_history=None, prefetched_context="",
+                    timeout_seconds=max(0, deadline - time.monotonic()),
+                    progress_callback=progress_callback, write_policy=write_policy,
+                )
+                result = {**result, "agent_result": agent}
         acquired = materialize_research_artifacts(
             agent, candidate_id=event_id, subject=event_id,
             run_id=run_id, asof_time_utc=asof,
@@ -664,6 +687,8 @@ def research_source_events(
                                    if plan["research_action"] != "reuse" else 0),
             "review_status": (agent.get("quality_review") or {}).get("status", "")
                              if plan["research_action"] != "reuse" else "reused_prior_review",
+            "memory_status": (agent.get("memory_update") or {}).get("status", "not_run"),
+            "memory_error": (agent.get("memory_update") or {}).get("reason", ""),
             "result_json": json.dumps(to_jsonable(result), ensure_ascii=False),
         }
         record["_acquired_documents"] = list({doc["source_id"]: doc for doc in [*selected, *acquired_documents]}.values())
@@ -816,6 +841,7 @@ def research_source_events(
         "status": "completed"
         if (nomination.get("status") == "completed" and len(bundles) == len(plans)
             and not any(row.get("tool_failure_count") or row.get("review_status") in {"failed", "timeout"}
+                        or row.get("memory_status") in {"failed", "timeout", "blocked", "deferred"}
                         for row in [*market_research, *results]))
         else "partial"
         if bundles or market_research[0]["market_context_text"]

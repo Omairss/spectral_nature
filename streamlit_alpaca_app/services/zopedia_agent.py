@@ -7,7 +7,7 @@ from services.work_scope import WorkScope
 from contextvars import copy_context
 from .llm_execution import (LLMContextWindowExceeded, ResearchBudgetExceeded, research_run_context,
                             research_spending_context, best_effort_required, funded_core_research,
-                            model_call_context, _CALL)
+                            model_call_context, checkpoint_memory_update, _CALL)
 
 from dataclasses import replace
 
@@ -344,6 +344,11 @@ _AGENT_MEMORY_SYSTEM_PROMPT = register_narrative_prompt(
         f"You are the Spectral Nature Zopedia memory maintainer. "
         "Review the answered question, the final answer, the judge review, and collected evidence. "
         "Decide whether the underlying Zopedia wiki should be updated. "
+        "Search for and read the existing canonical pages before updating them or creating overlapping pages. "
+        "Retain useful history and source links. Save the changed knowledge, not another copy of the report. "
+        "Keep original event and observation dates; a new assessment does not make an old event new. "
+        "Distinguish reported facts from interpretations and hypotheses. Correct contradictions explicitly. "
+        "An unchanged finding needs no write just because another run used it. "
         "The active write policy in the user prompt is binding. "
         "Use no_action only when the evidence is too thin, purely conversational, duplicative, or not durable. "
         "When write_policy=safe_auto, prefer apply_mutation for durable source-backed company, source, theme, market-event, or macro pages that can be written as safe reversible page upserts, metadata patches, or page links. "
@@ -1138,6 +1143,7 @@ def _run_evidence_model_step(
     query: str = "",
     supplied_evidence_allowed: bool = True,
     model_timeout_seconds: float | None = None,
+    read_tool_names: tuple[str, ...] = ("research.list_supplied_evidence", "research.read_supplied_evidence"),
 ) -> dict[str, Any]:
     """Keep source reads available through planning, writing and review.
 
@@ -1200,9 +1206,7 @@ def _run_evidence_model_step(
                 "content": {**call, "result_summary": summary},
             }
         reader = service.with_supplied_evidence(records)
-        read_tools = [tool for tool in build_tool_registry(reader).catalog() if tool["name"] in {
-            "research.list_supplied_evidence", "research.read_supplied_evidence",
-        }]
+        read_tools = [tool for tool in build_tool_registry(reader).catalog() if tool["name"] in read_tool_names]
         selected = context_state.get("tool_call_ids")
         visible = [call for call in tool_calls if selected is None or call["tool_call_id"] in selected]
         base_prompt = prompt([] if catalog_only else visible)
@@ -2676,6 +2680,7 @@ def _memory_contract_proposal_decision(
     }
 
 
+@checkpoint_memory_update
 def _run_post_answer_memory_agent(
     *,
     llm: LLMClient,
@@ -2731,13 +2736,21 @@ def _run_post_answer_memory_agent(
             timeout_seconds=max(float(timeout_seconds), 0),
             progress_callback=progress_callback,
             progress=0.992,
-            func=lambda: generate_json_via_aql_zopedia_gateway(
+            func=lambda: _run_evidence_model_step(
                 llm_client=llm,
+                service=service, tool_calls=tool_calls, context_state={},
+                prompt=lambda visible: _memory_reflection_user_prompt(
+                    query=query, answer_markdown=answer_markdown, confidence=confidence,
+                    limitations=limitations, quality_review=quality_review,
+                    tool_calls=visible, conversation_history=conversation_history,
+                    prefetched_context=prefetched_context, write_policy=normalized_write_policy),
+                progress_callback=progress_callback,
+                read_tool_names=("research.list_supplied_evidence", "research.read_supplied_evidence",
+                                 "zopedia.search_pages", "zopedia.read_page"),
                 surface="zopedia.memory",
                 purpose="agent.memory_reflection",
                 call_type="research_grade",
                 system_prompt=get_prompt(_AGENT_MEMORY_SYSTEM_PROMPT),
-                user_prompt=memory_prompt,
                 schema_name="zopedia_memory_reflection",
                 schema=_MEMORY_SCHEMA,
                 deadline_monotonic=deadline,
@@ -2865,6 +2878,11 @@ def _run_post_answer_memory_agent(
         decision["rationale"] = rationale or "The memory reflection requested a mutation without a mutation type."
 
     if action == "apply_mutation":
+        if _clean(decision.get("mutation_type")) == "upsert_pages":
+            versions = {page_id: version for call in tool_calls if call.get("status") == "completed"
+                        for page_id, version in (call.get("result_summary", {}).get("read_versions") or {}).items()}
+            decision["pages"] = [{**page, "metadata": {**(page.get("metadata") or {}),
+                "expected_version": versions.get(page.get("page_id"), 0)}} for page in decision.get("pages") or []]
         tool_name = "zopedia.apply_mutation"
         arguments = {
             "mutation_type": _clean(decision.get("mutation_type")),
@@ -2911,6 +2929,9 @@ def _run_post_answer_memory_agent(
                 run_id=run_id,
             ),
         )
+        outcome = (tool_result.get("payload") or {}).get("status")
+        if outcome not in {"committed", "proposed"}:
+            raise RuntimeError(f"Zopedia memory action was not saved: {outcome or 'missing status'}")
         result_summary = _summarize_tool_result(tool_result)
         tool_call = {
             "tool_call_id": f"agtc_memory_{len(tool_calls) + 1}",

@@ -2191,6 +2191,7 @@ def build_attention_home_output_frames(
         load_search_clients=True,
         economic_context={"fred_signals": fred_signals},
         previous_publication=previous_publication,
+        write_policy=_zopedia_write_policy(),
         progress_callback=research_progress_fn,
     )
     payload = dict(artifacts.home_payload or {})
@@ -2361,6 +2362,7 @@ def build_attention_home_output_frames(
     coverage = dict(payload.get("coverage_summary") or {})
     stages = {
         "source_events": coverage.get("source_event_research_status", "unavailable"),
+        "wiki_updates": coverage.get("wiki_update_status", "disabled"),
         "ticker_enrichment": "completed" if not failed_tickers else "partial" if len(failed_tickers) < len(ticker_rows) else "failed",
         "ticker_answer_review": "partial" if unreviewed_tickers else "completed",
         "market_summary": market_summary_row.get("status", "unavailable"),

@@ -1,0 +1,141 @@
+{
+  "status": "wiki_handoff_accepted_next_planner_check_in_progress",
+  "recorded_at_utc": "2026-11-04T03:26:55.587640+00:00",
+  "source_base": "d2cfd7bc6605327d05aaa8e06f1cf6bbfa7d5665",
+  "branch": "fix/home-wiki-continuity-20261103",
+  "scope": "Connect reviewed Home investigations to the existing shared wiki memory stage; preserve dates and current assessment, retry a failed handoff independently, use dated wiki knowledge for next research planning.",
+  "authorization": {
+    "status": "approved",
+    "authorization": "Approve up to $3",
+    "cap_microusd": 3000000,
+    "pacific_day": "2026-11-03",
+    "scope": "Isolated Home reviewed research to existing wiki memory and next-run planning/reuse; full production Pro; no broad research rerun; no production writes.",
+    "previous_exception": "Market-First cumulative $40 exception closed; its charges and unknown bounds remain in its original ledger. This approval adds $3 only."
+  },
+  "verification": {
+    "model": "deepseek-v4-pro",
+    "thinking": "enabled",
+    "reasoning_effort": "high",
+    "isolated_database": true,
+    "production_writes": 0,
+    "broad_pipeline_reruns": 0,
+    "memory_action": "apply_mutation",
+    "mutation_status": "committed",
+    "original_pages_unchanged": true,
+    "historical_page_count": 7,
+    "same_finding_reuse": {
+      "requests_and_cost_before": [
+        8,
+        1061387
+      ],
+      "requests_and_cost_after": [
+        8,
+        1061387
+      ],
+      "same_decision": true,
+      "same_mutation": true,
+      "wiki_unchanged": true,
+      "status": "completed"
+    },
+    "unreviewed_answer": {
+      "status": "skipped",
+      "reason": "answer_not_approved",
+      "write_policy": "safe_auto"
+    },
+    "memory_decision": {
+      "action": "apply_mutation",
+      "rationale": "This is a durable, source-backed market event dated 2 November 2026. Oracle announced a $20 billion split share and bond offering, and the observed return group includes CoreWeave, Nebius and ViaSat. The evidence supports separate explanations for Oracle and CoreWeave, while Nebius remains unresolved. A new market_event page preserves the dated observations and avoids copying the earlier 22 October 2026 AI-financing stress page.",
+      "mutation_type": "upsert_pages",
+      "proposal_type": "",
+      "page_id": "market_event:2026-11-02-oracle-20b-financing-ai-funding-group-fall",
+      "target_page_id": "market_event:2026-11-02-oracle-20b-financing-ai-funding-group-fall",
+      "title": "Oracle's $20 billion share and bond offer, CoreWeave's separate debt concern, and an unresolved Nebius fall in the same return group",
+      "pages": [
+        {
+          "page_id": "market_event:2026-11-02-oracle-20b-financing-ai-funding-group-fall",
+          "page_type": "market_event",
+          "title": "Oracle's $20 billion share and bond offer, CoreWeave's separate debt concern, and an unresolved Nebius fall in the same return group",
+          "summary": "On 2 November 2026, Oracle announced a $20 billion financing split between new shares and bonds. Oracle, CoreWeave and Nebius fell in the same observed return group, but the evidence supports different triggers.",
+          "body_markdown": "## What happened\n\nOn 2 November 2026, Oracle announced that it will raise $20 billion. It will sell $10 billion of new shares and, at the same time, sell $10 billion of senior unsecured notes. The notes have six series with maturity dates from 2029 through 2046. Oracle said the money is for general company needs, including AI data-center building, debt repayment, and possible future investments. The two offers are separate, and the final share price and note rates were not yet fixed.\n\nIn the observed 2 November market snapshot, Oracle shares were down 8.57% to $119.48 from a prior close of $130.68. CoreWeave shares were down 9.01% to $50.015. Nebius shares were down 7.84% to $141.99. These are snapshot observations, not verified final closes, and a same-day price move does not prove one event caused another.\n\n## Oracle business connection\n\nOracle's own results show why it needs outside money. In the quarter ended 31 August 2026, cash from the business was $23.1 billion, and spending on data centers and equipment was $28.5 billion. That left a $5.4 billion shortfall. Management has pointed to about $70 billion of net cash spending on buildings and equipment for the fiscal year. Oracle also has $664 billion of signed future revenue, but only about 13% is expected to arrive within 12 months. So Oracle must raise money before most of that revenue arrives.\n\nNew shares spread ownership across more shares, which can lower the per-share price. New notes add future interest cost. These are likely contributors to Oracle's fall, but not the only possible cause. Oracle had already fallen 6.4% on 30 October, before this offer plan was announced.\n\n## CoreWeave\n\nCoreWeave has a separate concern. On 2 November 2026, NVIDIA CEO Jensen Huang publicly defended CoreWeave's financial position as markets worried about financing for AI infrastructure. The report says NVIDIA holds about a 10% stake in CoreWeave and has an agreement to buy up to $6.3 billion of unused capacity through 2032. The defense followed recent market volatility and analyst changes around CoreWeave's debt and refinancing risk. This points to CoreWeave's own debt costs, not Oracle's new shares.\n\n## Nebius and group limit\n\nNo separate company trigger for Nebius was identified that day. It sits in the same return group as CoreWeave and Oracle, and it also has a large building plan that depends on outside money and customer prepayments. A broad concern about AI data-center funding could spill over to it, but the evidence does not identify a specific trigger.\n\nThe measured return group also contains ViaSat, a satellite company, which is not an AI data-center funding story. A numerical cluster can mix different events; shared movement is not proof of one cause. The best reading is partial: Oracle's own offer is an identifiable factor, CoreWeave has its own debt worry, and Nebius remains unresolved.\n\n## Watch\n\nFinal Oracle share and bond pricing, any CoreWeave credit or debt action, and any Nebius company release or Q3 2026 report. A Nebius funding or customer change would supply its missing separate trigger.",
+          "source_urls": [
+            "https://www.morningstar.com/news/marketwatch/2026110284/oracle-wants-20-billion-to-fund-its-ai-future-and-its-stock-is-paying-the-price",
+            "https://www.benzinga.com/news/26/11/62776551/oracle-announces-10b-public-offering-common-stock-concurrently-10b-senior-notes-offering",
+            "https://www.moomoo.com/news/post/1003190140/oracle-launches-six-part-us-dollar-high-grade-bond-offering",
+            "https://www.tradingview.com/news/tradingview:70bca6fb36e66:0-weekly-recap-danish-data-center-expansion-and-nvidia-capacity-purchase/",
+            "https://investor.oracle.com/investor-news/news-details/2026/Oracle-Announces-Q1-Results-Driven-by-Triple-Digit-Growth-in-Cloud-Infrastructure-Revenues/default.aspx",
+            "https://www.sec.gov/Archives/edgar/data/1341439/000119312526389274/orcl-20260831.htm"
+          ],
+          "source_document_ids": [
+            "doc::event-news::1a491be460c81c30bb06",
+            "saa_doc::33d308b34dfb45b3de4afa6b",
+            "saa_doc::02e95167c69c6a7347d29b68",
+            "doc::event-news::6907875eacb0378dda9b"
+          ],
+          "entity_refs": [
+            "ticker:ORCL",
+            "ticker:CRWV",
+            "ticker:NBIS",
+            "ticker:NVDA",
+            "ticker:VSAT",
+            "theme:AI-infrastructure-financing"
+          ],
+          "outgoing_links": [
+            "market_event:2026-10-22-ai-financing-stress-nvda-readthrough"
+          ],
+          "metadata": {
+            "event_date": "2026-11-02",
+            "asof": "2026-11-02",
+            "observation_type": "intraday_snapshot",
+            "symbols": [
+              "ORCL",
+              "CRWV",
+              "NBIS",
+              "VSAT",
+              "NVDA"
+            ],
+            "expected_version": 0
+          }
+        }
+      ],
+      "metadata_patch": {},
+      "evidence_refs": [
+        {
+          "source_id": "doc::event-news::1a491be460c81c30bb06",
+          "url": "https://www.morningstar.com/news/marketwatch/2026110284/oracle-wants-20-billion-to-fund-its-ai-future-and-its-stock-is-paying-the-price"
+        },
+        {
+          "source_id": "saa_doc::33d308b34dfb45b3de4afa6b",
+          "url": "https://www.benzinga.com/news/26/11/62776551/oracle-announces-10b-public-offering-common-stock-concurrently-10b-senior-notes-offering"
+        },
+        {
+          "source_id": "saa_doc::02e95167c69c6a7347d29b68",
+          "url": "https://www.moomoo.com/news/post/1003190140/oracle-launches-six-part-us-dollar-high-grade-bond-offering"
+        },
+        {
+          "source_id": "doc::event-news::6907875eacb0378dda9b",
+          "url": "https://www.tradingview.com/news/tradingview:70bca6fb36e66:0-weekly-recap-danish-data-center-expansion-and-nvidia-capacity-purchase/"
+        }
+      ],
+      "payload": {},
+      "allow_risky": false
+    },
+    "personal_review": [
+      "Read the complete saved page and compared it with the reviewed source investigation. It preserves the November 2 event and intraday observation dates, financing mechanism, distinct company explanations and source links.",
+      "The earlier October 22 event remains unchanged and is linked, rather than being re-dated or overwritten.",
+      "The saved page retains a research gap already present in the reviewed input; this is knowledge persistence verification, not a new public-writing comparison or new investigation of that gap."
+    ],
+    "operational_checks": "106 passed, then six focused wiki contracts passed after adding the explicit unsaved-action retry check; final combined pass pending.",
+    "legacy_agent_suite": "Candidate and accepted base have the same 26 pre-existing failures and 19 passes; no new failures in the compared run.",
+    "qualification_setup_correction": "First planner fixture used a namespace different from the existing completed-research reader. Corrected in isolated storage; all attempts and unknown charges retained."
+  },
+  "deployment": {
+    "development": "pending local planner qualification",
+    "production": "not authorized by this new acceptance record"
+  },
+  "separate_work_not_changed": [
+    "Planner funding priority allocation",
+    "Public writing iteration",
+    "News provider replacement",
+    "Production schedules, models and allowances"
+  ]
+}

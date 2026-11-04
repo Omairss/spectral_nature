@@ -1643,3 +1643,8 @@ Integrate separately accepted deployments from their immutable Git application s
 ### Judge meaning as well as fluency — November2,2026
 
 Six funded full-Pro writing/reviewer checks sometimes shortened explanations but still changed financial meaning. Judge original source relationships and metric identity personally, alongside casual-reader clarity. A revised answer and positive reviewer verdict are not acceptance. Preserve the accepted production trial and hold further prompt changes when improvement is inconsistent.
+
+
+### November 3, 2026 — Home wiki continuity
+
+Verify investigation storage, completed review and retained wiki knowledge separately. Reuse the shared post-answer memory step, original sources and page revision checks. A failed memory write must remain retryable without rerunning research or overwriting newer knowledge.
