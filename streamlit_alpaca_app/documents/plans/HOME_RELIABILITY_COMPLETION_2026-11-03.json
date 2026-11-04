@@ -113,7 +113,27 @@
     "owner_feedback": "Live prose replaces likely drivers with common-cause caveats and rhetorical contrasts; writing regressed after compression.",
     "status": "focused_model_comparisons_failed_release_acceptance",
     "evidence": "documents/verification/home-writing-verification-2026-11-04.json",
-    "next": "Review the failed independent composition and reviewer behavior before another product change. No prompt-only or original-only input change is accepted. Preserve the remaining end-to-end and release gates.",
-    "latest_evidence": "documents/verification/home-writing-originals-verification-2026-11-04.json"
+    "next": "Run the prepared small native current-planner -> one model-selected investigation -> research review replay before changing more prompts. Inspect complete outputs personally; a reuse decision or cache hit is not a fresh prompt test.",
+    "latest_evidence": "documents/verification/home-writing-originals-verification-2026-11-04.json",
+    "owner_response": "Owner liked the original-report writing example on November 4. This accepts that example; it does not establish that the experimental input change is integrated or that current upstream prompts are verified."
+  },
+  "upstream_prompt_verification": {
+    "status": "prepared_awaiting_api_window_approval",
+    "current_source_runtime": "9b16bcae",
+    "previous_actual_upstream_run": "20bc503e",
+    "gap": "The shared final-synthesis, reviewer and narrative prompts changed after the last actual upstream research run. Later paid comparisons covered only final public writing.",
+    "scope": "The native common planner receives the saved original numerical context and headlines and may select one investigation; retain original native tools, full Pro, existing retained findings and shared review. No full Home rerun, wiki writes, public recomposition or deployment.",
+    "interpretation": "A reuse-only or cached result leaves fresh research synthesis/review unverified. Execution checks are not qualitative acceptance.",
+    "spending": {
+      "cap_usd": 13,
+      "counted_exposure_usd": 10.592415,
+      "remaining_usd": 2.407585,
+      "expected_additional_usd": [
+        1.5,
+        2.4
+      ]
+    },
+    "requested_window_minutes": 30,
+    "private_preflight": "operations/home-reliability-completion-20261103/upstream-preflight.json"
   }
 }
