@@ -1,0 +1,199 @@
+{
+  "status": "diagnosis_complete_runtime_unchanged",
+  "run_id": "168d03d7-a792-471c-ade4-0d343217fbad",
+  "source_commit": "16d45087",
+  "scope": "Saved production records, source inspection, read-only database/console queries and official AMD release. No new inference, replay or production mutation.",
+  "observed_outcome": {
+    "investigations_completed": 8,
+    "reviews_completed": 8,
+    "review_verdicts": {
+      "accept": 2,
+      "revise": 6
+    },
+    "wiki_committed": 4,
+    "wiki_failed_or_blocked": 4,
+    "stories_published": 9
+  },
+  "failures": [
+    {
+      "id": "context_expansion",
+      "finding": "Full old reports and complete wiki bibliographies are repeatedly placed into working context.",
+      "evidence": {
+        "ai_hardware_prior_reports": 17,
+        "ai_hardware_query_characters": 1593126,
+        "food_wiki_search_source_links": 3024,
+        "food_wiki_search_unique_references": 2975,
+        "food_wiki_search_unrelated_sample_pages": [
+          "Johnson & Johnson",
+          "UnitedHealth",
+          "NVIDIA",
+          "Micron"
+        ],
+        "largest_memory_request_characters": 2245312,
+        "largest_memory_request_estimated_input_tokens": 815575
+      },
+      "source": [
+        "services/aql/events.py: prior_research and render_research_prompt",
+        "services/zopedia_research.py: _zopedia_rows_from_frame",
+        "services/zopedia_agent.py: _summarize_tool_result, _tool_history_prompt, _memory_reflection_user_prompt"
+      ],
+      "cause": "All related company dossiers are inlined; wiki search expands every returned page source URL into references and links; later memory requests carry the original query and tool history again. These requests fit the configured context window but consume budget and processing time.",
+      "direction": "Keep compact dated findings and page matches in working context; retain complete originals and provenance through the same existing evidence/page readers. Preserve breadth and source access."
+    },
+    {
+      "id": "wiki_admission_and_time",
+      "finding": "Wiki completion is admitted after research, inside the original per-investigation window.",
+      "outcomes": [
+        {
+          "topic": "Shopify",
+          "status": "blocked",
+          "reason": "Wiki update could not reserve completion funds."
+        },
+        {
+          "topic": "Marvell/Lumentum",
+          "status": "failed",
+          "reason": "Connection dropped; exact underlying operation is absent from retained error details."
+        },
+        {
+          "topic": "Energy",
+          "status": "timeout",
+          "remaining_seconds_at_memory_start": 90.90230303400017
+        },
+        {
+          "topic": "AI hardware",
+          "status": "timeout",
+          "remaining_seconds_at_memory_start": 108.01664070200013
+        }
+      ],
+      "source": [
+        "services/aql/events.py: investigate deadline and _run_post_answer_memory_agent call",
+        "services/llm_execution.py: checkpoint_memory_update required=False",
+        "services/zopedia_agent.py: _run_hidden_step_with_timeout"
+      ],
+      "cause": "The 600-second event window is shared with acquisition, synthesis and review; memory gets only the remainder. Funding is requested at the end as optional core admission, not protected with the original research batch. Concurrent reservations can refuse it even with provider credit.",
+      "retry_behavior": "Failed handoffs remain attached to reviewed research and are retried when that finding is reused. There is no independent retry queue or guaranteed retry time. The blocked Shopify handoff did not create a separate memory checkpoint.",
+      "direction": "Include necessary wiki completion in the initial resource allocation, preserving the producer ledger and total deadline. Retry retained handoffs without repeating research. Do not label pending work as queued or successful.",
+      "last_known_marvell_memory_action": {
+        "tool": "zopedia.read_page",
+        "page_id": "zopedia::ticker::lite-business-memory::91198141c78e",
+        "max_chars": 100000,
+        "status": "The saved successful model response requested this read; the retained error does not identify whether the read or a subsequent operation dropped its connection."
+      }
+    },
+    {
+      "id": "paid_receipts_not_persisted",
+      "finding": "Five successful model responses have usage receipts in console logs but remain started/pending in the database and budget ledger.",
+      "checked_at_utc": "2026-11-04T06:01:53.007453+00:00",
+      "http_status": 200,
+      "attempt_ids": [
+        "llmhttp_416ef3541ded40968a2f15805e73234d",
+        "llmhttp_56d0a92fdfb24cb99f794d05767083b1",
+        "llmhttp_0c8b8b19a78e4b95a68887d42b0d0870",
+        "llmhttp_c628b118c4134919b5a3daf767344f0e",
+        "llmhttp_f38c023d173d4fbc993f3937fa675b9b"
+      ],
+      "budget_snapshot_051335_utc": {
+        "cap_usd": 14.964408,
+        "settled_estimate_usd": 2.462024,
+        "request_maximum_holds_usd": 5.964116,
+        "future_core_usd": 6.397291,
+        "remaining_usd": 0.140977
+      },
+      "cause": "Paid-response retention, settlement and receipt persistence failed. The shared finalizer has a 15-second independent work scope and existing DB/archive fallbacks; failures are logged without their original exception. The available record does not prove whether a database outage, admission delay or archive failure caused all persistence attempts to fail.",
+      "impact": "Completed calls still withhold quoted maxima, reducing space for additional work and making the run ledger overstate unsettled work. The HTTP 200 log receipts contain metering that can be reconciled to original attempts.",
+      "direction": "Repair the existing receipt outbox and reconciliation path so successful receipts survive database trouble; retain original identity and unknown bounds until settlement. Capture the underlying persistence exception. Do not erase holds or call successful paid requests free."
+    },
+    {
+      "id": "retrieval_deadlines",
+      "finding": "Four retained-evidence search tools failed: Shopify, crypto/mining and energy at their 45-second tool limit; food research with LLMDeadlineExceeded.",
+      "source": [
+        "services/zopedia_research.py: search_evidence",
+        "services/saa/storage.py: search_retained_evidence_chunks",
+        "services/zopedia_agent.py: _run_tool_with_timeout"
+      ],
+      "cause": "A tool starts multiple dated/undated searches, with up to four concurrent searches per investigation. Each obtains lexical results and then semantic candidates. Once the caller expires, cancellation prevents returning usable results; a lexical-fallback log does not establish successful tool delivery.",
+      "direction": "Give optional semantic work a bounded share of the existing search deadline so usable lexical results can return before cancellation; keep exact timeout/partial-result states. Avoid solving this by launching more workers or relaxing the overall run clock."
+    },
+    {
+      "id": "stale_event_timing",
+      "finding": "The evening report still describes AMD results as upcoming.",
+      "report_asof_pacific": "2026-11-03T20:56:10.420662-08:00",
+      "supplied_source": {
+        "title": "AMD Stock Reports Earnings Today: Here’s What Investors Need to Know",
+        "published_at": "2026-11-03T13:49:16+00:00",
+        "claim": "earnings due today after the close"
+      },
+      "observed_research": "The AI-hardware investigation read supplied context and searched wiki pages. It did not acquire the released AMD results. The final reviewer requested no further research.",
+      "official_source": "https://ir.amd.com/news-events/press-releases/detail/1303/amd-reports-third-quarter-2026-financial-results",
+      "official_release": "November 3 results and a 2 p.m. Pacific conference call; data-center revenue grew 97% year over year.",
+      "cause": "The actual reporting clock was supplied, but the agent carried forward a morning event status without reassessing it. Current prices did not make the news capture current. The headline dataset was last collected at 12:05 p.m. Pacific. Fixed UTC schedules also moved the final scheduled Home run before the market close after the DST change.",
+      "direction": "Assess dated event statements against the reporting clock and use existing acquisition tools for material events already due. Coordinate existing producer freshness; do not add a parallel news system or silently alter schedules."
+    },
+    {
+      "id": "review_objective",
+      "finding": "Full Pro research and public reviews completed, yet absent-proof prose remained.",
+      "evidence": {
+        "planner_question": "is there now one company or policy explanation for the rebound?",
+        "ai_review": "The draft is accurate and appropriately avoids inventing a single cause.",
+        "public_review": "The draft is substantively accurate and already uses clear everyday language in most places.",
+        "public_review_requests": [],
+        "effective_prompt_override": false,
+        "public_writer_model": "deepseek-v4-pro",
+        "public_reviewer_model": "deepseek-v4-pro"
+      },
+      "cause": "The selected question centers on proving a shared cause, and research review rewards that framing. The final editor improves terminology and certainty but does not rebuild the explanation around useful mechanisms or catch the stale AMD event status. Active no-disclaimer instructions alone did not change that behavior.",
+      "direction": "Align the common question, focused research and shared review around the main development, supported business mechanisms and economic relevance. Qualify with a small retained-evidence example before any full rerun; no phrase blacklist or local public-text rewrite."
+    },
+    {
+      "id": "chart_atomic_rejection",
+      "finding": "A 182-character caption failed the 180-character schema maximum; all five selected charts were rejected.",
+      "source": [
+        "services/daily_market_datapoints.py: selection schema and whole-result validation",
+        "pipeline/jobs/attention_home_build.py: warning-and-continue exception handler",
+        "services/home_view.py: latest standalone versus embedded selection by selected_at"
+      ],
+      "cause": "An editorial length preference is enforced as a structural validity rule. Home continues with new reporting while its read path selects the older available chart artifact.",
+      "impact": "The morning selection, as of 08:50 Pacific, appears alongside the evening feed and retains older move descriptions.",
+      "direction": "Remove arbitrary prose-length rejection while preserving valid catalog IDs, distinct selections and exact historical data. Regenerate only this failed stage from retained inputs; do not truncate model prose or repeat the research pipeline."
+    }
+  ],
+  "diagnostic_label_correction": {
+    "scope": "Verification labels only; production research/result identities unchanged.",
+    "issue": "The initial verification paired plan titles and questions with asynchronous results by position.",
+    "correction": "Match each result by event_id and its saved artifact_context.question to the exact plan.",
+    "corrected_failed_wiki_topics": {
+      "funding_admission": "Shopify",
+      "connection_failure": "Marvell/Lumentum",
+      "timeout": [
+        "Energy",
+        "AI hardware"
+      ]
+    },
+    "analysis": "home-failure-analysis-2026-11-03.json"
+  },
+  "private_evidence_files": [
+    "failure-log-full.json",
+    "failure-log-details.json",
+    "failure-diagnosis-latest-audit.json",
+    "attention_source_event_research.json",
+    "attention_source_event_plans.json",
+    "provider-attempts-final.json",
+    "observations.jsonl",
+    "daily-datapoint-failure-log.json",
+    "effective-public-prompts.json",
+    "memory-navigation-last-actions.json"
+  ],
+  "remaining_uncertainty": [
+    "The exact underlying connection exception for the failed Marvell/Lumentum wiki handoff was replaced by generic connection text.",
+    "The precise database/archive error that prevented five successful provider receipts from persisting was not retained. These are logging gaps, not grounds to claim a provider outage."
+  ],
+  "recommended_order": [
+    "Repair receipt persistence and bounded retrieval; reduce repeated context without removing original evidence access.",
+    "Allocate wiki completion before research spends its time and funds.",
+    "Correct event freshness and align planner/reviewer objectives on a small retained example.",
+    "Repair chart validity and regenerate only that stage."
+  ],
+  "runtime_changes": [],
+  "new_inference_requests": 0,
+  "production_writes": 0
+}

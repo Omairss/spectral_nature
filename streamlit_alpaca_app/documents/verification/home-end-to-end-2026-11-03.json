@@ -74,8 +74,8 @@
       "memory_status": "blocked",
       "memory_error": "Wiki update could not reserve completion funds.",
       "tool_failure_count": 1,
-      "title": "AI-hardware and semiconductor shares surge on November 3 after a month-long decline, but no single cause is established",
-      "question": "Why did semiconductor-equipment, optical, memory and AI-infrastructure groups rise sharply on November 3 after 20-session losses, and is there now one company or policy explanation for the rebound?",
+      "title": "Shopify's regular-session decline follows third-quarter results, softer fourth-quarter profit view and a new shelf filing",
+      "question": "After the November 3 regular-session drop of about 8.7%, do Shopify's Q3 sales miss, Q4 outlook and shelf filing still explain the move, and is there any new post-close guidance?",
       "review_verdict": "revise",
       "completed_wiki_read_tools": []
     },
@@ -89,8 +89,8 @@
       "memory_status": "failed",
       "memory_error": "A research or model connection dropped before it returned a response. This is usually transient; rerun the request to retry the source fetch.",
       "tool_failure_count": 0,
-      "title": "Energy shares stay weak over the week as oil falls on Iran deal hopes; current session stabilized but supply change unconfirmed",
-      "question": "Does energy's latest week-long 4.4% mean decline and November 3 stabilization still track Iran-Qatar diplomacy and lower oil, and has any actual supply change appeared?",
+      "title": "New analyst downgrades and Lumentum's continued discount update the Marvell deal-risk question",
+      "question": "Do the November 3 analyst downgrades and Lumentum's latest price change alter the assessment that Lumentum's extra discount beyond 4.5 Marvell shares points to deal-closing risk?",
       "review_verdict": "accept",
       "completed_wiki_read_tools": [
         "zopedia.search_pages",
@@ -107,8 +107,8 @@
       "memory_status": "completed",
       "memory_error": "",
       "tool_failure_count": 1,
-      "title": "Food distributors and packaged-food shares fall sharply without a matched headline",
-      "question": "Why did Sysco, ADM, KDP, US Foods and Performance Food fall by 4% to 9% on November 3, and is this one food-cost or earnings story or separate company news?",
+      "title": "Crypto-mining stocks jump 14% on average despite steady digital-asset prices",
+      "question": "Why did the crypto-mining group rise 14.6% on average on November 3 while Bitcoin and other digital assets were reported steady, and is the move risk appetite or company-specific?",
       "review_verdict": "revise",
       "completed_wiki_read_tools": []
     },
@@ -155,8 +155,8 @@
       "memory_status": "completed",
       "memory_error": "",
       "tool_failure_count": 1,
-      "title": "Crypto-mining stocks jump 14% on average despite steady digital-asset prices",
-      "question": "Why did the crypto-mining group rise 14.6% on average on November 3 while Bitcoin and other digital assets were reported steady, and is the move risk appetite or company-specific?",
+      "title": "Food distributors and packaged-food shares fall sharply without a matched headline",
+      "question": "Why did Sysco, ADM, KDP, US Foods and Performance Food fall by 4% to 9% on November 3, and is this one food-cost or earnings story or separate company news?",
       "review_verdict": "revise",
       "completed_wiki_read_tools": [
         "zopedia.search_pages"
@@ -172,8 +172,8 @@
       "memory_status": "timeout",
       "memory_error": "ResearchStepTimeout: post-answer memory reflection timed out after 90.90230303400017s.",
       "tool_failure_count": 1,
-      "title": "New analyst downgrades and Lumentum's continued discount update the Marvell deal-risk question",
-      "question": "Do the November 3 analyst downgrades and Lumentum's latest price change alter the assessment that Lumentum's extra discount beyond 4.5 Marvell shares points to deal-closing risk?",
+      "title": "Energy shares stay weak over the week as oil falls on Iran deal hopes; current session stabilized but supply change unconfirmed",
+      "question": "Does energy's latest week-long 4.4% mean decline and November 3 stabilization still track Iran-Qatar diplomacy and lower oil, and has any actual supply change appeared?",
       "review_verdict": "revise",
       "completed_wiki_read_tools": [
         "zopedia.search_pages"
@@ -189,8 +189,8 @@
       "memory_status": "timeout",
       "memory_error": "ResearchStepTimeout: post-answer memory reflection timed out after 108.01664070200013s.",
       "tool_failure_count": 0,
-      "title": "Shopify's regular-session decline follows third-quarter results, softer fourth-quarter profit view and a new shelf filing",
-      "question": "After the November 3 regular-session drop of about 8.7%, do Shopify's Q3 sales miss, Q4 outlook and shelf filing still explain the move, and is there any new post-close guidance?",
+      "title": "AI-hardware and semiconductor shares surge on November 3 after a month-long decline, but no single cause is established",
+      "question": "Why did semiconductor-equipment, optical, memory and AI-infrastructure groups rise sharply on November 3 after 20-session losses, and is there now one company or policy explanation for the rebound?",
       "review_verdict": "accept",
       "completed_wiki_read_tools": [
         "zopedia.search_pages"
@@ -614,5 +614,19 @@
     "Assess already-scheduled releases against the actual reporting clock and acquire material released results through existing shared research.",
     "Fund and time wiki completion separately from an investigation's nearly exhausted work window, using the original producer ledger and deadline.",
     "Remove editorial character caps that invalidate an otherwise usable chart selection; preserve structural source-ID and data contracts. Retry only chart selection with current retained inputs."
-  ]
+  ],
+  "diagnostic_correction": {
+    "scope": "Verification labels only; production research/result identities unchanged.",
+    "issue": "The initial verification paired plan titles and questions with asynchronous results by position.",
+    "correction": "Match each result by event_id and its saved artifact_context.question to the exact plan.",
+    "corrected_failed_wiki_topics": {
+      "funding_admission": "Shopify",
+      "connection_failure": "Marvell/Lumentum",
+      "timeout": [
+        "Energy",
+        "AI hardware"
+      ]
+    },
+    "analysis": "home-failure-analysis-2026-11-03.json"
+  }
 }
