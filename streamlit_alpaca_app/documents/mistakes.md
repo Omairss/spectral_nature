@@ -1602,6 +1602,10 @@ The two-report writing sample initially allowed arbitrary strings in source_ids 
 
 Home wiki writes were disabled in the October27 qualification follow-up, and the data-first release did not reconnect reviewed investigations to the wiki. Saving research for reuse did not provide wiki continuity. The November3 handoff and subsequent reuse are now qualified locally. The isolated planner fixture initially used the wrong retained-reader namespace, and its guard initially rejected native mechanical JSON repair. Correct both before paid qualification; retain every charge and interrupted-request maximum. Compare serialized outcomes consistently rather than treating Python/JSON type differences as extra writes.
 
+### November 3, 2026 — missing-cause framing remains unfixed
+
+The live 08:50PST Home story retained “no single proven cause” after completed full-Pro review. Existing instructions already forbid disclaimers; their presence does not establish a successful editorial fix. The wiki-continuity release repaired persistence only. Do not describe that deployment, or an old held writing experiment, as correcting the current public wording. Qualify any editorial correction against the saved findings and originals without repeating the complete research run.
+
 ### November 1, 2026 — renewed native profile
 
 iOS rejected the first build 18 launch despite a valid signature, matching provisioning certificate and registered device. Keep installation and launch as separate verification states; the later matching process and successful ordinary launch established completion. Do not rebuild or change signing access merely because the generic iOS security error lists several possible causes.
