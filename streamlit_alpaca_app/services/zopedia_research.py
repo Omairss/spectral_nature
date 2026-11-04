@@ -867,11 +867,9 @@ def search_evidence(
 
     start_date, end_date = date_boundary(start_date), date_boundary(end_date, end=True)
     symbols = _symbol_list(tickers)
-    requests = [
-        (text, symbols if strict_tickers else None, dated)
-        for text in searches
-        for dated in ([True, False] if start_date or end_date else [False])
-    ]
+    # Honor each requested search window once. The agent can explicitly query
+    # older context; duplicating every query without dates doubles contention.
+    requests = [(text, symbols if strict_tickers else None, bool(start_date or end_date)) for text in searches]
     if symbols and not strict_tickers:
         requests.append((normalized_query, symbols, False))
 
