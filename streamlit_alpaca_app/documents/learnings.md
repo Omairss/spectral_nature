@@ -1,5 +1,14 @@
 # Learnings — Active Guidelines
 
+## Calendar publication freshness is not results coverage — 2026-11-03
+
+Verify the latest reporting date's actual price colors separately from job success, publication timestamp, old positive/negative examples and optional EPS confirmation. The requested next-session price observation comes from consolidated bars; it must not depend on a per-company fundamental-history allowance. Preserve source confirmation status honestly rather than making a price move confirm a report. Prioritize recent optional confirmations over backfill, and use official session close plus provider data delay instead of excluding today's date. Real November 2 replay and both production gateways measure all 152 entries despite the history allowance being full; two unchanged prices remain neutral. [Delivery](verification/calendar-history-reactions-2026-11-01/CURRENT_RESULTS_PRODUCTION.json).
+
+
+## Calendar history and reaction windows — 2026-11-01
+
+Expected earnings calendars cannot backfill reported dates. Retain actual company earnings history separately and share the free provider request allowance across environments. Use publisher trading sessions and one explicitly chosen reaction convention. The owner selected only the next trading day’s close-to-close return for this carousel. Consolidated SIP prices match official issuer closes; IEX-only closes can differ and must not silently determine a consolidated-market reaction. A missing close is unavailable data, not a holiday. Share-price reaction is distinct from an earnings surprise. Keep colors neutral until the required sessions are complete, and keep measurement metadata internal when the requested UI is color only. See [the calendar design](plans/CALENDAR_HISTORY_REACTIONS_2026-11-01.md).
+
 ## Normalize inference prices before projecting costs — 2026-10-29
 
 Separate scheduled off-peak usage from exceptional peak-priced catch-ups before extrapolating a daily cost. The same latest Home tokens cost $9.25 at peak and $4.63 off-peak. Provider prefix caching reduces input cost, while artifact reuse avoids complete repeated calls; they are different mechanisms. Preserve output-token costs and unknown attempts when estimating savings. A model-preserving cache-only counterfactual does not establish achievable cache hits or unchanged qualitative coverage. See [cost evidence](verification/event-adaptive-reliability-2026-10-28/workload-cost-recheck-20261029.json).
@@ -1648,3 +1657,7 @@ Six funded full-Pro writing/reviewer checks sometimes shortened explanations but
 ### November 3, 2026 — Home wiki continuity
 
 Verify investigation storage, completed review and retained wiki knowledge separately. Reuse the shared post-answer memory step, original sources and page revision checks. A failed memory write must remain retryable without rerunning research or overwriting newer knowledge. Protect absent-page creation as well as existing revisions, and require the mutation’s saved outcome rather than treating a returned tool response as a commit. The qualified native Home reuse branch makes no new inference or page revision.
+
+### November 1, 2026 — production calendar and physical-device verification
+
+Match a new producer to the reader’s explicit production namespace; legacy macro producers may use the canonical unscoped production path. Promote only the exact DEV-qualified images. For native installation, independently verify bundle version and the matching running executable; local signature validation does not establish that iOS will launch a renewed development profile.

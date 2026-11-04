@@ -1,0 +1,122 @@
+{
+  "environment": "production",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9"
+  },
+  "source_inventory_sha256": "bd0f4040e86a0d92d802818686734ed1f7b349a4b9556a565882ce2ab91647b6",
+  "targets": [
+    {
+      "name": "market-calendar-refresh",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+      "configuration_sha256": "cedc52abc916dddf6bfa6849b91a64301a26093996f5f225c0301291da0c1140",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-api-next",
+      "kind": "containerApps",
+      "role": "api-next",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
+      "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-streamlit-ui",
+      "kind": "containerApps",
+      "role": "web",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+      "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-next-ui",
+      "kind": "containerApps",
+      "role": "web",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+      "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "recorded_at": "2026-11-02T07:09:40.197536+00:00",
+  "job_executions_started": 1,
+  "status": "accepted",
+  "owner_instruction": "Is the real earnings scan deployed in prod as a job? If not, deploy it. Then update the phone with this app",
+  "image_source_revision": "188e51694f85694e5743aca4ec8b37e3ba0213fc",
+  "accepted_application_source": "63a19ac7146c3da58b6338fd71e80dd027a80b1b",
+  "authorization": "PRODUCTION_AUTHORIZATION.json",
+  "development_acceptance": "DEVELOPMENT.json",
+  "package_acceptance": "PACKAGE_ACCEPTANCE.json",
+  "consumer_readback": "PRODUCTION_CONSUMERS.json",
+  "job": {
+    "name": "market-calendar-refresh",
+    "execution": "market-calendar-refresh-icyh91j",
+    "status": "Succeeded",
+    "pipeline_run_id": "441c5c30-19fe-4e28-8e36-564659b65139",
+    "as_of": "2026-11-02T06:58:55.173547+00:00",
+    "sources": {
+      "bea": 19,
+      "fed": 8,
+      "alpha_vantage": 3454,
+      "fred_bls": 32
+    },
+    "retained_events": 3513,
+    "namespace": "production",
+    "cron_utc": "0 0,6,12,18 * * *",
+    "replica_timeout_seconds": 300,
+    "authentication": "existing managed identity and Key Vault AlphaVantage",
+    "inference_calls": 0
+  },
+  "home_readback": {
+    "primary": "https://spectral-nature.com",
+    "alias": "https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io",
+    "status": "available",
+    "publication_run_id": "897f8072-05b5-4f11-89de-792daa2093cb",
+    "calendar_as_of": "2026-11-02T06:58:55.173547+00:00",
+    "calendar_days": 98,
+    "calendar_events": 3502,
+    "conditional_status": 304,
+    "graph_available": true
+  },
+  "revisions": {
+    "sn-api-next": {
+      "name": "sn-api-next--0000027",
+      "health": "Healthy",
+      "traffic": 100,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16"
+    },
+    "sn-next-ui": {
+      "name": "sn-next-ui--0000021",
+      "health": "Healthy",
+      "traffic": 100,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9"
+    },
+    "sn-streamlit-ui": {
+      "name": "sn-streamlit-ui--0000105",
+      "health": "Healthy",
+      "traffic": 100,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9"
+    }
+  },
+  "production_existing_apps_updated": 3,
+  "production_jobs_added": 1,
+  "existing_configurations_preserved": 37,
+  "development_consumers_preserved": 16,
+  "other_existing_production_consumers_preserved": 18,
+  "frontend_visual": "production-web-earnings-expanded.jpg",
+  "native_installation": "NATIVE_INSTALLATION.json",
+  "native_build": "18",
+  "native_launch_verified": true,
+  "inference_calls": 0,
+  "limits": [
+    "Earnings dates remain provider-expected; no automated issuer confirmation.",
+    "BLS source unavailable; FRED fallback retains release dates without invented clocks.",
+    "Physical phone version/process verified; phone screen not inspected."
+  ]
+}

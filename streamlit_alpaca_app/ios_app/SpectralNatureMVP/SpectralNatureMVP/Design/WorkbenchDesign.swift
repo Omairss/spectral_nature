@@ -12,6 +12,8 @@ enum Theme {
   static let violet = Color(red: 0.70, green: 0.62, blue: 0.96)
   static let coral = Color(red: 0.94, green: 0.55, blue: 0.45)
   static let blue = Color(red: 0.42, green: 0.72, blue: 1)
+  static let gain = Color(red: 0.463, green: 0.784, blue: 0.576)
+  static let loss = Color(red: 0.902, green: 0.604, blue: 0.573)
   @MainActor static func configureAppearance() {
     let appearance = UINavigationBarAppearance()
     appearance.configureWithOpaqueBackground()

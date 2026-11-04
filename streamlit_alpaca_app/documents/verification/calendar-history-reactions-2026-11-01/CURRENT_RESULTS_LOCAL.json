@@ -1,0 +1,34 @@
+{
+  "status": "accepted_locally",
+  "verified_as_of": "2026-11-04T02:19:33.850229+00:00",
+  "source": "fresh Alpaca SIP adjusted daily bars, actual production event publication",
+  "november_2": {
+    "events": 152,
+    "measured": 152,
+    "green": 76,
+    "red": 74,
+    "unchanged": 2,
+    "unavailable": []
+  },
+  "event_identity_preserved": true,
+  "confirmation_status_preserved": true,
+  "client_changes": 0,
+  "targeted_operational_checks": 25,
+  "provider_history_quota_bypassed": false,
+  "production_dataset_writes": 0,
+  "source_sessions": [
+    "2026-11-02",
+    "2026-11-03"
+  ],
+  "native_preview": "native-nov2-repair-local.jpg",
+  "development_status": "pending",
+  "full_producer_dry_run": {
+    "seconds": 28.16,
+    "november_2_entries": 152,
+    "november_2_measured": 152,
+    "total_observed_events": 174,
+    "provider_history_allowance_reached": true,
+    "publication_performed": false,
+    "existing_bls_403_covered_by_fred": true
+  }
+}

@@ -1,5 +1,7 @@
 # Plans Index
 
+- [Calendar history and color-only reactions](CALENDAR_HISTORY_REACTIONS_2026-11-01.md) — production and build19 delivery; no reaction text in either client.
+
 - [Market-First Research](MARKET_FIRST_RESEARCH_2026-10-30.json) — implemented data-first Home selection, focused context and research reuse; matched outputs reviewed and not accepted. Financial precision and continuing coverage remain unresolved; deployment held.
 
 - [Alpaca paper portfolio and scientific sizing](TRADING_AGGREGATE_PORTFOLIO_2026-10-22.md) — active account integration; local verification and native/DEV acceptance.
@@ -20,6 +22,8 @@ Use the docs as follows:
 - files in `documents/plans/`: implementation plans, recovery notes, and short working specs
 
 ## Product and UX
+
+- [Live market-event calendar](LIVE_MARKET_CALENDAR_2026-11-01.md): shared source ingestion, expected earnings, native/web carousel, production job and physical iPhone build 18.
 
 - [Client refresh and native paper performance](CLIENT_REFRESH_2026-10-22.md): conditional live Brief refresh, replay/playback preservation and corrected native detail routing.
 

@@ -1,0 +1,77 @@
+{
+  "environment": "production",
+  "source_inventory_sha256": "e7b5129abe047abed2633f61128393a0634c1b16eb20e4fd6541f712b19dcea2",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf"
+  },
+  "targets": [
+    {
+      "name": "market-calendar-refresh",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf",
+      "configuration_sha256": "30bab0b60534d0c56819e6f6a6fdbb0a8ed9ef937466c250624c3e0696cbe853",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "recorded_at": "2026-11-04T02:42:45.673163+00:00",
+  "job_executions_started": 1,
+  "status": "accepted",
+  "execution": {
+    "name": "market-calendar-refresh-n87o371",
+    "status": "Succeeded",
+    "start": "2026-11-04T02:43:09+00:00",
+    "end": "2026-11-04T02:44:08+00:00"
+  },
+  "public_gateways": [
+    {
+      "origin": "https://spectral-nature.com",
+      "http": 200,
+      "calendar_as_of": "2026-11-04T02:43:48.312218+00:00",
+      "continuous_days": 121,
+      "november_2": {
+        "events": 152,
+        "measured": 152,
+        "green": 76,
+        "red": 74,
+        "unchanged_neutral": 2
+      },
+      "other_home_sections_preserved": {
+        "summary": true,
+        "graph": true,
+        "beats": true,
+        "daily_datapoints": true
+      },
+      "conditional_home_http": 304
+    },
+    {
+      "origin": "https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io",
+      "http": 200,
+      "calendar_as_of": "2026-11-04T02:43:48.312218+00:00",
+      "continuous_days": 121,
+      "november_2": {
+        "events": 152,
+        "measured": 152,
+        "green": 76,
+        "red": 74,
+        "unchanged_neutral": 2
+      },
+      "other_home_sections_preserved": {
+        "summary": true,
+        "graph": true,
+        "beats": true,
+        "daily_datapoints": true
+      },
+      "conditional_home_http": 304
+    }
+  ],
+  "all_configurations_preserved": 38,
+  "other_images_preserved": 36,
+  "client_changes": 0,
+  "iphone_build": 19,
+  "phone_reinstall_required": false,
+  "native_visual_evidence": "native-nov2-repair-production.jpg",
+  "reaction_display": "label color only",
+  "optional_eps_confirmation_remains_independent": true
+}

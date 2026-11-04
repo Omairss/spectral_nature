@@ -1,5 +1,25 @@
 # Mistakes — Active Guidelines
 
+## Shipped calendar history without current-results coverage — 2026-11-03
+
+I accepted older red/green examples and successful refreshes without verifying the next reporting day's results. The initial November 3 inspection found 152 November 2 scheduled earnings entries and zero confirmations/reactions. The application history allowance is full; market-cap backfill ranks ahead of pending reports and only 14 of 1,000 companies have cached history. The observer also excludes current-date closes after the market has closed, adding a day of delay. The deeper mistake was gating a directly measurable share-price color on an optional per-company earnings-history lookup. The correction separates those paths, uses the official session close, and prioritizes recent optional confirmations. All 152 November 2 entries are measured in a fresh provider replay (76 green, 74 red, two unchanged/neutral); the exact qualified image is now verified live in DEV and production. I also stopped after diagnosis and a status answer instead of carrying the owner’s repair through. A successful job or a diagnosis is not completion.
+
+## Added unrequested detail to a minimal calendar — 2026-11-02
+
+The owner asked for red/green labels. I added percentage and closing-date text in expanded details, despite the established minimal design. Removed those blocks from both clients. Keep calculation/provenance metadata internal unless the owner asks to display it; an expandable surface is not permission to add analytics.
+
+## Release preparation must fail fast and use the Git root — 2026-11-02
+
+Operator metadata preparation used repository-relative paths while running inside the application directory. A failed step was followed by later shell commands, and an unresolved acceptance record was temporarily committed. The source gate rejected it before any build or deployment. Corrected the metadata, made dependent operator sequences fail fast, anchored Git path filters to the actual root, and passed all three complete source gates before packaging. A failed preparation step must stop its dependent sequence.
+
+## Validate quote coverage before reaction color — 2026-11-02
+
+The first calendar preview reused IEX-only adjusted closes and described them too broadly as a market reaction. The owner questioned Microsoft's color. The issuer's official lookup and a fresh consolidated SIP probe agreed on −0.16%, versus the cached IEX −0.35%; the opening gap was positive but the next close was negative. Calendar observations now explicitly fetch SIP, retain measurement dates internally and allow no IEX fallback. Verify the feed as well as arithmetic before accepting a reaction color.
+
+## Reuse the complete provider adapter — 2026-11-01
+
+The first calendar-reaction probe found a duplicate `get_market_calendar` definition with a different calling convention. I had read only part of the existing adapter. Removed the duplicate and reused the existing keyword-based API; a real provider replay then measured all completed past events. Search the complete adapter and its callers before adding a provider capability.
+
 ## Peak-priced catch-up included in normal cost forecast — 2026-10-29
 
 The initial $43–$58 weekday projection mixed the evening catch-up’s double-price tokens with normal scheduled off-peak runs. Its $9.25 recorded estimate remains correct, but the same tokens price at $4.63 off-peak. The normalized recent-run extrapolation is approximately $38–$46 per scheduled weekday, with unresolved charges and abnormal failures separate. Compare price bands and input/output/cache usage before attributing a cost increase to a release. [Corrected evidence](verification/event-adaptive-reliability-2026-10-28/workload-cost-recheck-20261029.json).
@@ -1581,3 +1601,7 @@ The two-report writing sample initially allowed arbitrary strings in source_ids 
 ### November 3, 2026 — Home wiki continuity
 
 Home wiki writes were disabled in the October27 qualification follow-up, and the data-first release did not reconnect reviewed investigations to the wiki. Saving research for reuse did not provide wiki continuity. The November3 handoff and subsequent reuse are now qualified locally. The isolated planner fixture initially used the wrong retained-reader namespace, and its guard initially rejected native mechanical JSON repair. Correct both before paid qualification; retain every charge and interrupted-request maximum. Compare serialized outcomes consistently rather than treating Python/JSON type differences as extra writes.
+
+### November 1, 2026 — renewed native profile
+
+iOS rejected the first build 18 launch despite a valid signature, matching provisioning certificate and registered device. Keep installation and launch as separate verification states; the later matching process and successful ordinary launch established completion. Do not rebuild or change signing access merely because the generic iOS security error lists several possible causes.

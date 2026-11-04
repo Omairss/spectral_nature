@@ -1,6 +1,6 @@
 {
-  "status": "accepted_locally",
-  "scope": "Reviewed Home investigations update existing Zopedia wiki knowledge and reuse completed handoffs.",
+  "status": "held_calendar_source_integration_review",
+  "scope": "Home wiki continuity is accepted locally; integrate newer accepted live calendar source before packaging.",
   "source_revision": "4a1d04a5759e49b90f76e797d22958cea42ba85e",
   "review_base_revision": "d2cfd7bc6605327d05aaa8e06f1cf6bbfa7d5665",
   "files": {

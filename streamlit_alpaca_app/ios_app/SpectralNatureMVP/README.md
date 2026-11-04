@@ -1,12 +1,14 @@
 # Spectral Nature for iPhone
 
+The November 3 server correction restores November 2 reaction colors in the existing build 19; no phone reinstall is required. [Current results delivery](../../documents/verification/calendar-history-reactions-2026-11-01/CURRENT_RESULTS_PRODUCTION.json).
+
 ### October 30 inline brief expansion POC
 
 The native brief can now expand underlined phrases within a sentence and collapse them on another tap. Explanations reflow in the same paragraph; several phrases can be open independently. The current local experiment uses authored illustrative copy through the existing DEBUG loopback override, without a generation/provider change. [Native POC and screenshots](../../documents/verification/native-brief-expansion-2026-10-30/README.md). The approved carousel and older Markdown publications retain their existing behavior.
 
 Native SwiftUI client for the modern Spectral Nature workbench. Requires iOS 17 or later and Xcode 16 or later. The historical `SpectralNatureMVP` directory is retained; the application and shared scheme are named `SpectralNature`.
 
-Installed build **17** implements the portfolio-first Trading workspace, approval feed, fill-based call performance and position controls. Build 16’s Home, Markets, charts, feedback and session behavior are preserved. Trading verification and production delivery are recorded in [the October 29 source review](../../documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md).
+Installed build **19** adds past calendar events with red/green labels and keeps the carousel minimal. It preserves the Trading workspace and existing Home behavior. [Calendar release and installation](../../documents/verification/calendar-history-reactions-2026-11-01/NATIVE_INSTALLATION.json).
 
 ## Run
 
@@ -60,9 +62,9 @@ Keep normal simulator signing enabled: Keychain needs Xcode's simulated applicat
 
 ## Installation and validation
 
-Version 1.0.0 build17 is installed in place on Omair’s iPhone, with an independent installed-version readback. It adds the shared Trading paper portfolio timeline, persistent approval feed, fill-based call performance and position/policy controls. Build 17 is installed on the owner’s iPhone, independently read back, and launch plus running process are verified. See the [production and installation record](../../documents/verification/trading-system-2026-10-29/README.md). The preceding [build16 delivery](../../documents/verification/iphone-feedback-2026-10-28/PRODUCTION.json) retains its earlier feedback and metrics evidence. Other paired phones were not updated in this owner-authorized installation.
+Version 1.0.0 build 19 is installed on the owner's iPhone, with independent version readback and a verified local signature. Production native Simulator and browser screens confirm the color-only timeline and attention graph. Remote launch and independent running-process verification succeeded. [Current installation record](../../documents/verification/calendar-history-reactions-2026-11-01/NATIVE_INSTALLATION.json).
 
-The Personal Team profile includes all three paired phones and expires October 30, 2026 at 10:50 p.m. Pacific. The same bundle identifier and development team preserve application data and Keychain storage. The preceding [build15 acceptance and installation](../../documents/verification/iphone-markets-2026-10-28/LOCAL.md) remains recorded.
+The current Personal Team profile expires 2026-11-09 at 02:43:50 UTC. The bundle identifier and development team remain the same, preserving application data and Keychain identity. Earlier [build 18 calendar delivery](../../documents/verification/live-market-calendar-2026-11-01/NATIVE_INSTALLATION.json) and [build 17 Trading delivery](../../documents/verification/trading-system-2026-10-29/README.md) remain recorded.
 
 Previous receipts retain the [October23 three-phone build14 installation](../../documents/verification/iphone-install-2026-10-23/installation.json), [build9 refresh delivery](../../documents/verification/client-refresh-2026-10-22/production.json) and [preceding signing renewal](../../documents/verification/native-renewal-2026-10-22/release.json).
 

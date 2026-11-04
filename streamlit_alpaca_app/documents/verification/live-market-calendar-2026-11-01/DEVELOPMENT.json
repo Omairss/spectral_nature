@@ -1,0 +1,89 @@
+{
+  "environment": "development",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9"
+  },
+  "source_inventory_sha256": "bd0f4040e86a0d92d802818686734ed1f7b349a4b9556a565882ce2ab91647b6",
+  "targets": [
+    {
+      "name": "market-calendar-refresh-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e770b6993ae93d08864877e0547f7dc0180c1441e72fe168a7ab0161e8f5db7d",
+      "configuration_sha256": "ceee1951e7d748240c81b56d126e0a2758e192d5314cf26eb980668eaf6af0ce",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-api-next-dev",
+      "kind": "containerApps",
+      "role": "api-next",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:32a7f8376ace80ba50b30d570637721c7bf18a4a31d7a4ea1bb15d1005c11a16",
+      "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "kind": "containerApps",
+      "role": "web",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:18c073820cd6ee7e22fc57ded7376d564533c2dedf1080b903d3df9dc69aeed9",
+      "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "recorded_at": "2026-11-02T03:29:36.907852+00:00",
+  "job_executions_started": 1,
+  "status": "accepted",
+  "gateway": "https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io",
+  "execution": {
+    "name": "market-calendar-refresh-dev-o7xk8mi",
+    "status": "Succeeded",
+    "start": "2026-11-02T03:21:08+00:00",
+    "end": "2026-11-02T03:21:59+00:00",
+    "pipeline_run_id": "34e8cd25-6f4f-42d2-833b-e19413ecad0b",
+    "authentication": "ordinary managed identity; Key Vault AlphaVantage; no operator storage key",
+    "sources": {
+      "alpha_vantage": 3454,
+      "bea": 19,
+      "fed": 8,
+      "fred_bls": 34,
+      "bls": "unavailable; fallback retained"
+    },
+    "retained_events": 3515
+  },
+  "home_readback": {
+    "status": "available",
+    "run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+    "calendar_as_of": "2026-11-02T03:21:45.670976+00:00",
+    "calendar_days": 98,
+    "calendar_events": 3502,
+    "graph_preserved": true,
+    "conditional_status": 304,
+    "replay_before_first_calendar_has_no_future_schedule": true
+  },
+  "native_review": {
+    "signed_simulator": true,
+    "server": "https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io",
+    "compact_above_attention": true,
+    "earnings_expand_inline": true,
+    "source_and_expected_timing_visible": true,
+    "screenshots": [
+      "native-dev-calendar-compact.jpg",
+      "native-dev-earnings-expanded.jpg"
+    ],
+    "touch_drag_verification": "not established through automation; date-button centering verified"
+  },
+  "preservation_evidence": "CONSUMERS.json",
+  "production_authorized": false,
+  "production_changed": false,
+  "inference_calls": 0,
+  "physical_phone_updated": false,
+  "limits": [
+    "Earnings discovery remains expected; automated company-IR confirmation is not implemented.",
+    "BLS direct feed unavailable; FRED fallback preserves dates with unknown clock times."
+  ]
+}

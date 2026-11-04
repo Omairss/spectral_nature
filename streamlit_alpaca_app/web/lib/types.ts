@@ -109,6 +109,9 @@ export type MarketEventCalendar = {
     type: string; time: string | null; importance: number; confirmation_status: string;
     timing_label: string | null; timing_precision: string; source_url: string; source_as_of: string | null;
     facts: string[][];
+    market_reaction?: null | {
+      return_pct: number;
+    };
   }> }>;
 };
 
