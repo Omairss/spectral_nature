@@ -1,0 +1,30 @@
+{
+  "owner_instruction": "Roll it out",
+  "authorized_at_pacific": "2026-11-04",
+  "publisher": {
+    "resource_group": "sn-pipeline-rg-03130136",
+    "job": "attention-home-build",
+    "environment": {
+      "ATTENTION_X_PUBLISH_ENABLED": "true",
+      "APP_PUBLIC_BASE_URL": "https://spectral-nature.com"
+    },
+    "trigger": "Native Attention run completion, after the exact saved publication and completion receipt",
+    "account": "OmairS2",
+    "payload": "Existing event headline, saved Home chart images, complete event explanation image, and immutable Attention page link",
+    "deduplication": "Account-wide immutable event receipts; preserve earlier posts"
+  },
+  "research": {
+    "tool": "research.company_sentiment",
+    "scope": "Existing shared company investigations",
+    "interpretation": "Existing research model; dated attributed X reactions"
+  },
+  "hard_limits_seconds": {
+    "browser_http": 0.1,
+    "explicit_read": 1,
+    "main_frame_navigation": 10,
+    "post": 120,
+    "login_attempt": 900
+  },
+  "development_publishing_enabled": false,
+  "models_providers_schedules_budgets": "Preserved"
+}

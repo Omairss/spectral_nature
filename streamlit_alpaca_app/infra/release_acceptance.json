@@ -1260,7 +1260,15 @@
           }
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e46ca88ac1111fd39a2f7c3211a1cd20d0125541e7ec18ff6cf823b2f96ae03e": {
+          "source_revision": "324477f1f3a5e6588f124703664be2ff3aea9aca",
+          "source_inventory_sha256": "c726239f3dc57be4b978a082e64c67881ed6de95252d13c38347d94db7cfb30e",
+          "runtime_inventory_sha256": "ffe428ffd562a9efc9fc459deb37b141f5413583e4b5e6ebdc96658e29a84f48",
+          "qualification_run": "cj1fr",
+          "evidence": "documents/verification/twitter-account-2026-11-03/rollout-packages-2026-11-04.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
@@ -1303,7 +1311,15 @@
           }
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:e314dd71cfaab9f6446c1917f532fece0b31d86cfb273aad261fbf9cddd2d766": {
+          "source_revision": "324477f1f3a5e6588f124703664be2ff3aea9aca",
+          "source_inventory_sha256": "c726239f3dc57be4b978a082e64c67881ed6de95252d13c38347d94db7cfb30e",
+          "runtime_inventory_sha256": "ffe428ffd562a9efc9fc459deb37b141f5413583e4b5e6ebdc96658e29a84f48",
+          "qualification_run": "cj1fs",
+          "evidence": "documents/verification/twitter-account-2026-11-03/rollout-packages-2026-11-04.json"
+        }
+      }
     },
     "web": {
       "dependency_image": "node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da",
@@ -1362,7 +1378,15 @@
           }
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6d4148cb8e036f360e069da280c0e3597e0331292993116ed54e09502f4b6502": {
+          "source_revision": "324477f1f3a5e6588f124703664be2ff3aea9aca",
+          "source_inventory_sha256": "c726239f3dc57be4b978a082e64c67881ed6de95252d13c38347d94db7cfb30e",
+          "runtime_inventory_sha256": "823d39cff6eb2ebf0aee675cdf397350d032e773ce0f0ca921722c331526de70",
+          "qualification_run": "cj1fq",
+          "evidence": "documents/verification/twitter-account-2026-11-03/rollout-packages-2026-11-04.json"
+        }
+      },
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
         "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
@@ -1508,7 +1532,15 @@
           }
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:b4de9f6922a1e2be93679c78f29fbf3646cf3373ffe7dc7ef606bc8e0520433b": {
+          "source_revision": "324477f1f3a5e6588f124703664be2ff3aea9aca",
+          "source_inventory_sha256": "c726239f3dc57be4b978a082e64c67881ed6de95252d13c38347d94db7cfb30e",
+          "runtime_inventory_sha256": "ffe428ffd562a9efc9fc459deb37b141f5413583e4b5e6ebdc96658e29a84f48",
+          "qualification_run": "cj1ft",
+          "evidence": "documents/verification/twitter-account-2026-11-03/rollout-packages-2026-11-04.json"
+        }
+      }
     }
   },
   "untouched_consumers": [],
