@@ -130,7 +130,7 @@
       "scope": "Home, native harness, adaptive accounting, publication, and retained calendar behavior"
     },
     "legacy_agent_suite": "Candidate and accepted base have the same 26 pre-existing failures and 19 passes; no new failures in the compared run.",
-    "qualification_setup_correction": "First fixture used a different retained-reader namespace in the isolated DB. The initial transport guard also rejected the production engine\u2019s mechanical JSON repair; the final qualification preserves the native repair contract. All earlier usage and one real interrupted-request maximum remain counted. An initial object-equality probe mixed Python and serialized types; the subsequent cache/request/page checks supersede that probe.",
+    "qualification_setup_correction": "First fixture used a different retained-reader namespace in the isolated DB. The initial transport guard also rejected the production engine’s mechanical JSON repair; the final qualification preserves the native repair contract. All earlier usage and one real interrupted-request maximum remain counted. An initial object-equality probe mixed Python and serialized types; the subsequent cache/request/page checks supersede that probe.",
     "home_reuse_path": {
       "status": "passed",
       "qualification_scope": "Only the reused branch of the completed real model agenda; no new investigations or inference are allowed.",
@@ -782,5 +782,13 @@
     "verified_archive_retention_days": 30,
     "expires_at": "2026-12-04T03:56:01.364983+00:00",
     "paid_inference_exception_closed": true
+  },
+  "subsequent_production_end_to_end": {
+    "record": "home-end-to-end-2026-11-03.json",
+    "status": "completed_with_failures",
+    "research_reviews_completed": 8,
+    "wiki_committed": 4,
+    "wiki_pending": 4,
+    "qualitative_acceptance": "failed"
   }
 }

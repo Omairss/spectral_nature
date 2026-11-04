@@ -1663,3 +1663,13 @@ Verify investigation storage, completed review and retained wiki knowledge separ
 ### November 1, 2026 — production calendar and physical-device verification
 
 Match a new producer to the reader’s explicit production namespace; legacy macro producers may use the canonical unscoped production path. Promote only the exact DEV-qualified images. For native installation, independently verify bundle version and the matching running executable; local signature validation does not establish that iOS will launch a renewed development profile.
+
+### November 3, 2026 — manual reporting needs a fresh upstream snapshot
+
+Before a manual Home refresh, compare the last complete numerical producer snapshot with the requested market session and reporting time. Refresh the existing producer when needed, then verify that prices, histories, correlations and anomaly datasets share its completed run. Preserve original economic release dates. Fixed UTC schedules also require a separate seasonal-time review when an update is intended to follow the U.S. market close; no schedules were changed in this regeneration.
+
+### November 3, 2026 — production execution is distinct from qualitative acceptance
+
+The current-data production replay completed all eight investigations and their reviews, published nine stories, read existing wiki pages and committed four new ones. Four wiki handoffs remained pending: one funding refusal, one connection failure and two exhausted event windows. The full-Pro public reviewer still accepted proof-centered prose and missed AMD results already released before the evening report. The actual planner question itself asked for one common cause; the final reviewer then removed familiar wording while retaining that framing. Trace the agenda, acquisition, review, memory and public text separately. Local handoff success and funded completion do not establish useful current reporting. See verification/home-end-to-end-2026-11-03.json.
+
+The same replay rejected all five new chart selections because one 182-character significance sentence exceeded a180-character schema cap. The API retained morning captions beside the new evening Brief. Keep source identities and data types strict; treat prose length as an editorial objective rather than a whole-publication failure condition. Inspect actual returned subartifact timestamps, not only the main feed run ID.

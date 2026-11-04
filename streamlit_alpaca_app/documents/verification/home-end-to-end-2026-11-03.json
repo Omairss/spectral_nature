@@ -1,0 +1,618 @@
+{
+  "status": "completed_with_failures",
+  "owner_request": "Verify end to end and regenerate the feed",
+  "started_at_utc": "2026-11-04T04:37:50Z",
+  "pacific_date": "2026-11-03",
+  "execution": "attention-home-build-4csjn9u",
+  "run_id": "168d03d7-a792-471c-ade4-0d343217fbad",
+  "source_branch": "fix/home-wiki-continuity-20261103",
+  "worker_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+  "scope": "Existing owner-authorized production workload; no separate offline study or paid API exception used. Existing provider, model, schedules and allowances retained.",
+  "budget": {
+    "base_usd": 10,
+    "event_margin_fraction": 0.5,
+    "soft_completion_overrun_fraction": 0.1
+  },
+  "provider_balance_before_usd": 99.31,
+  "previous_publication": {
+    "run_id": "fc30fd02-6662-4740-9dd2-574689c53155",
+    "as_of": "2026-11-03T16:50:38.890972+00:00"
+  },
+  "checks": {
+    "numerical_inputs_and_groups": "passed after refreshing the existing producer; ten derived datasets share one complete run",
+    "common_planner": "executed with numerical context, headlines, retained research and the actual as-of timestamp; five investigations and three updates selected",
+    "investigations_and_reviews": "8/8 completed, all accepted or revised; optional-navigation admission refusals recovered through protected Pro completion",
+    "wiki_reads_and_updates": "partial: production read existing wiki pages and committed four new pages; four handoffs remain pending",
+    "publication_and_live_readback": "passed: actual API and server-rendered web page contain current run and nine stories; audio retained",
+    "complete_attention_and_brief_quality": "failed: absent-proof framing, verbosity and missed past AMD release",
+    "costs_and_failures": "recorded without resetting prior charges or unknown bounds",
+    "daily_chart_selection": "failed: entire selection rejected because one caption exceeded the 180-character schema cap; API retained morning selection"
+  },
+  "private_operations": "~/Library/Application Support/SpectralNature/operations/home-end-to-end-20261103",
+  "attempts": [
+    {
+      "execution": "attention-home-build-pufb5pl",
+      "run_id": "26dabb22-4269-4788-9998-6ef5638133a8",
+      "status": "stopped_by_operator",
+      "reason": "Latest input audit found pre-close prices; stopped to regenerate from an after-close refresh.",
+      "estimated_inference_and_search_usd": 0.743559,
+      "unresolved_maximum_usd": 2.438734
+    }
+  ],
+  "market_refresh": {
+    "execution": "equities-intraday-preload-94036b1",
+    "run_id": "e46c2cbd-54a0-4613-863d-2825596d212d",
+    "status": "Succeeded",
+    "consistent_datasets": 10,
+    "as_of": "2026-11-04T04:50:10.220685+00:00"
+  },
+  "fresh_run_as_of": "2026-11-04 04:56:10.420662+00:00",
+  "completed_at_utc": "2026-11-04 05:34:51.998062+00:00",
+  "platform_status": "Succeeded",
+  "application_status": "Warning",
+  "application_warning": "{\"semantic_retrieval\": \"1 degraded operations: LLMDeadlineExceeded\"}",
+  "publication": {
+    "status": "verified_live",
+    "run_id": "168d03d7-a792-471c-ade4-0d343217fbad",
+    "as_of": "2026-11-04T04:56:10.420662+00:00",
+    "story_count": 9,
+    "brief_present": true,
+    "audio_available": true,
+    "api_url": "https://spectral-nature.com/api/home",
+    "web_url": "https://spectral-nature.com/",
+    "server_render_contains_current_run_and_title": true,
+    "published_response_sha256": "d38d5d7dc8509d0f6779edba97be3e7615306d9f7f48e9f8c678f333dfd533e4"
+  },
+  "investigations": [
+    {
+      "event_id": "question-97f790665f25d6484c87",
+      "agent_run_id": "agrun_35c62e1c13",
+      "research_action": "update",
+      "prior_artifact_id": "e4c80f4dde72824ee2b29326c055ff6b7f2708bd2c0058b497faea37e5b68d3a",
+      "status": "completed",
+      "review_status": "completed",
+      "memory_status": "blocked",
+      "memory_error": "Wiki update could not reserve completion funds.",
+      "tool_failure_count": 1,
+      "title": "AI-hardware and semiconductor shares surge on November 3 after a month-long decline, but no single cause is established",
+      "question": "Why did semiconductor-equipment, optical, memory and AI-infrastructure groups rise sharply on November 3 after 20-session losses, and is there now one company or policy explanation for the rebound?",
+      "review_verdict": "revise",
+      "completed_wiki_read_tools": []
+    },
+    {
+      "event_id": "question-1a5f0b9001c1b0c720ba",
+      "agent_run_id": "agrun_a43e0bac84",
+      "research_action": "update",
+      "prior_artifact_id": "869edd6a962e9eb0aeb2b0d08b1ffc1ca3d99fd80affdf3c744a035adfbf3f32",
+      "status": "completed",
+      "review_status": "completed",
+      "memory_status": "failed",
+      "memory_error": "A research or model connection dropped before it returned a response. This is usually transient; rerun the request to retry the source fetch.",
+      "tool_failure_count": 0,
+      "title": "Energy shares stay weak over the week as oil falls on Iran deal hopes; current session stabilized but supply change unconfirmed",
+      "question": "Does energy's latest week-long 4.4% mean decline and November 3 stabilization still track Iran-Qatar diplomacy and lower oil, and has any actual supply change appeared?",
+      "review_verdict": "accept",
+      "completed_wiki_read_tools": [
+        "zopedia.search_pages",
+        "zopedia.read_page"
+      ]
+    },
+    {
+      "event_id": "question-b7edcbcc6e8229a28421",
+      "agent_run_id": "agrun_6e9f79e916",
+      "research_action": "investigate",
+      "prior_artifact_id": "",
+      "status": "completed",
+      "review_status": "completed",
+      "memory_status": "completed",
+      "memory_error": "",
+      "tool_failure_count": 1,
+      "title": "Food distributors and packaged-food shares fall sharply without a matched headline",
+      "question": "Why did Sysco, ADM, KDP, US Foods and Performance Food fall by 4% to 9% on November 3, and is this one food-cost or earnings story or separate company news?",
+      "review_verdict": "revise",
+      "completed_wiki_read_tools": []
+    },
+    {
+      "event_id": "question-2b60fdbe0413e7b207a0",
+      "agent_run_id": "agrun_1e8ee8c4a0",
+      "research_action": "investigate",
+      "prior_artifact_id": "",
+      "status": "completed",
+      "review_status": "completed",
+      "memory_status": "completed",
+      "memory_error": "",
+      "tool_failure_count": 0,
+      "title": "Technology and industrial strength offsets benchmark weakness while energy and staples lag",
+      "question": "Which measured groups are supporting SPY despite its 2.0% five-day and 3.2% twenty-day fall, and is the November 3 bounce broad enough to change the market's direction?",
+      "review_verdict": "revise",
+      "completed_wiki_read_tools": []
+    },
+    {
+      "event_id": "question-ed94e49079513d0c3500",
+      "agent_run_id": "agrun_6c63328b43",
+      "research_action": "investigate",
+      "prior_artifact_id": "",
+      "status": "completed",
+      "review_status": "completed",
+      "memory_status": "completed",
+      "memory_error": "",
+      "tool_failure_count": 0,
+      "title": "Apple falls after fourth-quarter results as analysts flag slowing revenue growth",
+      "question": "Do Apple's November 3 fourth-quarter results and the JPMorgan and overvaluation warnings explain its same-day fall, and does this spill into large technology shares?",
+      "review_verdict": "revise",
+      "completed_wiki_read_tools": [
+        "zopedia.search_pages",
+        "zopedia.read_page"
+      ]
+    },
+    {
+      "event_id": "question-32a0261f462b891f659c",
+      "agent_run_id": "agrun_b739756ca0",
+      "research_action": "investigate",
+      "prior_artifact_id": "",
+      "status": "completed",
+      "review_status": "completed",
+      "memory_status": "completed",
+      "memory_error": "",
+      "tool_failure_count": 1,
+      "title": "Crypto-mining stocks jump 14% on average despite steady digital-asset prices",
+      "question": "Why did the crypto-mining group rise 14.6% on average on November 3 while Bitcoin and other digital assets were reported steady, and is the move risk appetite or company-specific?",
+      "review_verdict": "revise",
+      "completed_wiki_read_tools": [
+        "zopedia.search_pages"
+      ]
+    },
+    {
+      "event_id": "question-97f596dee671139c1a07",
+      "agent_run_id": "agrun_6bbe1ee4fc",
+      "research_action": "update",
+      "prior_artifact_id": "b687e089144a46508665d8345838e6363efc1b370d45e587d63c77dc2dd229b4",
+      "status": "completed",
+      "review_status": "completed",
+      "memory_status": "timeout",
+      "memory_error": "ResearchStepTimeout: post-answer memory reflection timed out after 90.90230303400017s.",
+      "tool_failure_count": 1,
+      "title": "New analyst downgrades and Lumentum's continued discount update the Marvell deal-risk question",
+      "question": "Do the November 3 analyst downgrades and Lumentum's latest price change alter the assessment that Lumentum's extra discount beyond 4.5 Marvell shares points to deal-closing risk?",
+      "review_verdict": "revise",
+      "completed_wiki_read_tools": [
+        "zopedia.search_pages"
+      ]
+    },
+    {
+      "event_id": "question-575531d6757961f63ec2",
+      "agent_run_id": "agrun_46a8a35892",
+      "research_action": "investigate",
+      "prior_artifact_id": "",
+      "status": "completed",
+      "review_status": "completed",
+      "memory_status": "timeout",
+      "memory_error": "ResearchStepTimeout: post-answer memory reflection timed out after 108.01664070200013s.",
+      "tool_failure_count": 0,
+      "title": "Shopify's regular-session decline follows third-quarter results, softer fourth-quarter profit view and a new shelf filing",
+      "question": "After the November 3 regular-session drop of about 8.7%, do Shopify's Q3 sales miss, Q4 outlook and shelf filing still explain the move, and is there any new post-close guidance?",
+      "review_verdict": "accept",
+      "completed_wiki_read_tools": [
+        "zopedia.search_pages"
+      ]
+    }
+  ],
+  "wiki_summary": {
+    "committed_updates": 4,
+    "pending_updates": 4,
+    "pending_reasons": {
+      "funding_admission": 1,
+      "connection_failure": 1,
+      "timeout": 2
+    },
+    "prior_pages": 2371,
+    "current_pages": 2375,
+    "prior_page_versions_unchanged": true,
+    "new_pages_accessible_through_native_wiki_search": 4,
+    "new_pages": [
+      {
+        "page_id": "zopedia::market_event::2026-11-03-crypto-mining-and-computing-hosting-shares-jump-14-6-::3db090496fb1",
+        "title": "2026-11-03 Crypto-mining and computing-hosting shares jump 14.6% on average",
+        "version": 1
+      },
+      {
+        "page_id": "zopedia::market_event::2026-11-03-u-s-stock-market-bounce-beaten-down-industrial-and-ai::762eb38ae472",
+        "title": "2026-11-03 U.S. stock market bounce: beaten-down industrial and AI groups led while real estate and rail lagged",
+        "version": 1
+      },
+      {
+        "page_id": "market_event:aapl-q4-fy2026-results-2026-11-03",
+        "title": "Apple Q4 FY2026 results and 3 November 2026 stock fall",
+        "version": 1
+      },
+      {
+        "page_id": "zopedia::market_event::food-related-shares-fall-on-november-3-2026-from-separate-earnin::700831fa57ff",
+        "title": "Food-related shares fall on November 3, 2026 from separate earnings news and a Sysco spill-over",
+        "version": 1
+      }
+    ],
+    "failed_handoff_state": "Preserved in the reviewed research result. Existing handoff checkpoints retry when that finding is reused; no independent background queue or guaranteed retry time was added.",
+    "subsequent_full_production_cycle_using_new_pages": "not_executed"
+  },
+  "costs": {
+    "fresh_run_ledger": {
+      "estimated_usd": 4.939078,
+      "unresolved_maximum_usd": 4.466373
+    },
+    "stopped_attempt_ledger": {
+      "estimated_usd": 0.743559,
+      "unresolved_maximum_usd": 2.438734
+    },
+    "combined_recorded_estimate_usd": 5.682637,
+    "combined_unresolved_maximum_usd": 6.905107,
+    "fresh_event_allowance_usd": 14.992268,
+    "deepseek_metered_by_surface": {
+      "aql.source_event_nomination": {
+        "calls": 3,
+        "estimated_usd": 0.740930256
+      },
+      "aql.source_event_research": {
+        "calls": 40,
+        "estimated_usd": 2.2754432540000002
+      },
+      "zopedia.memory": {
+        "calls": 15,
+        "estimated_usd": 1.40790166
+      },
+      "attention_home.public_surface_quality": {
+        "calls": 2,
+        "estimated_usd": 0.28887038400000004
+      },
+      "attention_home.daily_datapoints": {
+        "calls": 1,
+        "estimated_usd": 0.029184584000000003
+      },
+      "page_agentic_summary": {
+        "calls": 10,
+        "estimated_usd": 0.09898086
+      },
+      "Stock Investigator.page_agentic_summary": {
+        "calls": 4,
+        "estimated_usd": 0.004492944
+      },
+      "Stock Investigator.page_agentic_summary_review": {
+        "calls": 4,
+        "estimated_usd": 0.008972916
+      },
+      "Market Explorer.page_agentic_summary": {
+        "calls": 1,
+        "estimated_usd": 0.003054936
+      },
+      "Market Explorer.page_agentic_summary_review": {
+        "calls": 1,
+        "estimated_usd": 0.003129054
+      }
+    },
+    "cash_balance_before_usd": 99.31,
+    "cash_balance_after_usd": 92.85,
+    "balance_change_is_not_exact_run_attribution": true,
+    "closed_offline_api_exceptions_not_reopened": true,
+    "cancelled_run_cleanup": {
+      "checked_at_utc": "2026-11-04T05:39:04.897630+00:00",
+      "execution_status": "Stopped",
+      "operation": "existing interrupt_core_research; release unused future completion priority only",
+      "before_core_statuses": {
+        "protected": 7,
+        "completed": 1
+      },
+      "after_core_statuses": {
+        "interrupted": 7,
+        "completed": 1
+      },
+      "paid_attempts_and_unknown_bounds_unchanged": true,
+      "inference_requests": 0
+    }
+  },
+  "qualitative_assessment": {
+    "status": "failed",
+    "method": "Personally read the complete actual nine-story production response and Brief; inspected final model review, all eight investigation outcomes and four saved wiki pages. No phrase-based grading or rewritten substitute output.",
+    "improvements": [
+      "Current November 3 stock snapshot replaced stale intraday observations.",
+      "The single numerical-context planner identified real-estate and freight-rail relative strength and the food-distributor decline.",
+      "Existing wiki search/read tools were used by production investigations; four reviewed findings committed dated pages.",
+      "All eight investigations and their final reviews completed; final public writer and reviewer both completed with the configured full Pro model."
+    ],
+    "failures": [
+      {
+        "issue": "Public narrative still centers on absent proof and repeats caveats instead of explaining supported business mechanisms concisely.",
+        "evidence": [
+          "Chip-equipment, optical, and memory shares rose sharply on Nov. 3 after a month-long slide, but the evidence points to several drivers rather than one common cause.",
+          "Crypto-mining and computing-hosting shares rebounded about 14.6% while Bitcoin stayed near $77,000; the same-day cause is not established.",
+          "The Brief closes by saying several large moves lack a confirmed cause."
+        ],
+        "upstream_observation": "The actual first planner question asks whether there is now one company or policy explanation for the rebound. Its own title already says no single cause is established. The final reviewer retained that framing despite active no-disclaimer instructions."
+      },
+      {
+        "issue": "Known event treated as future after it had occurred; material AI-demand information missed.",
+        "evidence": "The evening report says AMD after-close results will show whether the recovery extends, although AMD had already published Q3 results and scheduled its conference call for 2 p.m. Pacific on November 3.",
+        "primary_source": "https://ir.amd.com/news-events/press-releases/detail/1303/amd-reports-third-quarter-2026-financial-results",
+        "primary_finding": "AMD reported data-center revenue up 97% year over year.",
+        "report_as_of_pacific": "2026-11-03T20:56:10.420662-08:00",
+        "clock_contract": "The full UTC timestamp was provided to the planner and public editor; this was not a missing timestamp.",
+        "news_input_snapshot": "2026-11-03T20:05:46.078426Z (12:05 Pacific), before after-close earnings."
+      },
+      {
+        "issue": "Wiki continuity did not complete for four of eight findings.",
+        "evidence": "AI-hardware wiki admission blocked; energy connection failed; Marvell/Lumentum and Shopify memory steps ran out of their remaining original event windows."
+      },
+      {
+        "issue": "Readability and selection remain weak despite full-model review.",
+        "evidence": "Long explanatory headlines, repeated conclusions across fields, research tasks in watch-next text, and unnecessary alternatives remain. The final reviewer removed profit-margin as jargon while retaining the missing-cause framing and the stale AMD event."
+      },
+      {
+        "issue": "The chart selection remains stale beside the new Brief and stories.",
+        "evidence": "One 182-character caption exceeded a 180-character schema cap, rejecting the complete five-chart selection. The API serves the previous 08:50 Pacific captions."
+      }
+    ],
+    "editorial_changes_promoted": false,
+    "production_content_was_not_hand_edited": true
+  },
+  "ui_verification": {
+    "api": "passed",
+    "server_render": "passed",
+    "fresh_interactive_browser": "not_verified; browser control returned a timeoutMs implementation error before navigation or screenshot",
+    "native_ios": "not_exercised"
+  },
+  "published_output": {
+    "run_id": "168d03d7-a792-471c-ade4-0d343217fbad",
+    "as_of": "2026-11-04T04:56:10.420662+00:00",
+    "summary": {
+      "headline": "Market Summary",
+      "markdown": "On Nov. 3, the market's moves were narrow and company-specific rather than one market-wide story. AI hardware and equipment rebounded from a month-long slide, but the gains were concentrated in smaller suppliers still down sharply, while Nvidia and large chipmakers lagged; memory costs created a clear split, lifting memory names and hurting Apple's profit outlook. Energy separated by business as lower oil from Iran-deal hopes weighed on producers and drillers, yet no actual supply change was confirmed. Restaurant suppliers fell on Sysco's traffic warning, and Shopify and Apple showed profit-share pressures tied to product mix and memory costs. Deal risk in Marvell-Lumentum and the unexplained crypto-mining rebound remain open. The overall evidence does not yet support a broad market turn: the prior real-estate and rail supports did not lead, and several large moves lack a confirmed cause.",
+      "status": "completed",
+      "featured_symbols": [],
+      "audio_available": true,
+      "audio_mime_type": "audio/mpeg"
+    },
+    "beats": [
+      {
+        "id": "event::home-e6398b1135a0978d16de751c7a8c655b7968da2d0e3150a73b0058b1e8382755",
+        "kind": "event",
+        "title": "Chip-equipment, optical, and memory shares rose sharply on Nov. 3 after a month-long slide, but the evidence points to several drivers rather than one common cause.",
+        "summary": "The rebound was broad but uneven and left most groups far below their earlier levels, so it is a partial recovery rather than a proved turn.",
+        "what_changed": "Chip packaging, test, and factory-equipment suppliers gained about 6.5% on the day, and optical suppliers about 5.1%. The group containing Nvidia and large chipmakers rose only about 3.1%, and memory and hard-disk shares about 3.0%. These groups were still down between about 18% and 37% over the prior 20 sessions.",
+        "why": "No single company or policy event explains all groups. Memory pricing is one shared thread: Apple said higher memory costs would lower its hardware profit share, and Micron coverage said more than three-quarters of Micron's 2027 output was already committed. Lattice, Fabrinet, and Lam Research gave separate positive company news. Job openings and factory orders came in above forecasts, and the 10-year government bond rate rose to 4.95%, but those were not the main driver. AMD's pre-report gain reflected its own pending results, not a broad cause.",
+        "business_context": "Memory costs matter because they raise the direct cost of devices and data-center hardware; a durable memory shortage would support memory makers while squeezing buyers such as Apple.",
+        "watch_next": "AMD's after-close results and guidance will show whether the chip recovery extends beyond anticipation; holding gains through more full sessions and fresh memory or equipment order confirmations would strengthen the signal.",
+        "symbols": [
+          "NVDA",
+          "AMD",
+          "MU",
+          "SNDK",
+          "LRCX",
+          "FN",
+          "LSCC",
+          "AAPL",
+          "MRVL",
+          "LITE"
+        ],
+        "primary_symbol": "NVDA",
+        "change_pct": 2.16
+      },
+      {
+        "id": "event::home-ada507429e676457e894bd5ac3dc0e0d3ea002194a6ebe14ce43d5ef68fb8810",
+        "kind": "event",
+        "title": "Nov. 3's bounce came from previously beaten-down electrical, power, and AI-equipment groups, while the real-estate and rail groups that had supported the index did not lead.",
+        "summary": "The day's strength was narrow and concentrated in groups still down sharply over the prior month, not a broad market turn.",
+        "what_changed": "Real-estate owners, mainly landlords and shopping-center owners, averaged about +6.2% over 20 sessions, and freight rail operators about +7.5%; on Nov. 3, real estate was nearly flat and all five rail companies fell. The gains came from electrical and mechanical equipment, construction services, AI data-center equipment, power producers, and specialty metals and aerospace groups, all of which were still down over 20 sessions.",
+        "why": "This is a rotation within a still-negative month rather than broad market strength. Strong job openings and factory orders raised the 10-year bond rate to 4.95%, which hurt homebuilders. Apple's profit-per-sale warning and Nvidia's rise were large-stock shifts rather than market-wide buying. The evidence does not yet show that the bounce is broad enough to change the market's direction.",
+        "business_context": "Electrical and power-equipment groups are tied to AI data-center construction, so a rebound there can reflect expectations for future AI infrastructure spending rather than current broad demand.",
+        "watch_next": "A more convincing turn would require the real-estate and rail groups to resume rising, the beaten-down groups to hold gains through several sessions, and the S&P 500 to climb back above short-term levels.",
+        "symbols": [
+          "SPY",
+          "NVDA",
+          "AAPL",
+          "XLK",
+          "SMH",
+          "XLB",
+          "XLP",
+          "XHB",
+          "FISV",
+          "LSCC",
+          "FN",
+          "ETN"
+        ],
+        "primary_symbol": "SPY",
+        "change_pct": null
+      },
+      {
+        "id": "event::home-5c2af84cedbc3645b3b5e7cfb11c7593314080a7107459edfb796a59e84029be",
+        "kind": "event",
+        "title": "Apple's holiday-quarter warning that it will keep less profit from each sale, not a sales miss, sent its stock lower on Nov. 3 while other large technology shares rose.",
+        "summary": "Apple's own outlook for keeping less profit from each sale is the operating concern, and the drop did not spread to other large technology shares.",
+        "what_changed": "Apple beat analyst expectations for sales and profit, but said the share of sales left after direct costs would decline in the holiday quarter. The stock fell about 2% early and closed down about 2.1%, while Microsoft, Nvidia, Amazon, and Alphabet all rose.",
+        "why": "The company's own lower profit-per-sale outlook is the main concern. Analysts cited memory costs, supply limits, currency effects, and weaker Services and China sales. Later analyst notes could not explain the first move because Apple was already falling before they appeared.",
+        "business_context": "Strong iPhone and Mac sales support current results, but higher memory costs make devices more expensive to produce and can continue into the holiday quarter.",
+        "watch_next": "Apple's exact holiday-quarter profit-share outlook and product-line detail will show whether the cost pressure is temporary or longer-lasting.",
+        "symbols": [
+          "AAPL",
+          "MSFT",
+          "NVDA",
+          "AMZN",
+          "GOOGL"
+        ],
+        "primary_symbol": "AAPL",
+        "change_pct": -2.07
+      },
+      {
+        "id": "event::home-72c47f8527b369fb2276d9dac1b8315d4de709541316e8ff2409ae45277cae6a",
+        "kind": "event",
+        "title": "Energy shares split by business on Nov. 3; oil producers and drillers stayed weak after Iran-deal hopes lowered oil, but no actual supply change is confirmed.",
+        "summary": "The split fits how each energy business is exposed to oil prices, but the evidence stops short of confirming a change in actual oil supply.",
+        "what_changed": "Oil producers mostly kept falling: ExxonMobil, Chevron, ConocoPhillips, and Diamondback declined. Well-drilling and oilfield-service companies such as Transocean and Halliburton fell more. Refiners were split and mostly better: PBF Energy, Valero, and HF Sinclair rose, while Phillips 66 and Marathon Petroleum fell. Pipeline companies were also split. Over the week, the broad energy group was down about 4.4%, with drillers and producers accounting for most of the loss.",
+        "why": "Lower oil prices reduce revenue per barrel for producers, which can shrink drilling budgets and future work for oilfield-service companies. Refiners buy crude as a raw material, so cheaper crude lowers their input cost even if fuel prices fall. Pipeline companies often collect fees tied to volumes rather than the oil price itself. The Nov. 3 split matches that chain, but a same-day stock move cannot prove oil price was the sole cause, and no source confirms a production or shipping change.",
+        "business_context": "The week's energy weakness came mainly from producers and drillers; on 3 November those groups stayed weak while some refiners and pipelines steadied.",
+        "watch_next": "A signed deal or official production change, final 3 November closing oil prices, refinery fuel margins, and separate company news for Kosmos, Transocean, PBF Energy, or Phillips 66 would clarify whether the split reflects more than oil-price expectations.",
+        "symbols": [
+          "XOM",
+          "CVX",
+          "COP",
+          "FANG",
+          "KOS",
+          "RIG",
+          "HAL",
+          "PTEN",
+          "PBF",
+          "VLO",
+          "DINO",
+          "PSX"
+        ],
+        "primary_symbol": "XOM",
+        "change_pct": -1.26
+      },
+      {
+        "id": "event::home-71d925b3ec86d07d0410cab16a7fa7268f141469f30e688700788ef550b902e1",
+        "kind": "event",
+        "title": "Restaurant suppliers fell after Sysco's softer traffic warning; ADM and Keurig Dr Pepper dropped on separate reports with unresolved drivers.",
+        "summary": "One direct restaurant-demand warning explains the distributor moves; no shared food-cost event is supported.",
+        "what_changed": "Sysco's sales missed market forecasts and management said full-year sales growth would be at the low end of its range because restaurants are buying less. Performance Food Group and US Foods, which also supply restaurants, fell about 4% but had no separate company news in captured sources. Archer-Daniels-Midland and Keurig Dr Pepper each reported quarterly results around the same time; their stock drops have no captured detail explaining the exact cause.",
+        "why": "Sysco's warning is a direct driver for Sysco and likely spilled over to other restaurant suppliers. There is no evidence of one common food-cost event; ADM and Keurig Dr Pepper's drops remain unresolved.",
+        "business_context": "Restaurant suppliers' sales depend on restaurant traffic, so a traffic warning from a major distributor can lower expectations for peers.",
+        "watch_next": "Full ADM and Keurig Dr Pepper releases or call comments would clarify whether the declines reflect company-specific results or a broader food-demand signal.",
+        "symbols": [
+          "SYY",
+          "PFGC",
+          "USFD",
+          "ADM",
+          "KDP"
+        ],
+        "primary_symbol": "SYY",
+        "change_pct": -9.33
+      },
+      {
+        "id": "event::home-c8ae722b2a3b9454e36a1f17d7cf4e41231d14b4144fca232b67c8b6b7d1ea61",
+        "kind": "mover",
+        "title": "Shopify fell 8.7% after a tiny sales miss and a softer fourth-quarter profit outlook, not because demand collapsed.",
+        "summary": "The profit share on each sale is falling as services grow faster than subscriptions, and the fourth-quarter guide implies that pressure continues.",
+        "what_changed": "Shopify's reported sales missed the average analyst estimate by only about $5 million, or 0.1%, and a profit measure that leaves out changes in investment values beat the estimate. Merchants sold $119.15 billion through the platform, up 29%. The company's fees from payments, shipping, and lending grew faster than subscription fees but cost more to provide. For every $100 of sales, Shopify kept $47.60, down from $48.90 a year earlier. Management's fourth-quarter sales outlook topped estimates, but profit after direct costs is expected to grow in the high-twenties percent, implying the squeeze on profit share will continue. Shares dropped 15% in premarket and closed down 8.7%.",
+        "why": "The sales miss alone is too small to explain the move. The lower share of profit on each sale, slower expected sales and profit growth, and a high stock valuation are the reported investor concerns. Shopify also filed papers to allow future share or debt sales, but supplied evidence does not connect that filing to the price move.",
+        "business_context": "Faster-growing services cost more to provide, so their growing share reduces the profit per sale even as sales rise.",
+        "watch_next": "Full call comment linking the margin guidance to the decline would strengthen the explanation.",
+        "symbols": [
+          "SHOP"
+        ],
+        "primary_symbol": "SHOP",
+        "change_pct": -8.71
+      },
+      {
+        "id": "event::home-f329e2fc7d2a2200f2bcd4bc30c9d6f51eaa81b8d7d35344d488804829e2ccab",
+        "kind": "mover",
+        "title": "Lattice Semiconductor and Fabrinet rose on their own strong sales, showing the chip rebound was not one uniform trade.",
+        "summary": "Direct earnings-driven gains explain part of the equipment and optical rebound, but not the entire group.",
+        "what_changed": "Lattice Semiconductor reported record quarterly sales of $291 million, up 118% from a year earlier. Fabrinet reported sales up 51% to $1.47 billion and gave a current-quarter outlook above forecasts. Lam Research's shareholder meeting said factory-equipment spending should exceed $200 billion in 2027, while noting supply and factory-capacity constraints remain.",
+        "why": "These are separate company-specific positives, not one common event. They explain part of the equipment and optical rebound but not the entire group.",
+        "business_context": "",
+        "watch_next": "Check whether these gainers hold their moves after AMD's results and after the rebound's first full sessions.",
+        "symbols": [
+          "LSCC",
+          "FN",
+          "LRCX"
+        ],
+        "primary_symbol": "LSCC",
+        "change_pct": 10.82
+      },
+      {
+        "id": "event::home-3e1f3ef074c3c87c692ee39e24182d54293ff91feeaf3816775d87a1ae4ce617",
+        "kind": "mover",
+        "title": "Lumentum's discount to the Marvell share package widened to 12.1% on Nov. 3 even as optical peers rallied; the pattern remains more consistent with deal-closing risk than weak operations.",
+        "summary": "The market appears to price a lower chance that the deal closes on current terms; Lumentum's strong results do not explain the drop.",
+        "what_changed": "Marvell rose slightly and Lumentum fell slightly while the optical group that includes both stocks averaged a gain of about 5.1%, with 11 of 12 members rising. The value of the Marvell shares a Lumentum holder would receive rose, but Lumentum still closed 12.1% below that package, wider than 11.3% the prior day. Two analyst notes blamed the Lumentum deal for hurting Marvell: Bank of America pulled its positive recommendation on Marvell and cut its expected price to $225 from $400, while Cantor kept a cautious stance and also cut to $225 from $350. Lumentum's own results were strong and above estimates.",
+        "why": "The pattern is more consistent with a lower chance that the deal closes on current terms than with weak Lumentum operations: if completion looks less likely, Marvell avoids issuing the new shares and Lumentum loses the deal value. Analyst estimates show Marvell would issue many more shares, reducing each existing share's claim on future profit, and the promised yearly cost savings may not offset that. Same-day prices are not proof, and no new regulatory or shareholder event has been confirmed.",
+        "business_context": "An all-share deal ties Lumentum's value directly to Marvell's stock, so closing risk and Marvell's share price drive the gap.",
+        "watch_next": "China approval or a new closing-condition filing would be the next direct test; a narrower or wider discount would update the market's view of completion.",
+        "symbols": [
+          "MRVL",
+          "LITE"
+        ],
+        "primary_symbol": "MRVL",
+        "change_pct": 0.34
+      },
+      {
+        "id": "event::home-1d64eaedb6f21ed635e124780a104c6a0657e82b655b39ea4ed41bc211b18174",
+        "kind": "unresolved",
+        "title": "Crypto-mining and computing-hosting shares rebounded about 14.6% while Bitcoin stayed near $77,000; the same-day cause is not established.",
+        "summary": "The move looks like a sharp rebound after a deep decline rather than a response to fresh digital-asset or business news.",
+        "what_changed": "The nine companies rose unevenly, with Cipher, Riot, Hut 8, and Galaxy Digital among the largest. Wider crypto-related names gained less: Coinbase 5.5%, Circle 4.4%, Strategy 3.7%, and Robinhood 2.2%. Bitcoin itself rose about 1%. The group had already fallen sharply over the prior 20 sessions.",
+        "why": "A rebound after a deep decline can show large percentage gains from low starting prices without fresh business news. Traders who had borrowed shares to bet on a fall may have had to buy them back, but no supplied source confirms that. No same-day company-specific cause is visible. Some of these companies also rent computing power for AI, but supplied articles do not connect the nine to a new AI contract or earnings release.",
+        "business_context": "Heavy selling before the bounce is consistent with a later recovery, but the connection to miner shares is not directly sourced.",
+        "watch_next": "The next close will show whether this is a one-day rebound or a stronger trend; a company-specific announcement would be needed to assign a cause.",
+        "symbols": [
+          "APLD",
+          "CIFR",
+          "CLSK",
+          "CORZ",
+          "GLXY",
+          "HUT",
+          "IREN",
+          "RIOT",
+          "WULF"
+        ],
+        "primary_symbol": "APLD",
+        "change_pct": 9.74
+      }
+    ]
+  },
+  "daily_chart_selection": {
+    "status": "failed",
+    "error": "[warn] attention-home-build daily datapoint selection unavailable: ValueError: Completion returned an invalid response: 'Apple fell about 2.1% on Nov. 3 despite beating sales and profit estimates; higher memory costs cut its holiday profit per sale, so this chart tracks whether cost pressure continues.' is too long",
+    "caption_characters": 182,
+    "schema_maximum_characters": 180,
+    "served_selection_as_of": "2026-11-03T16:50:38.890972+00:00",
+    "current_feed_as_of": "2026-11-04T04:56:10.420662+00:00",
+    "native_log_timestamp": "2026-11-04T05:30:32.7543571Z",
+    "source": "services/daily_market_datapoints.py:130",
+    "existing_chart_captions": [
+      {
+        "title": "AEHR shares in the unfinished AI-hardware rebound",
+        "significance": "AEHR rose 19.29% on 3 November in an unfinished session after a month-long slide; the bounce does not yet show which demand, financing, deal, or memory worry is easing.",
+        "unit": "USD"
+      },
+      {
+        "title": "Oracle shares as markets weigh $20 billion AI funding",
+        "significance": "Oracle seeks $10 billion through new shares and $10 billion through bonds to fund AI data centers; its stock shows how investors are pricing that funding.",
+        "unit": "USD"
+      },
+      {
+        "title": "Marvell shares behind the Lumentum deal value",
+        "significance": "Lumentum holders would receive 4.5 Marvell shares for each Lumentum share, so Marvell's price sets the offer value and updates the 11.3% gap seen on 2 November.",
+        "unit": "USD"
+      },
+      {
+        "title": "Shopify shares after sales growth and slower profit pace",
+        "significance": "Shopify fell 7.18% after it said sales should keep growing in the low-thirties while gross profit grows only in the high-twenties; the drop is tied to that slower profit pace.",
+        "unit": "USD"
+      },
+      {
+        "title": "ADT shares under $10 cash offer",
+        "significance": "ADT has a signed all-cash deal at $10 a share; the price near $9.85 shows investors see some risk the deal fails, and a better offer can arrive before 28 November.",
+        "unit": "USD"
+      }
+    ]
+  },
+  "public_models": [
+    {
+      "purpose": "agent.final_synthesis",
+      "status": "success",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro"
+    },
+    {
+      "purpose": "agent.answer_judge",
+      "status": "success",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro"
+    }
+  ],
+  "source_changes": "No runtime, prompts, providers, schedules or inference allowances changed during verification. Existing production jobs regenerated data and content. Only verification documents and operating lessons changed in Git.",
+  "next_source_fixes": [
+    "Make planner questions seek useful mechanisms across a group rather than proof of one common cause; align the shared public editor with that objective.",
+    "Assess already-scheduled releases against the actual reporting clock and acquire material released results through existing shared research.",
+    "Fund and time wiki completion separately from an investigation's nearly exhausted work window, using the original producer ledger and deadline.",
+    "Remove editorial character caps that invalidate an otherwise usable chart selection; preserve structural source-ID and data contracts. Retry only chart selection with current retained inputs."
+  ]
+}
