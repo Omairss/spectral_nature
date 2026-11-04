@@ -1,0 +1,55 @@
+{
+  "status": "completed",
+  "unused_settings": {
+    "status": "completed",
+    "removed_keys": [
+      "__copy_style_rule__",
+      "event_copy_title_what_happened_why_happened",
+      "homepage_summary_overview_sections_audio_text",
+      "llm-cost-upgrade-review-20261015::param:trading_agent_research_pool",
+      "llm-flow-review-20261014::flow:configuration",
+      "llm-flow-review-20261014::param:chat_knowledge_policy",
+      "llm-flow-review-20261014::param:monitor_every_tool_calls",
+      "llm-flow-review-20261014::param:research_freedom",
+      "llm-flow-review-20261014::param:search_queries_per_lookup",
+      "mover_copy_one_sentence_move_description",
+      "param:audio_text_char_limit",
+      "param:beat_context_symbols",
+      "param:beat_highlight_max_sentences",
+      "param:hypothesis_char_limit",
+      "param:hypothesis_context_beats",
+      "param:hypothesis_context_claims",
+      "param:hypothesis_context_queries",
+      "param:section_bullet_char_limit",
+      "param:sentence_fragment_max_sentences",
+      "tape_narrative_sentence_live_research_event"
+    ],
+    "removed_records": 20,
+    "remaining_records": 13,
+    "remaining_records_unchanged": true,
+    "active_consumers_changed": false,
+    "archive": "/Users/omairs/Library/Application Support/SpectralNature/retired-release-sources/20261104T080752Z",
+    "archive_sha256": "793f81d29e982a372a3ed39b4a73b1b06242d7666b429c489b13d97a4a651e4a",
+    "expires_at": "2026-12-04T08:08:00.907611+00:00"
+  },
+  "registered_overrides_reset_to_source_defaults": {
+    "status": "completed",
+    "reset_keys": [
+      "attention_feed_narrative_anomaly_edgar_context",
+      "event_writer_surface_summary_why_happened_text_affected_assets",
+      "sec_filing_analyst_evidence_extraction",
+      "symbol_bundle_what_changed_why_happened_spillover"
+    ],
+    "reset_records": 4,
+    "remaining_records": 9,
+    "unrelated_records_unchanged": true,
+    "active_defaults_verified": true,
+    "archive": "/Users/omairs/Library/Application Support/SpectralNature/retired-release-sources/20261104T081937Z",
+    "expires_at": "2026-12-04T08:19:39.978063+00:00"
+  },
+  "remaining_records": 9,
+  "remaining_records_unchanged": true,
+  "runtime_code_changes": false,
+  "production_inference_requests": 0,
+  "user_authorization": "Remove vestigial fallbacks, then continue implementation, deployment and end-to-end verification."
+}

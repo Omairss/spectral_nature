@@ -149,7 +149,7 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
         surface="attention_home.daily_datapoints", service=service,
         initial_evidence=[{"title": "Evidence navigation", **service.supplied_evidence_manifest}],
         request_context={"allow_web": False, "allowed_source_access": ["supplied"]},
-        persist_findings=False, write_policy="none",
+        persist_findings=False, write_policy="none", max_tool_calls=0,
         llm_step_timeout_seconds=remaining_request_timeout(180),
         run_timeout_seconds=min(remaining_request_timeout(operation_timeout), operation_timeout),
     )

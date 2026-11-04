@@ -1,5 +1,5 @@
 {
-  "status": "archived_pending_conditional_production_retirement",
+  "status": "retired_from_database_2026-11-04",
   "batch": "20261017T005920Z",
   "keys": [
     "__copy_style_rule__",
@@ -10,5 +10,6 @@
   "records": 4,
   "current_registry_references": 0,
   "active_custom_prompts_and_parameters_preserved": true,
-  "database_mutations_performed": 0
+  "database_mutations_performed": 20,
+  "current_retirement_evidence": "documents/verification/home-settings-retirement-2026-11-04.json"
 }

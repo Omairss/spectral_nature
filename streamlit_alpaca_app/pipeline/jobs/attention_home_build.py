@@ -1877,6 +1877,7 @@ def _review_home_public_surface(
     source_documents: list[dict[str, Any]] | None = None,
     market_research: list[dict[str, Any]] | None = None,
     retained_research: list[dict[str, Any]] | None = None,
+    event_calendar: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], dict[str, dict[str, Any]], dict[str, Any]]:
     review_items = _home_surface_quality_items(payload, bundle_map)
     intake = list(source_documents or [])
@@ -1962,6 +1963,10 @@ def _review_home_public_surface(
         "content": to_jsonable(payload.get("market_context") or {})}
     records["market-research"] = {"title": "Shared market research and question agenda",
         "metadata": {"kind": "shared_research"}, "content": to_jsonable(market_research or [])}
+    if event_calendar:
+        records["market-calendar"] = {"title": "Dated scheduled events and confirmed results",
+            "metadata": {"kind": "event_calendar", "asof_time_utc": str(asof_time_utc)},
+            "content": to_jsonable(event_calendar)}
     service = QueryService.from_environment().with_supplied_evidence(records)
     schema = {**_HOME_SURFACE_QUALITY_SCHEMA, "properties": {
         **_HOME_SURFACE_QUALITY_SCHEMA["properties"],
@@ -1982,7 +1987,8 @@ def _review_home_public_surface(
         "Preserve evidence that supports or challenges the central thesis. Treat numerical groups as observations "
         "and explain likely mechanisms at their actual strength, including several causes acting together. "
         "Lead with the interpretation and its importance; keep proof-seeking and research-status commentary internal. "
-        "Check event status against the reporting clock before calling a release upcoming. Use original sources when the explanation "
+        "Read the dated calendar to check material releases already due before assigning future follow-ups. "
+        "Use the latest completed observations and keep earlier source snapshots dated. Use original sources when the explanation "
         "depends on a material detail. Section limits are ceilings; leave redundant fields empty and include only "
         "material follow-ups. Use exact source IDs and valid source-title links."
     )
@@ -2170,6 +2176,7 @@ def build_attention_home_output_frames(
         f"research_limit={research_limit} "
         f"review_pool=top_events:{top_events_review_limit},must_read:{must_read_review_limit},unresolved:{unresolved_review_limit}"
     )
+    event_calendar = load_public_calendar()
     artifacts = build_bottom_up_attention_artifacts(
         movers,
         attention_rows=attention_rows,
@@ -2192,7 +2199,7 @@ def build_attention_home_output_frames(
         unresolved_limit=unresolved_review_limit,
         research_limit=research_limit,
         load_search_clients=True,
-        economic_context={"fred_signals": fred_signals, "market_calendar": load_public_calendar()},
+        economic_context={"fred_signals": fred_signals, "market_calendar": event_calendar},
         previous_publication=previous_publication,
         write_policy=_zopedia_write_policy(),
         progress_callback=research_progress_fn,
@@ -2309,6 +2316,7 @@ def build_attention_home_output_frames(
                 for row in artifacts.frames.get("attention_market_research", pd.DataFrame()).to_dict("records")
             ],
             retained_research=artifacts.retained_research,
+            event_calendar=event_calendar,
         )
     except Exception as exc:
         # An execution/contract failure cannot supply a new canonical artifact.
