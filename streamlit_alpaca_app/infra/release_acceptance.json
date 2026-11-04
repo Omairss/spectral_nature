@@ -1,13 +1,13 @@
 {
   "status": "accepted_locally",
   "scope": "X company reactions in shared research and exact Attention headlines after completed runs.",
-  "source_revision": "d19794db64ec4286bde0d30a93f251009ec1b938",
+  "source_revision": "7ecd2449e335685780fe130b18fbf31e78d14691",
   "review_base_revision": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
     ".env.example": "1f2833c05f477a63185ca3dd352b52664f84f0859e5eae0da222a0ebfcce1558",
     "Dockerfile.dev": "4496ca96f4426fd3cb703333846c96d799be16feb087c971049c8214b560a4e7",
-    "Dockerfile.runtime": "0e65c7adafa401f12ef8d151b9e7ae7d34063483fbc656b11af130e97b3885ed",
+    "Dockerfile.runtime": "906e69e6f8b48a7e0d335fa7c727ddbf3b689504cc84658759070d89ddca1bc6",
     "Dockerfile.web": "cbee57e07274032883bb9e3b28c62412b4bb6176c92fe1ca61af018b9db871b2",
     "api/__init__.py": "d263cd3e0682327cdd7596508ae7d7d54ea508e38347b6be13e0997b1fd1da9a",
     "api/feature_requests.py": "a9de6f58dc920cd9f81431d7b606f8fa19ca24261502a66084265df334d24158",
@@ -551,7 +551,8 @@
     "services/pipeline_store.py": "Add exact immutable dataset-version and finished job-receipt readers. latest receipt delegates to the same existing latest pointer. All other definitions, financial authority, database lifecycle and dataset publication remain AST-identical to accepted source.",
     "services/x_publishing.py": "Async full-JavaScript owned browser fixes blocked response processing. Existing PostgreSQL account lease and durable post/login/navigation pacing, Vault credentials, encrypted cookies/localStorage, exact-text submission guard and immutable receipts. Actual 9-event delivery, fresh exact readback and repeat with zero new posts qualify the transport. Queue insertion cannot overwrite an existing receipt and needs no browser lease. Parallel research readers await account ownership within their acquisition deadline.",
     "services/x_research.py": "Acquire attributed Top/Latest reactions and selected full post through the same browser. Shared 15-minute cache, timezone/as-of filtering, dated source documents and complete model context. Existing model interprets sentiment; no lexicon, score or extra inference.",
-    "services/zopedia_agent.py": "Expose source in existing deferred discovery and planner guidance only when web policy permits it. Existing shared synthesis/review/memory logic unchanged."
+    "services/zopedia_agent.py": "Expose source in existing deferred discovery and planner guidance only when web policy permits it. Existing shared synthesis/review/memory logic unchanged.",
+    "Dockerfile.runtime": "Preserve each role's pinned installed packages and launch command. Copy only the already-pinned accepted worker Chromium binaries to /opt/ms-playwright for every role, remove inherited browser caches before flattening, and declare one browser path. No inherited application crosses the browser dependency stage. API qualification exposed its missing engine-matched binary; actual JavaScript execution is required on each resulting image before deployment."
   },
   "retired_files": [
     "scripts/eval_critique_harness.py",
@@ -683,7 +684,8 @@
         "services/pipeline_store.py",
         "services/x_publishing.py",
         "services/x_research.py",
-        "services/zopedia_agent.py"
+        "services/zopedia_agent.py",
+        "Dockerfile.runtime"
       ]
     }
   ],
