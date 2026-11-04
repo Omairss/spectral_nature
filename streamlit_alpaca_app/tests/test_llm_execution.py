@@ -138,15 +138,15 @@ def test_tokenized_embeddings_reach_transport_and_keep_usage_accounting(store):
     ("openai", llm.OpenAIChatJSONClient),
     ("azure_openai", llm.AzureOpenAIChatJSONClient),
 ])
-def test_json_recovery_keeps_original_request(store, provider, model_type):
-    transport, calls = client([response(content='{"value":'), response()])
+def test_json_recovery_uses_saved_output_without_repeating_research(store, provider, model_type):
+    transport, calls = client([response(content='{"value":1'), response()])
     model = model_type(replace(transport.config, provider=provider, deployment="fake"), session=transport.session)
     schema = {"type": "object", "properties": {"value": {"type": "integer"}},
               "required": ["value"], "additionalProperties": False}
     assert model.generate_json(system_prompt="Return supplied values.", user_prompt="Evidence: value=1",
                                schema_name="transport", schema=schema)["value"] == 1
     assert len(calls) == 2
-    assert json.dumps(calls[0]["json"]["messages"], ensure_ascii=False) in calls[1]["json"]["messages"][1]["content"]
+    assert "Evidence: value=1" not in calls[1]["json"]["messages"][1]["content"]
     assert '{"value":' in calls[1]["json"]["messages"][1]["content"]
 
 

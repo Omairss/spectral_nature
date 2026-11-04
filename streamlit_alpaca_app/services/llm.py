@@ -593,7 +593,6 @@ def _json_repair_messages(
     schema_name: str,
     schema: dict[str, Any],
     raw_content: str,
-    original_messages: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, str]]:
     # Model-visible field order follows the artifact; canonical hashes are separate.
     schema_text = json.dumps(schema)
@@ -613,9 +612,8 @@ def _json_repair_messages(
             "role": "system",
             "content": (
                 "Repair the model output into exactly one valid JSON object. "
-                "Read the original request and its supplied evidence to interpret the response's intended structure and field meanings. "
-                "This is recovery for that original task: preserve its goal, supported content and available tool contract. "
-                "Do not replace the original task with a discussion of repairing JSON or invent placeholder content to fill required fields. "
+                "Correct syntax and field types using only the supplied output and schema. "
+                "Do not answer the task again, add claims or invent missing content. "
                 f"The repaired object must match schema `{schema_name}`. "
                 "Preserve existing string values, numbers, URLs and array values exactly. Do not rewrite prose. Do not add explanations, markdown, or fallback prose."
             ),
@@ -624,7 +622,6 @@ def _json_repair_messages(
             "role": "user",
             "content": (
                 f"JSON Schema:\n{schema_text}\n\n"
-                f"Original request context:\n{json.dumps(original_messages or [], ensure_ascii=False, default=str)}\n\n"
                 "Model output to repair:\n"
                 f"{raw_text}{parser_diagnostics}"
             ),
@@ -802,7 +799,6 @@ class OpenAIChatJSONClient:
                 schema_name=schema_name,
                 schema=schema,
                 raw_content=exc.raw_content,
-                original_messages=payload["messages"],
             )
             repair_response = provider_post(self, operation="json_repair", url=
                 request_url,
@@ -937,7 +933,6 @@ class AzureOpenAIChatJSONClient:
                 schema_name=schema_name,
                 schema=schema,
                 raw_content=exc.raw_content,
-                original_messages=payload["messages"],
             )
             repair_response = provider_post(self, operation="json_repair", url=
                 request_url,
@@ -1076,7 +1071,6 @@ class DeepSeekChatJSONClient:
                 schema_name=schema_name,
                 schema=schema,
                 raw_content=exc.raw_content,
-                original_messages=payload["messages"],
             )
             if self.config.provider == "deepseek" and self.config.api_style == "chat_native_repair":
                 repair_client = DeepSeekResponsesJSONClient(

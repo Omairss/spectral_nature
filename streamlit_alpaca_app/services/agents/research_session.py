@@ -93,6 +93,7 @@ class ResearchBudget:
     started: float
     deadline: float | None
     research_deadline: float | None
+    synthesis_deadline: float | None = None
 
     @classmethod
     def start(
@@ -107,8 +108,6 @@ class ResearchBudget:
             return cls(started, None, None)
         total = max(float(timeout_seconds), 0.0)
         end = started + total
-        if not research_required:
-            return cls(started, end, started)
         # Reserve a model step for each required completion phase before
         # admitting more research. Short runs share their clock across the
         # declared phases instead of leaving synthesis/review a small tail.
@@ -116,12 +115,12 @@ class ResearchBudget:
         step = min(max(float(step_seconds), 0.0), total / phases)
         review = step if review_required else 0.0
         research_end = end - review - step if research_required else started
-        return cls(started, end, research_end)
+        return cls(started, end, research_end, end - review)
 
     def remaining(self, phase: str = "research", maximum: float | None = None) -> float:
-        # Review needs an answer. An advisory review reservation must not
-        # discard an unfinished answer while the owning run still has time.
-        end = self.research_deadline if phase == "research" else self.deadline
+        # Writing stops at its allocation so the required review retains time.
+        end = (self.research_deadline if phase == "research" else
+               self.synthesis_deadline if phase == "synthesis" and self.synthesis_deadline is not None else self.deadline)
         remaining = max(end - time.monotonic(), 0.0) if end is not None else float("inf")
         return min(remaining, float(maximum)) if maximum is not None else remaining
 

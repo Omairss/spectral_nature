@@ -50,7 +50,14 @@
     "qualitative": "Personally compare full model outputs using retained inputs, then complete isolated flow before development and production.",
     "release": "Current accepted Git source only; preserve current consumers and rollback; verify live user readback.",
     "targeted_operational_checks": 64,
-    "baseline_comparison": "Broad legacy suite has 29 unchanged failures against committed source, mostly removed helpers and old prompt expectations. The new memory default-policy regression was corrected and its contract passes."
+    "baseline_comparison": "Broad legacy suite has 29 unchanged failures against committed source, mostly removed helpers and old prompt expectations. The new memory default-policy regression was corrected and its contract passes.",
+    "source_pinned_failure": {
+      "source": "6f68bcb7",
+      "result": "Planner produced a prose draft, repeated synthesis, then malformed output; full-context JSON recovery reached its deadline. Stopped further inference before acceptance.",
+      "counted_usd": 5.055128,
+      "unknown_maximum_usd": 1.643643,
+      "fix": "Expose structured artifact contract during planning; saved-response-only syntax repair; actual review clock; configurable common planner1800s and focused question1200s within owning run."
+    }
   },
   "schedule_decision": "Keep run counts; final UTC data/news/Home cycle moves from hour20 to21, after the U.S. close in both DST seasons. This is 13:50 Pacific in winter and14:50 in summer; no timezone scheduler service added."
 }

@@ -49,13 +49,13 @@ _P_EVENT_LIMIT = register_config_param(
 _P_EVENT_TIMEOUT = register_config_param(
     "Source event run timeout seconds",
     group="AQL / Zopedia Engine",
-    default=600,
+    default=1200,
     description="Whole execution window for each question selected by the common Home research agenda.",
 )
 _P_NOMINATION_TIMEOUT = register_config_param(
     "Source event nomination timeout seconds",
     group="AQL / Zopedia Engine",
-    default=600,
+    default=1800,
     description="Execution window for the common Home planner over numerical groups, economic observations, headlines and retained findings.",
 )
 _P_DISCOVERY_TOOLS = register_config_param(

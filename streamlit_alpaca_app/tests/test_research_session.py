@@ -98,3 +98,17 @@ def test_research_session_persistence_failure_does_not_break_progress():
 
     assert session.runtime_metadata()["durable_event_log"] is False
     assert session.runtime_metadata()["event_count"] == 3
+
+
+def test_required_review_keeps_time_after_synthesis(monkeypatch):
+    from services.agents import research_session as module
+    monkeypatch.setattr(module.time, 'monotonic', lambda: 1000.)
+    budget = module.ResearchBudget.start(1800, 600, review_required=True)
+    assert budget.remaining('research') == 600
+    assert budget.remaining('synthesis') == 1200
+    assert budget.remaining('completion') == 1800
+    monkeypatch.setattr(module.time, 'monotonic', lambda: 2200.)
+    assert budget.remaining('synthesis') == 0
+    assert budget.remaining('completion') == 600
+    no_review = module.ResearchBudget.start(600, 600, research_required=False, review_required=False)
+    assert no_review.remaining('synthesis') == no_review.remaining('completion') == 600

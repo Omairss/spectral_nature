@@ -1952,6 +1952,7 @@ def _planner_user_prompt(
     tool_calls: list[dict[str, Any]],
     max_tool_calls: int,
     tool_calls_used: int | None = None,
+    response_schema: dict[str, Any] | None = None,
     task: str = "",
     surface: str = "",
     conversation_history: list[dict[str, Any]] | None = None,
@@ -1979,6 +1980,8 @@ def _planner_user_prompt(
         "If you still need data, use action='tool_call' with tool_name and JSON-encoded tool_arguments "
         "matching that tool's input_schema. Use '{}' when the tool takes no arguments. "
         "If you can answer now, use action='final' with answer_markdown. Include only the fields for that action."
+        + ("\nFor final, answer_markdown must contain the complete JSON artifact matching this schema:\n"
+           + json.dumps(response_schema, ensure_ascii=False) if response_schema else "")
     )
 
 
@@ -3499,6 +3502,7 @@ def _execute_zopedia_agent_loop(
                 return _planner_user_prompt(
                     query=agent_query, task=task, surface=surface, tool_catalog=tool_catalog,
                     tool_calls=visible, max_tool_calls=max_tool_calls, tool_calls_used=_budgeted_tool_count(tool_calls),
+                    response_schema=response_schema,
                     conversation_history=conversation_history, prefetched_context=prefetched_context,
                 ) + "\n\nCurrent planning state:\n" + planning_context
             def research_step():
@@ -3531,7 +3535,7 @@ def _execute_zopedia_agent_loop(
                         schema_name="zopedia_agent_step", schema=_STEP_SCHEMA, llm_client=resolved_llm,
                         surface=surface, task="agent.research_step",
                         deadline_monotonic=budget.step_deadline("research", llm_step_timeout_seconds),
-                        original_request={"system_prompt": _planner_system_prompt(), "user_prompt": planning_prompt},
+                        original_request={"system_prompt": _planner_system_prompt(), "user_prompt": planning_prompt_for([])},
                     )
                     if repaired is None:
                         limitations.append("Planning stopped: structured response recovery was incomplete.")
@@ -3599,7 +3603,7 @@ def _execute_zopedia_agent_loop(
                     except (TypeError, ValueError):
                         pass
             if action == "final":
-                if answer_review_owner == "agent" and best_draft and not reviewed_draft and budget.remaining() > 0:
+                if answer_review_owner == "agent" and best_draft and not reviewed_draft and budget.remaining("completion") > 0:
                     reviewed_draft = True
                     quality_review = _run_answer_judge(
                         llm=_synthesis_llm_client(resolved_llm),
@@ -3615,7 +3619,7 @@ def _execute_zopedia_agent_loop(
                         prefetched_context=json.dumps(_prompt_request_context(request_context), ensure_ascii=False)
                         + "\n"
                         + prefetched_context,
-                        timeout_seconds=budget.remaining(),
+                        timeout_seconds=budget.remaining("completion"),
                         model_timeout_seconds=llm_step_timeout_seconds,
                         progress_callback=progress_callback,
                         response_schema=response_schema,
