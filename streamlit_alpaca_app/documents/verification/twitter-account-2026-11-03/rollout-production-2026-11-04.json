@@ -1,0 +1,308 @@
+{
+  "status": "publishing_current_batch",
+  "recorded_at": "2026-11-04T19:22:41.426770+00:00",
+  "source_inventory_sha256": "4dd75ada249e8b94e9227ba3cd39a50d48a5b1d3ae455dae9d395e1f219926db",
+  "images": {
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f7d76f4f2869c88913af10627376883f171b91f876fde265dd7569125e34dc0d",
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:8a30c17b11f934431954e163f47840576cbbd111593320f786eede4f8264904c",
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:8bc402d6da8a77554cb4f54fcd883016443f5b1e56226169f5c5fedab165461e"
+  },
+  "accepted_application_source": "6d9379075d732c23aef76392376edf8d312d2053",
+  "packaging_revision": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
+  "production_targets": [
+    {
+      "name": "sn-api-next",
+      "kind": "containerApps",
+      "role": "api-next",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f7d76f4f2869c88913af10627376883f171b91f876fde265dd7569125e34dc0d",
+      "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-streamlit-ui",
+      "kind": "containerApps",
+      "role": "web",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:8a30c17b11f934431954e163f47840576cbbd111593320f786eede4f8264904c",
+      "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-next-ui",
+      "kind": "containerApps",
+      "role": "web",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:8a30c17b11f934431954e163f47840576cbbd111593320f786eede4f8264904c",
+      "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "universe-builder",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "equities-intraday-preload",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "macro-fred-daily",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "commodities-regime",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "options-liquid-universe",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "news-ingest-and-features",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "08d16a9ed58ad153576b6278c68e4cdc5d3a228aa035c569c36beeb70d15ff74",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "attention-home-build",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "006190f074b4aa15d79421f21124812374cbb938194b54628eff41b675bbf513",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "trading-agent-build",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "zopedia-maintenance",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "zopedia-learning",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "fab966688263776cc208a6d0de8341d6f0bde52cb332c52dcba9383f515df9d0",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "system-health",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-research-run",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "evidence-index-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "system-recovery",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "market-calendar-refresh",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ce3bb89965a700e80b441cf717089a18dea869917ee3595151fda931ebdfe8ee",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "30bab0b60534d0c56819e6f6a6fdbb0a8ed9ef937466c250624c3e0696cbe853",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "kind": "jobs",
+      "role": "broker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:8bc402d6da8a77554cb4f54fcd883016443f5b1e56226169f5c5fedab165461e",
+      "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "health": [
+    {
+      "application": "sn-api-next",
+      "revisions": [
+        {
+          "health": "Healthy",
+          "name": "sn-api-next--0000031",
+          "ready": "RunningAtMaxScale",
+          "traffic": 100
+        }
+      ]
+    },
+    {
+      "application": "sn-next-ui",
+      "revisions": [
+        {
+          "health": "Healthy",
+          "name": "sn-next-ui--0000023",
+          "ready": "RunningAtMaxScale",
+          "traffic": 100
+        }
+      ]
+    },
+    {
+      "application": "sn-streamlit-ui",
+      "revisions": [
+        {
+          "health": "Healthy",
+          "name": "sn-streamlit-ui--0000107",
+          "ready": "RunningAtMaxScale",
+          "traffic": 100
+        }
+      ]
+    }
+  ],
+  "activation": {
+    "status": "enabled",
+    "recorded_at": "2026-11-04T19:13:33.038383+00:00",
+    "job": "attention-home-build",
+    "environment_changes": {
+      "ATTENTION_X_PUBLISH_ENABLED": "true",
+      "APP_PUBLIC_BASE_URL": "https://spectral-nature.com"
+    },
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+    "all_38_images_match_qualified_release": true,
+    "other_37_configurations_preserved": true,
+    "other_attention_configuration_preserved": true,
+    "new_configuration_sha256": "725b07b050577788f0d07da70bef9dec939fde288be4136dd8895916d95d777f",
+    "trigger": "Existing native completion hook; no new scheduler or research run."
+  },
+  "first_publication": {
+    "run_id": "83f3aad5-5d3a-4041-b77f-69e2e3a6255a",
+    "status": "verified",
+    "event_id": "home-158fbea40948dd5c7e9d837b9c084e3db56ed65d5c4d966effdc329bcb7c121b",
+    "readback": {
+      "url": "https://x.com/OmairS2/status/2118059951067439354",
+      "text": "Uber's gain rode a shared move in consumer-facing stocks with Lyft, DoorDash and Chewy, so Uber's own report is not the main explanation.\n\nhttps://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af/event%3A%3Ahome-158fbea40948dd5c7e9d837b9c084e3db56ed65d5c4d966effdc329bcb7c121b\u2026",
+      "author": "O\n@OmairS2",
+      "truncated": false,
+      "captured_at": "2026-11-04T19:18:25.367786+00:00",
+      "quoted_text": [],
+      "published_at": "2026-11-04T19:16:58.000Z"
+    },
+    "media_urls": [
+      "https://pbs.twimg.com/media/HWTcR86XAAA0S60.jpg",
+      "https://pbs.twimg.com/media/HWTcR9SX0AEe_nb.jpg"
+    ],
+    "x_post_url": "https://x.com/OmairS2/status/2118059951067439354",
+    "event_count": 11,
+    "image_count": 2,
+    "published_at": "2026-11-04T19:16:59.826513+00:00",
+    "source_title": "Uber's gain rode a shared move in consumer-facing stocks with Lyft, DoorDash and Chewy, so Uber's own report is not the main explanation.",
+    "attention_url": "https://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af/event%3A%3Ahome-158fbea40948dd5c7e9d837b9c084e3db56ed65d5c4d966effdc329bcb7c121b",
+    "source_version": "attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af",
+    "started_at_utc": "2026-11-04T19:15:18.159010+00:00",
+    "finished_at_utc": "2026-11-04T19:18:26.158243+00:00",
+    "source_revision": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
+    "uploaded_media_ids": [
+      "2118059925737766912",
+      "2118059925838483457"
+    ],
+    "new_inference_calls": 0,
+    "response_photo_count": 2
+  },
+  "personally_reviewed_images": "Live production page panels and actual retained Uber upload PNGs: complete, readable charts, fundamentals and explanation.",
+  "current_batch": {
+    "events": 11,
+    "published_verified": 1,
+    "remaining": 10,
+    "execution": "cleanup-trial-observer-dev-lw10x8k",
+    "function": "publish_completed_attention",
+    "repeat_callback_check": "Runs after delivery"
+  },
+  "company_reaction_review": "Actual sampled SHOP posts distinguish operating growth from valuation and price expectations. Estimates and EPS labels differ between authors; preserve them as dated attributed reactions, not company facts. Truncated posts retain their flag and can be read through the existing full-post path.",
+  "new_inference_calls": 0
+}

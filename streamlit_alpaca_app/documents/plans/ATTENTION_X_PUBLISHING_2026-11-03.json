@@ -56,7 +56,7 @@
     },
     "cloudflare_follow_up": "cloudflare-resolution.json: authenticated in two Azure sessions; public API bootstrap passed; zero sign-in attempts or posts."
   },
-  "status": "The Cloudflare workaround is verified in two read-only Azure sessions: both changed from a real challenge to the correct authenticated account. The public API flow passed with clearance cookies omitted. Shared browser startup is corrected locally and the Mac reader still works. Chart/link and automatic refresh-completion behavior remain accepted. New application packaging and rollout are pending; posting is not activated in Azure.",
+  "status": "Live on development and production. Company reactions are available to shared research; the production completion publisher is enabled. First chart post is published and read back; the remaining ten current events are publishing at the account rate limit.",
   "source": {
     "worktree": "/Users/omairs/Documents/code/spectral_nature_x_publishing_20261103",
     "branch": "feature/attention-x-publishing-20261103",
@@ -69,17 +69,20 @@
     "automatic_service_running": false
   },
   "development": {
-    "status": "held_pending_release",
+    "status": "accepted",
     "posting_enabled": false,
-    "verified_role_images": 3,
-    "runtime_files_checked_per_role": 203,
-    "azure_deployments": 0,
-    "reason": "Cloudflare handling is verified. The shared startup correction and preceding media extension need current accepted-source packaging and release review; no deployment has been performed.",
-    "images_with_current_startup_source": 0
+    "verified_role_images": 4,
+    "runtime_files_checked_per_python_role": 204,
+    "azure_consumers_updated": 16,
+    "evidence": "documents/verification/twitter-account-2026-11-03/rollout-development-2026-11-04.json"
   },
   "production": {
-    "status": "not_deployed",
-    "owner_permission": "required by AGENTS.md"
+    "status": "publishing_current_batch",
+    "owner_permission": "Roll it out \u2014 November 4, 2026",
+    "posting_enabled": true,
+    "azure_consumers_updated": 22,
+    "first_chart_post": "https://x.com/OmairS2/status/2118059951067439354",
+    "evidence": "documents/verification/twitter-account-2026-11-03/rollout-production-2026-11-04.json"
   },
   "evidence": "../verification/twitter-account-2026-11-03/",
   "last_updated_utc": "2026-11-04T18:23:17.177812+00:00",
@@ -92,7 +95,7 @@
     "previous_question": "Use this Mac as the X browser worker for cloud research and publishing via the existing database, or keep the changes local?"
   },
   "rollout_2026_11_04": {
-    "status": "deploying_production",
+    "status": "publishing_current_batch",
     "owner_instruction": "Roll it out",
     "consumers": 38,
     "production_authorized": true,
@@ -102,6 +105,9 @@
     "calendar_opening_preserved": true,
     "namespace_links_verified": true,
     "development_acceptance": "documents/verification/twitter-account-2026-11-03/rollout-development-2026-11-04.json",
-    "development_consumers": 16
+    "development_consumers": 16,
+    "production_consumers": 22,
+    "first_chart_post": "https://x.com/OmairS2/status/2118059951067439354",
+    "remaining_current_events": 10
   }
 }
