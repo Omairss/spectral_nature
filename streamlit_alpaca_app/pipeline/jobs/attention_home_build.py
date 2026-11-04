@@ -1361,21 +1361,6 @@ def _business_contexts_by_symbol(
     return contexts
 
 
-def _title_from_observed_text(value: object, *, limit: int = 120) -> str:
-    text = _plain_business_text(value, limit=360)
-    if not text:
-        return ""
-    first = re.split(r"(?<=[.!?])\s+", text, maxsplit=1)[0].strip(" .!?")
-    if not first:
-        return ""
-    if len(first) <= limit:
-        return first
-    leading_clause = re.split(r"[,;:]\s+", first, maxsplit=1)[0].strip(" .!?")
-    if 24 <= len(leading_clause) <= limit:
-        return leading_clause
-    return first
-
-
 def _attach_business_context_to_payload(
     payload: dict[str, Any],
     bundle_map: dict[str, dict[str, Any]],

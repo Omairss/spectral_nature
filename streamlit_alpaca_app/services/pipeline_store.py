@@ -2760,7 +2760,9 @@ def record_provider_attempt(event: dict[str, Any], *, archive_on_failure: bool =
                                 + ",usage_json,metadata_json) VALUES (" + ",".join(["%s"] * len(fields))
                                 + ",%s::jsonb,%s::jsonb) ON CONFLICT(attempt_id) DO UPDATE SET "
                                 "reported_model=EXCLUDED.reported_model,status=EXCLUDED.status,http_status=EXCLUDED.http_status,"
-                                "duration_ms=EXCLUDED.duration_ms,usage_json=EXCLUDED.usage_json,metadata_json=EXCLUDED.metadata_json "
+                                "duration_ms=EXCLUDED.duration_ms,"
+                                "usage_json=COALESCE(NULLIF(EXCLUDED.usage_json,'null'::jsonb),aql_zopedia_provider_attempts.usage_json),"
+                                "metadata_json=aql_zopedia_provider_attempts.metadata_json || EXCLUDED.metadata_json "
                                 "WHERE EXCLUDED.status != 'started' AND (aql_zopedia_provider_attempts.status='started' OR aql_zopedia_provider_attempts.status=EXCLUDED.status)",
                                 (*[event.get(field) for field in fields],
                                  json.dumps(event.get("usage"), default=str),

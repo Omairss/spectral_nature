@@ -1633,3 +1633,7 @@ The small actual-Pro review corrected gross-profit meaning and supplier/buyer ex
 The November 4 native public continuation returned malformed tool markup; syntax repair yielded an empty object. The economical-completion branch then raised immediately instead of using its existing contract-feedback loop. Preserve the same deadline and budget while requesting a conforming response; do not treat syntax repair as substantive recovery.
 
 The complete public continuation exposed a deeper contract conflict: economical completion disabled retained-evidence read actions while compact context started without selected originals. The writer therefore claimed no available facts. Retained reads now remain available within the same deadline and completion allowance; optional external acquisition is still separate.
+
+Receipt review found that replaying an older final outbox receipt could replace enriched SQL metadata from the same successful attempt. Merge metadata and retain known usage when the replay lacks usage. The original attempt identity and status ordering remain unchanged.
+
+The first chart continuation mistakenly used universe rows instead of native ticker histories. It is retained as a macro-only harness error. The corrected native histories produced five charts, but their captions inherited the unaccepted Brief; they are not qualitative acceptance.
