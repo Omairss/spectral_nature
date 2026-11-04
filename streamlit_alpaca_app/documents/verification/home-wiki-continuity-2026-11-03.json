@@ -729,7 +729,17 @@
     "next_scheduled_home_run_uses_handoff": true,
     "production_scheduled_wiki_write_observation": "pending normal schedule",
     "rollback_git_tag": "pre-home-wiki-20261103",
-    "rollback_definitions_retained_privately": true
+    "rollback_definitions_retained_privately": true,
+    "effective_home_memory_configuration": {
+      "status": "passed",
+      "effective_home_write_policy": "safe_auto",
+      "post_answer_memory_enabled": 1,
+      "memory_core_protected": true,
+      "research_access_scope": "public_company_research",
+      "configuration_query": "read-only production control store",
+      "inference_requests": 0,
+      "production_database_writes": 0
+    }
   },
   "separate_work_not_changed": [
     "Planner funding priority allocation",

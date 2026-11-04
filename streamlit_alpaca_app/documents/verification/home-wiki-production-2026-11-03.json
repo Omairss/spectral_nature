@@ -369,5 +369,15 @@
     }
   ],
   "new_inference_requests": 0,
-  "manual_research_executions": 0
+  "manual_research_executions": 0,
+  "effective_home_memory_configuration": {
+    "status": "passed",
+    "effective_home_write_policy": "safe_auto",
+    "post_answer_memory_enabled": 1,
+    "memory_core_protected": true,
+    "research_access_scope": "public_company_research",
+    "configuration_query": "read-only production control store",
+    "inference_requests": 0,
+    "production_database_writes": 0
+  }
 }
