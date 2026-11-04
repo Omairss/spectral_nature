@@ -21,5 +21,14 @@
     "2026-11-03"
   ],
   "native_preview": "native-nov2-repair-local.jpg",
-  "development_status": "pending"
+  "development_status": "pending",
+  "full_producer_dry_run": {
+    "seconds": 28.16,
+    "november_2_entries": 152,
+    "november_2_measured": 152,
+    "total_observed_events": 174,
+    "provider_history_allowance_reached": true,
+    "publication_performed": false,
+    "existing_bls_403_covered_by_fred": true
+  }
 }
