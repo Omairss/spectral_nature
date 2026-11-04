@@ -1,6 +1,6 @@
 {
   "status": "accepted_locally",
-  "scope": "Shared X research, completion-triggered chart posts and saved-event links, with locally accepted native challenge handling verified from Azure. Application images and rollout remain pending.",
+  "scope": "Shared X reactions in research and completion-triggered Attention publishing with charts and exact saved-event links. Owner authorized development qualification and production rollout November 4.",
   "source_revision": "4fa474acb8c4602c2ec0180e291114061f631e64",
   "review_base_revision": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
   "files": {
@@ -1310,8 +1310,58 @@
       "baseline_images": [
         "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113"
       ],
-      "development_targets": [],
-      "production_targets": [],
+      "development_targets": [
+        {
+          "name": "sn-next-ui-dev",
+          "kind": "containerApps",
+          "role": "web",
+          "environment": "development",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+            "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
+          }
+        }
+      ],
+      "production_targets": [
+        {
+          "name": "sn-streamlit-ui",
+          "kind": "containerApps",
+          "role": "web",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+            "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
+          }
+        },
+        {
+          "name": "sn-next-ui",
+          "kind": "containerApps",
+          "role": "web",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+            "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
+          }
+        }
+      ],
       "accepted_images": {},
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
@@ -1461,56 +1511,7 @@
       "accepted_images": {}
     }
   },
-  "untouched_consumers": [
-    {
-      "name": "sn-streamlit-ui",
-      "kind": "containerApps",
-      "role": "web",
-      "environment": "production",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
-        "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
-        "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
-      }
-    },
-    {
-      "name": "sn-next-ui-dev",
-      "kind": "containerApps",
-      "role": "web",
-      "environment": "development",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
-        "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
-        "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
-      }
-    },
-    {
-      "name": "sn-next-ui",
-      "kind": "containerApps",
-      "role": "web",
-      "environment": "production",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
-        "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
-        "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
-      }
-    }
-  ],
+  "untouched_consumers": [],
   "retired_consumers": [
     {
       "name": "sn-streamlit-ui-dev",
@@ -1528,7 +1529,7 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": false,
+  "production_authorized": true,
   "consumer_contract_reviews": {
     "database_lifecycle": {
       "status": "accepted",
@@ -1576,7 +1577,11 @@
     "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-configuration.json",
     "base_budgets_and_schedules_preserved": true
   },
-  "production_authorization": {},
+  "production_authorization": {
+    "owner_instruction": "Roll it out",
+    "recorded_at": "2026-11-04T18:29:21.533974+00:00",
+    "scope": "Qualify development then promote the exact images to production and enable publishing after every Attention refresh."
+  },
   "development_acceptance": {
     "status": "held_pending_release",
     "reason": "The real Azure challenge is now cleared by installed Scrapling handling. New startup and media source need current accepted-source packaging and release review. No application image build or deployment includes these changes."
