@@ -277,7 +277,7 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "Review the actual headline, summary and body as one explanation for someone who has not read the research. "
         "DO NOT ACCEPT FINANCIAL JARGON or abstract labels that conceal the business meaning. "
         "Rewrite unclear passages directly in precise everyday words. Lead with what happened and why it matters. "
-        "Remove rhetorical 'not X, but Y' openings unless they correct a material misconception. "
+        "Rewrite rhetorical 'not X, but Y' openings as direct substantive statements. "
         "NO DISCLAIMERS, missing-proof commentary or research bookkeeping in public prose. "
         "Keep the broad explanation; cut repeated facts, padding, unnecessary definitions and weak side issues. "
         "Remove irrelevant comparisons, rejected research hypotheses and descriptions of what information was available "
