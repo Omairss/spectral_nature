@@ -1,0 +1,71 @@
+[
+  {
+    "status": "passed",
+    "source_revision": "baae125cd56b93c865f7435a749814e2783e7e6f",
+    "runtime_files": 203,
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "imports": [
+      "api",
+      "worker",
+      "broker"
+    ],
+    "research_tool": "read-only web",
+    "completion_hook_disabled_without_external_io": true,
+    "browser_javascript_dom": "42",
+    "new_inference_calls": 0,
+    "role": "worker",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:db58bfbd3a944d5dd652f4b922ff2ea46330b811c2f2064e7c0f4de8d3f743ab",
+    "qualification_run": "cj1fe",
+    "source_inventory_sha256": "b045066651b41c9cbd61786ae7f0d813f3baf55f264994e71dc9f79ce0a9abcf",
+    "runtime_inventory_sha256": "b42386a0d30f7f2b30949779c90e4e8609a0fd284ae515f92e2a69e917b80c68",
+    "tmp_mode": "1777",
+    "browser_path": "/opt/ms-playwright"
+  },
+  {
+    "status": "passed",
+    "source_revision": "baae125cd56b93c865f7435a749814e2783e7e6f",
+    "runtime_files": 203,
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "imports": [
+      "api",
+      "worker",
+      "broker"
+    ],
+    "research_tool": "read-only web",
+    "completion_hook_disabled_without_external_io": true,
+    "browser_javascript_dom": "42",
+    "new_inference_calls": 0,
+    "role": "api-next",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2ee6e87771528eba4bbfca72a3bc7d5a53d7e9dcac5d87c90fe56ab1de67a3e4",
+    "qualification_run": "cj1ff",
+    "source_inventory_sha256": "b045066651b41c9cbd61786ae7f0d813f3baf55f264994e71dc9f79ce0a9abcf",
+    "runtime_inventory_sha256": "b42386a0d30f7f2b30949779c90e4e8609a0fd284ae515f92e2a69e917b80c68",
+    "tmp_mode": "1777",
+    "browser_path": "/opt/ms-playwright"
+  },
+  {
+    "status": "passed",
+    "source_revision": "baae125cd56b93c865f7435a749814e2783e7e6f",
+    "runtime_files": 203,
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "imports": [
+      "api",
+      "worker",
+      "broker"
+    ],
+    "research_tool": "read-only web",
+    "completion_hook_disabled_without_external_io": true,
+    "browser_javascript_dom": "42",
+    "new_inference_calls": 0,
+    "role": "broker",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:501d23c24e0bd2bc38515f604ee5f2e3896a470e8d19d13fa19ba375dcdff463",
+    "qualification_run": "cj1fd",
+    "source_inventory_sha256": "b045066651b41c9cbd61786ae7f0d813f3baf55f264994e71dc9f79ce0a9abcf",
+    "runtime_inventory_sha256": "b42386a0d30f7f2b30949779c90e4e8609a0fd284ae515f92e2a69e917b80c68",
+    "tmp_mode": "1777",
+    "browser_path": "/opt/ms-playwright"
+  }
+]

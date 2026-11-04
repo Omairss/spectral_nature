@@ -51,6 +51,13 @@
     "completed-run-repeat.json",
     "completed-feed-profile-readback.json",
     "operational-checks.json",
-    "pinned-browser-dependencies.json"
-  ]
+    "pinned-browser-dependencies.json",
+    "account-concurrency.json",
+    "api-native-dependencies.json",
+    "packages.json",
+    "cloud-account-boundary.json",
+    "cloud-consumers-unchanged.json"
+  ],
+  "packaging_verification": "All 203 runtime files, API/worker/broker imports, browser path, /tmp permissions and actual JavaScript DOM output passed on each final image from packaging Git baae125c. packages.json records actual results.",
+  "cloud_boundary": "Actual Azure X sign-in encountered Cloudflare verification (title Just a moment and cf-turnstile-response). Cloud sign-in retry stopped; read-only diagnostic made no login attempts. No bypass, deployment or alternate runtime bridge was activated. Owner runtime choice is pending."
 }

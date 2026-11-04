@@ -1,0 +1,8 @@
+{
+  "consumer_count": 38,
+  "all_image_templates_and_configuration_fingerprints_unchanged": true,
+  "azure_deployments": 0,
+  "bounded_test_executions_only": true,
+  "stopped_x_login_retry": "cleanup-trial-observer-dev-phby6ut",
+  "read_only_auth_page_probe": "cleanup-trial-observer-dev-qqolo8t"
+}
