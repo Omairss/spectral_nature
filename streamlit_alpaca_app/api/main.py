@@ -508,14 +508,14 @@ def healthcheck() -> dict[str, str]:
 
 
 @app.get("/v1/home")
-def public_home(response: Response, date: str = "") -> dict[str, Any]:
+def public_home(response: Response, date: str = "", version: str = "") -> dict[str, Any]:
     response.headers["Cache-Control"] = (
         "public, max-age=3600, stale-while-revalidate=86400"
-        if date
+        if date or version
         else "public, max-age=30, stale-while-revalidate=120"
     )
     try:
-        return build_public_home_view(target_date=date)
+        return build_public_home_view(target_date=date, source_version=version)
     except ValueError as exc:
         raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
     except Exception:

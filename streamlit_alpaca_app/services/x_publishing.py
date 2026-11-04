@@ -231,6 +231,8 @@ class XAccountStore:
                     WHERE account=%s AND owner=%s AND lease_until>clock_timestamp())
                 ON CONFLICT(account,event_id) DO UPDATE SET payload=excluded.payload,updated_at=clock_timestamp()
                 WHERE x_publishing_posts.payload->>'text'=excluded.payload->>'text'
+                  AND (NOT (x_publishing_posts.payload ? 'media')
+                       OR x_publishing_posts.payload->'media'=excluded.payload->'media')
                   AND (x_publishing_posts.payload->>'status'<>'published'
                        OR excluded.payload->>'status'='published')
                 RETURNING event_id""", (self.account.lower(),record["event_id"],json.dumps(record),
@@ -264,7 +266,7 @@ class XAccountStore:
                         (self.account.lower(), [record["event_id"] for record in records]))
             stored = {event_id: dict(payload) for event_id, payload in cur.fetchall()}
             batch = {"status": "prepared" if records else "empty", "source_version": source_version,
-                     "composition": "attention_feed_headline",
+                     "composition": "attention_event_images_link",
                      "posts": [stored[record["event_id"]] for record in records]}
             cur.execute("""INSERT INTO x_publishing_batches(account,source_version,payload)
                 VALUES(%s,%s,%s::jsonb) ON CONFLICT(account,source_version) DO UPDATE
@@ -322,6 +324,13 @@ class XBrowser:
                     text = (body.get("variables") or {}).get("tweet_text")
                     if not self._submitting or self._submission_sent or text != self._submitting["text"]:
                         raise XPublishingError("An unowned or repeated post request was blocked.")
+                    if self._submitting.get("media_required"):
+                        entities = ((body.get("variables") or {}).get("media") or {}).get("media_entities") or []
+                        ids = [str(item.get("media_id") or "") for item in entities]
+                        if (not 1 <= len(ids) <= 4 or len(ids) != len(self._submitting.get("media") or [])
+                                or len(set(ids)) != len(ids) or not all(item.isdigit() for item in ids)):
+                            raise XPublishingError("The post request is missing its owned chart attachments.")
+                        self._submitting["x_uploaded_media_ids"] = ids
                 navigating = request.is_navigation_request() and request.frame == self.page.main_frame
                 if navigating:
                     await asyncio.to_thread(self.store.permit, "navigation")
@@ -516,17 +525,15 @@ class XBrowser:
             raise XSubmissionUncertain("This event has an unresolved submission; automatic retry is blocked.")
         if existing and existing.get("text") != record["text"]:
             raise XPublishingError("A prepared event cannot be rewritten during delivery.")
-        if not record.get("text", "").strip() or len(record["text"]) > 280:
+        if existing and existing.get("media") and existing["media"] != record.get("media"):
+            raise XPublishingError("Prepared chart images cannot be replaced during delivery.")
+        linked = record.get("composition") == "attention_event_images_link"
+        if linked and (record.get("text") != record.get("source_title", "") + "\n\n" + record.get("attention_url", "")
+                       or not record.get("attention_url") or len(record.get("source_title", "")) > 255):
+            raise XPublishingError("The Attention headline and saved-page link must match the prepared post.")
+        if not record.get("text", "").strip() or (not linked and len(record["text"]) > 280):
             raise XPublishingError("A standalone post of at most 280 characters is required.")
-        await self._open_composer()
-        dialog = self.page.get_by_role("dialog")
-        composer = dialog.get_by_role("textbox", name="Post text", exact=True)
-        await composer.fill(record["text"])
-        if (await composer.inner_text()).replace("\r\n", "\n") != record["text"].replace("\r\n", "\n"):
-            raise XPublishingError("The composer does not contain the exact prepared post.")
-        button = dialog.get_by_role("button", name="Post", exact=True)
-        if not await button.is_enabled():
-            raise XPublishingError("X has disabled submission.")
+        button = await self.prepare_composer(record)
         prepared = {**record, "account": self.store.account, "status": "prepared", "prepared_at": _now()}
         await asyncio.to_thread(self.store.save_post, prepared)
         await asyncio.to_thread(self.store.permit, "post")
@@ -548,6 +555,7 @@ class XBrowser:
                 raise XSubmissionUncertain("X did not return an unambiguous post receipt.")
             result = {**prepared, "status": "published", "x_post_id": post_id,
                       "x_post_url": f"https://x.com/{self.store.account}/status/{post_id}", "published_at": _now()}
+            result["x_media"] = (data.get("legacy") or {}).get("extended_entities", {}).get("media", [])
             await asyncio.to_thread(self.store.save_post, result)
         except BaseException as exc:
             await asyncio.to_thread(self.store.save_post, {
@@ -562,6 +570,24 @@ class XBrowser:
         except Exception:
             result["session_refresh"] = "failed"
         return result
+
+    async def prepare_composer(self, record: dict[str, Any]) -> Any:
+        """Fill the owned draft and upload retained images without submitting it."""
+        from patchright.async_api import expect
+        await self._open_composer()
+        composer = self.page.get_by_role("textbox", name="Post text", exact=True)
+        dialog = self.page.get_by_role("dialog").filter(has=composer).last
+        await composer.fill(record["text"])
+        if (await composer.inner_text()).replace("\r\n", "\n") != record["text"].replace("\r\n", "\n"):
+            raise XPublishingError("The composer does not contain the exact prepared post.")
+        if record.get("media_required"):
+            from services.attention_x_media import load_attention_images
+            files = await asyncio.to_thread(load_attention_images, record, self.store.account)
+            await dialog.locator('input[type="file"]').set_input_files(files)
+            await expect(dialog.locator('[data-testid="attachments"] img')).to_have_count(len(files), timeout=90_000)
+        button = dialog.get_by_role("button", name="Post", exact=True)
+        await expect(button).to_be_enabled(timeout=90_000)
+        return button
 
 
 @asynccontextmanager

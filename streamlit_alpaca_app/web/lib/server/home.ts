@@ -6,8 +6,11 @@ import type { HomeView } from "@/lib/types";
 
 // The page and polling gateway share the same published representation.
 // Hash all visible data: ticker and Highlight publications can change independently.
-export async function loadHomePublication(date: string) {
-  const response = await backendFetch(`/v1/home${date ? `?date=${encodeURIComponent(date)}` : ""}`, {
+export async function loadHomePublication(date: string, version = "") {
+  const params = new URLSearchParams();
+  if (version) params.set("version", version);
+  else if (date) params.set("date", date);
+  const response = await backendFetch(`/v1/home${params.size ? `?${params}` : ""}`, {
     timeoutMs: 20_000, cache: "no-store",
   });
   if (!response.ok) return { home: null, etag: "", body: "", status: response.status };

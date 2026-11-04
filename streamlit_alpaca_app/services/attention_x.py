@@ -1,4 +1,4 @@
-"""Publish existing, reviewed Attention headlines through the owned X browser."""
+"""Publish reviewed Attention events, saved charts and their permanent page link."""
 from __future__ import annotations
 
 import asyncio
@@ -6,6 +6,7 @@ from typing import Any
 
 from services.x_publishing import SECTIONS, XAccountStore, XBrowser, XPublishingError
 from services.secrets import runtime_env_value
+from services.attention_x_media import attention_url, attention_renderer, retain_attention_images
 
 
 def attention_events(payload: dict[str, Any]) -> list[dict[str, Any]]:
@@ -25,17 +26,23 @@ def prepare_attention_posts(
     if not source_version or not payload.get("run_id"):
         raise XPublishingError("A completed, versioned Attention publication is required.")
     records = []
+    existing = {post["event_id"]: post for post in XAccountStore(account).records()}
     for event in attention_events(payload):
         event_id = str(event.get("event_id") or event.get("bundle_id") or "")
-        text = str(event.get("event_title") or "").strip()
-        if not event_id or not text or len(text) > 280:
-            raise XPublishingError("The feed event needs an identity and a headline that fits X.")
+        if event_id in existing:
+            records.append({**existing[event_id], "status": "prepared"})
+            continue
+        title = str(event.get("event_title") or "").strip()
+        if not event_id or not event.get("bundle_id") or not title or len(title) > 255:
+            raise XPublishingError("The feed event needs an identity and a headline with room for its X link.")
+        url = attention_url(source_version, event["bundle_id"])
+        text = title + "\n\n" + url
         records.append({
             "event_id": event_id, "text": text, "account": account,
-            "source_title": text, "source_ref": event["source_ref"],
+            "source_title": title, "source_ref": event["source_ref"], "attention_url": url,
             "source_version": source_version, "source_as_of": payload.get("generated_at_utc"),
             "source_bundle_id": event.get("bundle_id"), "source_run_id": payload["run_id"],
-            "status": "prepared", "composition": "attention_feed_headline",
+            "status": "prepared", "composition": "attention_event_images_link", "media_required": True,
         })
     return XAccountStore(account).enqueue_batch(source_version, records)
 
@@ -51,6 +58,12 @@ def deliver_attention_posts(account: str, *, headless: bool = True, maximum: int
         if not pending:
             return []
         async def deliver():
+            if any(record.get("media_required") and not record.get("media") for record in pending):
+                async with attention_renderer() as page:
+                    for record in pending:
+                        if record.get("media_required") and not record.get("media"):
+                            record["media"] = await retain_attention_images(page, record, account)
+                            await asyncio.to_thread(store.save_post, record)
             async with XBrowser(store, headless=headless) as browser:
                 return [await browser.publish(record) for record in pending]
         return asyncio.run(deliver())

@@ -8,6 +8,7 @@ import { AttentionTickerCard } from "@/components/attention-ticker-card";
 import { TrendChart } from "@/components/visualizations/trend-chart";
 import type { HomeView } from "@/lib/types";
 import { MarketEventCalendar } from "@/components/market-event-calendar";
+import { AttentionStory } from "@/components/attention-story";
 
 function todayUtc() {
   return new Date().toISOString().slice(0, 10);
@@ -180,11 +181,7 @@ export function HomeWorkspace({ initialHome, initialEtag, targetDate }: {
                       <span className="signal-kind">{beatKind(beat.kind)}</span>
                       {beat.symbols.length ? <span>{beat.symbols.length} {beat.symbols.length === 1 ? "company" : "companies"}</span> : null}
                     </div>
-                    <h3>{beat.title}</h3>
-                    {beat.summary ? <p>{beat.summary}</p> : null}
-                    {beat.why ? <p>{beat.why}</p> : null}
-                    {beat.business_context ? <p className="business-context">{beat.business_context}</p> : null}
-                    {beat.watch_next ? <p><strong>Watch next: </strong>{beat.watch_next}</p> : null}
+                    <AttentionStory beat={beat} />
                     {beat.tickers.length ? <div className="attention-ticker-grid">{beat.tickers.map((ticker) => <AttentionTickerCard key={ticker.symbol} ticker={ticker} />)}</div> : null}
                   </article>
                 </li>
