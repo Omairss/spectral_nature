@@ -1,11 +1,11 @@
 {
   "status": "accepted_locally",
-  "scope": "Reviewed Home investigations update existing Zopedia wiki knowledge and reuse completed handoffs.",
-  "source_revision": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
-  "review_base_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
+  "scope": "X company reactions in shared research and exact Attention headlines after completed runs.",
+  "source_revision": "c068f5571d7b495c86ead13612ea103b8094ec25",
+  "review_base_revision": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
-    ".env.example": "d4bf338c68c5a6db29e8de3c42e3b942066c4611689510129553b2f8db1cbb5e",
+    ".env.example": "1f2833c05f477a63185ca3dd352b52664f84f0859e5eae0da222a0ebfcce1558",
     "Dockerfile.dev": "4496ca96f4426fd3cb703333846c96d799be16feb087c971049c8214b560a4e7",
     "Dockerfile.runtime": "0e65c7adafa401f12ef8d151b9e7ae7d34063483fbc656b11af130e97b3885ed",
     "Dockerfile.web": "cbee57e07274032883bb9e3b28c62412b4bb6176c92fe1ca61af018b9db871b2",
@@ -73,10 +73,10 @@
     "docker-compose.dev.yml": "b34fcd354a6743bbdf3c75b4c98dc49164d15f9eb5b02448d7c51a83f9ecf19d",
     "pipeline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "pipeline/jobs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "pipeline/jobs/attention_home_build.py": "7bf2979164206d56feb7def3a8c5414e64bc6ebbc35d0d9939e62f68a623a178",
+    "pipeline/jobs/attention_home_build.py": "86e62f4bcdf176a6b884c9eed6d7ff56cb4989360cdab21b2431d2ab2c0decd2",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
-    "pipeline/jobs/main.py": "4ad026ee19bad85615ed847f4e2ab9533b59949b11ae9d7d4a42460acb12f6ee",
+    "pipeline/jobs/main.py": "f4051be9828e55f51d5f5dd86fe2c533d06a25dc68e6608ad919d30bebd454ed",
     "pipeline/jobs/market_calendar_refresh.py": "4aec1f2baf918c981da69cdf43fd3645e4f4b2ad29dfebf36a5359206b165164",
     "pipeline/jobs/namespace_refresh.py": "3fab4caf73873cdc71c5fca478145695ced57f001e08e80aa829ba825791f0be",
     "presentation/__init__.py": "e7f0199725582c52f1f32ee3a5fe82db29b0b4dbbc24d27e33e2125077a5462f",
@@ -95,6 +95,7 @@
     "scripts/initialize_dataset_namespace.py": "7c88adebe757c11fd57f148d1311a45ecf4e3d3d1672c22e7d8f48c35a713043",
     "scripts/load_local_env.sh": "615921a4fa67d5221c97f4531647be53198f02a2635c07ac648de7726f8bec04",
     "scripts/migrate_control_store.py": "d17816e0f8b034e18373e9fd76079fc114022e02586ac57f08fc17f47da6960c",
+    "scripts/publish_attention_x.py": "392799af989928cf20a6fb43e5f2ad28e5a6775d563223326bc2bfa8d395e145",
     "scripts/query_db.sh": "d0fe1bccd85fdf325327b6c31de8812627ddfccde373ab0cb0c9c8c9bb491a08",
     "scripts/release_application.py": "9dabdd21d3194bc895d5a3cda74b9fda957cc04f65906f703eb41a2258031ab5",
     "scripts/release_source.py": "8f1df7f728243f020610fffaa857d25b145a6a6c6420735e309f11c6f6910226",
@@ -109,7 +110,7 @@
     "services/__init__.py": "2b89a335db7fd9a3a4b6e016892a075558b1cda43d8ebfa5d5aa8d51eee7120b",
     "services/admin_security_status.py": "6211f37725c12c436f7e8208d6d9a0ccc1c13babfe0adeed3f2d0b0f0d79fff4",
     "services/admin_view.py": "e6113712481f1c1112ec42ac27fcf7669dcf98ddc756bb2ce11323efbf6fbc4f",
-    "services/agent_tools.py": "8a6f4048521325a3a24fa45177a0c314ba648360e5c9f48f98c2969cfb3ad705",
+    "services/agent_tools.py": "b9c102ab1936d2de4ff3a80a2ea950f1b5176f943318d34c6162679cde24f01e",
     "services/agents/__init__.py": "5ea3a97bb8f820ba8a1a9c8f337655ca9aa349227a088757b958f201df3f7c29",
     "services/agents/chat_log.py": "827d526c6cd205d3e9f37725cee84db17696608857bbc4b4f1a2ac5377384ddf",
     "services/agents/research_runs.py": "65c2aa862e13058cf9ae5f25e606a9358cc63038aaf6e599a534b53c9407bcb3",
@@ -128,7 +129,7 @@
     "services/aql/collector.py": "3aa61cf7ca5fa041e8b5632d7b77f3393e6998fdd0eda95f601ad8ab7379fc4a",
     "services/aql/config.py": "2eb5fd7b967608205ec93c49c3e218e02ffc5d622d30377530dd3305dddda634",
     "services/aql/constants.py": "bb19f843b4294d2d7f932691165cf740cc6a1419ad7fc94fcc9ff78e6eacd9ff",
-    "services/aql/events.py": "2b0e6fe559473d96d628e9ce1a97a8973879062334511ec3ef2651dacbd3e733",
+    "services/aql/events.py": "08a4d435926e234079212cde5cca2a4011eff733e3a5fb9b1eed800fcd60a244",
     "services/aql/evidence_index.py": "65c0bd8ff406509028a7fbee0dd7ef21b1453c985a23360b686997442bcef268",
     "services/aql/evidence_pack.py": "ae8e663783a17ae5f9e519047be10a65f9d829337f2b45f9a5cbcb53c6b2454c",
     "services/aql/extractor.py": "6bedaaccbd7ee00a73d5d3f7c2d30a58bd120416663f31b99ab9110ee464866d",
@@ -150,6 +151,7 @@
     "services/attention_signal_graph.py": "6682b3fd24519e2fab4a79f9370734d24e77df6f1d05f45bdadc484140a21544",
     "services/attention_surface.py": "ad733746e32b528fe07303ee10f7501231c8ae0dc38bf03bba8c013331c892db",
     "services/attention_ticker_snapshots.py": "cb91ea0e644c77105f6b68464387a2f03cd0e02663f905a24f9590e0a08bae98",
+    "services/attention_x.py": "f684f8b97e4181db5468ecc05abce3a484983d87f35c650acc36a66ff8e1365c",
     "services/auth_service.py": "2e5803ec482f4ed2c988a05e463c08c1c58e6bbfb84d0dd8034fab8038d6dc93",
     "services/auth_store.py": "8c11049aff8ce1e83bc473266be35ad688281a486b5217ddcd7c080190714ac1",
     "services/brokerage_credentials.py": "26997d5bb4bdc666b2e753b02a71754a8698490969541ca4d75728957e580675",
@@ -197,7 +199,7 @@
     "services/options.py": "0451f958398c313c08ff8b9b66f1d3e1863e068b98af78907328ad51728c09e4",
     "services/page_agentic_summary.py": "07c3bbe22ba2f488226a45cd5afd770e6041f2491fd23de13c7909a499e38a1e",
     "services/page_browsing.py": "7c6a8d6e71817e77c2cc86b57bd6dddab54db70cc51fb5ef0914d3fb43dcb1d3",
-    "services/pipeline_store.py": "305c19440e655d9753d4fd6ad2f845ee3612b1f618791bcb17e0b1f73182cc77",
+    "services/pipeline_store.py": "7274229e6c70a68c861bbb256a418a0bb8a687a08f816b1a0c2421da3d07268a",
     "services/portfolio_view.py": "5f6a572174d42e5776b6c1f3be2c06ec3b9d4297d5759a39c51b6181db84bc3e",
     "services/research_export.py": "7b4519950688050950f2e8424b78a47bcf0bce8b148a98bb958f1bbe7e1d01ad",
     "services/robinhood_main.py": "118febce7cb314a46fa69f1a1500ab25abfc509bbff8b6fed3af25cb48764ac0",
@@ -225,7 +227,9 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "158ad038e144fb5e37c87f53af6f6dfb551c7231d2b542e48a89a555d968e9ee",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "d5355996eb0be93d8eb58673f1f60611e8e9b2877e954a75424f09595f8885d4",
+    "services/x_publishing.py": "f2e47c65eeaa3a4c8ee8a15d086a7e26e92c63dc981f0c7a3b009f9a9c398813",
+    "services/x_research.py": "9bdc1a5bfeabb3a7af8d1d4236ff32e4aa5fcd384fe8ce82bb6e239ec2009c70",
+    "services/zopedia_agent.py": "a5f17f97a12e0520503c85f97b88c2fe9a96278e07107afa9425278aba4e8bdc",
     "services/zopedia_analysis.py": "56d1a2cb099073122996574fdf3187b61d641c43d207f9e3ed5efd3ad4d09f53",
     "services/zopedia_learning.py": "896f846bbee4f4a367dec206a3e2a8cc53d18bbf4cf7aab6a062681d005ee797",
     "services/zopedia_maintenance.py": "895e4e3bf71a46bd41bdbe46e570214220587824db8245327cda05ebe72fc06a",
@@ -393,10 +397,10 @@
     "data_access/query_service.py": "effe47edeabecef0a23736e9776b6839dd95f4412ec61840c6ad2b9cc9a9fec5",
     "pipeline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "pipeline/jobs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "pipeline/jobs/attention_home_build.py": "7bf2979164206d56feb7def3a8c5414e64bc6ebbc35d0d9939e62f68a623a178",
+    "pipeline/jobs/attention_home_build.py": "86e62f4bcdf176a6b884c9eed6d7ff56cb4989360cdab21b2431d2ab2c0decd2",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
-    "pipeline/jobs/main.py": "4ad026ee19bad85615ed847f4e2ab9533b59949b11ae9d7d4a42460acb12f6ee",
+    "pipeline/jobs/main.py": "f4051be9828e55f51d5f5dd86fe2c533d06a25dc68e6608ad919d30bebd454ed",
     "pipeline/jobs/market_calendar_refresh.py": "4aec1f2baf918c981da69cdf43fd3645e4f4b2ad29dfebf36a5359206b165164",
     "pipeline/jobs/namespace_refresh.py": "3fab4caf73873cdc71c5fca478145695ced57f001e08e80aa829ba825791f0be",
     "presentation/__init__.py": "e7f0199725582c52f1f32ee3a5fe82db29b0b4dbbc24d27e33e2125077a5462f",
@@ -407,7 +411,7 @@
     "services/__init__.py": "2b89a335db7fd9a3a4b6e016892a075558b1cda43d8ebfa5d5aa8d51eee7120b",
     "services/admin_security_status.py": "6211f37725c12c436f7e8208d6d9a0ccc1c13babfe0adeed3f2d0b0f0d79fff4",
     "services/admin_view.py": "e6113712481f1c1112ec42ac27fcf7669dcf98ddc756bb2ce11323efbf6fbc4f",
-    "services/agent_tools.py": "8a6f4048521325a3a24fa45177a0c314ba648360e5c9f48f98c2969cfb3ad705",
+    "services/agent_tools.py": "b9c102ab1936d2de4ff3a80a2ea950f1b5176f943318d34c6162679cde24f01e",
     "services/agents/__init__.py": "5ea3a97bb8f820ba8a1a9c8f337655ca9aa349227a088757b958f201df3f7c29",
     "services/agents/chat_log.py": "827d526c6cd205d3e9f37725cee84db17696608857bbc4b4f1a2ac5377384ddf",
     "services/agents/research_runs.py": "65c2aa862e13058cf9ae5f25e606a9358cc63038aaf6e599a534b53c9407bcb3",
@@ -426,7 +430,7 @@
     "services/aql/collector.py": "3aa61cf7ca5fa041e8b5632d7b77f3393e6998fdd0eda95f601ad8ab7379fc4a",
     "services/aql/config.py": "2eb5fd7b967608205ec93c49c3e218e02ffc5d622d30377530dd3305dddda634",
     "services/aql/constants.py": "bb19f843b4294d2d7f932691165cf740cc6a1419ad7fc94fcc9ff78e6eacd9ff",
-    "services/aql/events.py": "2b0e6fe559473d96d628e9ce1a97a8973879062334511ec3ef2651dacbd3e733",
+    "services/aql/events.py": "08a4d435926e234079212cde5cca2a4011eff733e3a5fb9b1eed800fcd60a244",
     "services/aql/evidence_index.py": "65c0bd8ff406509028a7fbee0dd7ef21b1453c985a23360b686997442bcef268",
     "services/aql/evidence_pack.py": "ae8e663783a17ae5f9e519047be10a65f9d829337f2b45f9a5cbcb53c6b2454c",
     "services/aql/extractor.py": "6bedaaccbd7ee00a73d5d3f7c2d30a58bd120416663f31b99ab9110ee464866d",
@@ -448,6 +452,7 @@
     "services/attention_signal_graph.py": "6682b3fd24519e2fab4a79f9370734d24e77df6f1d05f45bdadc484140a21544",
     "services/attention_surface.py": "ad733746e32b528fe07303ee10f7501231c8ae0dc38bf03bba8c013331c892db",
     "services/attention_ticker_snapshots.py": "cb91ea0e644c77105f6b68464387a2f03cd0e02663f905a24f9590e0a08bae98",
+    "services/attention_x.py": "f684f8b97e4181db5468ecc05abce3a484983d87f35c650acc36a66ff8e1365c",
     "services/auth_service.py": "2e5803ec482f4ed2c988a05e463c08c1c58e6bbfb84d0dd8034fab8038d6dc93",
     "services/auth_store.py": "8c11049aff8ce1e83bc473266be35ad688281a486b5217ddcd7c080190714ac1",
     "services/brokerage_credentials.py": "26997d5bb4bdc666b2e753b02a71754a8698490969541ca4d75728957e580675",
@@ -495,7 +500,7 @@
     "services/options.py": "0451f958398c313c08ff8b9b66f1d3e1863e068b98af78907328ad51728c09e4",
     "services/page_agentic_summary.py": "07c3bbe22ba2f488226a45cd5afd770e6041f2491fd23de13c7909a499e38a1e",
     "services/page_browsing.py": "7c6a8d6e71817e77c2cc86b57bd6dddab54db70cc51fb5ef0914d3fb43dcb1d3",
-    "services/pipeline_store.py": "305c19440e655d9753d4fd6ad2f845ee3612b1f618791bcb17e0b1f73182cc77",
+    "services/pipeline_store.py": "7274229e6c70a68c861bbb256a418a0bb8a687a08f816b1a0c2421da3d07268a",
     "services/portfolio_view.py": "5f6a572174d42e5776b6c1f3be2c06ec3b9d4297d5759a39c51b6181db84bc3e",
     "services/research_export.py": "7b4519950688050950f2e8424b78a47bcf0bce8b148a98bb958f1bbe7e1d01ad",
     "services/robinhood_main.py": "118febce7cb314a46fa69f1a1500ab25abfc509bbff8b6fed3af25cb48764ac0",
@@ -523,7 +528,9 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "158ad038e144fb5e37c87f53af6f6dfb551c7231d2b542e48a89a555d968e9ee",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "d5355996eb0be93d8eb58673f1f60611e8e9b2877e954a75424f09595f8885d4",
+    "services/x_publishing.py": "f2e47c65eeaa3a4c8ee8a15d086a7e26e92c63dc981f0c7a3b009f9a9c398813",
+    "services/x_research.py": "9bdc1a5bfeabb3a7af8d1d4236ff32e4aa5fcd384fe8ce82bb6e239ec2009c70",
+    "services/zopedia_agent.py": "a5f17f97a12e0520503c85f97b88c2fe9a96278e07107afa9425278aba4e8bdc",
     "services/zopedia_analysis.py": "56d1a2cb099073122996574fdf3187b61d641c43d207f9e3ed5efd3ad4d09f53",
     "services/zopedia_learning.py": "896f846bbee4f4a367dec206a3e2a8cc53d18bbf4cf7aab6a062681d005ee797",
     "services/zopedia_maintenance.py": "895e4e3bf71a46bd41bdbe46e570214220587824db8245327cda05ebe72fc06a",
@@ -534,21 +541,17 @@
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
   "reviewed_changes": {
-    "config/inference_policy.json": "Protect the existing wiki memory stage as full-model core work. Existing model routes, refresh policy and profile activation are preserved.",
-    "services/inference_policy.py": "Saved runtime routing documents inherit engine-required core tasks, including memory, while retaining existing custom routing and extra core tasks. Real saved-old-document contract passes.",
-    "services/llm_execution.py": "Existing execution state/ownership stores checkpoint completed wiki handoffs by original reviewed finding and explicit write policy. Failed outcomes retry only the handoff; original deadline and shared account/run allowance remain. Protected memory funds are released on every attempt. No new queue/table/provider or budget-priority redesign.",
-    "services/zopedia_agent.py": "The existing post-review memory step can read canonical pages and original evidence before audited mutations. Unapproved answers remain unable to write. Original dates and source links survive, blind/stale page upserts reject, and unsaved mutation outcomes remain failures. Existing public writing/reviewer defaults, research tool permissions and no-action/proposal policies remain.",
-    "services/saa/zopedia.py": "Creation-only expected_version zero means absent. Ordered transaction locks protect missing as well as existing pages across independent findings; row version conflicts reject stale writes. Existing additive merge, historical sources, folders, audit/rollback and semantic indexing paths remain.",
-    "services/aql/events.py": "One existing common planner reads dated retained knowledge; reviewed fresh and reused Home findings invoke shared memory within the original event context and remaining clock. Original cached research is not mutated. Failed writes retain completed research and explicit memory status/error. No acquisition/planning/publication bypass or new news intake.",
-    "services/aql/pipeline.py": "Additive explicit caller write policy and wiki health status; grouping, complete numerical context, common agenda, public editor, source/chunk identity and existing macro/ticker/dossier projections are preserved.",
-    "pipeline/jobs/attention_home_build.py": "Home producer passes its existing configured write policy and records wiki health. Final public writing stays read-only. Existing production schedules, model settings, budgets, numeric inputs, calendar, audio, stories and ticker/chart adapters remain; DEV explicit read-only policy is preserved.",
-    "services/alpha_vantage.py": "Preserve accepted calendar source a0351a50: shared response cache, rolling provider allowance, owner-key handling and failure cooldown; unchanged against that accepted branch.",
-    "services/market_calendar.py": "Preserve accepted current-results source: confirmed history, recent-report priority, historical events and optional price observation projection; unchanged against a0351a50.",
-    "services/market_calendar_reactions.py": "Preserve accepted next-trading-day SIP close arithmetic, current-session completion with historical-feed delay, EPS independence and valid retained observations; unchanged against a0351a50.",
-    "pipeline/jobs/market_calendar_refresh.py": "Preserve accepted normal background publication, pending-report and missing-price refresh, existing session/price adapters and deadlines; no inference or order changes; unchanged against a0351a50.",
-    "web/components/market-event-calendar.tsx": "Preserve accepted live color-only minimal calendar labels, expansion and viewport behavior; unchanged against the live 5ecae881 source.",
-    "web/components/market-event-calendar.module.css": "Preserve accepted live calendar presentation; no frontend deployment in this release.",
-    "web/lib/types.ts": "Preserve accepted optional market reaction DTO; all web inputs match a0351a50 and retained 5ecae881 package."
+    ".env.example": "Document optional account override and explicit post activation; default disabled. No secret values.",
+    "pipeline/jobs/attention_home_build.py": "Existing final Attention writer produces a complete 280-character headline for both the feed and X; all research, wiki policy, source references, public fields and consumer projections retained.",
+    "pipeline/jobs/main.py": "Only main changes: X delivery follows the native completion receipt and SQL completion outside the research clock, for completed Home runs with an Attention version. Failure is isolated; other job handlers and completion behavior remain.",
+    "scripts/publish_attention_x.py": "Manual inspect/prepare/deliver/status use the same account transport. Preparation requires finished receipt and exact version. Retired polling route removed. Not a new runtime job.",
+    "services/agent_tools.py": "Add read-only web company_sentiment tool, typed bounded acquisition arguments and dispatch with inherited as-of/timezone. Existing tool and permissions retained; no posting tool exposed to research.",
+    "services/aql/events.py": "Existing company investigations request company reactions as attributed opinions within shared research. No extra model/stage and existing wiki handoff preserved.",
+    "services/attention_x.py": "Queue existing event headline and existing event ID from the exact completed version. No editor/model. Resume prepared records, persist actual receipts and skip published IDs on repeated completion. Ambiguous event IDs require reconciliation.",
+    "services/pipeline_store.py": "Add exact immutable dataset-version and finished job-receipt readers. latest receipt delegates to the same existing latest pointer. All other definitions, financial authority, database lifecycle and dataset publication remain AST-identical to accepted source.",
+    "services/x_publishing.py": "Async full-JavaScript owned browser fixes blocked response processing. Existing PostgreSQL account lease and durable post/login/navigation pacing, Vault credentials, encrypted cookies/localStorage, exact-text submission guard and immutable receipts. Actual 9-event delivery, fresh exact readback and repeat with zero new posts qualify the transport.",
+    "services/x_research.py": "Acquire attributed Top/Latest reactions and selected full post through the same browser. Shared 15-minute cache, timezone/as-of filtering, dated source documents and complete model context. Existing model interprets sentiment; no lexicon, score or extra inference.",
+    "services/zopedia_agent.py": "Expose source in existing deferred discovery and planner guidance only when web policy permits it. Existing shared synthesis/review/memory logic unchanged."
   },
   "retired_files": [
     "scripts/eval_critique_harness.py",
@@ -664,14 +667,31 @@
         "web/components/market-event-calendar.tsx",
         "web/lib/types.ts"
       ]
+    },
+    {
+      "name": "X company reactions in shared research and completed Attention post delivery",
+      "status": "accepted",
+      "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json",
+      "files": [
+        ".env.example",
+        "pipeline/jobs/attention_home_build.py",
+        "pipeline/jobs/main.py",
+        "scripts/publish_attention_x.py",
+        "services/agent_tools.py",
+        "services/aql/events.py",
+        "services/attention_x.py",
+        "services/pipeline_store.py",
+        "services/x_publishing.py",
+        "services/x_research.py",
+        "services/zopedia_agent.py"
+      ]
     }
   ],
   "roles": {
     "worker": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf",
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae"
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83"
       ],
       "development_targets": [
         {
@@ -681,13 +701,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -697,13 +717,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -713,13 +733,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -729,13 +749,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -745,13 +765,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "b307da9a8aeb66a26d800e66b5e602d5300542114a1f4af4275f416f083e023b",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -761,13 +781,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -777,13 +797,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -793,13 +813,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -809,13 +829,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -825,13 +845,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -841,13 +861,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "a2c020dace093967fddc70cf28d1dfa7d823f94df764256a85e99cce486b3b09",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -857,13 +877,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -873,13 +893,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "2883e0abb815896beb49e8d2c93e55b514b3300bceecfabb0d026b3f10b69075",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf",
-            "source_revision": "700a565aa837e9bd95351bb2261b55d321b0bf2f",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         }
       ],
@@ -891,13 +911,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -907,13 +927,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -923,13 +943,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -939,13 +959,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -955,13 +975,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -971,13 +991,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "08d16a9ed58ad153576b6278c68e4cdc5d3a228aa035c569c36beeb70d15ff74",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -987,13 +1007,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -1003,13 +1023,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "006190f074b4aa15d79421f21124812374cbb938194b54628eff41b675bbf513",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -1019,13 +1039,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -1035,13 +1055,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -1051,13 +1071,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -1067,13 +1087,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -1083,13 +1103,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "fab966688263776cc208a6d0de8341d6f0bde52cb332c52dcba9383f515df9d0",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -1099,13 +1119,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -1115,13 +1135,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -1131,13 +1151,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         },
         {
@@ -1147,13 +1167,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fff6b8e132abdabbbcf301c322e51f6af53833006cc5f64038f35258d2d6deae",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           },
           "execution_binding": {
             "name": "system-recovery",
@@ -1174,30 +1194,22 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "30bab0b60534d0c56819e6f6a6fdbb0a8ed9ef937466c250624c3e0696cbe853",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf",
-            "source_revision": "700a565aa837e9bd95351bb2261b55d321b0bf2f",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83": {
-          "status": "accepted",
-          "source_inventory_sha256": "67ff153303e2d2b52d1251d1f4d012711ff309f8c50f7fc61634ca573ebde7ed",
-          "runtime_inventory_sha256": "e5e2cc2726d1c7bbc3e7fc0c6bef8a04edc6343599176f739806c9b3e0bd06ef",
-          "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
-          "evidence": "documents/verification/home-wiki-packages-2026-11-03.json"
-        }
-      }
+      "accepted_images": {}
     },
     "api-next": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7"
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf"
       ],
       "development_targets": [
         {
@@ -1207,13 +1219,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
-            "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         }
       ],
@@ -1225,25 +1237,17 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3824e4aa51258020d3b228f454d56853a4fd348ad9466d56b88398904a4c46f7",
-            "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf": {
-          "status": "accepted",
-          "source_inventory_sha256": "67ff153303e2d2b52d1251d1f4d012711ff309f8c50f7fc61634ca573ebde7ed",
-          "runtime_inventory_sha256": "e5e2cc2726d1c7bbc3e7fc0c6bef8a04edc6343599176f739806c9b3e0bd06ef",
-          "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
-          "evidence": "documents/verification/home-wiki-packages-2026-11-03.json"
-        }
-      }
+      "accepted_images": {}
     },
     "web": {
       "dependency_image": "node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da",
@@ -1353,9 +1357,9 @@
       }
     },
     "broker": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:93fa79e3ff3936300f7dc6e47b4f2c055a1a5eb0367367f58b2ac834071906e1",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:93fa79e3ff3936300f7dc6e47b4f2c055a1a5eb0367367f58b2ac834071906e1"
+        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75"
       ],
       "development_targets": [
         {
@@ -1365,13 +1369,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:93fa79e3ff3936300f7dc6e47b4f2c055a1a5eb0367367f58b2ac834071906e1",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:93fa79e3ff3936300f7dc6e47b4f2c055a1a5eb0367367f58b2ac834071906e1",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:93fa79e3ff3936300f7dc6e47b4f2c055a1a5eb0367367f58b2ac834071906e1",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         }
       ],
@@ -1383,25 +1387,17 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:93fa79e3ff3936300f7dc6e47b4f2c055a1a5eb0367367f58b2ac834071906e1",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:93fa79e3ff3936300f7dc6e47b4f2c055a1a5eb0367367f58b2ac834071906e1",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:93fa79e3ff3936300f7dc6e47b4f2c055a1a5eb0367367f58b2ac834071906e1",
-            "source_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-            "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75",
+            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
           }
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75": {
-          "status": "accepted",
-          "source_inventory_sha256": "67ff153303e2d2b52d1251d1f4d012711ff309f8c50f7fc61634ca573ebde7ed",
-          "runtime_inventory_sha256": "e5e2cc2726d1c7bbc3e7fc0c6bef8a04edc6343599176f739806c9b3e0bd06ef",
-          "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
-          "evidence": "documents/verification/home-wiki-packages-2026-11-03.json"
-        }
-      }
+      "accepted_images": {}
     }
   },
   "untouched_consumers": [
@@ -1418,7 +1414,7 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
         "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
-        "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+        "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
       }
     },
     {
@@ -1434,7 +1430,7 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
         "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
-        "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+        "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
       }
     },
     {
@@ -1450,7 +1446,7 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
         "source_revision": "71ae4900ef952e2d0dccfeec6a882b7dafdd352f",
-        "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+        "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
       }
     }
   ],
@@ -1471,25 +1467,25 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": true,
+  "production_authorized": false,
   "consumer_contract_reviews": {
     "database_lifecycle": {
       "status": "accepted",
-      "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+      "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
     },
     "pipeline_publication": {
       "status": "accepted",
-      "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+      "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
     },
     "broker_background": {
       "status": "accepted",
-      "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
+      "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
     }
   },
   "preceding_release": {
-    "accepted_application_source": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-    "python_package_source": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
-    "all_38_private_definitions_retained": true
+    "accepted_source_revision": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
+    "packaging_source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
+    "evidence": "documents/verification/home-wiki-production-2026-11-03.json"
   },
   "production_embedding_activation": {
     "owner_instruction": "Enable the existing Azure semantic search",
@@ -1519,30 +1515,7 @@
     "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-configuration.json",
     "base_budgets_and_schedules_preserved": true
   },
-  "production_authorization": {
-    "owner_instruction": "Push to prod once everything is fixed.",
-    "current_continuation": "Complete it. That should help you with point 2 - you would not have to redo entire research runs again.",
-    "scope": "Promote the qualified Home research to wiki continuity repair using the exact accepted DEV images; preserve the accepted calendar, clients and runtime settings.",
-    "evidence": "documents/verification/home-wiki-source-review-2026-11-03.json"
-  },
-  "development_acceptance": {
-    "status": "accepted",
-    "images": {
-      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
-      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
-      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75"
-    },
-    "source_inventory_sha256": "67ff153303e2d2b52d1251d1f4d012711ff309f8c50f7fc61634ca573ebde7ed",
-    "evidence": "documents/verification/home-wiki-development-2026-11-03.json"
-  },
-  "production_acceptance": {
-    "status": "accepted",
-    "images": {
-      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
-      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
-      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75"
-    },
-    "source_inventory_sha256": "67ff153303e2d2b52d1251d1f4d012711ff309f8c50f7fc61634ca573ebde7ed",
-    "evidence": "documents/verification/home-wiki-production-2026-11-03.json"
-  }
+  "production_authorization": {},
+  "development_acceptance": {},
+  "production_acceptance": {}
 }
