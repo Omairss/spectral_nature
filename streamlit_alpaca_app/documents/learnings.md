@@ -1687,3 +1687,5 @@ Keep research-strength metadata with the investigation. A public copy editor sho
 Economical completion still needs the artifact contract. Keep the root-object instruction and existing schema-feedback loop active when optional acquisition ends. Invalid output receives feedback within the original clock and ledger.
 
 Prompt compression must preserve editorial decisions, not just general style labels: name the likely drivers, connect each to the relevant business, explain the broader consequence, keep fields distinct and edit the actual delivered text. Public writing needs specific explanations rather than commentary about proving them. Verify source changes on one real example before expanding.
+
+A research question can be rejected internally without becoming a public story about its rejection. The writer and reviewer must reconsider inherited frames, retain useful business explanations and remove irrelevant comparisons or inventories of information available to the researcher. A correlated price group nominates research; it does not set the reader's question.
