@@ -111,8 +111,8 @@
   ],
   "writing_follow_up": {
     "owner_feedback": "Live prose replaces likely drivers with common-cause caveats and rhetorical contrasts; writing regressed after compression.",
-    "status": "source_instructions_restored_awaiting_actual_writer_reviewer_comparison",
-    "evidence": "documents/verification/home-writing-restoration-2026-11-04.json",
-    "next": "Verify one real story with existing evidence, then expand; full end-to-end release gates stay open."
+    "status": "focused_model_comparisons_failed_release_acceptance",
+    "evidence": "documents/verification/home-writing-verification-2026-11-04.json",
+    "next": "Controlled original-report and numerical-data input comparison, without earlier model narration; no new research acquisition. Prior full release gates remain open."
   }
 }

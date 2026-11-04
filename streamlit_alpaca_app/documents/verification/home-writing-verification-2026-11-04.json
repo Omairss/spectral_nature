@@ -1,0 +1,51 @@
+{
+  "status": "not_accepted_for_release",
+  "source_revision": "9b16bcae",
+  "authorization": {
+    "authorization": "Approve.",
+    "question": "Approve reopening verification for 30 minutes, keeping the same $13 cumulative cap? Test the restored writer and reviewer on one live-feed story first, using saved sources. No full research rerun or production writes.",
+    "approved_at_utc": "2026-11-04T17:18:57.637668+00:00",
+    "window_ends_at_utc": "2026-11-04T17:48:57.637668+00:00",
+    "cap_microusd": 13000000,
+    "all_previous_charges_and_unknowns_preserved": true,
+    "new_owner_example": "EchoStar card inappropriately discusses available election results."
+  },
+  "counts": {
+    "cumulative_known_conservative_estimate_usd": 7.769079,
+    "unresolved_maximum_usd": 2.73517,
+    "total_counted_exposure_usd": 10.504249,
+    "new_counted_usage_in_window_usd": 0.283249,
+    "cumulative_cap_usd": 13,
+    "active_requests": 0
+  },
+  "cases": {
+    "chips": {
+      "initial_restored_prompt": "c3e6c99b",
+      "second_prompt": "5c65e82d",
+      "original_read_instruction": "6f0ce908",
+      "independent_evidence_adapter": "9b16bcae",
+      "result": "Failed qualitative review. Headline improved, but repeated common-cause caveats, extensive figures and hardware-only misdescription of Apple company-wide gross margin remained. Later review read original reports but did not correct the scope error.",
+      "precompression_reviewer_comparison": "Same Pro model, saved draft, facts and shared style, using the full saved precompression reviewer core. It retained the same substantive failures. More instructions alone did not resolve the regression."
+    },
+    "echostar": {
+      "production_run_id": "89091849-1af0-47c4-bc2e-b20e07c893a5",
+      "production_asof": "2026-11-04T14:50:41.711356+00:00",
+      "trace": "A numerical group included EchoStar with SpaceX; the election investigation recorded that its articles did not explain EchoStar. The public editor turned that rejected hypothesis into an unresolved event card.",
+      "result": "The fresh writer selected a substantive election-policy story and omitted the EchoStar dead end. The final review still failed: it expanded the inventory of price moves, retained unnecessary caveats and glossary text, and referred to the incumbent as the former president in the Brief."
+    }
+  },
+  "source_changes": [
+    "Restored concrete writer/reviewer guidance and business explanations.",
+    "Added a clearly fictional concise-writing example and distinct public-field guidance.",
+    "Required primary-report checks for the central development.",
+    "Separated previous model-review verdicts from evidence given to the public editor; immutable original audit records remain."
+  ],
+  "checks": "Nine relevant operational source/evidence/publication contracts pass. This is not qualitative acceptance.",
+  "production": "No application build, deployment or feed replacement. Explicit owner promotion authorization remains gated on local and development acceptance.",
+  "next_controlled_test": {
+    "status": "prepared_not_run",
+    "scope": "Same original-report and numerical inputs, same Pro writer/reviewer; omit previous model-written narration from the writer input. No new acquisition or production writes.",
+    "reason": "Repeated editing and the longer old prompt preserve the same bad draft framing. Test input anchoring before making another product change.",
+    "prepared_script": "Private operations/verify-writing-originals-only.py; not run. Original stored numerical context is retained alongside original reports."
+  }
+}
