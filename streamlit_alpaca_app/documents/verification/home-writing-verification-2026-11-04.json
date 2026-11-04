@@ -43,9 +43,9 @@
   "checks": "Nine relevant operational source/evidence/publication contracts pass. This is not qualitative acceptance.",
   "production": "No application build, deployment or feed replacement. Explicit owner promotion authorization remains gated on local and development acceptance.",
   "next_controlled_test": {
-    "status": "prepared_not_run",
-    "scope": "Same original-report and numerical inputs, same Pro writer/reviewer; omit previous model-written narration from the writer input. No new acquisition or production writes.",
-    "reason": "Repeated editing and the longer old prompt preserve the same bad draft framing. Test input anchoring before making another product change.",
-    "prepared_script": "Private operations/verify-writing-originals-only.py; not run. Original stored numerical context is retained alongside original reports."
+    "status": "completed_not_accepted",
+    "evidence": "documents/verification/home-writing-originals-verification-2026-11-04.json",
+    "comparison": "documents/verification/home-writing-originals-comparison-2026-11-04.html",
+    "result": "Fresh composition removed the common-cause caveat and hardware-only margin error, but retained excessive figures, repetition and a weak chip-supplier explanation. The reviewer accepted it unchanged."
   }
 }

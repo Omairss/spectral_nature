@@ -1,0 +1,149 @@
+{
+  "status": "not_accepted_for_release",
+  "source_revision": "a77986b1",
+  "runtime_source_revision": "9b16bcae",
+  "completed_at_utc": "2026-11-04T18:16:52.042779+00:00",
+  "authorization": {
+    "status": "completed",
+    "authorization": "Approve 20 minutes; keep $13 cap",
+    "approved_at_utc": "2026-11-04T18:10:19.908925+00:00",
+    "ends_at_utc": "2026-11-04T18:30:19.908925+00:00",
+    "cap_microusd": 13000000,
+    "scope": "One writer/reviewer comparison with saved original reports and numerical observations, excluding earlier model-written narration. No new acquisition or production writes. Full production DeepSeek Pro. All earlier charges and unknown maximums remain counted.",
+    "completed_at_utc": "2026-11-04T18:16:52.042779+00:00"
+  },
+  "scope": "One isolated writer/reviewer example using retained original reports and numerical observations, excluding the previous generated investigation and published card. No acquisition, full research rerun, or production writes.",
+  "model": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-pro",
+    "thinking": "enabled",
+    "reasoning_effort": "high"
+  },
+  "data_asof_utc": "2026-11-04T04:56:10.420662+00:00",
+  "cost": {
+    "new_estimated_usage_usd": 0.088166,
+    "new_unknown_maximum_usd": 0,
+    "cumulative_known_estimate_usd": 7.857245,
+    "cumulative_unknown_maximum_usd": 2.73517,
+    "cumulative_counted_exposure_usd": 10.592415,
+    "cap_usd": 13,
+    "pending_requests": 0,
+    "new_requests": 6
+  },
+  "personal_assessment": {
+    "improved": [
+      "The fresh composition no longer discusses proving one common cause.",
+      "Apple gross margin remains a company-wide measure rather than the earlier hardware-only description."
+    ],
+    "failed": [
+      "The public body and Brief still contain excessive price, index and market-value figures and repeat the same facts.",
+      "The explanation treats higher memory prices as benefiting chip suppliers generally and does not distinguish memory sellers from Nvidia, which buys memory for its products.",
+      "The reviewer accepted the draft without substantive changes despite those weaknesses."
+    ],
+    "conclusion": "Earlier model narration is a useful next input to reconsider, but removing it alone did not produce an acceptable replacement. Do not ship this output or expand paid verification."
+  },
+  "limits": [
+    "A writing-stage diagnostic, not a complete data-first research run.",
+    "The fresh writer selected a different focus; excluding earlier narration and adding the full original numerical context does not isolate one causal variable.",
+    "No conclusion that longer prompts, original-only inputs or the complete candidate flow are accepted."
+  ],
+  "review_verdict": {
+    "status": "completed",
+    "verdict": "accept",
+    "critique_summary": "The draft correctly identifies the main development, retains the exact source ID, explains the gross-margin measure in plain terms, and preserves intraday values with their midday basis. The causal chain and broader market consequences are clear and properly sourced."
+  },
+  "writer_and_reviewed_payload_identical": true,
+  "evidence_reads": [
+    {
+      "tool_name": "research.list_supplied_evidence",
+      "arguments": {
+        "offset": 0,
+        "limit": 100
+      },
+      "status": "completed"
+    },
+    {
+      "tool_name": "research.read_supplied_evidence",
+      "arguments": {
+        "source_id": "research-original:0"
+      },
+      "status": "completed"
+    },
+    {
+      "tool_name": "research.read_supplied_evidence",
+      "arguments": {
+        "source_id": "original-numerical-context"
+      },
+      "status": "completed"
+    },
+    {
+      "tool_name": "research.read_supplied_evidence",
+      "arguments": {
+        "source_id": "original:0",
+        "max_characters": 30000
+      },
+      "status": "completed"
+    }
+  ],
+  "request_ids": [
+    "a230fbdeb8cd48abad4a380e3a63bada",
+    "a42cae75fe894dd9997212bb3f76c6d1",
+    "30a02728fa3c496f8092885fd278095e",
+    "d0a227353e76439e87325319c0250f2c",
+    "4b199fb7a1014171a01d6c01d6d3fa08",
+    "5771f4becea74056927b058d89ea888b"
+  ],
+  "artifact_sha256": {
+    "originals-only-chips-writing-input.private.json": "4950aa7c45049b1577c6fdbe9488ca7dccfaec4dc2a00c3905edf88bfe19263a",
+    "originals-only-chips-writer-output.json": "1f579c2def4a8d7e375d521192cb82539acba7353b02ed26c1e953ec18bdc46e",
+    "originals-only-chips-review-output.json": "503a624231dac744037e37b831c1bc35dc4f4083f81d58890cc14ca77b071d29",
+    "originals-only-chips-writing-evidence-trace.json": "87dc506becdd260d73ad865d86b2a5062ce15a6f727e13a7819f2aa125f25101"
+  },
+  "final_model_output": {
+    "stories": [
+      {
+        "section": "top_events",
+        "question": "Why did Nvidia overtake Apple as the world's most valuable listed company on November 3, 2026?",
+        "source_ids": [
+          "research-original:0"
+        ],
+        "supporting_symbols": [
+          "AAPL",
+          "NVDA",
+          "SMH",
+          "XLK"
+        ],
+        "time_basis": {
+          "current_observation": "Nvidia passed Apple as the world's most valuable listed company during U.S. trading on Tuesday, November 3, 2026, with values measured around midday New York time.",
+          "background_events": [
+            {
+              "event": "Apple guided its December-quarter gross margin, the share of sales left after direct product costs, to 45% to 46%, below the 46.3% analysts expected, citing higher memory costs and saying memory prices would keep rising after the holiday quarter.",
+              "event_date": "2026-11-02 after U.S. market close",
+              "source_ids": [
+                "research-original:0"
+              ]
+            }
+          ],
+          "report_dates": "Published 2026-11-03T17:24:36+00:00; market data as of about midday New York time on 2026-11-03."
+        },
+        "event_title": "Nvidia Passes Apple as World's Most Valuable Company After Memory-Cost Warning",
+        "surface_summary_text": "Apple warned that rising memory-chip costs will narrow its December-quarter profit margin, pushing its stock down, while chip stocks rebounded and Nvidia's stock-market value moved above Apple's.",
+        "what_happened_text": "The Nasdaq 100 rose 0.7% to 28,184 on Tuesday as chipmakers rebounded, and Nvidia became the world's most valuable company. Apple had said its December-quarter gross margin, the share of sales left after direct product costs, would be 45% to 46%, below the 46.3% forecast, because memory chips cost more. Apple shares fell 2.2% to $330.97, removing about $107 billion of stock-market value. Nvidia shares rose 2.9% to $207.95, ending a four-session losing streak and adding about $142 billion. At midday, Nvidia was worth $5.01 trillion and Apple was worth $4.83 trillion, leaving Nvidia about $181 billion ahead. Apple had ended Monday about $68 billion ahead.",
+        "why_happened_text": "Higher memory-chip prices raise Apple's costs per device, so investors sold Apple shares. The same price increases benefit chip suppliers, and chip stocks rebounded. Nvidia, a large chip company, gained with the group after four down sessions. Apple's drop and Nvidia's rise together moved Nvidia's stock-market value above Apple's.",
+        "affected_assets_summary_text": "The rebound went beyond Nvidia: the VanEck Semiconductor ETF gained 2.3%, and the Technology Select Sector SPDR Fund rose 1.3%.",
+        "business_context_text": "",
+        "watch_next_text": ""
+      }
+    ],
+    "market_summary": {
+      "summary_text": "Apple warned that more expensive memory chips will cut its December-quarter profit margin, and the stock fell 2.2%, while chip stocks rallied and Nvidia rose 2.9%. At midday, Nvidia became the world's most valuable listed company with a stock-market value of $5.01 trillion, about $181 billion above Apple's $4.83 trillion. The Nasdaq 100 rose 0.7% on the semiconductor rebound, while the Dow Jones Industrial Average fell 0.4% as Apple declined. The move shows that higher memory prices transfer profit from device makers to chip suppliers.",
+      "confidence": "high",
+      "limitations": [
+        "Market values and prices are intraday snapshots from around midday Eastern time on November 3, 2026; the source report was published before the close and did not verify final closing values.",
+        "The explanation that rising memory-chip costs hurt Apple and helped chip stocks is the source's stated interpretation; other demand or cost factors may also have moved individual shares."
+      ]
+    },
+    "issues": []
+  },
+  "production": "No application build, deployment or feed replacement."
+}
