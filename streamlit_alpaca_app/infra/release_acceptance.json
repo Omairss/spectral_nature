@@ -1534,5 +1534,15 @@
     },
     "source_inventory_sha256": "67ff153303e2d2b52d1251d1f4d012711ff309f8c50f7fc61634ca573ebde7ed",
     "evidence": "documents/verification/home-wiki-development-2026-11-03.json"
+  },
+  "production_acceptance": {
+    "status": "accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75"
+    },
+    "source_inventory_sha256": "67ff153303e2d2b52d1251d1f4d012711ff309f8c50f7fc61634ca573ebde7ed",
+    "evidence": "documents/verification/home-wiki-production-2026-11-03.json"
   }
 }

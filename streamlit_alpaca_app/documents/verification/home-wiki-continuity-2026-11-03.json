@@ -1,5 +1,5 @@
 {
-  "status": "accepted_locally",
+  "status": "deployed_and_verified",
   "recorded_at_utc": "2026-11-04T03:26:55.587640+00:00",
   "source_base": "d2cfd7bc6605327d05aaa8e06f1cf6bbfa7d5665",
   "branch": "fix/home-wiki-continuity-20261103",
@@ -715,8 +715,21 @@
     }
   },
   "deployment": {
-    "development": "release preparation",
-    "production": "standing owner fix-and-push instruction recorded; exact DEV image qualification required first"
+    "development": "documents/verification/home-wiki-development-2026-11-03.json",
+    "production": "documents/verification/home-wiki-production-2026-11-03.json",
+    "python_consumers_updated": 35,
+    "total_consumers_read_back": 38,
+    "all_configurations_preserved": true,
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75"
+    },
+    "manual_research_runs_started": 0,
+    "next_scheduled_home_run_uses_handoff": true,
+    "production_scheduled_wiki_write_observation": "pending normal schedule",
+    "rollback_git_tag": "pre-home-wiki-20261103",
+    "rollback_definitions_retained_privately": true
   },
   "separate_work_not_changed": [
     "Planner funding priority allocation",
@@ -752,5 +765,12 @@
       "documents/verification/calendar-history-reactions-2026-11-01/CURRENT_RESULTS_PRODUCTION.json"
     ],
     "builds_before_integration": 0
+  },
+  "cleanup": {
+    "isolated_database_stopped": true,
+    "temporary_database_removed": true,
+    "verified_archive_retention_days": 30,
+    "expires_at": "2026-12-04T03:56:01.364983+00:00",
+    "paid_inference_exception_closed": true
   }
 }

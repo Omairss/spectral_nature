@@ -2,7 +2,7 @@
   "name": "Market-First Research",
   "id": "market-first-research-20261030",
   "revision": 20,
-  "status": "production_trial_deployed_home_wiki_handoff_in_progress",
+  "status": "production_trial_deployed_home_wiki_continuity_completed",
   "recorded_at_utc": "2026-10-31T03:18:50.047478+00:00",
   "purpose": "Build our own attention from current stock and economic observations, with headlines as context, so the news cycle does not decide the research agenda. Spend on useful current questions and preserve strong reasoning, review and explanatory depth.",
   "source_of_truth": "This named plan owns the implemented Market-First change and its remaining qualification. Existing release acceptance remains the authority for packaged runtime.",
@@ -260,7 +260,7 @@
     "latest_public_artifact": "../verification/market-first-research-2026-10-30/candidate-output.json",
     "latest_editorial_verification": "../verification/market-first-research-2026-10-30/compressed-current-production-2026-11-01.json"
   },
-  "next_action": "Finish Home-to-wiki qualification, then deploy the accepted change to DEV. Keep the accepted production trial and held writing experiments distinct.",
+  "next_action": "Observe the deployed Home wiki handoff on the normal schedule. Preserve the separate held writing experiment and keep planner allocation changes as a distinct proposal.",
   "owner_implementation_instruction": "Implement. No mistakes. No code/word vomit either. Let me know once you have the results",
   "qualification_authorization": {
     "instruction": "Approve up to $10",
@@ -607,7 +607,7 @@
     "owner_instruction": "Complete Home-to-wiki updates so later research can extend existing knowledge instead of repeating full investigations.",
     "source_base": "d2cfd7bc6605327d05aaa8e06f1cf6bbfa7d5665",
     "branch": "fix/home-wiki-continuity-20261103",
-    "state": "development_accepted_production_promotion",
+    "state": "deployed_to_production_and_read_back",
     "design": [
       "Keep the existing data-first planner, investigation workers, native review and final public editor. Research and public writing retain read-only tools.",
       "After an investigation or assessed reuse, call the existing shared post-answer wiki maintenance step. Only the existing completed-review authorization can permit a knowledge write.",
@@ -637,6 +637,15 @@
       "unknown_requests": 1,
       "new_requests_after_cached_reuse": 0,
       "receipts": "documents/verification/home-wiki-continuity-2026-11-03.json"
-    }
+    },
+    "production_evidence": "documents/verification/home-wiki-production-2026-11-03.json",
+    "development_evidence": "documents/verification/home-wiki-development-2026-11-03.json",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75"
+    },
+    "verification_cap_closed": true,
+    "next_observation": "Normal scheduled Home wiki write and later semantic reuse; no new manual research run started."
   }
 }
