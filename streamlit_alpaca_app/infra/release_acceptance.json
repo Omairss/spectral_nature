@@ -1584,7 +1584,12 @@
     "evidence": "documents/verification/calendar-history-reactions-2026-11-01/SOURCE_REVIEW.md"
   },
   "development_acceptance": {
-    "status": "pending"
+    "status": "accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf"
+    },
+    "source_inventory_sha256": "e7b5129abe047abed2633f61128393a0634c1b16eb20e4fd6541f712b19dcea2",
+    "evidence": "documents/verification/calendar-history-reactions-2026-11-01/CURRENT_RESULTS_DEVELOPMENT.json"
   },
   "production_acceptance": {
     "status": "accepted",

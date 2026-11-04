@@ -1,0 +1,43 @@
+{
+  "source_inventory_sha256": "e7b5129abe047abed2633f61128393a0634c1b16eb20e4fd6541f712b19dcea2",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf"
+  },
+  "status": "accepted",
+  "calendar_as_of": "2026-11-04T02:37:30.433113+00:00",
+  "execution": {
+    "name": "market-calendar-refresh-dev-wwvwjvm",
+    "status": "Succeeded",
+    "start": "2026-11-04T02:36:54+00:00",
+    "end": "2026-11-04T02:37:53+00:00"
+  },
+  "november_2": {
+    "events": 152,
+    "measured": 152,
+    "green": 76,
+    "red": 74,
+    "unchanged_neutral": 2
+  },
+  "continuous_days": 121,
+  "conditional_home_http": 304,
+  "other_home_sections_preserved": {
+    "summary": true,
+    "graph": true,
+    "beats": true,
+    "daily_datapoints": true
+  },
+  "complete_consumers_preflighted": 38,
+  "image_targets": [
+    {
+      "name": "market-calendar-refresh-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e5aa56d1db04c71558129bc3e21cb5b4e4dc47c9fc36489048b46506027e7280",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf",
+      "configuration_sha256": "2883e0abb815896beb49e8d2c93e55b514b3300bceecfabb0d026b3f10b69075",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "client_changes": 0,
+  "native_visual_evidence": "native-nov2-repair-dev.jpg"
+}
