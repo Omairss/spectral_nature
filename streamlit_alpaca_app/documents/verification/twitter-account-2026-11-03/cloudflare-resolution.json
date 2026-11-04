@@ -1,0 +1,88 @@
+{
+  "status": "verified_solution",
+  "recorded_at_utc": "2026-11-04T18:23:17.176724+00:00",
+  "solution": "Scrapling native challenge handling through the public session.fetch API in the existing account browser context.",
+  "native_handler_probe": {
+    "after": {
+      "path": "/home",
+      "title": "Home / X",
+      "profile_links": 1,
+      "challenge_inputs": 0
+    },
+    "before": {
+      "path": "/home",
+      "title": "Just a moment...",
+      "profile_links": 0,
+      "challenge_inputs": 1
+    },
+    "status": "authenticated",
+    "posts_sent": 0,
+    "handler_result": "returned",
+    "login_attempts": 0,
+    "started_at_utc": "2026-11-04T18:14:19.469753+00:00",
+    "finished_at_utc": "2026-11-04T18:15:08.433256+00:00",
+    "network_requests": 281,
+    "scrapling_version": "0.4.15",
+    "handler_invocations": 1,
+    "minimum_network_interval_seconds": 0.10006564500002924
+  },
+  "public_api_probe": {
+    "after": {
+      "path": "/home",
+      "title": "Home / X",
+      "profile_links": 1,
+      "challenge_inputs": 0
+    },
+    "probe": "public_api_bootstrap",
+    "before": {
+      "path": "/home",
+      "title": "Just a moment...",
+      "profile_links": 0,
+      "challenge_inputs": 1
+    },
+    "status": "authenticated",
+    "posts_sent": 0,
+    "login_attempts": 0,
+    "started_at_utc": "2026-11-04T18:19:48.810896+00:00",
+    "finished_at_utc": "2026-11-04T18:21:06.338801+00:00",
+    "network_requests": 493,
+    "scrapling_version": "0.4.15",
+    "navigation_times_count": 4,
+    "public_fetch_invocations": 1,
+    "minimum_network_interval_seconds": 0.10006853000004412,
+    "clearance_cookies_omitted_for_probe": 2,
+    "minimum_navigation_interval_seconds": 10.21096155600003
+  },
+  "executions": {
+    "cleanup-trial-observer-dev-pqv1dqs": "Succeeded",
+    "cleanup-trial-observer-dev-pwcsfab": "Succeeded"
+  },
+  "source_change": {
+    "file": "services/x_publishing.py",
+    "changed_methods": [
+      "__aenter__",
+      "_authenticate",
+      "_guard_request"
+    ],
+    "review": "Keep the ordinary navigation when there is no challenge. On a precise challenge marker, close the blocked tab, call bounded public fetch with solve_cloudflare enabled, then reopen the owned tab using the same cleared context. Page setup installs the same request-failure listener. Main-frame navigation pacing covers every owned tab. A remaining verification page cannot trigger a password login attempt. All media, identity, lease, encrypted state, immutable event receipt and post pacing behavior remains.",
+    "local_readback": {
+      "authenticated": true,
+      "profile_posts": 5,
+      "minimum_request_gap_seconds": 0.10009770886972547
+    },
+    "focused_tests_passed": 22,
+    "new_services": [],
+    "new_credentials": []
+  },
+  "limits": {
+    "cloud_probe_versions": "The actual pinned Linux role has Scrapling 0.4.15; the local Mac has 0.4.8. No package upgrade.",
+    "public_api_probe": "Same bootstrap flow qualified in an isolated read-only probe using the existing candidate image. A new application image containing the source change has not been built or deployed.",
+    "reliability": "Two bounded sessions passed, including a fresh clearance challenge; this is not a guarantee of permanent access. Failure remains bounded and leaves events pending without rerunning research.",
+    "new_public_posts": 0,
+    "production_deployment": false
+  },
+  "references": [
+    "https://scrapling.readthedocs.io/en/v0.4/fetching/stealthy.html"
+  ],
+  "supersedes": "The earlier cloud-account-boundary.json documents a real challenge with challenge handling disabled; it did not test the available handler."
+}

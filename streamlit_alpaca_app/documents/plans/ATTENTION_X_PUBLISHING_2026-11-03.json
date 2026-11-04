@@ -2,13 +2,13 @@
   "title": "Company reactions in research and Attention posts on X",
   "date": "2026-11-03",
   "account": "OmairS2",
-  "owner_request": "Company-specific sentiment comes into the research. Each Attention event is posted after its run finishes. Keep it simple. November4: Include the charts as images and a deep link to Attention; preserve as much of the Home experience as possible.",
+  "owner_request": "Company-specific sentiment comes into the research. Each Attention event is posted after its run finishes. Keep it simple. November4: Include the charts as images and a deep link to Attention; preserve as much of the Home experience as possible. November4 follow-up: Find a solution to the Azure challenge.",
   "architecture": {
     "research": "research.company_sentiment is a read-only web tool in the existing shared planner. It collects attributed Top/Latest company reactions, original times, URLs, text and truncation. The existing research model interprets agreement, disagreement and expectations; there is no extra model or coded sentiment score.",
     "acquisition": "Existing shared execution-state cache, 15 minutes, with original capture dates and caller as-of/timezone filtering. Source documents and links use the shared research evidence contract. Unavailable collection is distinct from neutral sentiment.",
     "publishing": "After the exact finished run receipt, queue one immutable event per existing event ID. Send its reviewed headline plus saved-event link; reserve 25 characters for spacing and the t.co link. Capture chart-first image panels through the actual Next.js Home components, then attach the complete reviewed explanation. No extra model or editor.",
     "recovery": "Queue insertion is independent of browser ownership and cannot overwrite existing event content or receipts. Prepared events resume on the next completion. Parallel research readers wait within their own acquisition deadline for account access. Published IDs are skipped; ambiguous event IDs require reconciliation. X failures cannot fail or repeat completed research.",
-    "account": "Full JavaScript Scrapling asynchronous browser, real local Chrome or bundled Linux Chromium, persisted cookies/localStorage. Credentials and encryption key remain in spectral-nature-kvault; refreshed session is encrypted in PostgreSQL. One renewable account lease spans processes/environments.",
+    "account": "Full JavaScript Scrapling asynchronous browser, real local Chrome or bundled Linux Chromium, persisted cookies/localStorage. Credentials and encryption key remain in spectral-nature-kvault; refreshed session is encrypted in PostgreSQL. One renewable account lease spans processes/environments. Startup now uses Scrapling public fetch with native Cloudflare handling when challenged, in the same context and under the account-wide caps. A failed clearance cannot start password retries.",
     "browser_dependencies": "All Python roles use the existing accepted worker's pinned Chromium binaries at /opt/ms-playwright. Only browser assets are copied from that dependency image; each role retains its own installed packages and current Git application source. The pinned browser driver installs the required system libraries; shared /tmp uses standard 1777 permissions. Python package versions remain at each role's pinned dependency image.",
     "media": "Public /attention/{version}/{bundle_id} and /images routes share Home story and ticker components. Exact-version API reads use only embedded snapshots. A separate Chromium render checks version, run and event identity before capture. PNGs are checksum-retained in the existing immutable Blob archive; PostgreSQL pins their receipts with the post. The X request guard requires the expected media count before dispatch. Published text-only receipts remain intact and are not reposted."
   },
@@ -53,9 +53,10 @@
       "post_clicked": false,
       "media_replacement_refused": true,
       "media_dispatch_guard_cases": 5
-    }
+    },
+    "cloudflare_follow_up": "cloudflare-resolution.json: authenticated in two Azure sessions; public API bootstrap passed; zero sign-in attempts or posts."
   },
-  "status": "Research and completed-run posting remain locally qualified. The chart/deep-link extension is locally accepted: 24 panels preserve 147 charts across all nine saved events, and X accepted three uploads with the exact linked text and Post enabled. The verification draft was discarded; no new public post was sent. No release build or deployment includes this extension. Azure verification and the existing runtime-placement question remain unresolved.",
+  "status": "The Cloudflare workaround is verified in two read-only Azure sessions: both changed from a real challenge to the correct authenticated account. The public API flow passed with clearance cookies omitted. Shared browser startup is corrected locally and the Mac reader still works. Chart/link and automatic refresh-completion behavior remain accepted. New application packaging and rollout are pending; posting is not activated in Azure.",
   "source": {
     "worktree": "/Users/omairs/Documents/code/spectral_nature_x_publishing_20261103",
     "branch": "feature/attention-x-publishing-20261103",
@@ -68,24 +69,26 @@
     "automatic_service_running": false
   },
   "development": {
-    "status": "held",
+    "status": "held_pending_release",
     "posting_enabled": false,
     "verified_role_images": 3,
     "runtime_files_checked_per_role": 203,
     "azure_deployments": 0,
-    "reason": "The actual account boundary is a Cloudflare verification page, not an application dependency failure. Do not deploy research guidance that would repeatedly wait on blocked acquisition."
+    "reason": "Cloudflare handling is verified. The shared startup correction and preceding media extension need current accepted-source packaging and release review; no deployment has been performed.",
+    "images_with_current_startup_source": 0
   },
   "production": {
     "status": "not_deployed",
     "owner_permission": "required by AGENTS.md"
   },
   "evidence": "../verification/twitter-account-2026-11-03/",
-  "last_updated_utc": "2026-11-04T09:24:02.747756+00:00",
+  "last_updated_utc": "2026-11-04T18:23:17.177812+00:00",
   "runtime_decision": {
-    "pending": true,
-    "question": "Use this Mac as the X browser worker for cloud research and publishing via the existing database, or keep the changes local?",
-    "requires_mac_awake": true,
+    "pending": false,
+    "requires_mac_awake": false,
     "origin": "Owner AGENTS.md instruction to double-check complexity/reliability before a workaround.",
-    "bridge_implemented": false
+    "bridge_implemented": false,
+    "resolution": "Existing Scrapling handling works from Azure; a Mac bridge and a paid browser/proxy service are unnecessary.",
+    "previous_question": "Use this Mac as the X browser worker for cloud research and publishing via the existing database, or keep the changes local?"
   }
 }

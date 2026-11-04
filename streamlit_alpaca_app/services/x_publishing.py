@@ -331,7 +331,7 @@ class XBrowser:
                                 or len(set(ids)) != len(ids) or not all(item.isdigit() for item in ids)):
                             raise XPublishingError("The post request is missing its owned chart attachments.")
                         self._submitting["x_uploaded_media_ids"] = ids
-                navigating = request.is_navigation_request() and request.frame == self.page.main_frame
+                navigating = request.is_navigation_request() and request.frame.parent_frame is None
                 if navigating:
                     await asyncio.to_thread(self.store.permit, "navigation")
                 deadline = self._request_times[-1] + NETWORK_INTERVAL_SECONDS if self._request_times else 0
@@ -374,7 +374,7 @@ class XBrowser:
                 state = {}
         self.session = AsyncStealthySession(
             headless=self.headless, real_chrome=platform.system() in {"Darwin", "Windows"},
-            cookies=state.get("cookies") or [], google_search=False, solve_cloudflare=False,
+            cookies=state.get("cookies") or [], google_search=False, solve_cloudflare=True,
             retries=1, timeout=180_000, additional_args={"service_workers": "block"},
         )
         try:
@@ -392,14 +392,26 @@ class XBrowser:
             async def close_socket(socket: Any) -> None:
                 await socket.close()
             await context.route_web_socket("**/*", close_socket)
-            self.page = await context.new_page()
-            self.page.set_default_timeout(90_000)
             def failed(request: Any) -> None:
                 if request.method == "POST" and urlparse(request.url).path.rsplit("/", 1)[-1] in {"CreateTweet", "CreateNoteTweet"}:
                     self._post_network_failure = request.failure
-            self.page.on("requestfailed", failed)
+            async def configure_page(page: Any) -> None:
+                self.page = page
+                page.set_default_timeout(90_000)
+                page.on("requestfailed", failed)
+            await configure_page(await context.new_page())
             await asyncio.to_thread(self.store.permit, "network")
             await self.page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=180_000)
+            if (await self.page.title() == "Just a moment..."
+                    or await self.page.locator('input[name="cf-turnstile-response"]').count()):
+                # Raw Page.goto bypasses Scrapling's challenge handling. Use its
+                # public fetch API to establish clearance in this same context.
+                await self.page.close()
+                await asyncio.wait_for(self.session.fetch(
+                    "https://x.com/home", page_setup=configure_page, solve_cloudflare=True,
+                ), timeout=120)
+                await configure_page(await context.new_page())
+                await self.page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=180_000)
             await self._authenticate()
             await self._save_session()
             return self
@@ -421,6 +433,9 @@ class XBrowser:
                 self.session = None
 
     async def _authenticate(self) -> None:
+        if (await self.page.title() == "Just a moment..."
+                or await self.page.locator('input[name="cf-turnstile-response"]').count()):
+            raise XVerificationRequired("X verification did not clear; sign-in was not attempted.")
         profile = self.page.get_by_role("link", name="Profile", exact=True)
         try:
             await profile.wait_for(timeout=30_000)
