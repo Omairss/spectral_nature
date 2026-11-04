@@ -13,7 +13,7 @@ from pipeline.jobs.attention_home_build import (
 
 def publication(source_ids):
     return {"stories": [{"section": "top_events", "question": "", "source_ids": source_ids,
-                         "supporting_symbols": ["EXAMPLE"], "time_basis": {}, "cause_status": "partial",
+                         "supporting_symbols": ["EXAMPLE"], "time_basis": {},
                          **{field: field for field in _HOME_PUBLIC_TEXT_FIELDS}}]}
 
 

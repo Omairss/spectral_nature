@@ -506,17 +506,16 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
                 "time_basis": _STORY_TIME_BASIS_SCHEMA,
                 "event_title": {"type": "string", "description": "The substantive development, with chronology and strength of explanation intact. A hypothesized cause remains a hypothesis in the headline; a caveat later in the story cannot correct an asserted cause."},
                 "surface_summary_text": {"type": "string", "description": "The development's essential meaning for an investor, without duplicating the headline or detailed account."},
-                "what_happened_text": {"type": "string", "description": "Explain what changed in the business, policy or market. Describe reported beats, misses and guidance changes in words; retain an exact quantity only when it explains the scale or a consequential distinction. Do not transcribe actual-versus-estimate pairs or financial statement line items into prose."},
-                "why_happened_text": {"type": "string", "description": "Explain the business consequence and the mechanism where supported. Preserve worthwhile hypotheses as hypotheses; an observed move does not require an invented cause. Empty is appropriate when the other fields already explain the meaning."},
-                "affected_assets_summary_text": {"type": "string", "description": "Explain useful related exposures or counterexamples, without turning simultaneous price moves into causes. Empty is appropriate when there is no useful additional connection."},
+                "what_happened_text": {"type": "string", "description": "Explain the material business, policy or market development. Keep figures that add meaning, with their baseline or comparison."},
+                "why_happened_text": {"type": "string", "description": "Explain the leading likely mechanism and its business consequence, qualifying the interpretation within the claim. Leave empty if already explained."},
+                "affected_assets_summary_text": {"type": "string", "description": "Explain why related businesses could gain or lose. Include a useful counterexample; leave empty when redundant."},
                 "business_context_text": {"type": "string", "description": "Add the standing business or economic context needed to understand this change. Do not repeat facts already explained in this story. Empty is appropriate when no additional context is needed."},
                 "watch_next_text": {"type": "string", "description": "Name an observable next development and how it could change the investment interpretation. Leave empty when there is no distinct material point; research tasks belong in internal issues."},
-                "cause_status": {"type": "string", "enum": ["supported", "partial", "unresolved"]},
             },
             "required": [
                 "section", "question", "source_ids", "supporting_symbols", "time_basis", "event_title", "surface_summary_text",
                 "what_happened_text", "why_happened_text", "affected_assets_summary_text",
-                "business_context_text", "watch_next_text", "cause_status",
+                "business_context_text", "watch_next_text",
             ],
         }},
         "market_summary": {
@@ -1412,13 +1411,6 @@ def _attach_business_context_to_payload(
 
     def _attach_to_symbol_payload(item: dict[str, Any], symbol: str) -> dict[str, Any]:
         out = _clean_narrative_fields(dict(item or {}))
-        if str(out.get("cause_status") or "").strip().lower() == "unresolved":
-            out["why_now_text"] = ""
-            out["surface_why_text"] = ""
-            out["surface_summary_text"] = ""
-            observed_title = _title_from_observed_text(out.get("what_changed_text") or out.get("surface_what_changed_text"))
-            if observed_title:
-                out["headline"] = observed_title
         context = contexts_by_symbol.get(symbol)
         if not context:
             return out
@@ -1431,17 +1423,6 @@ def _attach_business_context_to_payload(
 
     def _attach_to_event_payload(item: dict[str, Any]) -> dict[str, Any]:
         out = _clean_narrative_fields(dict(item or {}))
-        if str(out.get("cause_status") or "").strip().lower() == "unresolved":
-            out["why_happened_text"] = ""
-            out["surface_why_text"] = ""
-            out["surface_summary_text"] = ""
-            observed_title = _title_from_observed_text(
-                out.get("what_happened_text")
-                or out.get("surface_what_changed_text")
-                or out.get("affected_assets_summary_text")
-            )
-            if observed_title:
-                out["event_title"] = observed_title
         symbols = [
             str(value or "").upper().strip()
             for value in list(out.get("supporting_symbols") or [])
@@ -1847,8 +1828,7 @@ def _apply_home_surface_quality_items(
                 "research_evidence": [record["content"] for record in records
                                       if record.get("metadata", {}).get("kind") != "source_document"],
                 "market_observations": [observations[symbol] for symbol in symbols if symbol in observations],
-                "public_surface_time_basis": revision["time_basis"], "cause_status": revision["cause_status"],
-                "surface_cause_status": revision["cause_status"]}
+                "public_surface_time_basis": revision["time_basis"]}
             # Original research bundles remain intact; the story's drilldown
             # retains every selected source and its complete original metadata.
             item.update(text); item.update(metadata)

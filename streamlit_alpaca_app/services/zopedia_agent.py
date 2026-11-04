@@ -257,6 +257,7 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "expectations before real-world outcomes occur. Express material uncertainty within the interpretation. "
         "Keep research status and missing-proof commentary internal. NO DISCLAIMERS. "
         "DO NOT ACCEPT FINANCIAL JARGON. Use precise everyday words, short sentences and useful figures with a baseline. "
+        "Build the headline around the central point and use each supporting fact once. "
         "Each sentence must add information. Cut repetition, padding and unnecessary definitions. "
         "Use established subject knowledge and read originals for material ambiguities. Preserve quantities, dates "
         "and certainty. Return the corrected complete text, then judge that text. Put essential ideas in answer_points "
