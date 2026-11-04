@@ -1,0 +1,26 @@
+{
+  "status": "accepted",
+  "source_revision": "4a1d04a5759e49b90f76e797d22958cea42ba85e",
+  "review_base_revision": "d2cfd7bc6605327d05aaa8e06f1cf6bbfa7d5665",
+  "evidence": "documents/verification/home-wiki-continuity-2026-11-03.json",
+  "reviewed_changes": {
+    "config/inference_policy.json": "Protect the existing wiki memory stage as full-model core work. Existing model routes, refresh policy and profile activation are preserved.",
+    "services/inference_policy.py": "Saved runtime routing documents inherit engine-required core tasks, including memory, while retaining existing custom routing and extra core tasks. Real saved-old-document contract passes.",
+    "services/llm_execution.py": "Existing execution state/ownership stores checkpoint completed wiki handoffs by original reviewed finding and explicit write policy. Failed outcomes retry only the handoff; original deadline and shared account/run allowance remain. Protected memory funds are released on every attempt. No new queue/table/provider or budget-priority redesign.",
+    "services/zopedia_agent.py": "The existing post-review memory step can read canonical pages and original evidence before audited mutations. Unapproved answers remain unable to write. Original dates and source links survive, blind/stale page upserts reject, and unsaved mutation outcomes remain failures. Existing public writing/reviewer defaults, research tool permissions and no-action/proposal policies remain.",
+    "services/saa/zopedia.py": "Creation-only expected_version zero means absent. Ordered transaction locks protect missing as well as existing pages across independent findings; row version conflicts reject stale writes. Existing additive merge, historical sources, folders, audit/rollback and semantic indexing paths remain.",
+    "services/aql/events.py": "One existing common planner reads dated retained knowledge; reviewed fresh and reused Home findings invoke shared memory within the original event context and remaining clock. Original cached research is not mutated. Failed writes retain completed research and explicit memory status/error. No acquisition/planning/publication bypass or new news intake.",
+    "services/aql/pipeline.py": "Additive explicit caller write policy and wiki health status; grouping, complete numerical context, common agenda, public editor, source/chunk identity and existing macro/ticker/dossier projections are preserved.",
+    "pipeline/jobs/attention_home_build.py": "Home producer passes its existing configured write policy and records wiki health. Final public writing stays read-only. Existing production schedules, model settings, budgets, numeric inputs, calendar, audio, stories and ticker/chart adapters remain; DEV explicit read-only policy is preserved."
+  },
+  "preservation": {
+    "production_trial_application_source": "f960d945e677e2be51014d040558ac9cb676027b",
+    "all_unmodified_application_files_match_base": true,
+    "frontend_and_native_inputs_unchanged": true,
+    "trading_calendar_broker_and_data_producers_preserved": true,
+    "no_provider_schedule_budget_or_trade_authority_changes": true
+  },
+  "consumer_review": "All five apps and all 33 jobs across both ARM pages reviewed. All Python roles receive the same Git runtime; three calendar-enabled web consumers remain at their accepted immutable image.",
+  "owner_production_instruction_on_record": "Push to prod once everything is fixed. If it is not fixed, fix it and push. Later request: Complete the Home research to wiki continuity.",
+  "production_gate": "The same exact development-qualified images must be accepted before any production promotion."
+}
