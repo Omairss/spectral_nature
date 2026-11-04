@@ -1580,4 +1580,4 @@ The two-report writing sample initially allowed arbitrary strings in source_ids 
 
 ### November 3, 2026 — Home wiki continuity
 
-Home wiki writes were disabled in the October27 qualification follow-up, and the data-first release did not reconnect reviewed investigations to the wiki. Saving research for reuse did not provide wiki continuity. The November3 repair remains held until actual model-generated wiki updates and subsequent reuse are inspected.
+Home wiki writes were disabled in the October27 qualification follow-up, and the data-first release did not reconnect reviewed investigations to the wiki. Saving research for reuse did not provide wiki continuity. The November3 handoff and subsequent reuse are now qualified locally. The isolated planner fixture initially used the wrong retained-reader namespace, and its guard initially rejected native mechanical JSON repair. Correct both before paid qualification; retain every charge and interrupted-request maximum. Compare serialized outcomes consistently rather than treating Python/JSON type differences as extra writes.

@@ -1,5 +1,5 @@
 {
-  "status": "wiki_handoff_accepted_next_planner_check_in_progress",
+  "status": "accepted_locally",
   "recorded_at_utc": "2026-11-04T03:26:55.587640+00:00",
   "source_base": "d2cfd7bc6605327d05aaa8e06f1cf6bbfa7d5665",
   "branch": "fix/home-wiki-continuity-20261103",
@@ -124,13 +124,598 @@
       "The earlier October 22 event remains unchanged and is linked, rather than being re-dated or overwritten.",
       "The saved page retains a research gap already present in the reviewed input; this is knowledge persistence verification, not a new public-writing comparison or new investigation of that gap."
     ],
-    "operational_checks": "106 passed, then six focused wiki contracts passed after adding the explicit unsaved-action retry check; final combined pass pending.",
+    "operational_checks": {
+      "status": "passed",
+      "checks": 107
+    },
     "legacy_agent_suite": "Candidate and accepted base have the same 26 pre-existing failures and 19 passes; no new failures in the compared run.",
-    "qualification_setup_correction": "First planner fixture used a namespace different from the existing completed-research reader. Corrected in isolated storage; all attempts and unknown charges retained."
+    "qualification_setup_correction": "First fixture used a different retained-reader namespace in the isolated DB. The initial transport guard also rejected the production engine\u2019s mechanical JSON repair; the final qualification preserves the native repair contract. All earlier usage and one real interrupted-request maximum remain counted. An initial object-equality probe mixed Python and serialized types; the subsequent cache/request/page checks supersede that probe.",
+    "home_reuse_path": {
+      "status": "passed",
+      "qualification_scope": "Only the reused branch of the completed real model agenda; no new investigations or inference are allowed.",
+      "selected_plan": [
+        {
+          "title": "Oracle capital-raise fall: reuse retained likely-contributor finding",
+          "question": "Does the current 2026-11-02 snapshot continue to support the retained finding that Oracle's $10 billion share offer and $10 billion bond offer were a likely contributor, not the whole explanation, without new work now?",
+          "source_ids": [
+            "doc::event-news::5aa63d66777a0a64f143",
+            "doc::event-news::a0b8e999cae4fac04bb4",
+            "doc::event-news::a9d96f94596594a9d5c7"
+          ],
+          "related_symbols": [
+            "ORCL"
+          ],
+          "followup_questions": [
+            "Do final share discount, bond coupon and maturities, or investor demand affect the retained likely-contributor explanation?",
+            "Has Oracle's earlier debt statement been superseded?",
+            "Does the November 3 session show a contrary move before publication?"
+          ],
+          "rationale": "The completed investigation found the offer is a likely contributor to Oracle's fall but not the whole story, because Oracle had already fallen 6.4% before the announcement. The current observation is consistent with that explanation and no contrary evidence has appeared. Final pricing and demand remain open but do not require new spending now.",
+          "research_action": "reuse",
+          "prior_artifact_id": "a18fc4f035d27c087d9ca9de3e8382cdf7ef7fa4855e3df8dcedd2641e1be58f",
+          "group_ids": [
+            "returns:cc651e58f533"
+          ],
+          "economic_series_ids": []
+        }
+      ],
+      "results": [
+        {
+          "title": null,
+          "status": "completed",
+          "research_action": "reuse",
+          "prior_artifact_id": "a18fc4f035d27c087d9ca9de3e8382cdf7ef7fa4855e3df8dcedd2641e1be58f",
+          "review_status": "reused_prior_review",
+          "memory_status": "completed",
+          "memory_error": ""
+        }
+      ],
+      "new_provider_requests": 0,
+      "wiki_unchanged": true,
+      "wiki_search_visible": true,
+      "read_versions": {
+        "market_event:2026-11-02-oracle-20b-financing-ai-funding-group-fall": 1
+      }
+    },
+    "planner": {
+      "status": "completed",
+      "quality_review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft is clear and sound, but I revised the broad-market language to separate same-day moves from the SPY 5-day and IT 20-day horizons, and softened 'partial cause' to 'likely contributor, not a complete explanation.' I also replaced 'dilute' with plainly described share spreading.",
+        "confidence": "high",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "revised_answer_applied": true,
+        "research_requests": []
+      },
+      "payload": {
+        "research_agenda": [
+          "Investigate a separate CoreWeave company-specific trigger; retained evidence is secondhand and a company source is needed.",
+          "Investigate a separate Nebius company-specific trigger; the fall is material but retained evidence has no Nebius article.",
+          "Reuse the retained Oracle finding that the 2026-11-02 share and bond offer is a likely contributor, not the whole explanation; final pricing and demand remain open but need no new work now.",
+          "Investigate the broad offsetting strength across consumer, industrial, staples, real-estate, and financial groups while SPY's 5-day return, information technology, energy, and credit weakened."
+        ],
+        "findings_markdown": "Current measured group: CRWV, NBIS, ORCL. Previous window pair: CRWV and NBIS. Oracle joined that pair. On the 2026-11-02 snapshot the group fell together: CRWV -8.79%, NBIS -8.26%, ORCL -8.85%; the group 20-day mean was -32.66%. This cluster is a lead, not a cause.\n\nOracle: The retained completed investigation found a likely contributor, not a complete explanation. Oracle announced a $20 billion raise on 2026-11-02: $10 billion in new shares and $10 billion in senior notes. Selling new shares spreads the same business value across more shares, so each existing share tends to become worth less; the bonds add future interest costs. But Oracle had already fallen 6.4% on 30 October before the announcement, and same-day movement does not prove cause. The current observation remains directionally consistent, so we reuse rather than repeat this work. Open items: final share discount, bond coupon and maturities, investor demand, and any superseding debt statement.\n\nCoreWeave: Retained evidence says NVIDIA's CEO defended CoreWeave's financial position, with NVIDIA holding about 10% and a $6.3 billion unused-capacity purchase agreement through 2032. The defense followed market volatility and analyst changes around debt and refinancing. That account is secondhand and not a CoreWeave company release. The sharp fall needs a separate company source.\n\nNebius: No company article on 2026-11-02 appears in retained evidence. The fall is material and the company sits in both the prior CRWV-NBIS pair and the current group. A possible spillover from AI data-center funding concern is plausible but not established.\n\nBroad market: The same snapshot shows offsetting strength. Consumer discretionary, consumer staples, industrials, real estate, and financial groups rose on the day. At the same time, information technology fell on the day (-2.94%) and over 20 days (-10.97%), energy fell on the day (-4.34%), credit fell on the day (-2.94%), and the SPY benchmark's 5-day return was -1.72%. This is a separate market-level question, not a single-company event. No dated economic releases are supplied to explain it.\n\nUnresolved: Company sources are needed for CoreWeave and Nebius; broad strength needs economic or sector-level evidence.",
+        "events": [
+          {
+            "title": "CoreWeave's 8.79% fall: find a separate company trigger",
+            "question": "What company-specific disclosure, financing change, customer update, or debt action explains CoreWeave's sharp fall on 2026-11-02, and how does it separate from Oracle's share and bond offer?",
+            "source_ids": [
+              "doc::event-news::6907875eacb0378dda9b",
+              "https://www.tradingview.com/news/tradingview:70bca6fb36e66:0-weekly-recap-danish-data-center-expansion-and-nvidia-capacity-purchase/"
+            ],
+            "related_symbols": [
+              "CRWV",
+              "NVDA"
+            ],
+            "followup_questions": [
+              "Did CoreWeave issue a statement, filing, debt action, or customer update after the NVIDIA defense?",
+              "What analyst or credit changes were reported on 2026-11-02?",
+              "Does any new evidence change the retained separation from Oracle's offer?"
+            ],
+            "rationale": "The group change put ORCL into a prior CRWV-NBIS pair, but a shared cluster is only a lead. Retained CoreWeave evidence is secondhand from NVIDIA's CEO and points to debt and refinancing concern, not a CoreWeave company release. A specific source is needed before attributing the fall.",
+            "research_action": "investigate",
+            "prior_artifact_id": "",
+            "group_ids": [
+              "returns:cc651e58f533",
+              "returns:0d01698aa61d"
+            ],
+            "economic_series_ids": []
+          },
+          {
+            "title": "Nebius's 8.26% fall: find a company trigger or confirm spillover only",
+            "question": "What company-specific release, operating update, funding change, or customer prepayment change explains Nebius's fall on 2026-11-02, or is the retained spillover explanation still the only available one?",
+            "source_ids": [],
+            "related_symbols": [
+              "NBIS"
+            ],
+            "followup_questions": [
+              "Has Nebius filed or announced Q3 2026 results or a customer or funding update near 2026-11-02?",
+              "Does any company release show a direct cause, or does the evidence support only a possible AI data-center funding spillover?",
+              "If no company source exists, what specific link between Nebius and Oracle or CoreWeave could explain the move?"
+            ],
+            "rationale": "Nebius is material and sits in both the prior CRWV-NBIS pair and current group. Retained evidence has no Nebius article on 2026-11-02, so the fall is unresolved. A company source is needed before attribution.",
+            "research_action": "investigate",
+            "prior_artifact_id": "",
+            "group_ids": [
+              "returns:cc651e58f533",
+              "returns:0d01698aa61d"
+            ],
+            "economic_series_ids": []
+          },
+          {
+            "title": "Oracle capital-raise fall: reuse retained likely-contributor finding",
+            "question": "Does the current 2026-11-02 snapshot continue to support the retained finding that Oracle's $10 billion share offer and $10 billion bond offer were a likely contributor, not the whole explanation, without new work now?",
+            "source_ids": [
+              "doc::event-news::5aa63d66777a0a64f143",
+              "doc::event-news::a0b8e999cae4fac04bb4",
+              "doc::event-news::a9d96f94596594a9d5c7"
+            ],
+            "related_symbols": [
+              "ORCL"
+            ],
+            "followup_questions": [
+              "Do final share discount, bond coupon and maturities, or investor demand affect the retained likely-contributor explanation?",
+              "Has Oracle's earlier debt statement been superseded?",
+              "Does the November 3 session show a contrary move before publication?"
+            ],
+            "rationale": "The completed investigation found the offer is a likely contributor to Oracle's fall but not the whole story, because Oracle had already fallen 6.4% before the announcement. The current observation is consistent with that explanation and no contrary evidence has appeared. Final pricing and demand remain open but do not require new spending now.",
+            "research_action": "reuse",
+            "prior_artifact_id": "a18fc4f035d27c087d9ca9de3e8382cdf7ef7fa4855e3df8dcedd2641e1be58f",
+            "group_ids": [
+              "returns:cc651e58f533"
+            ],
+            "economic_series_ids": []
+          },
+          {
+            "title": "Broad offsetting strength: explain the weak-benchmark contrast",
+            "question": "What market-level or economic factor explains the 2026-11-02 strength in consumer discretionary, consumer staples, industrials, real estate, and financial groups while information technology and energy fell on the day, credit fell on the day, and the SPY benchmark's 5-day return was negative?",
+            "source_ids": [],
+            "related_symbols": [
+              "SPY"
+            ],
+            "followup_questions": [
+              "Which economic releases or rate expectations on or before 2026-11-02 support the consumer and industrial strength?",
+              "Which steady companies without a headline led the offsetting groups?",
+              "Does the broad pattern persist into the November 3 session, or is it a one-session reversal?"
+            ],
+            "rationale": "The available universe shows more than the weak AI-financing group. Consumer discretionary, consumer staples, industrials, real estate, and financial groups rose on the day while information technology and energy fell, credit fell, and SPY's 5-day return was -1.72%. Offsetting strength is a market question in its own right and should not be folded into Oracle or CoreWeave.",
+            "research_action": "investigate",
+            "prior_artifact_id": "",
+            "group_ids": [],
+            "economic_series_ids": []
+          }
+        ]
+      },
+      "tools_read": [
+        "research.supplied_context",
+        "research.completed_investigations"
+      ],
+      "personal_review": "The native planner reads the completed finding, selects exact-artifact Oracle reuse rather than repeated research, and separates the outstanding company and broad-market questions. It did not read the new wiki page in this example; independent native wiki search/read and the Home handoff/reuse path verify that continuity. No claim that every future planner will choose the same agenda."
+    },
+    "cost": {
+      "cap_usd": 3,
+      "estimated_known_usd_max": 0.893017,
+      "unknown_max_usd": 0.361244,
+      "total_counted_usd": 1.254261,
+      "physical_requests": 19,
+      "unknown_requests": 1,
+      "new_requests_after_cached_reuse": 0,
+      "receipts": [
+        {
+          "purpose": "agent.memory_reflection",
+          "started_at_utc": "2026-11-04T03:16:37.560004+00:00",
+          "status": "known",
+          "maximum_microusd": 1006297,
+          "actual_microusd": 204276,
+          "usage": {
+            "prompt_tokens": 152048,
+            "completion_tokens": 902,
+            "total_tokens": 152950,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 826
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 152048
+          },
+          "error_type": null,
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.memory_reflection",
+          "started_at_utc": "2026-11-04T03:17:17.131372+00:00",
+          "status": "known",
+          "maximum_microusd": 1026744,
+          "actual_microusd": 33282,
+          "usage": {
+            "prompt_tokens": 158179,
+            "completion_tokens": 882,
+            "total_tokens": 159061,
+            "prompt_tokens_details": {
+              "cached_tokens": 140288
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 807
+            },
+            "prompt_cache_hit_tokens": 140288,
+            "prompt_cache_miss_tokens": 17891
+          },
+          "error_type": null,
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.memory_reflection",
+          "started_at_utc": "2026-11-04T03:17:38.868942+00:00",
+          "status": "known",
+          "maximum_microusd": 1040025,
+          "actual_microusd": 42209,
+          "usage": {
+            "prompt_tokens": 161577,
+            "completion_tokens": 4602,
+            "total_tokens": 166179,
+            "prompt_tokens_details": {
+              "cached_tokens": 148352
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 2676
+            },
+            "prompt_cache_hit_tokens": 148352,
+            "prompt_cache_miss_tokens": 13225
+          },
+          "error_type": null,
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.research_step",
+          "started_at_utc": "2026-11-04T03:19:22.622214+00:00",
+          "status": "known",
+          "maximum_microusd": 350231,
+          "actual_microusd": 21799,
+          "usage": {
+            "prompt_tokens": 14868,
+            "completion_tokens": 1621,
+            "total_tokens": 16489,
+            "prompt_tokens_details": {
+              "cached_tokens": 3328
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1249
+            },
+            "prompt_cache_hit_tokens": 3328,
+            "prompt_cache_miss_tokens": 11540
+          },
+          "error_type": null,
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.research_step",
+          "started_at_utc": "2026-11-04T03:20:03.375264+00:00",
+          "status": "known",
+          "maximum_microusd": 357046,
+          "actual_microusd": 29118,
+          "usage": {
+            "prompt_tokens": 16336,
+            "completion_tokens": 2980,
+            "total_tokens": 19316,
+            "prompt_tokens_details": {
+              "cached_tokens": 3328
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 2061
+            },
+            "prompt_cache_hit_tokens": 3328,
+            "prompt_cache_miss_tokens": 13008
+          },
+          "error_type": null,
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.research_step",
+          "started_at_utc": "2026-11-04T03:21:09.761830+00:00",
+          "status": "known",
+          "maximum_microusd": 360469,
+          "actual_microusd": 31779,
+          "usage": {
+            "prompt_tokens": 17002,
+            "completion_tokens": 3430,
+            "total_tokens": 20432,
+            "prompt_tokens_details": {
+              "cached_tokens": 3328
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 2406
+            },
+            "prompt_cache_hit_tokens": 3328,
+            "prompt_cache_miss_tokens": 13674
+          },
+          "error_type": null,
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.research_step",
+          "started_at_utc": "2026-11-04T03:22:28.440654+00:00",
+          "status": "unknown",
+          "maximum_microusd": 361244,
+          "actual_microusd": null,
+          "usage": null,
+          "error_type": "ConnectionError",
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.final_synthesis",
+          "started_at_utc": "2026-11-04T03:22:42.275438+00:00",
+          "status": "known",
+          "maximum_microusd": 337680,
+          "actual_microusd": 51555,
+          "usage": {
+            "prompt_tokens": 13181,
+            "completion_tokens": 8790,
+            "total_tokens": 21971,
+            "prompt_tokens_details": {
+              "cached_tokens": 512
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 6965
+            },
+            "prompt_cache_hit_tokens": 512,
+            "prompt_cache_miss_tokens": 12669
+          },
+          "error_type": null,
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.answer_judge",
+          "started_at_utc": "2026-11-04T03:25:42.998676+00:00",
+          "status": "known",
+          "maximum_microusd": 348473,
+          "actual_microusd": 20560,
+          "usage": {
+            "prompt_tokens": 15037,
+            "completion_tokens": 427,
+            "total_tokens": 15464,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 356
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 14269
+          },
+          "error_type": null,
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.answer_judge",
+          "started_at_utc": "2026-11-04T03:25:54.140976+00:00",
+          "status": "known",
+          "maximum_microusd": 352344,
+          "actual_microusd": 21447,
+          "usage": {
+            "prompt_tokens": 15943,
+            "completion_tokens": 349,
+            "total_tokens": 16292,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 300
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 15175
+          },
+          "error_type": null,
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.answer_judge",
+          "started_at_utc": "2026-11-04T03:26:05.920211+00:00",
+          "status": "known",
+          "maximum_microusd": 357901,
+          "actual_microusd": 58811,
+          "usage": {
+            "prompt_tokens": 17191,
+            "completion_tokens": 9822,
+            "total_tokens": 27013,
+            "prompt_tokens_details": {
+              "cached_tokens": 2176
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 7670
+            },
+            "prompt_cache_hit_tokens": 2176,
+            "prompt_cache_miss_tokens": 15015
+          },
+          "error_type": null,
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.research_step",
+          "started_at_utc": "2026-11-04T03:26:36.493648+00:00",
+          "status": "known",
+          "maximum_microusd": 350232,
+          "actual_microusd": 29395,
+          "usage": {
+            "prompt_tokens": 14869,
+            "completion_tokens": 3539,
+            "total_tokens": 18408,
+            "prompt_tokens_details": {
+              "cached_tokens": 3328
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 2633
+            },
+            "prompt_cache_hit_tokens": 3328,
+            "prompt_cache_miss_tokens": 11541
+          },
+          "error_type": null,
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.final_synthesis",
+          "started_at_utc": "2026-11-04T03:27:55.970668+00:00",
+          "status": "known",
+          "maximum_microusd": 329470,
+          "actual_microusd": 15767,
+          "usage": {
+            "prompt_tokens": 11470,
+            "completion_tokens": 323,
+            "total_tokens": 11793,
+            "prompt_tokens_details": {
+              "cached_tokens": 512
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 274
+            },
+            "prompt_cache_hit_tokens": 512,
+            "prompt_cache_miss_tokens": 10958
+          },
+          "error_type": null,
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.final_synthesis",
+          "started_at_utc": "2026-11-04T03:28:05.125750+00:00",
+          "status": "known",
+          "maximum_microusd": 336511,
+          "actual_microusd": 65628,
+          "usage": {
+            "prompt_tokens": 13070,
+            "completion_tokens": 12381,
+            "total_tokens": 25451,
+            "prompt_tokens_details": {
+              "cached_tokens": 512
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 10665
+            },
+            "prompt_cache_hit_tokens": 512,
+            "prompt_cache_miss_tokens": 12558
+          },
+          "error_type": null,
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.research_step",
+          "started_at_utc": "2026-11-04T03:31:19.411285+00:00",
+          "status": "known",
+          "maximum_microusd": 350232,
+          "actual_microusd": 19167,
+          "usage": {
+            "prompt_tokens": 14866,
+            "completion_tokens": 957,
+            "total_tokens": 15823,
+            "prompt_tokens_details": {
+              "cached_tokens": 3328
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 531
+            },
+            "prompt_cache_hit_tokens": 3328,
+            "prompt_cache_miss_tokens": 11538
+          },
+          "error_type": null,
+          "native_literal_repair": false
+        },
+        {
+          "purpose": "agent.research_step",
+          "started_at_utc": "2026-11-04T03:31:42.223471+00:00",
+          "status": "known",
+          "maximum_microusd": 377877,
+          "actual_microusd": 48072,
+          "usage": {
+            "prompt_tokens": 20915,
+            "completion_tokens": 6240,
+            "total_tokens": 27155,
+            "prompt_tokens_details": {
+              "cached_tokens": 3328
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 4482
+            },
+            "prompt_cache_hit_tokens": 3328,
+            "prompt_cache_miss_tokens": 17587
+          },
+          "error_type": null,
+          "native_literal_repair": false
+        },
+        {
+          "purpose": "agent.answer_judge",
+          "started_at_utc": "2026-11-04T03:32:40.434171+00:00",
+          "status": "known",
+          "maximum_microusd": 347369,
+          "actual_microusd": 56739,
+          "usage": {
+            "prompt_tokens": 14959,
+            "completion_tokens": 9589,
+            "total_tokens": 24548,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 7455
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 14191
+          },
+          "error_type": null,
+          "native_literal_repair": null
+        },
+        {
+          "purpose": "agent.final_synthesis",
+          "started_at_utc": "2026-11-04T03:33:55.860533+00:00",
+          "status": "known",
+          "maximum_microusd": 357173,
+          "actual_microusd": 64444,
+          "usage": {
+            "prompt_tokens": 17507,
+            "completion_tokens": 10603,
+            "total_tokens": 28110,
+            "prompt_tokens_details": {
+              "cached_tokens": 512
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 8675
+            },
+            "prompt_cache_hit_tokens": 512,
+            "prompt_cache_miss_tokens": 16995
+          },
+          "error_type": null,
+          "native_literal_repair": false
+        },
+        {
+          "purpose": "agent.answer_judge",
+          "started_at_utc": "2026-11-04T03:37:02.149762+00:00",
+          "status": "known",
+          "maximum_microusd": 368071,
+          "actual_microusd": 78969,
+          "usage": {
+            "prompt_tokens": 19494,
+            "completion_tokens": 13691,
+            "total_tokens": 33185,
+            "prompt_tokens_details": {
+              "cached_tokens": 768
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 11439
+            },
+            "prompt_cache_hit_tokens": 768,
+            "prompt_cache_miss_tokens": 18726
+          },
+          "error_type": null,
+          "native_literal_repair": false
+        }
+      ]
+    }
   },
   "deployment": {
-    "development": "pending local planner qualification",
-    "production": "not authorized by this new acceptance record"
+    "development": "release preparation",
+    "production": "standing owner fix-and-push instruction recorded; exact DEV image qualification required first"
   },
   "separate_work_not_changed": [
     "Planner funding priority allocation",

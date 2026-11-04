@@ -607,7 +607,7 @@
     "owner_instruction": "Complete Home-to-wiki updates so later research can extend existing knowledge instead of repeating full investigations.",
     "source_base": "d2cfd7bc6605327d05aaa8e06f1cf6bbfa7d5665",
     "branch": "fix/home-wiki-continuity-20261103",
-    "state": "wiki_handoff_and_cached_reuse_verified_next_planner_verification_in_progress",
+    "state": "accepted_locally_development_release_preparation",
     "design": [
       "Keep the existing data-first planner, investigation workers, native review and final public editor. Research and public writing retain read-only tools.",
       "After an investigation or assessed reuse, call the existing shared post-answer wiki maintenance step. Only the existing completed-review authorization can permit a knowledge write.",
@@ -621,12 +621,22 @@
       "No implementation of the separate priority-allocation proposal, news-provider replacement or held editorial prompts."
     ],
     "checks": [
-      "Reviewed real retained investigation wrote a dated wiki page through the existing audited mutation.",
-      "Same finding reused the completed handoff with zero additional model calls or wiki edits.",
-      "Unreviewed answer skipped wiki writes.",
-      "Independent creation races reject overwrites; actual unsaved mutation results stay retryable.",
-      "106 combined operational checks and six subsequent focused wiki checks pass; actual planner qualification continues."
+      "107 operational checks passed.",
+      "Real full-Pro reviewed finding saved through the existing audited wiki mutation.",
+      "Same finding and actual Home reuse branch made no extra model/acquisition calls or page revisions.",
+      "Native planner selected exact-artifact reuse; wiki search/read visibility verified separately.",
+      "Unreviewed, failed, stale and concurrent-write outcomes verified."
     ],
-    "evidence": "documents/verification/home-wiki-continuity-2026-11-03.json"
+    "evidence": "documents/verification/home-wiki-continuity-2026-11-03.json",
+    "qualification_cost": {
+      "cap_usd": 3,
+      "estimated_known_usd_max": 0.893017,
+      "unknown_max_usd": 0.361244,
+      "total_counted_usd": 1.254261,
+      "physical_requests": 19,
+      "unknown_requests": 1,
+      "new_requests_after_cached_reuse": 0,
+      "receipts": "documents/verification/home-wiki-continuity-2026-11-03.json"
+    }
   }
 }

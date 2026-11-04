@@ -1647,4 +1647,4 @@ Six funded full-Pro writing/reviewer checks sometimes shortened explanations but
 
 ### November 3, 2026 — Home wiki continuity
 
-Verify investigation storage, completed review and retained wiki knowledge separately. Reuse the shared post-answer memory step, original sources and page revision checks. A failed memory write must remain retryable without rerunning research or overwriting newer knowledge.
+Verify investigation storage, completed review and retained wiki knowledge separately. Reuse the shared post-answer memory step, original sources and page revision checks. A failed memory write must remain retryable without rerunning research or overwriting newer knowledge. Protect absent-page creation as well as existing revisions, and require the mutation’s saved outcome rather than treating a returned tool response as a commit. The qualified native Home reuse branch makes no new inference or page revision.
