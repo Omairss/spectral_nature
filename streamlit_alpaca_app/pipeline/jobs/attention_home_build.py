@@ -55,6 +55,7 @@ from services.page_agentic_summary import (
 )
 from services.pipeline_store import load_latest_dataset_frame, load_recent_dataset_frames
 from services.daily_market_datapoints import build_daily_datapoint_catalog, select_daily_market_datapoints
+from services.market_calendar import load_public_calendar
 from services.llm_execution import complete_core_research, model_call_context, protect_core_research
 from services.saa.storage import build_canonical_document_fields
 
@@ -1979,7 +1980,9 @@ def _review_home_public_surface(
         "research spending. Write distinct Attention stories first, then summarize their main themes in Brief: "
         "what changed, the business developments behind it and the wider economic or investment significance. "
         "Preserve evidence that supports or challenges the central thesis. Treat numerical groups as observations "
-        "and explain plausible connections at their actual strength. Use original sources when the explanation "
+        "and explain likely mechanisms at their actual strength, including several causes acting together. "
+        "Lead with the interpretation and its importance; keep proof-seeking and research-status commentary internal. "
+        "Check event status against the reporting clock before calling a release upcoming. Use original sources when the explanation "
         "depends on a material detail. Section limits are ceilings; leave redundant fields empty and include only "
         "material follow-ups. Use exact source IDs and valid source-title links."
     )
@@ -2189,7 +2192,7 @@ def build_attention_home_output_frames(
         unresolved_limit=unresolved_review_limit,
         research_limit=research_limit,
         load_search_clients=True,
-        economic_context={"fred_signals": fred_signals},
+        economic_context={"fred_signals": fred_signals, "market_calendar": load_public_calendar()},
         previous_publication=previous_publication,
         write_policy=_zopedia_write_policy(),
         progress_callback=research_progress_fn,

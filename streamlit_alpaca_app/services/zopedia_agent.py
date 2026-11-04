@@ -12,6 +12,7 @@ from .llm_execution import (LLMContextWindowExceeded, ResearchBudgetExceeded, re
 from dataclasses import replace
 
 import json
+import logging
 import re
 import threading
 import time
@@ -259,7 +260,10 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "the explanation. NO DISCLAIMERS or research bookkeeping. "
         "Correct material errors, false connections and important omissions using the evidence and established subject "
         "knowledge. Ordinary subject knowledge does not need a separate citation for every statement. "
-        "Read originals for material ambiguities. Preserve quantities, comparisons, dates and certainty. "
+        "Read originals for material ambiguities and check event status against the reporting timestamp. "
+        "Assess likely explanations and competing evidence; several causes can act together. Explain the leading "
+        "interpretation and its importance at the evidence's strength, expressing material uncertainty within the claim. "
+        "Preserve quantities, comparisons, dates and certainty. "
         "Keep useful figures with their context, baseline or reference. "
         "Put the essential ideas in answer_points, return the corrected text, then judge that exact text for accurate "
         "understanding and clarity. Use research_requests for further work. "
@@ -1088,7 +1092,7 @@ def _tool_history_prompt(
     tool_calls: list[dict[str, Any]], *, full_evidence: bool = False,
     selected_source_ids: list[str] | None = None,
 ) -> str:
-    """Keep complete evidence in an immutable prefix as the investigation grows."""
+    """Show compact results while originals remain available through the reader."""
     records = []
     for call in tool_calls:
         summary = call.get("result_summary") or {}
@@ -1115,10 +1119,11 @@ def _tool_history_prompt(
                         or summary.get("preview_text")
                         or ""
                     )
-                ),
+                ) if full_evidence else (summary.get("llm_context_text") or summary.get("preview_text") or ""),
                 "retrieval_context": summary.get("retrieval_context") or {},
-                "evidence_refs": summary.get("evidence_refs") or [],
-                "source_links": summary.get("source_links") or [],
+                "source_id": "history:" + str(call.get("tool_call_id")),
+                "evidence_refs": summary.get("evidence_refs") or [] if full_evidence else {"count": len(summary.get("evidence_refs") or [])},
+                "source_links": summary.get("source_links") or [] if full_evidence else {"count": len(summary.get("source_links") or [])},
                 "error": call.get("error"),
             }
         )
@@ -1207,7 +1212,7 @@ def _run_evidence_model_step(
             }
         reader = service.with_supplied_evidence(records)
         read_tools = [tool for tool in build_tool_registry(reader).catalog() if tool["name"] in read_tool_names]
-        selected = context_state.get("tool_call_ids")
+        selected = context_state.setdefault("tool_call_ids", [])
         visible = [call for call in tool_calls if selected is None or call["tool_call_id"] in selected]
         base_prompt = prompt([] if catalog_only else visible)
         if input_reference:
@@ -1924,6 +1929,8 @@ def _budgeted_tool_calls(tool_calls: list[dict[str, Any]]) -> list[dict[str, Any
         "research.prefetched_context",
         "research.supplied_context",
         "tools.search",
+        "research.list_supplied_evidence",
+        "research.read_supplied_evidence",
     }
     return [
         call
@@ -1944,6 +1951,7 @@ def _planner_user_prompt(
     tool_catalog: list[dict[str, Any]],
     tool_calls: list[dict[str, Any]],
     max_tool_calls: int,
+    tool_calls_used: int | None = None,
     task: str = "",
     surface: str = "",
     conversation_history: list[dict[str, Any]] | None = None,
@@ -1961,12 +1969,12 @@ def _planner_user_prompt(
         f"{_tool_catalog_prompt(tool_catalog)}\n\n"
         f"{evidence_block}"
         "Tool call history:\n"
-        f"{_tool_history_prompt(tool_calls)}\n\n"
+        f"{_tool_history_prompt(tool_calls, full_evidence=True)}\n\n"
         f"{history_block}"
         f"Task: {_clean(task) or 'agent_answer'}\n"
         f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
         f"User question:\n{query}\n\n"
-        f"Tool budget: {max_tool_calls - _budgeted_tool_count(tool_calls)} remaining out of {max_tool_calls}.\n\n"
+        f"Tool budget: {max_tool_calls - (_budgeted_tool_count(tool_calls) if tool_calls_used is None else tool_calls_used)} remaining out of {max_tool_calls}.\n\n"
         "Put exactly one action inside next. "
         "If you still need data, use action='tool_call' with tool_name and JSON-encoded tool_arguments "
         "matching that tool's input_schema. Use '{}' when the tool takes no arguments. "
@@ -2697,6 +2705,7 @@ def _run_post_answer_memory_agent(
     timeout_seconds: int,
     progress_callback: ProgressCallback | None,
     write_policy: str = "safe_auto",
+    finding_reference: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Let Zopedia update or propose memory changes after a grounded answer."""
     normalized_write_policy = _normalize_zopedia_write_policy(write_policy)
@@ -2724,7 +2733,7 @@ def _run_post_answer_memory_agent(
         confidence=confidence,
         limitations=limitations,
         quality_review=quality_review,
-        tool_calls=tool_calls,
+        tool_calls=[],
         conversation_history=conversation_history,
         prefetched_context=prefetched_context,
         write_policy=normalized_write_policy,
@@ -2746,7 +2755,7 @@ def _run_post_answer_memory_agent(
                     prefetched_context=prefetched_context, write_policy=normalized_write_policy),
                 progress_callback=progress_callback,
                 read_tool_names=("research.list_supplied_evidence", "research.read_supplied_evidence",
-                                 "zopedia.search_pages", "zopedia.read_page"),
+                                 "zopedia.search_pages", "zopedia.read_page", "zopedia.sources_for_page", "zopedia.read_source"),
                 surface="zopedia.memory",
                 purpose="agent.memory_reflection",
                 call_type="research_grade",
@@ -2771,6 +2780,7 @@ def _run_post_answer_memory_agent(
         )
         return {"status": "timeout", "reason": _safe_agent_error_text(exc), "write_policy": normalized_write_policy}
     except Exception as exc:
+        logging.getLogger(__name__).exception("Wiki reflection failed for run %s", run_id)
         _emit_progress(
             progress_callback,
             stage="memory_reflection_failed",
@@ -2778,7 +2788,8 @@ def _run_post_answer_memory_agent(
             progress=0.996,
             error=_safe_agent_error_text(exc),
         )
-        return {"status": "failed", "reason": _safe_agent_error_text(exc), "write_policy": normalized_write_policy}
+        return {"status": "failed", "reason": _safe_agent_error_text(exc), "error_type": type(exc).__name__,
+                "sqlstate": getattr(exc, "sqlstate", None), "write_policy": normalized_write_policy}
 
     decision = dict(payload or {})
     reasoning_trace = _clean(decision.get("__reasoning_content"))
@@ -3445,6 +3456,15 @@ def _execute_zopedia_agent_loop(
     structured_repair_attempted = False
     try:
         while int(max_tool_calls) > 0 and budget.remaining() > 0:
+            if isinstance(resolved_service, QueryService):
+                resolved_service = resolved_service.with_supplied_evidence({
+                    **resolved_service.supplied_evidence,
+                    **{"history:" + call["tool_call_id"]: {
+                        "title": call.get("tool_name", "Collected evidence"),
+                        "metadata": {"status": call.get("status"), "origin_run_id": call.get("origin_run_id")},
+                        "content": call,
+                    } for call in tool_calls},
+                })
             if best_effort_required():
                 # Current supplied evidence survives; optional discovery must
                 # not consume the remaining writer/reviewer window.
@@ -3478,36 +3498,22 @@ def _execute_zopedia_agent_loop(
             def planning_prompt_for(visible):
                 return _planner_user_prompt(
                     query=agent_query, task=task, surface=surface, tool_catalog=tool_catalog,
-                    tool_calls=visible, max_tool_calls=max_tool_calls,
+                    tool_calls=visible, max_tool_calls=max_tool_calls, tool_calls_used=_budgeted_tool_count(tool_calls),
                     conversation_history=conversation_history, prefetched_context=prefetched_context,
                 ) + "\n\nCurrent planning state:\n" + planning_context
-            selected_calls = context_state.get("tool_call_ids")
-            planning_prompt = planning_prompt_for([
-                call for call in tool_calls if selected_calls is None or call["tool_call_id"] in selected_calls
-            ])
             def research_step():
-                try:
-                    return generate_json_via_aql_zopedia_gateway(
-                        llm_client=resolved_llm, surface=surface, purpose="agent.research_step", call_type="research_grade",
-                        system_prompt=_planner_system_prompt(), user_prompt=planning_prompt,
-                        schema_name="zopedia_agent_step", schema=_STEP_SCHEMA,
-                        deadline_monotonic=budget.step_deadline("research", llm_step_timeout_seconds),
-                        metadata={"run_id": run_id, "iteration": iteration, "max_tool_calls": max_tool_calls,
-                                  "tool_call_count": _budgeted_tool_count(tool_calls)},
-                    )
-                except LLMContextWindowExceeded as exc:
-                    return _run_evidence_model_step(
-                        llm_client=resolved_llm, service=resolved_service, tool_calls=tool_calls,
-                        context_state=context_state, prompt=planning_prompt_for,
-                        system_prompt=_planner_system_prompt(), schema_name="zopedia_agent_step", schema=_STEP_SCHEMA,
-                        surface=surface, purpose="agent.research_step",
-                        deadline_monotonic=budget.step_deadline("research", budget.remaining()),
-                        model_timeout_seconds=llm_step_timeout_seconds,
-                        metadata={"run_id": run_id, "iteration": iteration}, progress_callback=progress_callback,
-                        capacity_feedback=str(exc),
-                        query=agent_query,
-                        supplied_evidence_allowed=allowed_source_access is None or "supplied" in allowed_source_access,
-                    )
+                return _run_evidence_model_step(
+                    llm_client=resolved_llm, service=resolved_service, tool_calls=tool_calls,
+                    context_state=context_state, prompt=planning_prompt_for,
+                    system_prompt=_planner_system_prompt(), schema_name="zopedia_agent_step", schema=_STEP_SCHEMA,
+                    surface=surface, purpose="agent.research_step",
+                    deadline_monotonic=budget.step_deadline("research", budget.remaining()),
+                    model_timeout_seconds=llm_step_timeout_seconds,
+                    metadata={"run_id": run_id, "iteration": iteration, "max_tool_calls": max_tool_calls,
+                              "tool_call_count": _budgeted_tool_count(tool_calls)},
+                    progress_callback=progress_callback,
+                    supplied_evidence_allowed=allowed_source_access is None or "supplied" in allowed_source_access,
+                )
             try:
                 decision = _run_hidden_step_with_timeout(
                     label="research planning",

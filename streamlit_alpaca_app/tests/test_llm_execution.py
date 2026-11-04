@@ -45,7 +45,8 @@ def store(monkeypatch):
             write(namespace+":latest", subject+":"+task, {"artifact_id": artifact["artifact_id"]})
         return values[(namespace, artifact["artifact_id"])]
     monkeypatch.setattr(pipeline_store, "retain_research_checkpoint", checkpoint)
-    monkeypatch.setattr(pipeline_store, "record_provider_attempt", lambda event: events.append(event) or True)
+    monkeypatch.setattr(pipeline_store, "record_provider_attempt", lambda event, *, archive_on_failure=True:
+        (events.append(event) if archive_on_failure else None) or True)
     execution._ACCOUNTS.clear()
     return values, events
 
@@ -309,7 +310,7 @@ def test_source_annotations_preserve_owned_catalog_and_new_leads():
 def test_provider_receipts_survive_database_outage_and_reconcile_once(monkeypatch):
     from datetime import datetime, timezone
     monkeypatch.setenv("APP_TRACK", "development")
-    pointers = {}; objects = {}; inserted = {}
+    pointers = {}; objects = {}; inserted = {}; order = []
     class Blob:
         def __init__(self, name): self.name = name
         def download_blob(self, **kwargs): return SimpleNamespace(readall=lambda: json.dumps(pointers[self.name]).encode())
@@ -321,14 +322,16 @@ def test_provider_receipts_survive_database_outage_and_reconcile_once(monkeypatc
                 walk_blobs=lambda **kwargs: [SimpleNamespace(name=name) for name in list(pointers) if name.startswith(kwargs['name_starts_with'])],
                 get_blob_client=lambda name: Blob(name))
         def put(self, data, **kwargs): objects['object'] = data; return {'object': 'object'}
-        def point(self, name, receipt): pointers[self.root+'/'+name] = receipt; return self.root+'/'+name
+        def point(self, name, receipt):
+            order.append('durable_receipt'); pointers[self.root+'/'+name] = receipt; return self.root+'/'+name
         def get(self, receipt): return objects[receipt['object']]
     monkeypatch.setattr(pipeline_store, "ImmutableBlobArchive", Archive)
-    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: None)
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: order.append('database') or None)
     event = {'attempt_id': 'attempt', 'root_run_id': 'research', 'settings_scope': 'development',
              'started_at_utc': datetime.now(timezone.utc), 'usage': {'prompt_tokens': 101, 'completion_tokens': 17}}
     assert pipeline_store.record_provider_attempt(event)
     assert len(pointers) == 1 and not inserted
+    assert order == ['durable_receipt', 'database']
     def restored(event, *, archive_on_failure=True):
         inserted.setdefault(event['attempt_id'], event)
         return True
@@ -601,3 +604,19 @@ def test_expired_unspent_core_releases_headroom_without_clearing_unknown_charges
     original = deepcopy(state)
     assert execution._run_remaining(state) == 4_500_000
     assert state == original
+
+
+def test_blocked_wiki_handoff_keeps_its_finding_reference(store, monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setenv('LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE', 'handoff-contract')
+    monkeypatch.setattr(execution, 'protect_core_research', lambda **kwargs: False)
+    wrapped = execution.checkpoint_memory_update(lambda **kwargs: pytest.fail('Unfunded memory started inference'))
+    result = wrapped(llm=SimpleNamespace(config=object()), run_id='finding-run', query='question',
+        answer_markdown='reviewed finding', quality_review={'status':'completed','verdict':'accept'},
+        write_policy='safe_auto', timeout_seconds=10, tool_calls=[],
+        finding_reference={'artifact_id':'retained-finding','namespace':'isolated'})
+    assert result['status'] == 'blocked'
+    saved = [value for (namespace, key), value in store[0].items() if namespace.startswith('research_memory:')]
+    assert len(saved) == 1
+    assert saved[0]['status'] == 'blocked'
+    assert saved[0]['finding_reference']['artifact_id'] == 'retained-finding'

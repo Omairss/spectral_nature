@@ -18,7 +18,8 @@ from data_access.query_service import QueryService
 from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
 from ..llm_context import render_research_prompt
 from ..llm_execution import (latest_research_artifact, event_research_context,
-                            event_investigation_capacity, record_execution_issue)
+                            event_investigation_capacity, record_execution_issue, model_call_context,
+                            protect_core_research, complete_core_research)
 from ..work_scope import WorkCancelled
 from ..common.news_freshness import coerce_article_published_at
 from ..json_utils import to_jsonable
@@ -87,45 +88,23 @@ _NOMINATION_PROMPT = register_narrative_prompt(
     __file__,
     group="AQL / Zopedia Engine",
     prompt=(
-        "Plan Home research from the underlying market and economic observations first. "
-        "The broad numerical context covers the available universe before any name cut. Inspect multi-day "
-        "leadership, weakness, participation and offsetting groups, including steady companies missing from the "
-        "headlines. Return-correlation groups describe measured co-movement; sectors are labels, and neither "
-        "establishes investor flows or a cause. Compare prior and current group membership and relationships, "
-        "accounting for sparse history and data coverage. A changed cluster is a lead, not a required trigger. "
-        "Then consider dated headlines, economic releases and upcoming decisions. Important disclosures and "
-        "private-company or policy developments can deserve research before prices move. Provider tags do not "
-        "restrict affected businesses. Use the supplied evidence reader and existing research tools for the "
-        "original observations and sources when needed. Do not launch separate mover, macro or news agendas. "
-        "Choose N focused questions needing investigation across this common agenda using usefulness, available allowance and the "
-        "original deadline; limits are ceilings, not quotas. Reserve completion resources for core review and "
-        "publication. On a quiet run choose fewer investigations, while still assessing current conditions. "
-        "Read relevant Zopedia wiki pages and their source dates before commissioning repeated research. "
-        "Use existing knowledge to identify the specific changed fact or unanswered question; read its originals "
-        "when needed. Wiki knowledge is fallible analysis, not independent confirmation. "
-        "Compare dated retained research and the prior publication against the current observations. Decide what "
-        "needs new work separately from what remains important to explain now. Completed research remains available "
-        "to final writing even when it needs no new investigation; the paid agenda is not the whole current market. "
-        "Prior attention is not evidence of importance. "
-        "For each question choose investigate, update or reuse. Reuse only sound, source-backed findings whose "
-        "question and explanation still hold against current observations; explain that assessment in rationale. "
-        "For update or reuse select the exact prior_artifact_id, even if new articles use different URLs. "
-        "Unchanged headlines do not establish unchanged conditions. A compatible price move does not validate a "
-        "retained causal explanation: read its decisive original when the comparison or attribution is uncertain. "
-        "New uncertainty, contrary evidence or "
-        "unexplained behavior can require fresh investigation. Never re-date an old disclosure as new. "
-        "Keep each investigation's context focused: select related_symbols, relevant group_ids and economic "
-        "series IDs; broader observations remain accessible. Plan decisive follow-ups rather than checklists. "
-        "A measured group can contain different businesses and explanations. Separate materially different "
-        "questions instead of assigning a large group one assumed cause. Ask open questions; do not force a "
-        "choice between a news explanation and a factor explanation before investigating. Preserve consequential "
-        "numerical discoveries even when the headline collection has no matching article. "
-        "Assess what offsets benchmark weakness as a market question in its own right; steady broad strength "
-        "deserves explanation even without a fresh headline. Retained hypotheses and reviewer disagreements "
-        "must remain distinct from established causes when deciding to reuse or extend research. "
-        "Source IDs are supplied identities or exact URLs acquired by tools. A numerical lead needs no article. "
-        "Return events in priority order, research_agenda as the current questions, and findings_markdown as "
-        "substantive current assessment and unresolved questions, not a public Brief or a list of figures."
+        "Plan one Home research agenda from current stock/economic observations, numerical groups and dated headlines. "
+        "Inspect daily and multi-day leadership, weakness, participation, benchmark offsets and changes in which "
+        "companies move together. Include steady important groups without headlines; a cluster change or large daily "
+        "move is not required. Correlation and sector labels are observations, not causes or measured investor flows. "
+        "Use the reporting timestamp and event calendar: check material releases already due through existing source "
+        "tools instead of carrying forward an earlier preview. A scheduled date alone does not prove publication. "
+        "Choose useful focused questions within the shared allowance and deadline, accounting for research, review, "
+        "wiki completion and publication. Limits are ceilings, not quotas. Ask what changed, the likely explanations "
+        "and business consequences. Several mechanisms may act together; compare their support and contrary evidence "
+        "and explain how members differ. Use qualitative likelihood and retain useful hypotheses. "
+        "Read relevant dated wiki knowledge and originals. Choose investigate, update or reuse; for update/reuse identify "
+        "the exact prior_artifact_id and explain what changed or still holds. Earlier model analysis is fallible. "
+        "Prior publication is not evidence of importance; the paid agenda is not the whole publication pool. "
+        "Select related symbols, numerical group IDs and economic series for focused context. Complete originals and "
+        "broader observations remain readable through the supplied evidence tools. Headlines and provider ticker tags "
+        "are discovery hints, including private-company and policy events. Return events in priority order, an agenda "
+        "and substantive current market findings with useful connections and source references."
 
     ),
 )
@@ -135,7 +114,7 @@ _EVENT_SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
     "properties": {
         "event_title": {"type": "string"},
-        "findings_markdown": {"type": "string", "description": "Substantive shared research: operating explanation, dated findings, alternatives, source references and unresolved questions."},
+        "findings_markdown": {"type": "string", "description": "Substantive shared research: operating explanation, dated findings, alternatives, source references and useful follow-ups."},
         "cause_status": {
             "type": "string",
             "enum": ["supported", "partial", "unresolved", "continuation"],
@@ -402,6 +381,11 @@ def research_source_events(
         "economic-observations": {"title": "Dated economic observations", "metadata": {}, "content": to_jsonable(macro_context or {})},
         "previous-publication": {"title": "Previous publication with original dated sources", "metadata": {},
                                  "content": to_jsonable(previous_publication or {})}})
+    source_records.update({"market-calendar:" + day["id"]: {
+        "title": "Scheduled and reported market events on " + day["id"],
+        "metadata": {"date": day["id"], "timezone": "America/New_York", "kind": "event_calendar"},
+        "content": day,
+    } for day in ((macro_context or {}).get("market_calendar") or {}).get("days", []) if day.get("events")})
     source_records.update({"retained-research:" + artifact["artifact_id"]: {
         "title": ((artifact.get("result") or {}).get("payload") or {}).get("event_title") or artifact["subject"],
         "metadata": {"kind": "prior_model_analysis", "created_at_utc": artifact["created_at_utc"],
@@ -415,7 +399,15 @@ def research_source_events(
             to_jsonable(
                 {"asof": asof, "market_context": market_context or {},
                  "sources": previews,
-                 "economic_observations": macro_context or {},
+                 "economic_observations": {key: value for key, value in (macro_context or {}).items() if key != "market_calendar"},
+                 "event_calendar": [{"date": day["id"], "timezone": "America/New_York", **{key: event.get(key) for key in
+                     ("id", "name", "ticker", "type", "time", "timing_label", "confirmation_status", "source_as_of")}}
+                     for day in ((macro_context or {}).get("market_calendar") or {}).get("days", [])
+                     for event in day.get("events", [])
+                     if day["id"] == asof.tz_convert("America/New_York").date().isoformat() or not event.get("ticker")],
+                 "calendar_catalog": [{"date": day["id"], "event_count": len(day["events"]),
+                     "source_id": "market-calendar:" + day["id"]}
+                     for day in ((macro_context or {}).get("market_calendar") or {}).get("days", []) if day.get("events")],
                  "previous_market_context": {key: value for key, value in (((previous_nomination or {}).get("artifact_context") or {}).get("market_context") or {}).items()
                                              if key not in {"observations", "columns", "previous_groups"}},
                  "previous_publication": {"asof_time_utc": (previous_publication or {}).get("asof_time_utc"),
@@ -542,32 +534,34 @@ def research_source_events(
         event_id = "question-" + hashlib.sha256(
             (asof.isoformat() + "|" + str(index) + "|" + plan["question"]).encode()).hexdigest()[:20]
         instructions = (
-            "Investigate this selected market question and explain the observations, business transmission and what changed. "
-            "The supplied source captures are collected evidence. Nominated questions and unacquired source references "
-            "are research leads, not established facts. Read the captures first; retain their value if further "
-            "acquisition is slow or unavailable. Use memory and current source tools for focused follow-ups chosen from "
-            "the investigation plan. Provider symbol tags do not restrict the affected companies. Sources can concern "
-            "private entities. Compare competing interpretations, and distinguish reported facts, established business "
-            "relationships and plausible market effects. Do not claim a contemporaneous price move proves causation. "
-            "A missing fresh article does not establish a factor explanation or erase a numerical discovery. "
-            "Read relevant prior findings and their dated originals before repeating discovery. Investigate the "
-            "business explanation and alternatives; retain unresolved observations without substituting an "
-            "unsupported common cause. Different companies in a numerical group can have different causes. "
-            "For company questions explain the business: products, customers, demand and operating economics, "
-            "with the relevant competitive or policy connections and contrary evidence. "
-            "Record one substantive shared research answer in findings_markdown. Explain the operating or policy "
-            "mechanism, decisive detail, competing interpretations, original event dates and useful next observations. "
-            "Preserve information needed for later synthesis; this stage does not write a Home card. "
-            "Use source_id/source_url on claims, and set evidence_role to reported_fact, established_context or hypothesis. "
-            "Keep a useful partial story when a connection needs follow-up. Do not invent a public ticker for a private entity.\n"
-            "Keep tool/runtime limitations in the engine's internal limitations; findings explain the substantive "
-            "remaining uncertainty and the observation that would change the interpretation.\n"
+            "Investigate the selected question against current observations. Explain the likely business mechanisms, "
+            "their relative support, contrary evidence and wider consequences. Multiple causes can act together. "
+            "Rank plausible explanations by supporting and conflicting evidence. Express "
+            "qualitative likelihood at the evidence's strength and update it as new information arrives. "
+            "Read relevant dated findings and original passages using the evidence tools; extend sound research "
+            "instead of restarting it. Broad market context remains available. Preserve useful unexpected connections. "
+            "Compare the reporting clock with event dates. For material releases already due, acquire the current "
+            "results through existing source tools rather than repeat a preview as an upcoming event. "
+            "Return substantive findings, key facts, comparisons, interpretations and useful next observations. "
+            "Attach original source IDs/URLs and dates to claims. Separate reported facts, business context and hypotheses. "
+            "This is research for later synthesis, not a Home card. Keep execution failures and research bookkeeping internal."
         )
         prior_research = [
             artifact for symbol in sorted(set(plan["related_symbols"]))
             if access and (artifact := latest_research_artifact(access_scope=access,
                 subject="company:" + _normalize_symbol(symbol), task="ticker_business_model_research_dossier"))
         ]
+        investigation_service = service.with_supplied_evidence({
+            **service.supplied_evidence,
+            **{"company-research:" + artifact["artifact_id"]: {
+                "title": artifact["subject"],
+                "metadata": {"created_at_utc": artifact["created_at_utc"], "kind": "prior_model_analysis"},
+                "content": artifact,
+            } for artifact in prior_research},
+        })
+        prior_research = [{key: artifact.get(key) for key in ("artifact_id", "subject", "created_at_utc")}
+                          | {"source_id": "company-research:" + artifact["artifact_id"]}
+                          for artifact in prior_research]
         company_prior_research = list(prior_research)
         prior_event = ({key: prior.get(key) for key in ("artifact_id", "subject", "created_at_utc")}
                        | {"payload": prior["result"].get("payload") or {},
@@ -593,10 +587,14 @@ def research_source_events(
         research_request = to_jsonable({"asof": asof, "investigation": {key: value for key, value in plan.items() if key != "observation_refs"},
             "market_observations": focused_observations, "numerical_columns": context_columns,
             "numerical_observations": focused_context, "groups": selected_groups,
-            "economic_observations": focused_macro, "relevant_prior_publication": related_stories,
+            "economic_observations": focused_macro,
+            "relevant_calendar": [{"date": day["id"], "timezone": "America/New_York", **event}
+                for day in ((macro_context or {}).get("market_calendar") or {}).get("days", [])
+                for event in day.get("events", []) if _normalize_symbol(event.get("ticker")) in related],
+            "relevant_prior_publication": related_stories,
             "related_headline_hints": related_headlines,
             "context_note": "Symbol overlap supplies discovery hints, not relevance or truth judgments. The previous-publication reader retains original captures; all other headlines remain accessible.",
-            "broader_evidence": service.supplied_evidence_manifest})
+            "broader_evidence": investigation_service.supplied_evidence_manifest})
         research_instructions = (instructions + " Reuse completed investigations before repeating acquisition. They are dated, "
                 "fallible model analysis: compare the new source event against them and use their source references for "
                 "focused follow-up, without counting earlier model interpretations as independent confirmations.")
@@ -621,45 +619,56 @@ def research_source_events(
                 "evidence_ids": [*plan["source_ids"], *[row["evidence_id"] for row in plan["observation_refs"]]],
                 "observations": plan["observation_refs"], "reason": plan["rationale"],
                 "asof_time_utc": asof.isoformat()}):
-            result = result or run_aql_zopedia_structured_agent(
-                query=query,
-                service=service,
-                artifact_context={"asof_time_utc": asof.isoformat(), "question": plan["question"],
-                                  "prior_artifact_id": plan["prior_artifact_id"], "source_documents": selected},
-                schema_name="source_event_research",
-                schema=_EVENT_SCHEMA,
-                task="source_event_research",
-                surface="aql.source_event_research",
-                reuse_scope=os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", ""),
-                research_subject="event:" + event_id,
-                reuse_identity=reuse_identity,
-                llm_client=llm_client,
-                max_tool_calls=max(int(get_config_param(_P_EVENT_TOOLS)), 0),
-                run_timeout_seconds=max(int(get_config_param(_P_EVENT_TIMEOUT)), 1),
-                llm_step_timeout_seconds=max(int(get_config_param(_P_EVENT_TIMEOUT)), 1),
-                tool_call_timeout_seconds=45,
-                persist_findings=False,
-                write_policy="none",
-                initial_evidence=[{key: doc.get(key) for key in model_source_fields} for doc in selected],
-                progress_callback=progress_callback,
-            )
-            agent = deepcopy(result.get("agent_result") or {})
-            if (write_policy != "none" and result.get("status") == "completed"
-                    and isinstance(result.get("payload"), dict)
-                    and not list(Draft202012Validator(_EVENT_SCHEMA).iter_errors(result["payload"]))):
-                from ..zopedia_agent import _run_post_answer_memory_agent
+            core_id = "event:" + event_id
+            funded = protect_core_research(config=llm_client.config,
+                work={core_id: {"query": query, "response_schema": _EVENT_SCHEMA}},
+                stages=2 + int(write_policy != "none"), required=False) if getattr(llm_client, "config", None) else False
+            with model_call_context(core_work_id=core_id if funded else None,
+                    **({"optional_core_unfunded": True, "completion_only": True} if not funded else {})):
+                try:
+                    result = result or run_aql_zopedia_structured_agent(
+                        query=query,
+                        service=investigation_service,
+                        artifact_context={"asof_time_utc": asof.isoformat(), "question": plan["question"],
+                                          "prior_artifact_id": plan["prior_artifact_id"], "source_documents": selected},
+                        schema_name="source_event_research",
+                        schema=_EVENT_SCHEMA,
+                        task="source_event_research",
+                        surface="aql.source_event_research",
+                        reuse_scope=os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", ""),
+                        research_subject="event:" + event_id,
+                        reuse_identity=reuse_identity,
+                        llm_client=llm_client,
+                        max_tool_calls=max(int(get_config_param(_P_EVENT_TOOLS)), 0),
+                        run_timeout_seconds=max(1, (deadline - time.monotonic()) * (2 / 3 if write_policy != "none" else 1)),
+                        llm_step_timeout_seconds=max(int(get_config_param(_P_EVENT_TIMEOUT)), 1),
+                        tool_call_timeout_seconds=45,
+                        persist_findings=False,
+                        write_policy="none",
+                        initial_evidence=[{key: doc.get(key) for key in model_source_fields} for doc in selected],
+                        progress_callback=progress_callback,
+                    )
+                    agent = deepcopy(result.get("agent_result") or {})
+                    if (write_policy != "none" and result.get("status") == "completed"
+                            and isinstance(result.get("payload"), dict)
+                            and not list(Draft202012Validator(_EVENT_SCHEMA).iter_errors(result["payload"]))):
+                        from ..zopedia_agent import _run_post_answer_memory_agent
 
-                agent["memory_update"] = _run_post_answer_memory_agent(
-                    llm=llm_client, service=service, run_id=agent.get("run_id") or event_id,
-                    query=agent.get("original_query") or agent.get("query") or query,
-                    answer_markdown=agent.get("answer_markdown") or "",
-                    confidence=agent.get("confidence") or "low", limitations=agent.get("limitations") or [],
-                    quality_review=agent.get("quality_review") or {}, tool_calls=agent.get("tool_calls") or [],
-                    conversation_history=None, prefetched_context="",
-                    timeout_seconds=max(0, deadline - time.monotonic()),
-                    progress_callback=progress_callback, write_policy=write_policy,
-                )
-                result = {**result, "agent_result": agent}
+                        agent["memory_update"] = _run_post_answer_memory_agent(
+                            llm=llm_client, service=investigation_service, run_id=agent.get("run_id") or event_id,
+                            query=plan["question"],
+                            answer_markdown=agent.get("answer_markdown") or "",
+                            confidence=agent.get("confidence") or "low", limitations=agent.get("limitations") or [],
+                            quality_review=agent.get("quality_review") or {}, tool_calls=agent.get("tool_calls") or [],
+                            conversation_history=None, prefetched_context="",
+                            timeout_seconds=max(0, deadline - time.monotonic()),
+                            progress_callback=progress_callback, write_policy=write_policy,
+                            finding_reference=result.get("research_artifact"),
+                        )
+                        result = {**result, "agent_result": agent}
+                finally:
+                    if funded:
+                        complete_core_research(core_id)
         acquired = materialize_research_artifacts(
             agent, candidate_id=event_id, subject=event_id,
             run_id=run_id, asof_time_utc=asof,

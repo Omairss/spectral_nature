@@ -126,7 +126,7 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
     service = QueryService.from_environment().with_supplied_evidence(records)
     schema = {"type": "object", "additionalProperties": False, "properties": {"datapoints": {"type": "array", "minItems": 5, "maxItems": 5, "items": {
         "type": "object", "additionalProperties": False, "properties": {
-            "id": {"type": "string", "enum": list(catalog)}, "title": {"type": "string", "maxLength": 65}, "significance": {"type": "string", "maxLength": 180},
+            "id": {"type": "string", "enum": list(catalog)}, "title": {"type": "string"}, "significance": {"type": "string"},
         }, "required": ["id", "title", "significance"],
     }}}, "required": ["datapoints"]}
     context = brief

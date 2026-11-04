@@ -2180,49 +2180,20 @@ def search_retained_evidence_chunks(
 
     try:
         if query_text:
-            # tsvector path — fast, indexed, with ts_rank scoring
-            tsvector_rows = _fetch_retained_chunk_rows(
-                active_conn,
-                clauses=tsvector_clauses,
-                params=tsvector_params,
-                limit=scan_limit,
-                ts_query_text=lexical_query,
-                diversify_sources=True,
-                identity_only=True,
-            )
-            # ILIKE fallback — catches exact substrings that stemming misses
-            ilike_rows = _fetch_retained_chunk_rows(
-                active_conn,
-                clauses=ilike_clauses,
-                params=ilike_params,
-                limit=scan_limit,
-                diversify_sources=True,
-                identity_only=True,
-            )
-            # Merge: tsvector results first, then any ILIKE-only matches
-            row_map: dict[str, tuple[Any, ...]] = {}
-            for row in tsvector_rows:
-                key = _coerce_text(row[0]) if row else ""
-                if key and key not in row_map:
-                    row_map[key] = row
-            for row in ilike_rows:
-                key = _coerce_text(row[0]) if row else ""
-                if key and key not in row_map:
-                    row_map[key] = row
-            lexical_rows = list(row_map.values())
             semantic_ids = []
             if use_semantic:
                 try:
                     from .semantic_index import semantic_candidates
 
-                    semantic_ids = semantic_candidates(
-                        active_conn,
-                        query=query_text,
-                        clauses=base_clauses,
-                        params=base_params,
-                        limit=scan_limit,
-                        client=embedding_client,
-                    )
+                    import time
+                    from services.work_scope import WorkScope
+                    from ..llm import llm_request_deadline
+                    semantic_deadline = time.monotonic() + remaining_request_timeout(30) / 2
+                    with WorkScope(semantic_deadline).activate(), llm_request_deadline(semantic_deadline):
+                        semantic_ids = semantic_candidates(
+                            active_conn, query=query_text, clauses=base_clauses,
+                            params=base_params, limit=scan_limit, client=embedding_client,
+                        )
                 except Exception as exc:
                     # An expired caller is cancellation, not degraded search.
                     # Do not start more SQL or log it as a provider outage.
@@ -2232,9 +2203,41 @@ def search_retained_evidence_chunks(
                     import logging
 
                     logging.getLogger(__name__).exception(
-                        "Corpus semantic retrieval failed; lexical retrieval remains available"
+                        "Semantic retrieval failed; returning keyword matches within the caller deadline"
                     )
                     active_conn.rollback()
+            lexical_rows = []
+            if not semantic_ids:
+                # tsvector path — fast, indexed, with ts_rank scoring
+                tsvector_rows = _fetch_retained_chunk_rows(
+                    active_conn,
+                    clauses=tsvector_clauses,
+                    params=tsvector_params,
+                    limit=scan_limit,
+                    ts_query_text=lexical_query,
+                    diversify_sources=True,
+                    identity_only=True,
+                )
+                # ILIKE fallback — catches exact substrings that stemming misses
+                ilike_rows = _fetch_retained_chunk_rows(
+                    active_conn,
+                    clauses=ilike_clauses,
+                    params=ilike_params,
+                    limit=scan_limit,
+                    diversify_sources=True,
+                    identity_only=True,
+                )
+                # Merge: tsvector results first, then any ILIKE-only matches
+                row_map: dict[str, tuple[Any, ...]] = {}
+                for row in tsvector_rows:
+                    key = _coerce_text(row[0]) if row else ""
+                    if key and key not in row_map:
+                        row_map[key] = row
+                for row in ilike_rows:
+                    key = _coerce_text(row[0]) if row else ""
+                    if key and key not in row_map:
+                        row_map[key] = row
+                lexical_rows = list(row_map.values())
             semantic_rows = (
                 _fetch_retained_chunk_rows(
                     active_conn,

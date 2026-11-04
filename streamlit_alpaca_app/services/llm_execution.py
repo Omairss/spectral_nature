@@ -1337,15 +1337,8 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
         from .work_scope import work_expired
         late_response = work_expired() or time.monotonic() >= deadline
         def retain():
-            if response_identity and response is not None and response.status_code == 200 and data.get("choices"):
-                from .pipeline_store import retain_provider_response
-                try:
-                    event["metadata"]["retained_response"] = retain_provider_response(
-                        *response_identity, value={"attempt_id": attempt_id, "data": data,
-                            "root_run_id": root, "replayable_after_cancellation": late_response,
-                            "created_at_utc": datetime.now(timezone.utc).isoformat()})
-                except Exception:
-                    log.warning("Complete provider response retention unavailable: %s", attempt_id)
+            if not record_provider_attempt(event):
+                raise RuntimeError("The provider receipt could not be retained")
             if budget_reserved:
                 try:
                     settle_provider_budget(config, attempt_id=attempt_id,
@@ -1354,16 +1347,25 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
                         reservation=reservation_identity)
                     event["metadata"]["reservation_settled"] = True
                 except Exception:
-                    log.warning("Provider budget settlement unavailable; reservation retained: %s", attempt_id)
-            if not record_provider_attempt(event):
-                raise RuntimeError("The provider receipt could not be retained")
+                    log.warning("Provider budget settlement unavailable; reservation retained: %s", attempt_id, exc_info=True)
+            if response_identity and response is not None and response.status_code == 200 and data.get("choices"):
+                from .pipeline_store import retain_provider_response
+                try:
+                    event["metadata"]["retained_response"] = retain_provider_response(
+                        *response_identity, value={"attempt_id": attempt_id, "data": data,
+                            "root_run_id": root, "replayable_after_cancellation": late_response,
+                            "created_at_utc": datetime.now(timezone.utc).isoformat()})
+                except Exception:
+                    log.warning("Complete provider response retention unavailable: %s", attempt_id, exc_info=True)
+            if not record_provider_attempt(event, archive_on_failure=False):
+                log.warning("Provider receipt metadata awaits reconciliation: %s", attempt_id)
         try:
             retain_paid_result(retain)
         except Exception:
             # No request text or credentials are included. A bounded receipt
             # write may outlive child cancellation; paid work cannot restart.
             log.warning("Provider attempt accounting unavailable; receipt=%s",
-                        json.dumps(event, sort_keys=True, default=str), exc_info=False)
+                        json.dumps(event, sort_keys=True, default=str), exc_info=True)
 
 
 def research_artifact_key(*, access_scope: str, subject: str, query: str,
@@ -1437,6 +1439,7 @@ def checkpoint_memory_update(function):
     """Retry a reviewed finding's wiki handoff without repeating its research."""
     @wraps(function)
     def run(**kwargs):
+        kwargs.setdefault("write_policy", "safe_auto")
         review = kwargs.get("quality_review") or {}
         if (kwargs.get("write_policy") == "none" or not kwargs.get("answer_markdown")
                 or review.get("status") != "completed" or review.get("verdict") not in {"accept", "revise"}):
@@ -1450,6 +1453,9 @@ def checkpoint_memory_update(function):
             return {"status": "timeout", "reason": "Original research window ended before wiki update."}
         evidence = {key: kwargs.get(key) for key in (
             "run_id", "query", "answer_markdown", "quality_review", "write_policy")}
+        if kwargs.get("finding_reference"):
+            evidence = {key: kwargs.get(key) for key in (
+                "finding_reference", "answer_markdown", "quality_review", "write_policy")}
         key = hashlib.sha256(json.dumps(evidence, sort_keys=True, default=str).encode()).hexdigest()
         access = current_research_access_scope()
         namespace = f"research_memory:{llm_settings_scope()}:{access}"
@@ -1459,6 +1465,10 @@ def checkpoint_memory_update(function):
                 saved = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
                 if saved.get("status") == "completed":
                     return saved
+            pending = {"status": "pending", "write_policy": kwargs["write_policy"],
+                       "finding_reference": kwargs.get("finding_reference")}
+            if access and not pipeline_store.write_execution_state(namespace, key, pending):
+                raise RuntimeError("Wiki handoff could not be checkpointed")
             kwargs["timeout_seconds"] = max(0, deadline - time.monotonic())
             if not kwargs["timeout_seconds"]:
                 return {"status": "timeout", "reason": "Original research window ended before wiki update."}
@@ -1468,9 +1478,12 @@ def checkpoint_memory_update(function):
             with model_call_context(core_work_id=core_id):
                 if own_core and config is not None and not protect_core_research(config=config,
                         work={core_id: {**evidence, "tool_calls": kwargs.get("tool_calls")}}, stages=1, required=False):
-                    return {"status": "blocked", "reason": "Wiki update could not reserve completion funds."}
+                    result = {**pending, "status": "blocked", "reason": "Wiki update could not reserve completion funds."}
+                    if access:
+                        pipeline_store.write_execution_state(namespace, key, result)
+                    return result
                 try:
-                    result = function(**kwargs)
+                    result = {**pending, **function(**kwargs)}
                     if access and not pipeline_store.write_execution_state(namespace, key, result):
                         record_execution_issue("wiki_update_checkpoint", RuntimeError("Wiki result checkpoint was not saved"))
                     return result

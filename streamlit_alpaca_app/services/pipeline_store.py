@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from io import BytesIO
 import hashlib
 import json
+import logging
 import math
 import os
 from pathlib import Path
@@ -2721,61 +2722,69 @@ def retain_provider_response(namespace: str, key: str, *, value: dict[str, Any])
 
 
 def record_provider_attempt(event: dict[str, Any], *, archive_on_failure: bool = True) -> bool:
-    """One actual HTTP attempt. Logical gateway events never enter this ledger."""
+    """Keep a small final receipt durable before SQL or large response archival."""
     if not _model_call_telemetry_enabled():
         return False
-    conn = None
-    try:
-        conn = open_database_connection()
-        if conn is None:
-            raise RuntimeError("Provider attempt database is unavailable")
-        _ensure_execution_store(conn)
-        fields = ("attempt_id", "model_call_id", "root_run_id", "parent_run_id", "settings_scope",
-                  "surface", "purpose", "provider", "requested_model", "reported_model", "operation",
-                  "status", "http_status", "started_at_utc", "duration_ms")
-        with conn.cursor() as cur:
-            cur.execute("INSERT INTO aql_zopedia_provider_attempts (" + ",".join(fields)
-                        + ",usage_json,metadata_json) VALUES (" + ",".join(["%s"] * len(fields))
-                        + ",%s::jsonb,%s::jsonb) ON CONFLICT(attempt_id) DO UPDATE SET "
-                        "reported_model=EXCLUDED.reported_model,status=EXCLUDED.status,http_status=EXCLUDED.http_status,"
-                        "duration_ms=EXCLUDED.duration_ms,usage_json=EXCLUDED.usage_json,metadata_json=EXCLUDED.metadata_json "
-                        "WHERE aql_zopedia_provider_attempts.status='started' AND EXCLUDED.status != 'started'",
-                        (*[event.get(field) for field in fields],
-                         json.dumps(event.get("usage"), default=str),
-                         json.dumps(event.get("metadata") or {}, default=str)))
-        conn.commit()
-        from .llm_execution import reconcile_provider_reservation
-        if not (event.get("metadata") or {}).get("reservation_settled"):
-            reconcile_provider_reservation(event)
-        retained = (event.get("metadata") or {}).get("retained_response") or {}
-        if retained.get("stored") == "archive" and retained.get("receipt"):
-            archive = ImmutableBlobArchive(namespace=retained["namespace"].split(":", 1)[1], root="provider-responses")
-            value = json.loads(archive.get(retained["receipt"]))
-            if not write_execution_state(retained["namespace"], retained["key"], value, immutable=True):
-                raise RuntimeError("Complete paid response awaits database recovery")
-            if value.get("replayable_after_cancellation") and not write_execution_state(
-                    retained["namespace"] + ":inputs", retained["input_key"], {"artifact_id": retained["key"]}):
-                raise RuntimeError("Late response pointer awaits database recovery")
-        return True
-    except Exception:
-        pass
-    finally:
-        if conn is not None:
-            conn.close()
-    if not archive_on_failure:
-        return False
-    # The archive is independent of Postgres. Keep the full metering receipt,
-    # never prompts or credentials, until the spend reader reconciles it.
-    timestamp = pd.to_datetime(event["started_at_utc"], utc=True)
-    archive = ImmutableBlobArchive(namespace=event["settings_scope"],
-                                   root="provider-attempt-outbox/" + timestamp.strftime("%Y-%m-%d"))
-    receipt = archive.put(json.dumps(event, sort_keys=True, default=str).encode(),
-                          suffix="json", content_type="application/json")
-    # Reconciliation of a start receipt must not delete a later final receipt.
-    suffix = ".started.json" if event.get("status") == "started" else ".json"
-    path = archive.point(event["attempt_id"] + suffix, receipt)
-    print(f"[warn] Provider attempt retained for database reconciliation: {path}", flush=True)
-    return True
+    archived = False
+    stores = ("archive", "database") if event.get("status") != "started" else ("database", "archive")
+    for store in stores:
+        if store == "archive":
+            if not archive_on_failure:
+                continue
+            try:
+                # The archive is independent of Postgres. Keep the full metering receipt,
+                # never prompts or credentials, until the spend reader reconciles it.
+                timestamp = pd.to_datetime(event["started_at_utc"], utc=True)
+                archive = ImmutableBlobArchive(namespace=event["settings_scope"],
+                                               root="provider-attempt-outbox/" + timestamp.strftime("%Y-%m-%d"))
+                receipt = archive.put(json.dumps(event, sort_keys=True, default=str).encode(),
+                                      suffix="json", content_type="application/json")
+                # Reconciliation of a start receipt must not delete a later final receipt.
+                suffix = ".started.json" if event.get("status") == "started" else ".json"
+                archive.point(event["attempt_id"] + suffix, receipt)
+                archived = True
+            except Exception as exc:
+                logging.getLogger(__name__).warning("Provider receipt archive write failed: %s", type(exc).__name__, exc_info=True)
+        else:
+            conn = None
+            try:
+                conn = open_database_connection()
+                if conn is None:
+                    raise RuntimeError("Provider attempt database is unavailable")
+                _ensure_execution_store(conn)
+                fields = ("attempt_id", "model_call_id", "root_run_id", "parent_run_id", "settings_scope",
+                          "surface", "purpose", "provider", "requested_model", "reported_model", "operation",
+                          "status", "http_status", "started_at_utc", "duration_ms")
+                with conn.cursor() as cur:
+                    cur.execute("INSERT INTO aql_zopedia_provider_attempts (" + ",".join(fields)
+                                + ",usage_json,metadata_json) VALUES (" + ",".join(["%s"] * len(fields))
+                                + ",%s::jsonb,%s::jsonb) ON CONFLICT(attempt_id) DO UPDATE SET "
+                                "reported_model=EXCLUDED.reported_model,status=EXCLUDED.status,http_status=EXCLUDED.http_status,"
+                                "duration_ms=EXCLUDED.duration_ms,usage_json=EXCLUDED.usage_json,metadata_json=EXCLUDED.metadata_json "
+                                "WHERE EXCLUDED.status != 'started' AND (aql_zopedia_provider_attempts.status='started' OR aql_zopedia_provider_attempts.status=EXCLUDED.status)",
+                                (*[event.get(field) for field in fields],
+                                 json.dumps(event.get("usage"), default=str),
+                                 json.dumps(event.get("metadata") or {}, default=str)))
+                conn.commit()
+                from .llm_execution import reconcile_provider_reservation
+                if not (event.get("metadata") or {}).get("reservation_settled"):
+                    reconcile_provider_reservation(event)
+                retained = (event.get("metadata") or {}).get("retained_response") or {}
+                if retained.get("stored") == "archive" and retained.get("receipt"):
+                    archive = ImmutableBlobArchive(namespace=retained["namespace"].split(":", 1)[1], root="provider-responses")
+                    value = json.loads(archive.get(retained["receipt"]))
+                    if not write_execution_state(retained["namespace"], retained["key"], value, immutable=True):
+                        raise RuntimeError("Complete paid response awaits database recovery")
+                    if value.get("replayable_after_cancellation") and not write_execution_state(
+                            retained["namespace"] + ":inputs", retained["input_key"], {"artifact_id": retained["key"]}):
+                        raise RuntimeError("Late response pointer awaits database recovery")
+                return True
+            except Exception as exc:
+                logging.getLogger(__name__).warning("Provider receipt database write failed: %s (SQLSTATE %s)", type(exc).__name__, getattr(exc, "sqlstate", None), exc_info=True)
+            finally:
+                if conn is not None:
+                    conn.close()
+    return archived
 
 
 def reconcile_provider_budget_reservations(*, limit: int = 25) -> dict[str, Any]:

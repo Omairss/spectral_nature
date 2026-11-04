@@ -1,0 +1,56 @@
+{
+  "status": "implementation_checkpoint_awaiting_full_model_acceptance",
+  "source_checkpoint": "4cbc475b",
+  "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
+  "offline_verification": {
+    "provider": "DeepSeek production Pro",
+    "approved_cap_usd": 10,
+    "approval": "Owner explicit new exception in this turn",
+    "scope": "Isolated local/development; all requests and unknown charges count; no production writes."
+  },
+  "requirements": [
+    {
+      "id": 1,
+      "task": "Selective evidence context with originals retained",
+      "status": "implemented_awaiting_verification"
+    },
+    {
+      "id": 2,
+      "task": "Small durable financial receipts before large response archival; existing recovery",
+      "status": "implemented_awaiting_verification"
+    },
+    {
+      "id": 3,
+      "task": "Reserve review/wiki funding and time before exploration; retain failed handoffs",
+      "status": "implemented_awaiting_verification"
+    },
+    {
+      "id": 4,
+      "task": "Semantic-first retrieval with bounded keyword fallback",
+      "status": "implemented_awaiting_verification"
+    },
+    {
+      "id": 5,
+      "task": "Dated scheduled-event freshness in existing planner/research and market-local schedules",
+      "status": "implemented_awaiting_verification"
+    },
+    {
+      "id": 6,
+      "task": "Probabilistic explanations and concise expert public review",
+      "status": "implemented_awaiting_verification"
+    },
+    {
+      "id": 7,
+      "task": "Chart structural validity independent of prose lengths",
+      "status": "implemented_awaiting_verification"
+    }
+  ],
+  "verification": {
+    "operational": "Cancellation, receipt replay/settlement, context retention, wiki revision safety and chart contracts.",
+    "qualitative": "Personally compare full model outputs using retained inputs, then complete isolated flow before development and production.",
+    "release": "Current accepted Git source only; preserve current consumers and rollback; verify live user readback.",
+    "targeted_operational_checks": 64,
+    "baseline_comparison": "Broad legacy suite has 29 unchanged failures against committed source, mostly removed helpers and old prompt expectations. The new memory default-policy regression was corrected and its contract passes."
+  },
+  "schedule_decision": "Keep run counts; final UTC data/news/Home cycle moves from hour20 to21, after the U.S. close in both DST seasons. This is 13:50 Pacific in winter and14:50 in summer; no timezone scheduler service added."
+}

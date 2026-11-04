@@ -58,126 +58,26 @@ def test_open_page_uses_browser_helper(monkeypatch):
     assert "Example visible text." in payload["llm_context_text"]
 
 
-def test_live_event_evidence_uses_impact_symbols_when_no_focus_symbols(monkeypatch):
-    def _fake_search_market_event_news_payload(event, *, max_results, serp_client=None, tavily_client=None, **kwargs):
-        del serp_client, tavily_client, kwargs
-        assert event["event_type"] == "oil"
-        assert "USO" in event["supporting_symbols"]
-        return {
-            "articles": pd.DataFrame(
-                [
-                        {
-                            "headline": "Oil rises on renewed supply risk",
-                            "summary": "Supply risk rose after talks stalled.",
-                            "source": "Reuters",
-                            "published_at": pd.Timestamp.utcnow() - pd.Timedelta(hours=2),
-                            "url": "https://example.com/oil-story",
-                        }
-                ]
-            )
-        }
-
-    def _fake_search_symbol_news_payload(symbol, *, company_name="", max_results=8, serp_client=None, tavily_client=None, llm_client=None):
-        del company_name, max_results, serp_client, tavily_client, llm_client
-        return {
-            "articles": pd.DataFrame(
-                [
-                        {
-                            "headline": f"{symbol} reacts to energy shock",
-                            "summary": "Symbol-specific follow-through.",
-                            "source": "Bloomberg",
-                            "published_at": pd.Timestamp.utcnow() - pd.Timedelta(hours=1),
-                            "url": f"https://example.com/{symbol.lower()}-story",
-                        }
-                ]
-            )
-        }
-
-    class _FakeLayer:
-        def resolve_asset_metadata(self, ticker: str, *, force_refresh: bool = False):
-            del force_refresh
-            return type("Resolved", (), {"payload": {"name": ticker}})()
-
-        def resolve_attention_home_1d(self, *, force_refresh: bool = False):
-            del force_refresh
+def test_live_evidence_preserves_the_planners_query_without_hidden_classification(monkeypatch):
+    question = "Which developments explain the observed group movement?"
+    captured = []
+    def acquire(event, **kwargs):
+        captured.append((event, kwargs))
+        return {"articles": pd.DataFrame([{"headline":"Original source", "summary":"Original detail",
+            "url":"https://example.com/original", "published_at":"2026-11-03T17:00:00Z"}])}
+    def classify(*args, **kwargs):
+        raise AssertionError("Acquisition must not run a second market planner")
+    class Layer:
+        def resolve_attention_home_1d(self, **kwargs):
             return type("Resolved", (), {"payload": {}})()
-
-    monkeypatch.setattr(zopedia_research, "search_market_event_news_payload", _fake_search_market_event_news_payload)
-    monkeypatch.setattr(zopedia_research, "search_symbol_news_payload", _fake_search_symbol_news_payload)
-    monkeypatch.setattr(zopedia_research, "load_aql_zopedia_llm_client", lambda **kwargs: None)
-    monkeypatch.setattr(
-        zopedia_research,
-        "_llm_query_intent",
-        lambda query, llm_client, max_symbols: {
-            "event_type": "oil",
-            "direction": "up",
-            "theme_label": "oil supply risk",
-            "evidence_needed": True,
-            "rows": [
-                {"symbol": "USO", "role": "oil ETF", "expected_bias": "up", "why": ""},
-                {"symbol": "CVX", "role": "energy equity", "expected_bias": "up", "why": ""},
-            ],
-        },
-    )
-    monkeypatch.setattr(
-        zopedia_research,
-        "resolve_zopedia",
-        lambda **kwargs: {"search_results": [], "intent": "agent"},
-    )
-
-    payload = zopedia_research.live_event_evidence(
-        query="Iran talks stalled again",
-        layer=_FakeLayer(),
-    )
-
-    assert payload["theme"] == "oil"
-    assert "USO" in payload["focus_symbols"]
-    assert payload["summary"][0]["headline"]
-    assert "Supply risk rose after talks stalled." in payload["llm_context_text"]
-
-
-def test_live_event_evidence_returns_partial_when_internal_impact_map_times_out(monkeypatch):
-    def _slow_market_impact_map(*args, **kwargs):
-        import time
-
-        del args, kwargs
-        time.sleep(2.0)
-        return {"theme": "oil", "expected_direction": "down", "focus_symbols": ["USO"], "summary": []}
-
-    def _fake_search_market_event_news_payload(event, *, max_results, serp_client=None, tavily_client=None, **kwargs):
-        del event, max_results, serp_client, tavily_client, kwargs
-        return {
-            "articles": pd.DataFrame(
-                [
-                        {
-                            "headline": "Oil falls as geopolitical risk premium fades",
-                            "summary": "Talks reduced supply-risk expectations.",
-                            "source": "Reuters",
-                            "published_at": pd.Timestamp.utcnow() - pd.Timedelta(hours=4),
-                            "url": "https://example.com/oil-geopolitics",
-                        }
-                ]
-            ),
-            "messages": [],
-        }
-
-    class _FakeLayer:
-        def resolve_attention_home_1d(self, *, force_refresh: bool = False):
-            del force_refresh
-            return type("Resolved", (), {"payload": {}})()
-
-    monkeypatch.setattr(zopedia_research, "market_impact_map", _slow_market_impact_map)
-    monkeypatch.setattr(zopedia_research, "search_market_event_news_payload", _fake_search_market_event_news_payload)
-    monkeypatch.setattr(zopedia_research, "get_config_param", lambda key: 1 if "timeout" in str(key).lower() else 6)
-
-    payload = zopedia_research.live_event_evidence(
-        query="What about geopolitics?",
-        focus_symbols=["USO"],
-        layer=_FakeLayer(),
-    )
-
-    assert payload["summary"][0]["headline"] == "Oil falls as geopolitical risk premium fades"
-    assert any("live_event_impact_map timed out" in item for item in payload["messages"])
+    monkeypatch.setattr(zopedia_research, "search_market_event_news_payload", acquire)
+    monkeypatch.setattr(zopedia_research, "market_impact_map", classify)
+    result = zopedia_research.live_event_evidence(query=question, layer=Layer())
+    assert captured[0][0]["event_title"] == question
+    assert captured[0][1]["search_query"] == question
+    assert captured[0][1]["allow_llm_query"] is False
+    assert result["summary"][0]["url"] == "https://example.com/original"
+    assert result["summary"][0]["published_at"] == "2026-11-03T17:00:00+00:00"
 
 
 def test_zopedia_research_does_not_load_search_providers_directly():

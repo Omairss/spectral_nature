@@ -849,7 +849,7 @@ def test_post_answer_memory_agent_applies_safe_mutation(monkeypatch):
         progress_callback=events.append,
     )
 
-    assert result["status"] == "completed"
+    assert result["status"] == "completed", result
     assert result["action"] == "apply_mutation"
     assert result["write_policy"] == "safe_auto"
     assert result["tool_call"]["tool_name"] == "zopedia.apply_mutation"
