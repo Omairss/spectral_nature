@@ -58,3 +58,25 @@ def test_model_reads_selected_original_without_loading_other_documents(monkeypat
         schema_name='read_contract',schema={'type':'object','properties':{'value':{'type':'integer'}},'required':['value']},
         surface='isolated',purpose='contract',deadline_monotonic=time.monotonic()+5,metadata={},progress_callback=None)
     assert result['value'] == 1 and len(prompts) == 2
+
+
+def test_economical_completion_can_read_retained_originals(monkeypatch):
+    import json,time
+    from services import zopedia_agent as agent
+    service=QueryService(data_access=SimpleNamespace()).with_supplied_evidence({
+        'saved':{'title':'Saved evidence','metadata':{},'content':'original observation'}})
+    calls=[]
+    monkeypatch.setattr(agent,'best_effort_required',lambda:True)
+    def generate(**kwargs):
+        calls.append(kwargs)
+        if len(calls)==1:
+            return {'decision':{'action':'read','tool_name':'research.read_supplied_evidence',
+                'tool_arguments':json.dumps({'source_id':'saved'})}}
+        assert 'original observation' in kwargs['user_prompt']
+        return {'decision':{'value':1}}
+    monkeypatch.setattr(agent,'generate_json_via_aql_zopedia_gateway',generate)
+    result=agent._run_evidence_model_step(llm_client=object(),service=service,tool_calls=[],context_state={},
+        prompt=lambda items:agent._tool_history_prompt(items,full_evidence=True),system_prompt='contract',
+        schema_name='retained_read',schema={'type':'object','properties':{'value':{'type':'integer'}},'required':['value']},
+        surface='isolated',purpose='contract',deadline_monotonic=time.monotonic()+5,metadata={},progress_callback=None)
+    assert result['value']==1 and len(calls)==2

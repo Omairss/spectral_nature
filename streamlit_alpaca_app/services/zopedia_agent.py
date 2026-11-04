@@ -1220,13 +1220,17 @@ def _run_evidence_model_step(
             "history_catalog": history_catalog, "supplied_sources": reader.supplied_evidence_manifest,
             "tools": read_tools, "context_feedback": feedback,
         })
-        active_schema = ({**step_schema, "properties": {"decision": schema}} if answer_only else step_schema)
+        # Reading retained inputs is part of completion, including when the
+        # allowance ends optional acquisition. These tools cannot acquire web
+        # evidence or mutate knowledge.
+        active_schema = step_schema
         try:
             with model_call_context(discretionary_core_step=protected_step and not answer_only and funded_core_research()):
                 step = generate_json_via_aql_zopedia_gateway(
                     llm_client=llm_client, surface=surface, purpose=purpose, call_type=call_type,
                     system_prompt=system_prompt + (
-                        "\nOptional research is complete. Return the current artifact inside decision from the evidence already available."
+                        "\nOptional acquisition is complete. Read retained evidence as needed, then return the current artifact inside decision. "
+                        "For a read, put action=read with tool_name and tool_arguments inside decision."
                         if answer_only else
                         '\nReturn the artifact inside decision. To read, use action=read with tool_name and tool_arguments inside decision. select_context manages working context; originals remain readable.'
                     ),
