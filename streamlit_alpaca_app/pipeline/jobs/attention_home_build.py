@@ -494,21 +494,21 @@ _HOME_PUBLIC_TEXT_FIELDS = (
 _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
     "type": "object", "additionalProperties": False,
     "properties": {
-        "stories": {"type": "array", "items": {
+        "stories": {"type": "array", "description": "Each story is one concise explanation distributed across its fields. Use each fact once; leave nonessential text fields empty.", "items": {
             "type": "object", "additionalProperties": False,
             "properties": {
                 "section": {"type": "string", "enum": ["top_events", "must_read_movers", "unresolved_large_moves"],
                             "description": "Choose exactly one display section for this distinct story. List each story once."},
-                "question": {"type": "string"},
+                "question": {"type": "string", "description": "The reader's substantive business or economic question answered by this story. Reconsider earlier research questions."},
                 "source_ids": {"type": "array", "minItems": 1, "uniqueItems": True, "items": {"type": "string"},
                     "description": "Exact source index/reader identities. Primary research first, then supporting originals or observations."},
                 "supporting_symbols": {"type": "array", "items": {"type": "string"}},
                 "time_basis": _STORY_TIME_BASIS_SCHEMA,
-                "event_title": {"type": "string", "description": "State the central current development and its business meaning. Express a likely explanation at the evidence's strength, with chronology intact."},
-                "surface_summary_text": {"type": "string", "description": "The development's essential meaning for an investor, without duplicating the headline or detailed account."},
+                "event_title": {"type": "string", "description": "A short headline naming the central development. Keep chronology and the strength of a likely explanation intact."},
+                "surface_summary_text": {"type": "string", "description": "One concise sentence giving the development's main business consequence, adding meaning to the headline."},
                 "what_happened_text": {"type": "string", "description": "Explain the material business, policy or market development. Keep figures that add meaning, with their baseline or comparison."},
                 "why_happened_text": {"type": "string", "description": "Explain the leading likely mechanism and its business consequence, qualifying the interpretation within the claim. Leave empty if already explained."},
-                "affected_assets_summary_text": {"type": "string", "description": "Explain why related businesses could gain or lose. Include a useful counterexample; leave empty when redundant."},
+                "affected_assets_summary_text": {"type": "string", "description": "Add a consequential effect on related businesses when it contributes useful new information. Leave empty when redundant."},
                 "business_context_text": {"type": "string", "description": "Add the standing business or economic context needed to understand this change. Do not repeat facts already explained in this story. Empty is appropriate when no additional context is needed."},
                 "watch_next_text": {"type": "string", "description": "Name an observable next development and how it could change the investment interpretation. Leave empty when there is no distinct material point; research tasks belong in internal issues."},
             },
