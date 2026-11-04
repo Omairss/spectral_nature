@@ -126,7 +126,8 @@
     ],
     "operational_checks": {
       "status": "passed",
-      "checks": 107
+      "checks": 132,
+      "scope": "Home, native harness, adaptive accounting, publication, and retained calendar behavior"
     },
     "legacy_agent_suite": "Candidate and accepted base have the same 26 pre-existing failures and 19 passes; no new failures in the compared run.",
     "qualification_setup_correction": "First fixture used a different retained-reader namespace in the isolated DB. The initial transport guard also rejected the production engine\u2019s mechanical JSON repair; the final qualification preserves the native repair contract. All earlier usage and one real interrupted-request maximum remain counted. An initial object-equality probe mixed Python and serialized types; the subsequent cache/request/page checks supersede that probe.",

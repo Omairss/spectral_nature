@@ -1,7 +1,7 @@
 {
   "status": "accepted",
-  "source_revision": "4a1d04a5759e49b90f76e797d22958cea42ba85e",
-  "review_base_revision": "d2cfd7bc6605327d05aaa8e06f1cf6bbfa7d5665",
+  "source_revision": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
+  "review_base_revision": "59e8c7e56b9280c38b1f10ca0880ac7bdbb18601",
   "evidence": "documents/verification/home-wiki-continuity-2026-11-03.json",
   "reviewed_changes": {
     "config/inference_policy.json": "Protect the existing wiki memory stage as full-model core work. Existing model routes, refresh policy and profile activation are preserved.",
@@ -11,12 +11,20 @@
     "services/saa/zopedia.py": "Creation-only expected_version zero means absent. Ordered transaction locks protect missing as well as existing pages across independent findings; row version conflicts reject stale writes. Existing additive merge, historical sources, folders, audit/rollback and semantic indexing paths remain.",
     "services/aql/events.py": "One existing common planner reads dated retained knowledge; reviewed fresh and reused Home findings invoke shared memory within the original event context and remaining clock. Original cached research is not mutated. Failed writes retain completed research and explicit memory status/error. No acquisition/planning/publication bypass or new news intake.",
     "services/aql/pipeline.py": "Additive explicit caller write policy and wiki health status; grouping, complete numerical context, common agenda, public editor, source/chunk identity and existing macro/ticker/dossier projections are preserved.",
-    "pipeline/jobs/attention_home_build.py": "Home producer passes its existing configured write policy and records wiki health. Final public writing stays read-only. Existing production schedules, model settings, budgets, numeric inputs, calendar, audio, stories and ticker/chart adapters remain; DEV explicit read-only policy is preserved."
+    "pipeline/jobs/attention_home_build.py": "Home producer passes its existing configured write policy and records wiki health. Final public writing stays read-only. Existing production schedules, model settings, budgets, numeric inputs, calendar, audio, stories and ticker/chart adapters remain; DEV explicit read-only policy is preserved.",
+    "services/alpha_vantage.py": "Preserve accepted calendar source a0351a50: shared response cache, rolling provider allowance, owner-key handling and failure cooldown; unchanged against that accepted branch.",
+    "services/market_calendar.py": "Preserve accepted current-results source: confirmed history, recent-report priority, historical events and optional price observation projection; unchanged against a0351a50.",
+    "services/market_calendar_reactions.py": "Preserve accepted next-trading-day SIP close arithmetic, current-session completion with historical-feed delay, EPS independence and valid retained observations; unchanged against a0351a50.",
+    "pipeline/jobs/market_calendar_refresh.py": "Preserve accepted normal background publication, pending-report and missing-price refresh, existing session/price adapters and deadlines; no inference or order changes; unchanged against a0351a50.",
+    "web/components/market-event-calendar.tsx": "Preserve accepted live color-only minimal calendar labels, expansion and viewport behavior; unchanged against the live 5ecae881 source.",
+    "web/components/market-event-calendar.module.css": "Preserve accepted live calendar presentation; no frontend deployment in this release.",
+    "web/lib/types.ts": "Preserve accepted optional market reaction DTO; all web inputs match a0351a50 and retained 5ecae881 package."
   },
   "preservation": {
     "production_trial_application_source": "f960d945e677e2be51014d040558ac9cb676027b",
     "all_unmodified_application_files_match_base": true,
-    "frontend_and_native_inputs_unchanged": true,
+    "frontend_and_native_inputs_match_current_accepted_calendar": true,
+    "calendar_source": "a0351a50",
     "trading_calendar_broker_and_data_producers_preserved": true,
     "no_provider_schedule_budget_or_trade_authority_changes": true
   },
