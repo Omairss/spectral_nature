@@ -1,0 +1,17 @@
+{
+  "status": "accepted",
+  "recorded_at": "2026-11-04T18:42:19.205861+00:00",
+  "integrated_application_revision": "2296c56b9785371ac1765fdb57184e18035e8229",
+  "calendar_patch_revision": "7e2664f1de23a4870f8ceffec0afed05463c18e9",
+  "calendar_packaging_revision": "233189f15384bd6932f860794a7c328220a8138a",
+  "current_calendar_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ce3bb89965a700e80b441cf717089a18dea869917ee3595151fda931ebdfe8ee",
+  "files": [
+    "services/market_calendar_reactions.py",
+    "pipeline/jobs/market_calendar_refresh.py"
+  ],
+  "operational_checks": 28,
+  "live_development_replay_entries": 279,
+  "live_production_calendar_jobs_preserved": true,
+  "unrelated_writing_experiments": "Not integrated. Shared research and writing remain at the accepted Home source plus the X feature.",
+  "first_deployment_attempt": "Rejected before any mutation when the calendar image advanced. All 38 configurations still match their review."
+}

@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Shared X reactions in research and completion-triggered Attention publishing with charts and exact saved-event links. Owner authorized development qualification and production rollout November 4.",
-  "source_revision": "4fa474acb8c4602c2ec0180e291114061f631e64",
+  "source_revision": "2296c56b9785371ac1765fdb57184e18035e8229",
   "review_base_revision": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -77,7 +77,7 @@
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "f4051be9828e55f51d5f5dd86fe2c533d06a25dc68e6608ad919d30bebd454ed",
-    "pipeline/jobs/market_calendar_refresh.py": "4aec1f2baf918c981da69cdf43fd3645e4f4b2ad29dfebf36a5359206b165164",
+    "pipeline/jobs/market_calendar_refresh.py": "83e87ce94192439bc7e2c7bb41e074cf970027b584f9e1a0215cb32440fba36f",
     "pipeline/jobs/namespace_refresh.py": "3fab4caf73873cdc71c5fca478145695ced57f001e08e80aa829ba825791f0be",
     "presentation/__init__.py": "e7f0199725582c52f1f32ee3a5fe82db29b0b4dbbc24d27e33e2125077a5462f",
     "presentation/plotly.py": "7ef6af17b02eab45f29a43e1e19ae7130f326d25bd592b9f026e2baf2bfda918",
@@ -192,7 +192,7 @@
     "services/llm_prices.json": "248fac18ed76e8bda0e9c778fa052fcae1cfa6f6b77f15972b1f6414ae0b4595",
     "services/market.py": "682e2e9bcd074ff8d879cd2fe0b6363a820f4387a248d92fbe409561c27ed553",
     "services/market_calendar.py": "c1452a32a0a29bfa8669105654b60dcf53b5e58a9539694fde7737e5228c17a8",
-    "services/market_calendar_reactions.py": "aa89a05226f6771d253d6cfb323b8b66d63bd32385983ee873e0e44b35557b2d",
+    "services/market_calendar_reactions.py": "6ab26725c47af50e0600966ef1c810ad241e6466817bc2bc9d13553d0013e5b1",
     "services/market_data/__init__.py": "1cd9045454c9059ba48989fab44e19930b065076b8c9f7d2a287f3c4625d22d8",
     "services/market_opportunity.py": "c8222b52b472818d3bc593e7144275a250a22fd28ea538da696b868642be0588",
     "services/market_view.py": "05a55098f1c245fec2a8d7f55b16e6c536840f3d2fd99c4d120ef5b3c8cdb852",
@@ -407,7 +407,7 @@
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "f4051be9828e55f51d5f5dd86fe2c533d06a25dc68e6608ad919d30bebd454ed",
-    "pipeline/jobs/market_calendar_refresh.py": "4aec1f2baf918c981da69cdf43fd3645e4f4b2ad29dfebf36a5359206b165164",
+    "pipeline/jobs/market_calendar_refresh.py": "83e87ce94192439bc7e2c7bb41e074cf970027b584f9e1a0215cb32440fba36f",
     "pipeline/jobs/namespace_refresh.py": "3fab4caf73873cdc71c5fca478145695ced57f001e08e80aa829ba825791f0be",
     "presentation/__init__.py": "e7f0199725582c52f1f32ee3a5fe82db29b0b4dbbc24d27e33e2125077a5462f",
     "presentation/plotly.py": "7ef6af17b02eab45f29a43e1e19ae7130f326d25bd592b9f026e2baf2bfda918",
@@ -499,7 +499,7 @@
     "services/llm_prices.json": "248fac18ed76e8bda0e9c778fa052fcae1cfa6f6b77f15972b1f6414ae0b4595",
     "services/market.py": "682e2e9bcd074ff8d879cd2fe0b6363a820f4387a248d92fbe409561c27ed553",
     "services/market_calendar.py": "c1452a32a0a29bfa8669105654b60dcf53b5e58a9539694fde7737e5228c17a8",
-    "services/market_calendar_reactions.py": "aa89a05226f6771d253d6cfb323b8b66d63bd32385983ee873e0e44b35557b2d",
+    "services/market_calendar_reactions.py": "6ab26725c47af50e0600966ef1c810ad241e6466817bc2bc9d13553d0013e5b1",
     "services/market_data/__init__.py": "1cd9045454c9059ba48989fab44e19930b065076b8c9f7d2a287f3c4625d22d8",
     "services/market_opportunity.py": "c8222b52b472818d3bc593e7144275a250a22fd28ea538da696b868642be0588",
     "services/market_view.py": "05a55098f1c245fec2a8d7f55b16e6c536840f3d2fd99c4d120ef5b3c8cdb852",
@@ -573,7 +573,9 @@
     "web/lib/server/attention-event.ts": "Validate version syntax, decode event route parameter, load the exact publication and require an exact event. Missing versions/events return 404 rather than the latest story.",
     "web/lib/server/home.ts": "Existing no-store public loader accepts optional version. Default/current and date-based requests retain the same paths and ETag behavior.",
     "web/lib/types.ts": "Optional source_version added to public Home DTO. Existing fields/types retained; additive field is ignored by native decoders.",
-    "web/next.config.ts": "Disable development status overlay so exports and previews contain the product only. Security headers and production behavior unchanged."
+    "web/next.config.ts": "Disable development status overlay so exports and previews contain the product only. Security headers and production behavior unchanged.",
+    "services/market_calendar_reactions.py": "Preserve the separately accepted next regular-session opening reaction, consolidated SIP adjusted open/prior close, original session/date identities, data-delay eligibility and new-basis retention. No headline or research changes.",
+    "pipeline/jobs/market_calendar_refresh.py": "Refresh old-basis stored observations through the existing calendar producer; preserve providers, event merging, schedules, budgets and materialization."
   },
   "retired_files": [
     "scripts/eval_critique_harness.py",
@@ -741,13 +743,23 @@
       "files": [
         "services/x_publishing.py"
       ]
+    },
+    {
+      "name": "Accepted November 4 next-open calendar preservation",
+      "status": "accepted",
+      "files": [
+        "services/market_calendar_reactions.py",
+        "pipeline/jobs/market_calendar_refresh.py"
+      ],
+      "evidence": "documents/verification/calendar-opening-reactions-2026-11-04/SOURCE_REVIEW.md"
     }
   ],
   "roles": {
     "worker": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83"
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ce3bb89965a700e80b441cf717089a18dea869917ee3595151fda931ebdfe8ee"
       ],
       "development_targets": [
         {
@@ -949,13 +961,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "2883e0abb815896beb49e8d2c93e55b514b3300bceecfabb0d026b3f10b69075",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ce3bb89965a700e80b441cf717089a18dea869917ee3595151fda931ebdfe8ee",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ce3bb89965a700e80b441cf717089a18dea869917ee3595151fda931ebdfe8ee",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
-            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
-            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ce3bb89965a700e80b441cf717089a18dea869917ee3595151fda931ebdfe8ee",
+            "source_revision": "233189f15384bd6932f860794a7c328220a8138a",
+            "evidence": "documents/verification/twitter-account-2026-11-03/calendar-integration-2026-11-04.json"
           }
         }
       ],
@@ -1250,17 +1262,18 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "30bab0b60534d0c56819e6f6a6fdbb0a8ed9ef937466c250624c3e0696cbe853",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ce3bb89965a700e80b441cf717089a18dea869917ee3595151fda931ebdfe8ee",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ce3bb89965a700e80b441cf717089a18dea869917ee3595151fda931ebdfe8ee",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
-            "source_revision": "9180acd22d2e7dda1a6ddadfc6e9d03bb24fd968",
-            "evidence": "documents/verification/twitter-account-2026-11-03/source-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ce3bb89965a700e80b441cf717089a18dea869917ee3595151fda931ebdfe8ee",
+            "source_revision": "233189f15384bd6932f860794a7c328220a8138a",
+            "evidence": "documents/verification/twitter-account-2026-11-03/calendar-integration-2026-11-04.json"
           }
         }
       ],
-      "accepted_images": {
+      "accepted_images": {},
+      "previous_x_rollout_packages": {
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e46ca88ac1111fd39a2f7c3211a1cd20d0125541e7ec18ff6cf823b2f96ae03e": {
           "source_revision": "324477f1f3a5e6588f124703664be2ff3aea9aca",
           "source_inventory_sha256": "c726239f3dc57be4b978a082e64c67881ed6de95252d13c38347d94db7cfb30e",
@@ -1311,7 +1324,8 @@
           }
         }
       ],
-      "accepted_images": {
+      "accepted_images": {},
+      "previous_x_rollout_packages": {
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:e314dd71cfaab9f6446c1917f532fece0b31d86cfb273aad261fbf9cddd2d766": {
           "source_revision": "324477f1f3a5e6588f124703664be2ff3aea9aca",
           "source_inventory_sha256": "c726239f3dc57be4b978a082e64c67881ed6de95252d13c38347d94db7cfb30e",
@@ -1378,15 +1392,7 @@
           }
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6d4148cb8e036f360e069da280c0e3597e0331292993116ed54e09502f4b6502": {
-          "source_revision": "324477f1f3a5e6588f124703664be2ff3aea9aca",
-          "source_inventory_sha256": "c726239f3dc57be4b978a082e64c67881ed6de95252d13c38347d94db7cfb30e",
-          "runtime_inventory_sha256": "823d39cff6eb2ebf0aee675cdf397350d032e773ce0f0ca921722c331526de70",
-          "qualification_run": "cj1fq",
-          "evidence": "documents/verification/twitter-account-2026-11-03/rollout-packages-2026-11-04.json"
-        }
-      },
+      "accepted_images": {},
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
         "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
@@ -1489,6 +1495,15 @@
         "web/tests/auth-boundary.test.mjs": "76e2216314b8955621409bb0440fe3804052ab0478dabc6f01415aea76700599",
         "web/tests/home-refresh.test.mjs": "75fd85ec743beca90d8a7dceb57613c0f20b3b101d5a9b54c1e9a64e8b0931b8",
         "web/tsconfig.json": "9c73cf280ef044e5b2557572af01310c7bb24a714ec22d1a7bdb85e6f152cb0b"
+      },
+      "previous_x_rollout_packages": {
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6d4148cb8e036f360e069da280c0e3597e0331292993116ed54e09502f4b6502": {
+          "source_revision": "324477f1f3a5e6588f124703664be2ff3aea9aca",
+          "source_inventory_sha256": "c726239f3dc57be4b978a082e64c67881ed6de95252d13c38347d94db7cfb30e",
+          "runtime_inventory_sha256": "823d39cff6eb2ebf0aee675cdf397350d032e773ce0f0ca921722c331526de70",
+          "qualification_run": "cj1fq",
+          "evidence": "documents/verification/twitter-account-2026-11-03/rollout-packages-2026-11-04.json"
+        }
       }
     },
     "broker": {
@@ -1532,7 +1547,8 @@
           }
         }
       ],
-      "accepted_images": {
+      "accepted_images": {},
+      "previous_x_rollout_packages": {
         "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:b4de9f6922a1e2be93679c78f29fbf3646cf3373ffe7dc7ef606bc8e0520433b": {
           "source_revision": "324477f1f3a5e6588f124703664be2ff3aea9aca",
           "source_inventory_sha256": "c726239f3dc57be4b978a082e64c67881ed6de95252d13c38347d94db7cfb30e",
