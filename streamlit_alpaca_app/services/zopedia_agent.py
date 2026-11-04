@@ -1226,7 +1226,7 @@ def _run_evidence_model_step(
                 step = generate_json_via_aql_zopedia_gateway(
                     llm_client=llm_client, surface=surface, purpose=purpose, call_type=call_type,
                     system_prompt=system_prompt + (
-                        "\nOptional research is complete. Return the current answer from the evidence already available."
+                        "\nOptional research is complete. Return the current artifact inside decision from the evidence already available."
                         if answer_only else
                         '\nReturn the artifact inside decision. To read, use action=read with tool_name and tool_arguments inside decision. select_context manages working context; originals remain readable.'
                     ),
@@ -1264,8 +1264,6 @@ def _run_evidence_model_step(
             return {**artifact, **{key: value for key, value in step.items() if key.startswith("__")}}
         errors = list(Draft202012Validator(active_schema).iter_errors(public_step))
         if errors:
-            if answer_only:
-                raise ValueError("Completion returned an invalid response: " + errors[0].message)
             feedback = "Invalid response: " + errors[0].message
             continue
         navigation = step["decision"]
