@@ -1,17 +1,17 @@
 {
   "status": "accepted_locally",
-  "scope": "X company reactions in shared research and exact Attention headlines after completed runs.",
-  "source_revision": "736971bc5758be2d1268b18670f40446bdaf96fe",
+  "scope": "Shared company reactions, completed Attention publication, saved-event deep links and Home chart images; development remains held at the actual Azure X verification boundary.",
+  "source_revision": "0bcec9b108b21a0b5161c0c5da78168823c2b44e",
   "review_base_revision": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
-    ".env.example": "1f2833c05f477a63185ca3dd352b52664f84f0859e5eae0da222a0ebfcce1558",
+    ".env.example": "c37f6e297c6d6d059e2e4f6968b673cc66ecf1fbf77c0e3a19753838f556a0a4",
     "Dockerfile.dev": "4496ca96f4426fd3cb703333846c96d799be16feb087c971049c8214b560a4e7",
     "Dockerfile.runtime": "5ee396b0cd466127d9cd78375a77e136fefe61429e3b6031d6d3a47010de5491",
     "Dockerfile.web": "cbee57e07274032883bb9e3b28c62412b4bb6176c92fe1ca61af018b9db871b2",
     "api/__init__.py": "d263cd3e0682327cdd7596508ae7d7d54ea508e38347b6be13e0997b1fd1da9a",
     "api/feature_requests.py": "a9de6f58dc920cd9f81431d7b606f8fa19ca24261502a66084265df334d24158",
-    "api/main.py": "6617721b8aec6e609a8d47549ae27e44da2c7696b0bca6bf008256b92ed28fc5",
+    "api/main.py": "25e8a7fd2731326ff183e41f8d44f010c23c21ee6c183de1aabfccfebc71caaf",
     "api/paper_trading.py": "3d10734c4a0bd328ec13c0ff16a23fa2086a9711b88fbf752be3730f303c03da",
     "branding/Logo Files/Favicons/Android.png": "bb4425eedbed1dbcf7b8614e614351c4f0e2a64cec70736d5d7bc867d3ad2d6e",
     "branding/Logo Files/Favicons/browser.png": "821dd97504df015b41a0f6e7fcef294ee807b09f78d47e6748eccf5c8b10dbab",
@@ -73,7 +73,7 @@
     "docker-compose.dev.yml": "b34fcd354a6743bbdf3c75b4c98dc49164d15f9eb5b02448d7c51a83f9ecf19d",
     "pipeline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "pipeline/jobs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "pipeline/jobs/attention_home_build.py": "86e62f4bcdf176a6b884c9eed6d7ff56cb4989360cdab21b2431d2ab2c0decd2",
+    "pipeline/jobs/attention_home_build.py": "cd5264149b9d3cd80aa190c995dba4ba9d108b0f0bb2c23d24c02b5f87f1be13",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "f4051be9828e55f51d5f5dd86fe2c533d06a25dc68e6608ad919d30bebd454ed",
@@ -151,7 +151,8 @@
     "services/attention_signal_graph.py": "6682b3fd24519e2fab4a79f9370734d24e77df6f1d05f45bdadc484140a21544",
     "services/attention_surface.py": "ad733746e32b528fe07303ee10f7501231c8ae0dc38bf03bba8c013331c892db",
     "services/attention_ticker_snapshots.py": "cb91ea0e644c77105f6b68464387a2f03cd0e02663f905a24f9590e0a08bae98",
-    "services/attention_x.py": "1ee2a2ab0f9a0c653415fa8b239280af07f1b4e9267862dc37604645d56ee5db",
+    "services/attention_x.py": "be323bdfcac66ba45431b5fd6a27ae6d9b4f2170e88e8b22429ed690ad7fe5dd",
+    "services/attention_x_media.py": "8debe42a6d1732031901fae7191f1de250dea6543b8795c3bfb382d1586e0fe9",
     "services/auth_service.py": "2e5803ec482f4ed2c988a05e463c08c1c58e6bbfb84d0dd8034fab8038d6dc93",
     "services/auth_store.py": "8c11049aff8ce1e83bc473266be35ad688281a486b5217ddcd7c080190714ac1",
     "services/brokerage_credentials.py": "26997d5bb4bdc666b2e753b02a71754a8698490969541ca4d75728957e580675",
@@ -179,7 +180,7 @@
     "services/fundamentals.py": "7fe7900992c223eb042c3816878a38b1e61c87f85bb6d912a17bb8ce4a0a3217",
     "services/historical_corpus.py": "b7bd57baf77d675a3d4f1e7afb85ccc5287e77fe7eafb7ea046fe0a88b588ebc",
     "services/historical_training.py": "f36b5c9d792538d438bb66bfda8ca80b8e73e59666cd9ffd8f39bbeb226617ac",
-    "services/home_view.py": "ae04164bbcea35bdfa03d5d7a2dde779c0ffa6f8072efa2c759ccbeff15a7961",
+    "services/home_view.py": "0c7120482999ef9183f510ce2f95bb91e1e4fe3f993f430606f1cdb9a34a320b",
     "services/homepage_support.py": "143a973c91c57420d60c16a8811fe79c75b154cf1be7efffce4f82714968be7e",
     "services/inference_policy.py": "671bdef06941e110139df0382e4656652bbe8823f07c6c93e45eca790cda6dcc",
     "services/json_utils.py": "5f18985844cbfb425afb98cc0d16753c33fa929592acef8151b7825ebf858735",
@@ -227,7 +228,7 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "158ad038e144fb5e37c87f53af6f6dfb551c7231d2b542e48a89a555d968e9ee",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/x_publishing.py": "119708d17d219333e33399c9b15ed1984259d0d6e3405b7621dc670c158eea9d",
+    "services/x_publishing.py": "f65e0f547d5a339cec40832c1ed00c13a5c983b0684096d5908ab9beb55f49d9",
     "services/x_research.py": "9bdc1a5bfeabb3a7af8d1d4236ff32e4aa5fcd384fe8ce82bb6e239ec2009c70",
     "services/zopedia_agent.py": "a5f17f97a12e0520503c85f97b88c2fe9a96278e07107afa9425278aba4e8bdc",
     "services/zopedia_analysis.py": "56d1a2cb099073122996574fdf3187b61d641c43d207f9e3ed5efd3ad4d09f53",
@@ -277,8 +278,10 @@
     "web/app/api/zopedia/pages/route.ts": "ba6f1a86204a5d49a1b14b0b8b6a5e89b370eeef41d90601747afa5be48ae42f",
     "web/app/api/zopedia/sources/upload/route.ts": "8fd6cea3bcd5b27b5a1396b05f08eda573941ca5e1f623a457071b43997a0edd",
     "web/app/api/zopedia/workspace/route.ts": "1e989f335796ac073ee0613fe2ed08cf2f2fca1c2aa69dd556313938f91d58db",
+    "web/app/attention/[version]/[event]/images/page.tsx": "161a6fe904ce5cd6a1552b0b44c0faba17d5d4fb3800e53fa9f26f6c8dc4f5c3",
+    "web/app/attention/[version]/[event]/page.tsx": "fea5080fa8c529dadd86c0906352e8570915a546ea64455b9baefcec055b69b5",
     "web/app/broad-economy/page.tsx": "9d9d8990e2100eb24d461285d656118c788945b489ae3116fe2d5945769d219b",
-    "web/app/globals.css": "2462424b051a0797075c7b23ab010223eb346e4196df8fe20337014d7364b4c3",
+    "web/app/globals.css": "87939a29c48125d2aa85ca2816ab5e16ffda81c8d9e84aeb301b8cb3c3bbd625",
     "web/app/health/route.ts": "fbd86280d0a005e41947c611db300c2859bec610cf383e779cc01c06322c61a3",
     "web/app/layout.tsx": "85fe444f2059a58d0c89962c7a13032c829a316c69844708f9353dd902a80254",
     "web/app/login/login-form.tsx": "ed85bc9477761542aa2f79892332205a92f1b93d610f90a3d47906d9c7d617ff",
@@ -299,8 +302,10 @@
     "web/components/admin/operational-health.module.css": "a225b003248a923be344e38342736b2d42f8638eddc5389ce0e1a80f4e73e004",
     "web/components/admin/operational-health.tsx": "e93ace1a6f8af339498b281f60af52b8ba33bb1c54246b9d82b81f39d03224c5",
     "web/components/agent-rail.tsx": "ceeab7d77cb5cb4962023402a8d347019ae4d36cf885d71d8f75c6962057ec8a",
+    "web/components/attention-event.tsx": "42f6b0b5dee9798d2fc070cbf901f7ad7192d8748542a2c171fa647dc6250edd",
+    "web/components/attention-story.tsx": "b01241d14f3a0005e2854d79f1632c664a6ed8b9d841018c2fa80cee8c816531",
     "web/components/attention-ticker-card.tsx": "448a380479310293861bfe01f604f8adb1de7551131cf0e5e952e016f1a56cb1",
-    "web/components/home-workspace.tsx": "23d117c7a0bba0a2a07e34f4730a9562112ab36ab7ec4bb06c5bda4e2159440a",
+    "web/components/home-workspace.tsx": "b7d5860281c63b149fbdf80a1c0bf75df4f6bf41a13a01d8546ef80b30f29bdc",
     "web/components/icons.tsx": "b9decc77ad08d556bfe3bdee1a879303a034026ec7a608fd799b23c40203470d",
     "web/components/markdown.tsx": "743d7e7b2a85cead42cd851c5e4b1a75682bf5213cee422c127de8b6f09cfe8a",
     "web/components/market-event-calendar.module.css": "9ae69f52add5d46fc4e031a72684e91aea2fb4b4621b18b6ed56866d9cad1f2c",
@@ -315,19 +320,20 @@
     "web/components/visualizations/price-context-chart.tsx": "269f8771261cee929f72f0df421ab79345d01c1bb4731a4dfc87ac787ce9c47f",
     "web/components/visualizations/trend-chart.tsx": "ba649b178c079cc8a133e2eb8ed2bbd6c9d31eccf2e7edb32780bc8144c1822e",
     "web/components/visualizations/visualization.tsx": "8e1b1fdab2e6cb33fb6a91647ecc599132a6ed037bf79918490338e32116f916",
-    "web/components/workbench-shell.tsx": "785aaac08a32608f126bb7b6b4ed8aa602629d2ff5c82b92a77c347720d367bc",
+    "web/components/workbench-shell.tsx": "56c7a4d542d150c84407dfa443acb8f8b5d9e511ccf4f51ea4c95b0dfa69cc05",
     "web/components/workbook.tsx": "0e5e9572c970c094ed75d28b55970d88a340f8af84d830b4ea4fbdb16830e35b",
     "web/eslint.config.mjs": "77e9f34454d52f5986545c76c35c90aa6c82f29d00612fe85b7519d34031bb8b",
     "web/lib/client/api.ts": "201417ee7b63542b681f8413b497a5ac02c6e357b5a073ecf282652009b86d84",
     "web/lib/client/portfolio.ts": "fd30d19290b5d2ea5de957cf05989b6059d7ad9c50280f95066ddaacf7ae49e1",
     "web/lib/client/session.ts": "e72697ac958a90841b4809a1bb162faea8175c523961a74d55e53d31e0468c9b",
+    "web/lib/server/attention-event.ts": "6b355f5e91aa079929c908015df5dd5908180d937827a0d78a1cfe8d5f276588",
     "web/lib/server/auth.ts": "7a87f662a5d51f146327a055478aa98e3f1b6d35e2ca49051d8c3b8cd1ea5066",
     "web/lib/server/backend.ts": "b97c9d02b433e2cf59b33e97f60f2b8d596536fad7f1c9c796c7511498f56f69",
-    "web/lib/server/home.ts": "b01f860b48081fededeb54a227c07a31716b05ebf3070be78f1c2ac97751cf63",
+    "web/lib/server/home.ts": "cf21718a6e3a5e17cc25cd2abaf1f91515650440dee05ae994ad0a2a61401a9b",
     "web/lib/server/http.ts": "88b7c9dd4d74b6e9fe6fbdde729c7567ec6e1d30ad49509eca6928ae0ca2d1a2",
-    "web/lib/types.ts": "c06fec432f5057d6a933c45a67993afb97b2744a93588ba9beb731fe552bee19",
+    "web/lib/types.ts": "839f5eaf0840934333f98627ab72790e3bac8a6d03d15cfecbc8b146ad93eadb",
     "web/next-env.d.ts": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
-    "web/next.config.ts": "304db7c8cad0928ec4fd92fd1c56c1d6ec26b9078e45ed1a626bf95a92a8b440",
+    "web/next.config.ts": "58c25407862ef42825da7b4b19ba77ac8cf5ddfa885d8498a0bebc351eea6cf9",
     "web/package-lock.json": "04f70dfd9398ad53693c7a481defd5be0b1ca2113943e5ace748b7b1670b0f6e",
     "web/package.json": "3c39b5d57b99099a754322bed1bfe37c78d1722a24db83201c71345d4753dc37",
     "web/proxy.ts": "791579da0d48b397c5084d20d5f4ecf9c293d4e8678b1eb2326337cc3f6ccde7",
@@ -338,7 +344,7 @@
   "runtime_files": {
     "api/__init__.py": "d263cd3e0682327cdd7596508ae7d7d54ea508e38347b6be13e0997b1fd1da9a",
     "api/feature_requests.py": "a9de6f58dc920cd9f81431d7b606f8fa19ca24261502a66084265df334d24158",
-    "api/main.py": "6617721b8aec6e609a8d47549ae27e44da2c7696b0bca6bf008256b92ed28fc5",
+    "api/main.py": "25e8a7fd2731326ff183e41f8d44f010c23c21ee6c183de1aabfccfebc71caaf",
     "api/paper_trading.py": "3d10734c4a0bd328ec13c0ff16a23fa2086a9711b88fbf752be3730f303c03da",
     "branding/Logo Files/Favicons/Android.png": "bb4425eedbed1dbcf7b8614e614351c4f0e2a64cec70736d5d7bc867d3ad2d6e",
     "branding/Logo Files/Favicons/browser.png": "821dd97504df015b41a0f6e7fcef294ee807b09f78d47e6748eccf5c8b10dbab",
@@ -397,7 +403,7 @@
     "data_access/query_service.py": "effe47edeabecef0a23736e9776b6839dd95f4412ec61840c6ad2b9cc9a9fec5",
     "pipeline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "pipeline/jobs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "pipeline/jobs/attention_home_build.py": "86e62f4bcdf176a6b884c9eed6d7ff56cb4989360cdab21b2431d2ab2c0decd2",
+    "pipeline/jobs/attention_home_build.py": "cd5264149b9d3cd80aa190c995dba4ba9d108b0f0bb2c23d24c02b5f87f1be13",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "f4051be9828e55f51d5f5dd86fe2c533d06a25dc68e6608ad919d30bebd454ed",
@@ -452,7 +458,8 @@
     "services/attention_signal_graph.py": "6682b3fd24519e2fab4a79f9370734d24e77df6f1d05f45bdadc484140a21544",
     "services/attention_surface.py": "ad733746e32b528fe07303ee10f7501231c8ae0dc38bf03bba8c013331c892db",
     "services/attention_ticker_snapshots.py": "cb91ea0e644c77105f6b68464387a2f03cd0e02663f905a24f9590e0a08bae98",
-    "services/attention_x.py": "1ee2a2ab0f9a0c653415fa8b239280af07f1b4e9267862dc37604645d56ee5db",
+    "services/attention_x.py": "be323bdfcac66ba45431b5fd6a27ae6d9b4f2170e88e8b22429ed690ad7fe5dd",
+    "services/attention_x_media.py": "8debe42a6d1732031901fae7191f1de250dea6543b8795c3bfb382d1586e0fe9",
     "services/auth_service.py": "2e5803ec482f4ed2c988a05e463c08c1c58e6bbfb84d0dd8034fab8038d6dc93",
     "services/auth_store.py": "8c11049aff8ce1e83bc473266be35ad688281a486b5217ddcd7c080190714ac1",
     "services/brokerage_credentials.py": "26997d5bb4bdc666b2e753b02a71754a8698490969541ca4d75728957e580675",
@@ -480,7 +487,7 @@
     "services/fundamentals.py": "7fe7900992c223eb042c3816878a38b1e61c87f85bb6d912a17bb8ce4a0a3217",
     "services/historical_corpus.py": "b7bd57baf77d675a3d4f1e7afb85ccc5287e77fe7eafb7ea046fe0a88b588ebc",
     "services/historical_training.py": "f36b5c9d792538d438bb66bfda8ca80b8e73e59666cd9ffd8f39bbeb226617ac",
-    "services/home_view.py": "ae04164bbcea35bdfa03d5d7a2dde779c0ffa6f8072efa2c759ccbeff15a7961",
+    "services/home_view.py": "0c7120482999ef9183f510ce2f95bb91e1e4fe3f993f430606f1cdb9a34a320b",
     "services/homepage_support.py": "143a973c91c57420d60c16a8811fe79c75b154cf1be7efffce4f82714968be7e",
     "services/inference_policy.py": "671bdef06941e110139df0382e4656652bbe8823f07c6c93e45eca790cda6dcc",
     "services/json_utils.py": "5f18985844cbfb425afb98cc0d16753c33fa929592acef8151b7825ebf858735",
@@ -528,7 +535,7 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "158ad038e144fb5e37c87f53af6f6dfb551c7231d2b542e48a89a555d968e9ee",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/x_publishing.py": "119708d17d219333e33399c9b15ed1984259d0d6e3405b7621dc670c158eea9d",
+    "services/x_publishing.py": "f65e0f547d5a339cec40832c1ed00c13a5c983b0684096d5908ab9beb55f49d9",
     "services/x_research.py": "9bdc1a5bfeabb3a7af8d1d4236ff32e4aa5fcd384fe8ce82bb6e239ec2009c70",
     "services/zopedia_agent.py": "a5f17f97a12e0520503c85f97b88c2fe9a96278e07107afa9425278aba4e8bdc",
     "services/zopedia_analysis.py": "56d1a2cb099073122996574fdf3187b61d641c43d207f9e3ed5efd3ad4d09f53",
@@ -541,18 +548,32 @@
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
   "reviewed_changes": {
-    ".env.example": "Document optional account override and explicit post activation; default disabled. No secret values.",
-    "pipeline/jobs/attention_home_build.py": "Existing final Attention writer produces a complete 280-character headline for both the feed and X; all research, wiki policy, source references, public fields and consumer projections retained.",
+    ".env.example": "Document optional image-render origin. Public link continues to use the existing APP_PUBLIC_BASE_URL; no credentials added.",
+    "pipeline/jobs/attention_home_build.py": "Existing writer reserves link space in its headline (250 characters). Full story and charts remain source-owned. No extra editor, model, provider, stage or schedule.",
     "pipeline/jobs/main.py": "Only main changes: X delivery follows the native completion receipt and SQL completion outside the research clock, for completed Home runs with an Attention version. Failure is isolated; other job handlers and completion behavior remain.",
     "scripts/publish_attention_x.py": "Manual inspect/prepare/deliver/status use the same account transport. Preparation requires finished receipt and exact version. Retired polling route removed. Not a new runtime job.",
     "services/agent_tools.py": "Add read-only web company_sentiment tool, typed bounded acquisition arguments and dispatch with inherited as-of/timezone. Existing tool and permissions retained; no posting tool exposed to research.",
     "services/aql/events.py": "Existing company investigations request company reactions as attributed opinions within shared research. No extra model/stage and existing wiki handoff preserved.",
-    "services/attention_x.py": "Queue existing event headline and existing event ID from the exact completed version. No editor/model. Resume prepared records, persist actual receipts and skip published IDs on repeated completion. Ambiguous event IDs require reconciliation. Transactional initial enqueue is independent of browser ownership, so a busy account cannot discard a completed run's events.",
+    "services/attention_x.py": "Queue headline plus exact-version link on new event IDs; retain existing published content and receipts. Render missing media once before opening X; pin immutable PNG receipts before dispatch. Research completion and failure isolation remain unchanged.",
     "services/pipeline_store.py": "Add exact immutable dataset-version and finished job-receipt readers. latest receipt delegates to the same existing latest pointer. All other definitions, financial authority, database lifecycle and dataset publication remain AST-identical to accepted source.",
-    "services/x_publishing.py": "Async full-JavaScript owned browser fixes blocked response processing. Existing PostgreSQL account lease and durable post/login/navigation pacing, Vault credentials, encrypted cookies/localStorage, exact-text submission guard and immutable receipts. Actual 9-event delivery, fresh exact readback and repeat with zero new posts qualify the transport. Queue insertion cannot overwrite an existing receipt and needs no browser lease. Parallel research readers await account ownership within their acquisition deadline.",
+    "services/x_publishing.py": "Owned composer uploads the retained files, verifies attachment count and enabled Post. CreateTweet requires the expected unique numeric media IDs. PostgreSQL refuses replacement images after pinning. Existing lease, pacing, credentials, dispatch ownership, receipts and uncertain-submission rules remain.",
     "services/x_research.py": "Acquire attributed Top/Latest reactions and selected full post through the same browser. Shared 15-minute cache, timezone/as-of filtering, dated source documents and complete model context. Existing model interprets sentiment; no lexicon, score or extra inference.",
     "services/zopedia_agent.py": "Expose source in existing deferred discovery and planner guidance only when web policy permits it. Existing shared synthesis/review/memory logic unchanged.",
-    "Dockerfile.runtime": "Preserve each role's Python package versions and launch command. Copy only the accepted worker's pinned Chromium assets to /opt/ms-playwright, remove inherited browser caches before flattening, and declare one browser path. Install native libraries through the pinned Patchright install-deps command and restore standard /tmp permissions before installation and in the final image. No inherited application crosses the browser dependency stage. Actual API native preflight cj1f9 passed complete source checks and JavaScript DOM execution before rebuilding."
+    "Dockerfile.runtime": "Preserve each role's Python package versions and launch command. Copy only the accepted worker's pinned Chromium assets to /opt/ms-playwright, remove inherited browser caches before flattening, and declare one browser path. Install native libraries through the pinned Patchright install-deps command and restore standard /tmp permissions before installation and in the final image. No inherited application crosses the browser dependency stage. Actual API native preflight cj1f9 passed complete source checks and JavaScript DOM execution before rebuilding.",
+    "api/main.py": "Add the optional exact publication version to the public Home read. AST review confirms public_home is the only changed API definition; all authentication and financial routes remain intact.",
+    "services/attention_x_media.py": "Use existing Chromium and Home React image page. Verify version, run and bundle identity, fit each complete panel in the viewport, and capture PNGs. Existing immutable Blob archive verifies checksums; account-wide receipts survive process/environment changes. No image-generation model or duplicated chart implementation.",
+    "services/home_view.py": "Exact-version reads use embedded snapshots without current quote merges. Shared card selection skips data-empty company placeholders while retaining all company identities and order. Latest/replay loaders, summary/audio, calendar, graph, chart transformations and financial metric definitions remain.",
+    "web/app/attention/[version]/[event]/page.tsx": "Anonymous saved-event detail route; exact version and event only, with interactive Home ticker charts and stock-investigator links.",
+    "web/app/attention/[version]/[event]/images/page.tsx": "Read-only image layout for the same saved event. No research or mutation.",
+    "web/components/attention-event.tsx": "Shared Home story and ticker components produce chart-first panels, the complete story, source date and brand. Single-company layouts use full width; up to four visible data-bearing company cards are retained.",
+    "web/components/attention-story.tsx": "One rendering of existing reviewed title, summary, development, explanation, business context and watch-next fields. No summarization or inference.",
+    "web/components/home-workspace.tsx": "Reuse shared story renderer, including the already-public reviewed development field. Calendar, graph, highlights, dates, audio, background polling and ticker components retained.",
+    "web/components/workbench-shell.tsx": "Only the image route renders without navigation/agent rails or an irrelevant auth request; normal pages retain the shell and session behavior.",
+    "web/app/globals.css": "Event page and image typography, source-sized charts, single/two-company grids. Export overrides follow base card rules. Existing trading/calendar/mobile rules retained.",
+    "web/lib/server/attention-event.ts": "Validate version syntax, decode event route parameter, load the exact publication and require an exact event. Missing versions/events return 404 rather than the latest story.",
+    "web/lib/server/home.ts": "Existing no-store public loader accepts optional version. Default/current and date-based requests retain the same paths and ETag behavior.",
+    "web/lib/types.ts": "Optional source_version added to public Home DTO. Existing fields/types retained; additive field is ignored by native decoders.",
+    "web/next.config.ts": "Disable development status overlay so exports and previews contain the product only. Security headers and production behavior unchanged."
   },
   "retired_files": [
     "scripts/eval_critique_harness.py",
@@ -686,6 +707,31 @@
         "services/x_research.py",
         "services/zopedia_agent.py",
         "Dockerfile.runtime"
+      ]
+    },
+    {
+      "name": "Attention chart images and exact saved-event links",
+      "status": "accepted",
+      "evidence": "documents/verification/twitter-account-2026-11-03/media-source-review.json",
+      "files": [
+        ".env.example",
+        "api/main.py",
+        "pipeline/jobs/attention_home_build.py",
+        "services/attention_x.py",
+        "services/attention_x_media.py",
+        "services/home_view.py",
+        "services/x_publishing.py",
+        "web/app/attention/[version]/[event]/page.tsx",
+        "web/app/attention/[version]/[event]/images/page.tsx",
+        "web/components/attention-event.tsx",
+        "web/components/attention-story.tsx",
+        "web/components/home-workspace.tsx",
+        "web/components/workbench-shell.tsx",
+        "web/app/globals.css",
+        "web/lib/server/attention-event.ts",
+        "web/lib/server/home.ts",
+        "web/lib/types.ts",
+        "web/next.config.ts"
       ]
     }
   ],
@@ -1206,15 +1252,7 @@
           }
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:db58bfbd3a944d5dd652f4b922ff2ea46330b811c2f2064e7c0f4de8d3f743ab": {
-          "source_revision": "baae125cd56b93c865f7435a749814e2783e7e6f",
-          "source_inventory_sha256": "b045066651b41c9cbd61786ae7f0d813f3baf55f264994e71dc9f79ce0a9abcf",
-          "runtime_inventory_sha256": "b42386a0d30f7f2b30949779c90e4e8609a0fd284ae515f92e2a69e917b80c68",
-          "qualification_run": "cj1fe",
-          "evidence": "documents/verification/twitter-account-2026-11-03/packages.json"
-        }
-      }
+      "accepted_images": {}
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
@@ -1257,15 +1295,7 @@
           }
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2ee6e87771528eba4bbfca72a3bc7d5a53d7e9dcac5d87c90fe56ab1de67a3e4": {
-          "source_revision": "baae125cd56b93c865f7435a749814e2783e7e6f",
-          "source_inventory_sha256": "b045066651b41c9cbd61786ae7f0d813f3baf55f264994e71dc9f79ce0a9abcf",
-          "runtime_inventory_sha256": "b42386a0d30f7f2b30949779c90e4e8609a0fd284ae515f92e2a69e917b80c68",
-          "qualification_run": "cj1ff",
-          "evidence": "documents/verification/twitter-account-2026-11-03/packages.json"
-        }
-      }
+      "accepted_images": {}
     },
     "web": {
       "dependency_image": "node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da",
@@ -1315,8 +1345,10 @@
         "web/app/api/zopedia/pages/route.ts": "ba6f1a86204a5d49a1b14b0b8b6a5e89b370eeef41d90601747afa5be48ae42f",
         "web/app/api/zopedia/sources/upload/route.ts": "8fd6cea3bcd5b27b5a1396b05f08eda573941ca5e1f623a457071b43997a0edd",
         "web/app/api/zopedia/workspace/route.ts": "1e989f335796ac073ee0613fe2ed08cf2f2fca1c2aa69dd556313938f91d58db",
+        "web/app/attention/[version]/[event]/images/page.tsx": "161a6fe904ce5cd6a1552b0b44c0faba17d5d4fb3800e53fa9f26f6c8dc4f5c3",
+        "web/app/attention/[version]/[event]/page.tsx": "fea5080fa8c529dadd86c0906352e8570915a546ea64455b9baefcec055b69b5",
         "web/app/broad-economy/page.tsx": "9d9d8990e2100eb24d461285d656118c788945b489ae3116fe2d5945769d219b",
-        "web/app/globals.css": "2462424b051a0797075c7b23ab010223eb346e4196df8fe20337014d7364b4c3",
+        "web/app/globals.css": "87939a29c48125d2aa85ca2816ab5e16ffda81c8d9e84aeb301b8cb3c3bbd625",
         "web/app/health/route.ts": "fbd86280d0a005e41947c611db300c2859bec610cf383e779cc01c06322c61a3",
         "web/app/layout.tsx": "85fe444f2059a58d0c89962c7a13032c829a316c69844708f9353dd902a80254",
         "web/app/login/login-form.tsx": "ed85bc9477761542aa2f79892332205a92f1b93d610f90a3d47906d9c7d617ff",
@@ -1337,8 +1369,10 @@
         "web/components/admin/operational-health.module.css": "a225b003248a923be344e38342736b2d42f8638eddc5389ce0e1a80f4e73e004",
         "web/components/admin/operational-health.tsx": "e93ace1a6f8af339498b281f60af52b8ba33bb1c54246b9d82b81f39d03224c5",
         "web/components/agent-rail.tsx": "ceeab7d77cb5cb4962023402a8d347019ae4d36cf885d71d8f75c6962057ec8a",
+        "web/components/attention-event.tsx": "42f6b0b5dee9798d2fc070cbf901f7ad7192d8748542a2c171fa647dc6250edd",
+        "web/components/attention-story.tsx": "b01241d14f3a0005e2854d79f1632c664a6ed8b9d841018c2fa80cee8c816531",
         "web/components/attention-ticker-card.tsx": "448a380479310293861bfe01f604f8adb1de7551131cf0e5e952e016f1a56cb1",
-        "web/components/home-workspace.tsx": "23d117c7a0bba0a2a07e34f4730a9562112ab36ab7ec4bb06c5bda4e2159440a",
+        "web/components/home-workspace.tsx": "b7d5860281c63b149fbdf80a1c0bf75df4f6bf41a13a01d8546ef80b30f29bdc",
         "web/components/icons.tsx": "b9decc77ad08d556bfe3bdee1a879303a034026ec7a608fd799b23c40203470d",
         "web/components/markdown.tsx": "743d7e7b2a85cead42cd851c5e4b1a75682bf5213cee422c127de8b6f09cfe8a",
         "web/components/market-event-calendar.module.css": "9ae69f52add5d46fc4e031a72684e91aea2fb4b4621b18b6ed56866d9cad1f2c",
@@ -1353,19 +1387,20 @@
         "web/components/visualizations/price-context-chart.tsx": "269f8771261cee929f72f0df421ab79345d01c1bb4731a4dfc87ac787ce9c47f",
         "web/components/visualizations/trend-chart.tsx": "ba649b178c079cc8a133e2eb8ed2bbd6c9d31eccf2e7edb32780bc8144c1822e",
         "web/components/visualizations/visualization.tsx": "8e1b1fdab2e6cb33fb6a91647ecc599132a6ed037bf79918490338e32116f916",
-        "web/components/workbench-shell.tsx": "785aaac08a32608f126bb7b6b4ed8aa602629d2ff5c82b92a77c347720d367bc",
+        "web/components/workbench-shell.tsx": "56c7a4d542d150c84407dfa443acb8f8b5d9e511ccf4f51ea4c95b0dfa69cc05",
         "web/components/workbook.tsx": "0e5e9572c970c094ed75d28b55970d88a340f8af84d830b4ea4fbdb16830e35b",
         "web/eslint.config.mjs": "77e9f34454d52f5986545c76c35c90aa6c82f29d00612fe85b7519d34031bb8b",
         "web/lib/client/api.ts": "201417ee7b63542b681f8413b497a5ac02c6e357b5a073ecf282652009b86d84",
         "web/lib/client/portfolio.ts": "fd30d19290b5d2ea5de957cf05989b6059d7ad9c50280f95066ddaacf7ae49e1",
         "web/lib/client/session.ts": "e72697ac958a90841b4809a1bb162faea8175c523961a74d55e53d31e0468c9b",
+        "web/lib/server/attention-event.ts": "6b355f5e91aa079929c908015df5dd5908180d937827a0d78a1cfe8d5f276588",
         "web/lib/server/auth.ts": "7a87f662a5d51f146327a055478aa98e3f1b6d35e2ca49051d8c3b8cd1ea5066",
         "web/lib/server/backend.ts": "b97c9d02b433e2cf59b33e97f60f2b8d596536fad7f1c9c796c7511498f56f69",
-        "web/lib/server/home.ts": "b01f860b48081fededeb54a227c07a31716b05ebf3070be78f1c2ac97751cf63",
+        "web/lib/server/home.ts": "cf21718a6e3a5e17cc25cd2abaf1f91515650440dee05ae994ad0a2a61401a9b",
         "web/lib/server/http.ts": "88b7c9dd4d74b6e9fe6fbdde729c7567ec6e1d30ad49509eca6928ae0ca2d1a2",
-        "web/lib/types.ts": "c06fec432f5057d6a933c45a67993afb97b2744a93588ba9beb731fe552bee19",
+        "web/lib/types.ts": "839f5eaf0840934333f98627ab72790e3bac8a6d03d15cfecbc8b146ad93eadb",
         "web/next-env.d.ts": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
-        "web/next.config.ts": "304db7c8cad0928ec4fd92fd1c56c1d6ec26b9078e45ed1a626bf95a92a8b440",
+        "web/next.config.ts": "58c25407862ef42825da7b4b19ba77ac8cf5ddfa885d8498a0bebc351eea6cf9",
         "web/package-lock.json": "04f70dfd9398ad53693c7a481defd5be0b1ca2113943e5ace748b7b1670b0f6e",
         "web/package.json": "3c39b5d57b99099a754322bed1bfe37c78d1722a24db83201c71345d4753dc37",
         "web/proxy.ts": "791579da0d48b397c5084d20d5f4ecf9c293d4e8678b1eb2326337cc3f6ccde7",
@@ -1415,15 +1450,7 @@
           }
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:501d23c24e0bd2bc38515f604ee5f2e3896a470e8d19d13fa19ba375dcdff463": {
-          "source_revision": "baae125cd56b93c865f7435a749814e2783e7e6f",
-          "source_inventory_sha256": "b045066651b41c9cbd61786ae7f0d813f3baf55f264994e71dc9f79ce0a9abcf",
-          "runtime_inventory_sha256": "b42386a0d30f7f2b30949779c90e4e8609a0fd284ae515f92e2a69e917b80c68",
-          "qualification_run": "cj1fd",
-          "evidence": "documents/verification/twitter-account-2026-11-03/packages.json"
-        }
-      }
+      "accepted_images": {}
     }
   },
   "untouched_consumers": [
@@ -1544,7 +1571,37 @@
   "production_authorization": {},
   "development_acceptance": {
     "status": "held",
-    "reason": "X shows Cloudflare verification from Azure. Local account operations work; runtime placement needs owner decision. No dev deployment."
+    "reason": "Azure X verification remains blocked pending the owner runtime-placement decision. The chart/deep-link extension is accepted locally but has not been built into any application image or deployed. Previous X package evidence covers earlier source only."
   },
-  "production_acceptance": {}
+  "production_acceptance": {},
+  "previous_x_packages": {
+    "worker": {
+      "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:db58bfbd3a944d5dd652f4b922ff2ea46330b811c2f2064e7c0f4de8d3f743ab": {
+        "source_revision": "baae125cd56b93c865f7435a749814e2783e7e6f",
+        "source_inventory_sha256": "b045066651b41c9cbd61786ae7f0d813f3baf55f264994e71dc9f79ce0a9abcf",
+        "runtime_inventory_sha256": "b42386a0d30f7f2b30949779c90e4e8609a0fd284ae515f92e2a69e917b80c68",
+        "qualification_run": "cj1fe",
+        "evidence": "documents/verification/twitter-account-2026-11-03/packages.json"
+      }
+    },
+    "api-next": {
+      "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2ee6e87771528eba4bbfca72a3bc7d5a53d7e9dcac5d87c90fe56ab1de67a3e4": {
+        "source_revision": "baae125cd56b93c865f7435a749814e2783e7e6f",
+        "source_inventory_sha256": "b045066651b41c9cbd61786ae7f0d813f3baf55f264994e71dc9f79ce0a9abcf",
+        "runtime_inventory_sha256": "b42386a0d30f7f2b30949779c90e4e8609a0fd284ae515f92e2a69e917b80c68",
+        "qualification_run": "cj1ff",
+        "evidence": "documents/verification/twitter-account-2026-11-03/packages.json"
+      }
+    },
+    "web": {},
+    "broker": {
+      "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:501d23c24e0bd2bc38515f604ee5f2e3896a470e8d19d13fa19ba375dcdff463": {
+        "source_revision": "baae125cd56b93c865f7435a749814e2783e7e6f",
+        "source_inventory_sha256": "b045066651b41c9cbd61786ae7f0d813f3baf55f264994e71dc9f79ce0a9abcf",
+        "runtime_inventory_sha256": "b42386a0d30f7f2b30949779c90e4e8609a0fd284ae515f92e2a69e917b80c68",
+        "qualification_run": "cj1fd",
+        "evidence": "documents/verification/twitter-account-2026-11-03/packages.json"
+      }
+    }
+  }
 }
