@@ -607,7 +607,7 @@
     "owner_instruction": "Complete Home-to-wiki updates so later research can extend existing knowledge instead of repeating full investigations.",
     "source_base": "d2cfd7bc6605327d05aaa8e06f1cf6bbfa7d5665",
     "branch": "fix/home-wiki-continuity-20261103",
-    "state": "accepted_locally_development_release_preparation",
+    "state": "development_accepted_production_promotion",
     "design": [
       "Keep the existing data-first planner, investigation workers, native review and final public editor. Research and public writing retain read-only tools.",
       "After an investigation or assessed reuse, call the existing shared post-answer wiki maintenance step. Only the existing completed-review authorization can permit a knowledge write.",
