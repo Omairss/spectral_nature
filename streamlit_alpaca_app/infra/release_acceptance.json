@@ -724,7 +724,34 @@
           }
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf": {
+          "status": "passed",
+          "source_revision": "700a565aa837e9bd95351bb2261b55d321b0bf2f",
+          "runtime_files": 200,
+          "runtime_inventory_sha256": "1fdb5b5b47ba897f5fc60e8356cd7807706d008a6e965d3a5d85bcb9d1952129",
+          "all_packaged_files_checked": true,
+          "checks": [
+            "complete Git package",
+            "API imports/OpenAPI",
+            "worker and broker imports",
+            "retained native performance API",
+            "flat account zero return and undefined Sharpe",
+            "calendar producer imports and 121-day projection",
+            "price colors independent of EPS history",
+            "completed current session with data delay"
+          ],
+          "external_requests": 0,
+          "role": "worker",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58492f771aae97fd2e1c3b660aff122858c2a41dde2a8e07b63cb24c908510cf",
+          "source_inventory_sha256": "e7b5129abe047abed2633f61128393a0634c1b16eb20e4fd6541f712b19dcea2",
+          "complete_git_inventory_matches": true,
+          "current_results_contract": "passed",
+          "eps_history_dependency": false,
+          "completed_current_session": true,
+          "evidence": "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:93fb04bcf900c7a4e1eb287ef3c025beb082a5547697189056ca4494a9323330",
