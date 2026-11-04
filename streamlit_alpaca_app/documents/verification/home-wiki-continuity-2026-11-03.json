@@ -722,5 +722,34 @@
     "Public writing iteration",
     "News provider replacement",
     "Production schedules, models and allowances"
-  ]
+  ],
+  "integrated_source": {
+    "status": "preserved",
+    "calendar_git_source": "a0351a50",
+    "home_wiki_files_identical_to_qualified_source": [
+      "config/inference_policy.json",
+      "services/llm_execution.py",
+      "services/inference_policy.py",
+      "services/zopedia_agent.py",
+      "services/saa/zopedia.py",
+      "services/aql/events.py",
+      "services/aql/pipeline.py",
+      "pipeline/jobs/attention_home_build.py"
+    ],
+    "calendar_files_identical_to_accepted_live_source": [
+      "pipeline/jobs/market_calendar_refresh.py",
+      "services/alpha_vantage.py",
+      "services/market_calendar.py",
+      "services/market_calendar_reactions.py",
+      "web/components/market-event-calendar.tsx",
+      "web/components/market-event-calendar.module.css",
+      "web/lib/types.ts"
+    ],
+    "frontend_and_native_inputs_match_live_calendar_source": true,
+    "previous_images_source_evidence": [
+      "documents/verification/calendar-history-reactions-2026-11-01/PACKAGE_ACCEPTANCE.json",
+      "documents/verification/calendar-history-reactions-2026-11-01/CURRENT_RESULTS_PRODUCTION.json"
+    ],
+    "builds_before_integration": 0
+  }
 }

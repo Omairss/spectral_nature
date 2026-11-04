@@ -1605,3 +1605,5 @@ Home wiki writes were disabled in the October27 qualification follow-up, and the
 ### November 1, 2026 — renewed native profile
 
 iOS rejected the first build 18 launch despite a valid signature, matching provisioning certificate and registered device. Keep installation and launch as separate verification states; the later matching process and successful ordinary launch established completion. Do not rebuild or change signing access merely because the generic iOS security error lists several possible causes.
+
+The first release draft assumed a shared previous image for each role. Grouping the fresh inventory by digest exposed newer calendar API/web and dedicated-worker source before any build. Preserve each consumer’s actual accepted Git package; a role name or older deployment summary is insufficient. The accepted calendar branch was merged before packaging.
