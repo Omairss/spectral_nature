@@ -203,6 +203,7 @@ struct PortfolioListsAnalysis: View {
             .init(key: "end_at", title: "History end"),
             .init(key: "volatility", title: "Volatility", style: .fraction),
             .init(key: "breadth", title: "Breadth", style: .fraction),
+            .init(key: "dispersion", title: "Dispersion", style: .fraction),
             .init(key: "max_drawdown", title: "Drawdown", style: .fraction),
             .init(key: "effective_risk_bets", title: "Risk bets", style: .number),
             .init(key: "regime", title: "Regime"),

@@ -403,6 +403,12 @@ struct KnowledgeView: View {
                   document.text("published_at").isEmpty
                     ? document.text("as_of") : document.text("published_at")
                 ).font(.caption2).foregroundStyle(.secondary)
+                let symbols = (document["tickers"]?.array ?? []).map(\.string).filter { !$0.isEmpty }
+                let tags = (document["event_tags"]?.array ?? []).prefix(3).map(\.string).filter { !$0.isEmpty }
+                let metadata = [symbols.joined(separator: ", "), tags.joined(separator: ", ")].filter { !$0.isEmpty }
+                if !metadata.isEmpty {
+                  Text(metadata.joined(separator: " · ")).font(.caption2).foregroundStyle(.secondary)
+                }
                 if let url = URL(string: document.text("url")),
                   ["http", "https"].contains(url.scheme ?? "")
                 {

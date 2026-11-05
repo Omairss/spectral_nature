@@ -1,0 +1,42 @@
+{
+  "status": "source_reviewed_and_syntax_parsed_pending_integrated_native_gate",
+  "recorded_at_utc": "2026-11-05T20:52:32.906235+00:00",
+  "base_revision": "8cbfd00e",
+  "scope": "Remaining published metadata in existing native sections; no new workflow or backend.",
+  "files": {
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Portfolio/PortfolioListsView.swift": "81c4a4a0bd0801206bbdfb21a818ae90508d335052f5252652c43aaff240fe24",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Research/ResearchView.swift": "352e4b26aa99ff2bb0a0ad0af1e887d101eef388b5dcd2870e55a435e25e4818",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/InvestigatorView.swift": "55004b51ae7a06627be3e29d1d16e857d523d08b29a2fc23fcfc6c8e3622d3c9"
+  },
+  "changes": [
+    {
+      "view": "Portfolio Lists",
+      "change": "Existing All list diagnostics table adds dispersion using the existing fractional return formatter.",
+      "source": "services/robinhood_main_analytics.py calculates dispersion as standarddeviation of constituent returns; web PortfolioLists already displays it aspercent."
+    },
+    {
+      "view": "Zopedia sources/search",
+      "change": "Existing source cards display available symbols and first3event tags, matching web Sources metadata. Empty metadata adds no row.",
+      "source": "services/zopedia_view.py already returns tickers and event_tags on the same source DTO."
+    },
+    {
+      "view": "Investigator",
+      "change": "Existing Data and provenance disclosure now includes existing source mode,dataset names,rowcount and selectable artifactID. These remain inside the collapsed inspector; missing metadata adds no placeholder.",
+      "source": "presentation/visualization_artifacts.py already supplies provenance,performance.row_count and artifact_id."
+    }
+  ],
+  "verification": {
+    "swift_frontend_parse_exit_code": 0,
+    "git_diff_check_exit_code": 0,
+    "native_api_models_unchanged": true,
+    "existing_source_links_and_dataset_rows_preserved": true
+  },
+  "limits": [
+    "No Xcode build,Simulator/device rendering or installation performed here; integrated native gate remains root-owned.",
+    "These source changes do not establish appwide runtime parity."
+  ],
+  "new_dependencies": 0,
+  "backend_changes": 0,
+  "model_calls": 0,
+  "network_calls": 0
+}

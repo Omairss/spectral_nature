@@ -188,8 +188,20 @@ struct InvestigatorView: View {
             style: $0.text("logical_type") == "number" ? .number : .text)
         }
         WorkbookTable(rows: Array(rows.suffix(120).reversed()), columns: columns)
-        Text(visualization["provenance"]["datasets"].array.map(\.string).joined(separator: ", "))
-          .font(.caption2).foregroundStyle(.secondary)
+        if !visualization["provenance"]["mode"].string.isEmpty {
+          LabeledContent("Source", value: visualization["provenance"]["mode"].string)
+        }
+        let datasets = visualization["provenance"]["datasets"].array.map(\.string).joined(separator: ", ")
+        if !datasets.isEmpty { LabeledContent("Datasets", value: datasets) }
+        if let count = visualization["performance"]["row_count"].number {
+          LabeledContent("Rows", value: Format.number(count, digits: 0))
+        }
+        if !visualization["artifact_id"].string.isEmpty {
+          LabeledContent("Artifact") {
+            Text(visualization["artifact_id"].string).font(.system(.caption2, design: .monospaced))
+              .textSelection(.enabled)
+          }
+        }
       }.font(.caption)
     }
   }
