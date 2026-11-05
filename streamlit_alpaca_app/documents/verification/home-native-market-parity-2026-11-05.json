@@ -1,0 +1,62 @@
+{
+  "status": "source_reviewed_and_syntax_parsed_pending_integrated_native_gate",
+  "recorded_at_utc": "2026-11-05T20:49:32.431434+00:00",
+  "base_revision": "d68e579fd8b7e9169037c6bcdecc509cfe38adb6",
+  "scope": "Expose existing web market scores and portfolio risk concentration in native readers, preserving native analysis and actions.",
+  "files": {
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Markets/MarketsView.swift": "f49f5e3c7281aee904c0bd64739fca8c4ed2ad9dd33702ee9967e44c7c2b2424",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Portfolio/PortfolioView.swift": "10dacae77287fc68457cdaca56c58c45820b74e46673018f14b341b443a85174"
+  },
+  "market": {
+    "before": "Native return comparisons and instrument rows omitted web opportunity_score, momentum_score and momentum_roc_score.",
+    "after": "Current instrument rows expose a Market scores disclosure with existing opportunity score,3M price trend score and trend change score; selected lens description provides existing source context. Existing metadata-loading status/retry is visible outside the volume panel.",
+    "source_contracts": [
+      "services/market.py:build_momentum_profiles_from_bars assigns momentum_score=slope_3m and momentum_roc_score=mean of existing horizon-slope ratios.",
+      "services/market_opportunity.py returns opportunity_score,momentum_score,momentum_roc_score. Existing native join retains complete momentum universe with per-symbol research metadata.",
+      "web/app/market-explorer/page.tsx uses these same fields in momentum scatter,3Dcolor and ranked table."
+    ],
+    "display_semantics": "Raw scores remain scores, with no percent conversion or probability claim. Existing formatters retain sign; absent values use existing unavailable representation. No replacement of return plots,3Dreturns,volume,matrix,sorting,universe or Investigator navigation.",
+    "retained_input_readback": {
+      "captured_profile_rows": 999,
+      "finite_momentum_score": 999,
+      "finite_momentum_roc_score": 999,
+      "both_fields_include_negative_values": true
+    }
+  },
+  "portfolio": {
+    "before": "Native Risk scatter used return color and constant size and omitted web risk_share/gross_market_value elsewhere.",
+    "after": "Existing Risk Positions table now includes Gross position value inUSD and Share of portfolio risk aspercent. Existing scatter,correlation/factors and diagnostics remain.",
+    "source_contracts": [
+      "services/robinhood_main_analytics.py sums absolute position values into gross_market_value.",
+      "risk_share is the existing signed covariance contribution divided by portfolio variance; it can be negative for offsets.",
+      "web/app/portfolio/page.tsx displays gross_market_value via marker size and risk_share via marker color."
+    ],
+    "display_semantics": "USD gross values and signed fractional risk shares use existing money/fraction formatters. No absolute value,clamp,new risk calculation or backend change."
+  },
+  "verification": {
+    "syntax_command": [
+      "xcrun",
+      "swiftc",
+      "-frontend",
+      "-parse",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Markets/MarketsView.swift",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Portfolio/PortfolioView.swift"
+    ],
+    "syntax_exit_code": 0,
+    "git_diff_check_exit_code": 0,
+    "native_types_reviewed": [
+      "Record.number finite handling",
+      "Format.number raw score precision",
+      "WorkbookColumn.money/fraction",
+      "existing Metrics grid and native navigation"
+    ]
+  },
+  "limits": [
+    "No Xcode build,Simulator/device render or installation performed here; final integrated native gate remains root-owned.",
+    "This scoped source change does not establish appwide parity. Home,Health and Trading are owned by the separate native parity work."
+  ],
+  "new_dependencies": 0,
+  "backend_changes": 0,
+  "model_calls": 0,
+  "network_calls": 0
+}

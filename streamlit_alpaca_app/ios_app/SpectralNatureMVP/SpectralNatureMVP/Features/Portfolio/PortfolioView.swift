@@ -223,6 +223,8 @@ struct PortfolioView: View {
           columns: [
             .init(key: "symbol", title: "Symbol"),
             .init(key: "allocation", title: "Allocation", style: .fraction),
+            .init(key: "gross_market_value", title: "Gross position value", style: .money),
+            .init(key: "risk_share", title: "Share of portfolio risk", style: .fraction),
             .init(key: "period_return", title: "Return", style: .fraction),
             .init(key: "annualized_volatility", title: "Volatility", style: .fraction),
             .init(key: "max_drawdown", title: "Drawdown", style: .fraction),

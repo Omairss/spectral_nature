@@ -58,8 +58,12 @@ struct MarketsView: View {
             ForEach(catalog.value?.horizons ?? []) { Text($0.label).tag($0.key) }
           }
         }
+        if let description = selectedLens?.description, !description.isEmpty {
+          Text(description).font(.caption).foregroundStyle(.secondary)
+        }
         ResourceStatus(resource: catalog) { Task { await loadCatalog() } }
         ResourceStatus(resource: data) { Task { await load() } }
+        ResourceStatus(resource: candidates) { Task { await loadCandidates() } }
         if !rows.isEmpty, let selectedHorizon {
           let returns = rows.compactMap { $0.number(selectedHorizon.column) }
           Metrics(items: [
@@ -74,7 +78,6 @@ struct MarketsView: View {
             Panel("Trading volume") {
               DisclosureGroup("Shares traded and daily move", isExpanded: $showingVolume) {
                 if showingVolume {
-                  ResourceStatus(resource: candidates) { Task { await loadCandidates() } }
                   let volumeRows = rows.filter { ($0.number("volume") ?? 0) > 0 }
                   Text("\(volumeRows.count)/\(rows.count) instruments with volume")
                     .font(.caption2).foregroundStyle(.secondary)
@@ -132,6 +135,15 @@ struct MarketsView: View {
                     .font(.caption2).foregroundStyle(.secondary)
                 }.padding(.vertical, 6).contentShape(Rectangle())
               }.buttonStyle(.plain)
+              if ["opportunity_score", "momentum_score", "momentum_roc_score"].contains(where: { row.number($0) != nil }) {
+                DisclosureGroup("Market scores") {
+                  Metrics(items: [
+                    ("Opportunity score", Format.number(row.number("opportunity_score"), digits: 2)),
+                    ("3M price trend score", Format.number(row.number("momentum_score"), digits: 6)),
+                    ("Trend change score", Format.number(row.number("momentum_roc_score"), digits: 6)),
+                  ])
+                }.font(.caption).tint(Theme.secondaryText).padding(.vertical, 8)
+              }
               Divider()
             }
           }
