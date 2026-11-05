@@ -1,6 +1,6 @@
 {
   "status": "accepted_locally",
-  "scope": "Shared X reactions in research and completion-triggered Attention publishing with charts and exact saved-event links. Owner authorized development qualification and production rollout November 4.",
+  "scope": "Live and verified: shared company X reactions, completion-triggered Attention publishing with Home chart/story images and exact saved-event links. Accepted next-open calendar behavior and other application consumers preserved.",
   "source_revision": "6d9379075d732c23aef76392376edf8d312d2053",
   "review_base_revision": "a0c5fffc9e4e65cab2326d8a4d9a86ea6a4ff74c",
   "files": {
@@ -1099,7 +1099,7 @@
           "role": "worker",
           "environment": "production",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "006190f074b4aa15d79421f21124812374cbb938194b54628eff41b675bbf513",
+          "configuration_sha256": "725b07b050577788f0d07da70bef9dec939fde288be4136dd8895916d95d777f",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
           "preservation_review": {
@@ -1281,7 +1281,15 @@
           }
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8": {
+          "source_revision": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
+          "source_inventory_sha256": "4dd75ada249e8b94e9227ba3cd39a50d48a5b1d3ae455dae9d395e1f219926db",
+          "runtime_inventory_sha256": "a3f703b2c24ec9fbe78395f6259dd2951c38c54f8dfea8f0f111011f0fab5f1f",
+          "qualification_run": "cj1g4",
+          "evidence": "documents/verification/twitter-account-2026-11-03/rollout-packages-final-2026-11-04.json"
+        }
+      },
       "previous_x_rollout_packages": {
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e46ca88ac1111fd39a2f7c3211a1cd20d0125541e7ec18ff6cf823b2f96ae03e": {
           "source_revision": "324477f1f3a5e6588f124703664be2ff3aea9aca",
@@ -1333,7 +1341,15 @@
           }
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f7d76f4f2869c88913af10627376883f171b91f876fde265dd7569125e34dc0d": {
+          "source_revision": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
+          "source_inventory_sha256": "4dd75ada249e8b94e9227ba3cd39a50d48a5b1d3ae455dae9d395e1f219926db",
+          "runtime_inventory_sha256": "a3f703b2c24ec9fbe78395f6259dd2951c38c54f8dfea8f0f111011f0fab5f1f",
+          "qualification_run": "cj1g6",
+          "evidence": "documents/verification/twitter-account-2026-11-03/rollout-packages-final-2026-11-04.json"
+        }
+      },
       "previous_x_rollout_packages": {
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:e314dd71cfaab9f6446c1917f532fece0b31d86cfb273aad261fbf9cddd2d766": {
           "source_revision": "324477f1f3a5e6588f124703664be2ff3aea9aca",
@@ -1401,7 +1417,15 @@
           }
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:8a30c17b11f934431954e163f47840576cbbd111593320f786eede4f8264904c": {
+          "source_revision": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
+          "source_inventory_sha256": "4dd75ada249e8b94e9227ba3cd39a50d48a5b1d3ae455dae9d395e1f219926db",
+          "runtime_inventory_sha256": "347139393731a2c97c513828fdba01de73bc0869c33a0c4544ef31372c97fac7",
+          "qualification_run": "cj1g3",
+          "evidence": "documents/verification/twitter-account-2026-11-03/rollout-packages-final-2026-11-04.json"
+        }
+      },
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
         "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
@@ -1556,7 +1580,15 @@
           }
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:8bc402d6da8a77554cb4f54fcd883016443f5b1e56226169f5c5fedab165461e": {
+          "source_revision": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
+          "source_inventory_sha256": "4dd75ada249e8b94e9227ba3cd39a50d48a5b1d3ae455dae9d395e1f219926db",
+          "runtime_inventory_sha256": "a3f703b2c24ec9fbe78395f6259dd2951c38c54f8dfea8f0f111011f0fab5f1f",
+          "qualification_run": "cj1g5",
+          "evidence": "documents/verification/twitter-account-2026-11-03/rollout-packages-final-2026-11-04.json"
+        }
+      },
       "previous_x_rollout_packages": {
         "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:b4de9f6922a1e2be93679c78f29fbf3646cf3373ffe7dc7ef606bc8e0520433b": {
           "source_revision": "324477f1f3a5e6588f124703664be2ff3aea9aca",
@@ -1640,10 +1672,30 @@
     "scope": "Qualify development then promote the exact images to production and enable publishing after every Attention refresh."
   },
   "development_acceptance": {
-    "status": "held_pending_release",
-    "reason": "The real Azure challenge is now cleared by installed Scrapling handling. New startup and media source need current accepted-source packaging and release review. No application image build or deployment includes these changes."
+    "status": "accepted",
+    "source_inventory_sha256": "4dd75ada249e8b94e9227ba3cd39a50d48a5b1d3ae455dae9d395e1f219926db",
+    "images": {
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f7d76f4f2869c88913af10627376883f171b91f876fde265dd7569125e34dc0d",
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:8a30c17b11f934431954e163f47840576cbbd111593320f786eede4f8264904c",
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:8bc402d6da8a77554cb4f54fcd883016443f5b1e56226169f5c5fedab165461e"
+    },
+    "evidence": "documents/verification/twitter-account-2026-11-03/rollout-development-2026-11-04.json"
   },
-  "production_acceptance": {},
+  "production_acceptance": {
+    "status": "accepted",
+    "source_inventory_sha256": "4dd75ada249e8b94e9227ba3cd39a50d48a5b1d3ae455dae9d395e1f219926db",
+    "images": {
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f7d76f4f2869c88913af10627376883f171b91f876fde265dd7569125e34dc0d",
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:8a30c17b11f934431954e163f47840576cbbd111593320f786eede4f8264904c",
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:8bc402d6da8a77554cb4f54fcd883016443f5b1e56226169f5c5fedab165461e"
+    },
+    "evidence": "documents/verification/twitter-account-2026-11-03/rollout-production-2026-11-04.json",
+    "events_published": 11,
+    "images_confirmed": 27,
+    "repeat_callback_new_posts": 0
+  },
   "previous_x_packages": {
     "worker": {
       "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:db58bfbd3a944d5dd652f4b922ff2ea46330b811c2f2064e7c0f4de8d3f743ab": {

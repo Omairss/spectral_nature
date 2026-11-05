@@ -1,0 +1,15 @@
+{
+  "status": "enabled",
+  "recorded_at": "2026-11-04T19:13:33.038383+00:00",
+  "job": "attention-home-build",
+  "environment_changes": {
+    "ATTENTION_X_PUBLISH_ENABLED": "true",
+    "APP_PUBLIC_BASE_URL": "https://spectral-nature.com"
+  },
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+  "all_38_images_match_qualified_release": true,
+  "other_37_configurations_preserved": true,
+  "other_attention_configuration_preserved": true,
+  "new_configuration_sha256": "725b07b050577788f0d07da70bef9dec939fde288be4136dd8895916d95d777f",
+  "trigger": "Existing native completion hook; no new scheduler or research run."
+}

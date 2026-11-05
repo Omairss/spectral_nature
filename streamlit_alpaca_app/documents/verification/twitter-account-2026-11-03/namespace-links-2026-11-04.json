@@ -13,5 +13,11 @@
     "cj1fv",
     "cj1fw",
     "cj1fx"
-  ]
+  ],
+  "production_actual_version": "attention_home_snapshots_1d__20261104T165038Z__83f3aad5__16429a240aac4382bb5c57d2135844af",
+  "production_actual_run": "83f3aad5-5d3a-4041-b77f-69e2e3a6255a",
+  "production_event_count": 11,
+  "namespace_mismatches_rejected": 2,
+  "typescript": "passed",
+  "changed_frontend_lint": "passed"
 }

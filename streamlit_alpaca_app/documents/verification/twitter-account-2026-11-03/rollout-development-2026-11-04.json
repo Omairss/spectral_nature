@@ -1,0 +1,319 @@
+{
+  "status": "accepted",
+  "environment": "development",
+  "recorded_at": "2026-11-04T19:06:53.884242+00:00",
+  "source_inventory_sha256": "4dd75ada249e8b94e9227ba3cd39a50d48a5b1d3ae455dae9d395e1f219926db",
+  "images": {
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f7d76f4f2869c88913af10627376883f171b91f876fde265dd7569125e34dc0d",
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:8a30c17b11f934431954e163f47840576cbbd111593320f786eede4f8264904c",
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:8bc402d6da8a77554cb4f54fcd883016443f5b1e56226169f5c5fedab165461e"
+  },
+  "accepted_application_source": "6d9379075d732c23aef76392376edf8d312d2053",
+  "deployment": [
+    {
+      "name": "sn-api-next-dev",
+      "kind": "containerApps",
+      "role": "api-next",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:2d809a902cdf4a869e6dd848ea9e38d377e6e946e8050178be41713626b27edf",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f7d76f4f2869c88913af10627376883f171b91f876fde265dd7569125e34dc0d",
+      "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "kind": "containerApps",
+      "role": "web",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5ecae881c34e0fdb4e2c4414e1de357be0ea5d60a7f2e4b5b434f3edf64b0113",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:8a30c17b11f934431954e163f47840576cbbd111593320f786eede4f8264904c",
+      "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-research-run-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "attention-home-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "b307da9a8aeb66a26d800e66b5e602d5300542114a1f4af4275f416f083e023b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "technical-history-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "equities-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "system-recovery-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "cleanup-trial-observer-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "a2c020dace093967fddc70cf28d1dfa7d823f94df764256a85e99cce486b3b09",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "zopedia-maintenance-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "market-calendar-refresh-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ce3bb89965a700e80b441cf717089a18dea869917ee3595151fda931ebdfe8ee",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:90da2ed1c23489fccf35210821e262a6e2367e9740c2c38d2c93d95df3f9efb8",
+      "configuration_sha256": "2883e0abb815896beb49e8d2c93e55b514b3300bceecfabb0d026b3f10b69075",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "kind": "jobs",
+      "role": "broker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cd5be4bbb98c59866d782353670a619ee9d3cadf9860582935e98bb37aee6a75",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:8bc402d6da8a77554cb4f54fcd883016443f5b1e56226169f5c5fedab165461e",
+      "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "all_non_image_configurations_preserved": true,
+  "cloud_browser": {
+    "run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+    "status": "passed",
+    "posts_sent": 0,
+    "event_count": 6,
+    "source_version": "development__attention_home_snapshots_1d__20261018T202434Z__972a1ceb",
+    "started_at_utc": "2026-11-04T19:00:24.262271+00:00",
+    "finished_at_utc": "2026-11-04T19:05:05.255252+00:00",
+    "rendered_events": [
+      {
+        "event_id": "event::source-901ee53894b5fae35bcd",
+        "png_sizes": [
+          201342,
+          422135
+        ]
+      },
+      {
+        "event_id": "event::source-181a1edeec8b896588b1",
+        "png_sizes": [
+          213000,
+          217972,
+          463074
+        ]
+      },
+      {
+        "event_id": "event::cluster-03-7481f6c102",
+        "png_sizes": [
+          110636,
+          188985,
+          332760
+        ]
+      }
+    ],
+    "source_revision": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
+    "network_requests": 513,
+    "company_reactions": {
+      "count": 23,
+      "status": "available",
+      "source_links": [
+        {
+          "url": "https://x.com/mm_newsletter/status/2117610333418217638",
+          "title": "Money Machine Newsletter\n@mm_newsletter\n\u00b7\nNov 3"
+        },
+        {
+          "url": "https://x.com/Neo_Puneet/status/2117686585231823231",
+          "title": "Puneet Mendiratta\n@Neo_Puneet\n\u00b7\nNov 3"
+        },
+        {
+          "url": "https://x.com/BrnMeetsWlth/status/2117614280069763130",
+          "title": "Brain Meets Wealth\n@BrnMeetsWlth\n\u00b7\nNov 3"
+        },
+        {
+          "url": "https://x.com/maratteoinvest/status/2117983957610303815",
+          "title": "Maratteo\n@maratteoinvest\n\u00b7\n4h"
+        },
+        {
+          "url": "https://x.com/King_Barton101/status/2117598413613064463",
+          "title": "Michael Jones\n@King_Barton101\n\u00b7\nNov 3"
+        },
+        {
+          "url": "https://x.com/StockNewsDrop/status/2117608836735651851",
+          "title": "Stock News Drop\n@StockNewsDrop\n\u00b7\nNov 3"
+        },
+        {
+          "url": "https://x.com/swimcontrarian/status/2117613790720033162",
+          "title": "contrarian\n@swimcontrarian\n\u00b7\nNov 3"
+        },
+        {
+          "url": "https://x.com/sydneyseed96/status/2117699745833767133",
+          "title": "Ella Richardson\n@sydneyseed96\n\u00b7\n23h"
+        },
+        {
+          "url": "https://x.com/SchwabNetwork/status/2117672013992976715",
+          "title": "Schwab Network\n@SchwabNetwork\n\u00b7\nNov 3"
+        },
+        {
+          "url": "https://x.com/FINANCIERNEWS/status/2117605924445540434",
+          "title": "Financier.news\n@FINANCIERNEWS\n\u00b7\nNov 3"
+        },
+        {
+          "url": "https://x.com/kiwicarrotcake/status/2118051498588512272",
+          "title": "kiwicarrotcake\n@kiwicarrotcake\n\u00b7\n21m"
+        },
+        {
+          "url": "https://x.com/techprosv/status/2117597698190950627",
+          "title": "Alok\n@techprosv\n\u00b7\nNov 3"
+        },
+        {
+          "url": "https://x.com/InstaportAI/status/2118040789460930934",
+          "title": "Instaport\n@InstaportAI\n\u00b7\n1h"
+        },
+        {
+          "url": "https://x.com/Gzus_trades/status/2118038046289297847",
+          "title": "behavior analyst\n@Gzus_trades\n\u00b7\n1h"
+        },
+        {
+          "url": "https://x.com/Juan212448Lopez/status/2118035097093800189",
+          "title": "Alfredo Lopez\n@Juan212448Lopez\n\u00b7\n1h"
+        },
+        {
+          "url": "https://x.com/HeyAlvaAI/status/2118018981701337319",
+          "title": "Alva\n@HeyAlvaAI\n\u00b7\n2h"
+        },
+        {
+          "url": "https://x.com/DomainMaster/status/2118016476154310781",
+          "title": "George Hong\n@DomainMaster\n\u00b7\n2h"
+        },
+        {
+          "url": "https://x.com/twitscotty/status/2118014900626669843",
+          "title": "Scotty Cameron\n@twitscotty\n\u00b7\n2h"
+        },
+        {
+          "url": "https://x.com/dannycheng2022/status/2118014065566191965",
+          "title": "Danny cheng\n@dannycheng2022\n\u00b7\n2h"
+        },
+        {
+          "url": "https://x.com/andrewrosener/status/2118013430569578757",
+          "title": "Andrew Rosener  \n@andrewrosener\n\u00b7\n2h"
+        },
+        {
+          "url": "https://x.com/andrewrosener/status/2118012936358662647",
+          "title": "Andrew Rosener  \n@andrewrosener\n\u00b7\n2h"
+        },
+        {
+          "url": "https://x.com/andrewrosener/status/2118012762970579015",
+          "title": "Andrew Rosener  \n@andrewrosener\n\u00b7\n2h"
+        },
+        {
+          "url": "https://x.com/Stockkey_ca/status/2118011891192869353",
+          "title": "StockKey Inc.\n@Stockkey_ca\n\u00b7\n2h"
+        }
+      ],
+      "original_dates_preserved": true
+    },
+    "profile_posts_read": 5,
+    "new_inference_calls": 0,
+    "missing_event_status": 404,
+    "authenticated_account_matches": true,
+    "minimum_network_interval_seconds": 0.10010679100003017
+  },
+  "api_revision": {
+    "name": "sn-api-next-dev--0000067",
+    "health": "Healthy",
+    "traffic": 100
+  },
+  "web_revision": {
+    "name": "sn-next-ui-dev--0000044",
+    "health": "Healthy",
+    "traffic": 100
+  },
+  "fresh_authenticated_screen": {
+    "browser": "Chrome",
+    "account": "Existing saved Admin User account",
+    "page": "Daily Brief",
+    "signals": 6,
+    "calendar_graph_brief_highlights_audio_charts": "Present",
+    "titles_and_summaries_preserved": 6
+  },
+  "new_inference_calls": 0
+}
