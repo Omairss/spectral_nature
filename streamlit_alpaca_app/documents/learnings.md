@@ -1718,3 +1718,7 @@ Saved Attention versions carry the owning dataset namespace. Validate the actual
 ### November 5, 2026 — Home release source integration
 
 Integrate the full newer accepted Git branch before release, then review overlapping semantic contracts. A clean merge or source checkpoint does not transfer qualitative acceptance. Preserve accepted X/browser/media/namespace and next-open calendar behavior alongside Home context and reliability fixes; refresh every consumer baseline before packaging.
+
+### November 5, 2026 — closing source schedule audit
+
+Measure source publication separately from job completion. News headlines publish within seconds of the fixed acquisition cutoff, before company research. A later job finish cannot add earnings released after that cutoff. Preserve existing numerical ticks and morning news timing when adding a closing snapshot. Qualify reports released after the snapshot through the existing calendar and live research tools; do not claim complete headlines from a later job finish.

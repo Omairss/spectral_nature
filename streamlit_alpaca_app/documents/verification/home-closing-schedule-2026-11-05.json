@@ -1,0 +1,148 @@
+{
+  "status": "source_proposal_not_live",
+  "recorded_at_utc": "2026-11-05T19:35:23.862606+00:00",
+  "source_base": "07c7d506",
+  "owner_task": "Preserve existing Trading inputs while moving closing Home reporting after the U.S. close and expected earnings releases, without another inference run.",
+  "accepted_live_utc_crons": {
+    "equities-intraday-preload": "35 13,16,18,20 * * 1-5",
+    "news-ingest-and-features": "5 14,20 * * 1-5",
+    "attention-home-build": "50 14,16,18,20 * * 1-5",
+    "trading-agent-build": "35 14,16,18,20 * * 1-5"
+  },
+  "accepted_live_evidence": "Read-only Azure job definitions, subscription b69da224-4a61-4fc4-a5b2-3bb567436762, resource group sn-pipeline-rg-03130136, November 5. They match accepted Git 96d0a52f.",
+  "proposed_utc_crons": {
+    "equities-intraday-preload": "35 13,16,18,20,21 * * 1-5",
+    "news-ingest-and-features": "5 14,21 * * 1-5",
+    "attention-home-build": "50 14,16,18,21 * * 1-5",
+    "trading-agent-build": "35 14,16,18,20 * * 1-5"
+  },
+  "code_facts": {
+    "raw_news_cutoff": "pipeline/jobs/main.py run_news passes end=ctx.asof, fixed at job startup/retry identity; a 21:05 start cannot collect 21:30 reports.",
+    "raw_news_publication": "run_news publishes news_articles and its immutable manifest before EDGAR, LLM narratives and company research. It does not wait for whole-job completion.",
+    "home_reads": "run_attention_home_build reads news_articles before research. It consumes the latest published producer inputs; a cron offset is not a completion dependency.",
+    "trading_reads": "run_trading_agent calls run_portfolios first, then pins market_opportunity_feed, all-signal ranking datasets, page_agentic_summaries and price_history. It does not wait for same-cycle Home/news/price completion.",
+    "opportunity_ownership": "Home materializes numerical market_opportunity_feed after its research/public composition and persists it near job completion. Trading therefore already uses the most recent completed Home feed, not a guaranteed same-cycle feed.",
+    "extra_numerical_tick": "run_equities performs market-data ingestion and numerical derivatives, then existing approved-call price/outcome tracking. Its invoked producer path starts no inference. Outcome review delivery enqueues existing immutable approved-call identities; it does not perform a review here."
+  },
+  "measured_raw_publication": {
+    "read_only": true,
+    "period": "2026-10-28 through 2026-11-05",
+    "logical_runs": 13,
+    "first_publication_seconds_after_asof": {
+      "min": 2.577653,
+      "median": 2.947147,
+      "max": 3.984358
+    },
+    "first_publication_seconds_after_scheduled_minute_including_startup": {
+      "min": 38.220658,
+      "median": 41.614254,
+      "max": 49.00309
+    },
+    "later_native_republication_seconds_after_scheduled_minute": 118.173075,
+    "older_failure": "One October 27 failed run has a 40-minute metadata publication delay; the normal recent timing is not a guarantee during outages.",
+    "private_receipt": "operations/home-reliability-completion-20261103/news-raw-publication-latency-20261105.private.json",
+    "first_publications": [
+      {
+        "run_id": "a7605d40-618c-48e7-94a0-902d2ccebc02",
+        "asof_time_utc": "2026-11-05 14:05:35.347300+00:00",
+        "ingested_at_utc": "2026-11-05 14:05:39.331658+00:00",
+        "rows": 100
+      },
+      {
+        "run_id": "aefb5925-beab-4145-9c1b-47946e97ecc4",
+        "asof_time_utc": "2026-11-04 20:05:34.604171+00:00",
+        "ingested_at_utc": "2026-11-04 20:05:38.220658+00:00",
+        "rows": 91
+      },
+      {
+        "run_id": "829ff555-ce28-4544-add3-147efee14d8e",
+        "asof_time_utc": "2026-11-04 14:05:40.368202+00:00",
+        "ingested_at_utc": "2026-11-04 14:05:43.584610+00:00",
+        "rows": 100
+      },
+      {
+        "run_id": "2da5ee92-688c-477f-8e1e-c8f79222ee02",
+        "asof_time_utc": "2026-11-03 20:05:46.078426+00:00",
+        "ingested_at_utc": "2026-11-03 20:05:49.003090+00:00",
+        "rows": 91
+      },
+      {
+        "run_id": "af2dbb7f-b282-4803-90f7-c06badda4915",
+        "asof_time_utc": "2026-11-03 14:05:40.230660+00:00",
+        "ingested_at_utc": "2026-11-03 14:05:43.292877+00:00",
+        "rows": 99
+      },
+      {
+        "run_id": "e0a183b6-a6d2-4ccd-aae0-d25d354efa03",
+        "asof_time_utc": "2026-11-02 20:05:38.667107+00:00",
+        "ingested_at_utc": "2026-11-02 20:05:41.614254+00:00",
+        "rows": 90
+      },
+      {
+        "run_id": "10867511-6832-4323-b151-c28e8e38ecf8",
+        "asof_time_utc": "2026-11-02 14:05:38.582173+00:00",
+        "ingested_at_utc": "2026-11-02 14:05:41.594522+00:00",
+        "rows": 97
+      },
+      {
+        "run_id": "18bdc977-d784-459d-ab11-4afada702523",
+        "asof_time_utc": "2026-10-30 20:05:38.994813+00:00",
+        "ingested_at_utc": "2026-10-30 20:05:42.526147+00:00",
+        "rows": 89
+      },
+      {
+        "run_id": "731c54cc-0289-466d-a0c4-1aa14f296aaf",
+        "asof_time_utc": "2026-10-30 14:05:41.706473+00:00",
+        "ingested_at_utc": "2026-10-30 14:05:44.400157+00:00",
+        "rows": 93
+      },
+      {
+        "run_id": "522d366e-f545-4198-9f02-f991fc416425",
+        "asof_time_utc": "2026-10-29 20:05:37.560449+00:00",
+        "ingested_at_utc": "2026-10-29 20:05:40.492971+00:00",
+        "rows": 95
+      },
+      {
+        "run_id": "8b932eae-2563-4243-8872-726906c7edcf",
+        "asof_time_utc": "2026-10-29 14:05:36.014608+00:00",
+        "ingested_at_utc": "2026-10-29 14:05:38.918265+00:00",
+        "rows": 97
+      },
+      {
+        "run_id": "8504b0b1-bca2-4eb9-b145-9f8b06b6a0a0",
+        "asof_time_utc": "2026-10-28 20:05:40.021746+00:00",
+        "ingested_at_utc": "2026-10-28 20:05:42.740871+00:00",
+        "rows": 50
+      },
+      {
+        "run_id": "fbaa6ca0-7bb1-48f6-9334-56ea49b4d725",
+        "asof_time_utc": "2026-10-28 14:05:36.632379+00:00",
+        "ingested_at_utc": "2026-10-28 14:05:39.210032+00:00",
+        "rows": 50
+      }
+    ]
+  },
+  "impact": [
+    "Keep all four existing numerical ticks and add 21:35 UTC. Trading at 20:35 retains its numerical refresh opportunity; simultaneous jobs still have no completion dependency.",
+    "News remains exactly two weekday research runs at 14:05 and 21:05 UTC. Opening news timing stays unchanged; only the final slot moves from 20:05 to 21:05.",
+    "The 21:05 raw headline snapshot excludes earnings released at 21:30 or later. The existing due-calendar and live Zopedia research tools must acquire material reports after the snapshot; neither raw-headline completeness nor same-cycle ingestion is assumed.",
+    "Home remains four weekday runs at 14:50, 16:50, 18:50 and 21:50 UTC; only the final slot moves from 20:50 to 21:50. Every Trading slot, broker rule and authority remains unchanged.",
+    "The fifth equities tick adds numerical CPU, data-provider, publication and approved-call marking work. It starts no additional LLM research invocation and introduces no new research allowance.",
+    "Existing latest-source consumers can read the new numerical observations after publication; their pinned dataset versions do not change during a logical run. A cron offset creates no producer completion guarantee.",
+    "The supported application release command changes immutable images only. Applying these cron changes requires a separate guarded configuration update and readback after source qualification."
+  ],
+  "next_verification": [
+    "Qualify fresh after-close report acquisition through the existing due-calendar/live research path on integrated source; the earlier candidate case found AMD, Arista and Astera reports outside its raw snapshot, but that evidence does not qualify this merged release.",
+    "Verify the 21:35 numerical observations publish before closing Home reads them in DEV; if delayed, record actual source times rather than treating the cron offset as completion.",
+    "Preserve full live definitions and exact non-schedule fields when applying authorized cron changes; read back both changed and preserved schedules."
+  ],
+  "production_mutations": 0,
+  "paid_inference_calls": 0,
+  "release_acceptance": false,
+  "source_review": {
+    "producer": "pipeline/jobs/main.py:1814 run_equities; imports numeric builders from services.market_data/compute; builds price, momentum, phase changes, technical, anomaly and taxonomy frames.",
+    "tracking": "pipeline/jobs/main.py:2750 run_trading_call_tracking reads/marks approved calls and enqueues immutable outcome identities via services/trading_call_tracking.py:280; this path performs no inference or trading execution.",
+    "shared_news_read": "pipeline/jobs/main.py:1306 _load_attention_news_map reads the existing materialized map or calls the market-data news API if absent; it does not start LLM research.",
+    "observed_equities_wall_time": "Read-only recent live execution durations were about 5-8 minutes. The 15-minute closing offset is plausible, but is not a producer-completion dependency."
+  }
+}

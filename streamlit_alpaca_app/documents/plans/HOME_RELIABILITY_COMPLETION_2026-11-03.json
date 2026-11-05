@@ -86,7 +86,11 @@
     "latest_operational_checks": 46,
     "latest_public_continuation": "Retained reads work in economical completion; full composition timed out. No release acceptance."
   },
-  "schedule_decision": "Keep run counts; final UTC data/news/Home cycle moves from hour20 to21, after the U.S. close in both DST seasons. This is 13:50 Pacific in winter and14:50 in summer; no timezone scheduler service added.",
+  "schedule_decision": {
+    "status": "source_proposal_not_live",
+    "evidence": "documents/verification/home-closing-schedule-2026-11-05.json",
+    "summary": "Preserve 20:35 equities and add a 21:35 numerical refresh; keep two news runs at 14:05/21:05 UTC, four Home runs with final 21:50, and every Trading schedule and authority. Opening news timing stays unchanged. Raw headlines at 21:05 exclude later earnings; integrated-source qualification must verify fresh acquisition through the existing due-calendar/live Zopedia path."
+  },
   "current_source_revision": "44650d92 plus committed next completed-response handoff checkpoint",
   "current_verification_record": "documents/verification/home-upstream-verification-2026-11-05.json",
   "remaining": [

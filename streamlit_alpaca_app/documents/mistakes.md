@@ -1684,3 +1684,7 @@ The first saved-link validation was qualified only with production IDs. A real d
 ### November 5, 2026 — Home release source integration
 
 The Home candidate branched before the November4 accepted X/calendar rollout. Building directly from that earlier worktree would remove current shared X research, completion publishing, saved-event/media routes and next-open calendar behavior. Merged the full accepted Git branch in a separate worktree, resolved overlapping contracts explicitly, and retained the release hold until integrated-source qualification and a new acceptance record.
+
+### November 5, 2026 — closing source schedule audit
+
+The first closing schedule proposal moved the existing 20:35 numerical producer and treated a 21:05 headline snapshot as if it covered later earnings. A proposed minute-40 news change would also remove morning news availability before 14:35 Trading. The source-only correction preserves the 20:35 numerical tick and 14:05 news, adds a 21:35 numerical tick, and requires the existing calendar/live research path to acquire later reports. No live schedule changes follow from editing infra/job_schedules.env.
