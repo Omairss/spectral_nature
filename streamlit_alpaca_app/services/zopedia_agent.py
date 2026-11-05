@@ -2008,6 +2008,13 @@ def _planner_user_prompt(
             f"{prefetched_context}\n\n"
             "These are initial candidates, not a complete account. Compare interpretations and pursue useful missing angles.\n\n"
         )
+    reaction_guidance = (
+        "For company developments, include company-specific reactions through research.company_sentiment. "
+        "Use original dates and distinguish observed opinions from company facts. Interpret agreement, "
+        "disagreement and changed expectations within this investigation; do not infer population percentages "
+        "from the search sample.\n\n"
+        if any(tool.get("name") == "research.company_sentiment" for tool in tool_catalog) else ""
+    )
     return (
         "Available tools:\n"
         f"{_tool_catalog_prompt(tool_catalog)}\n\n"
@@ -2018,6 +2025,7 @@ def _planner_user_prompt(
         f"Task: {_clean(task) or 'agent_answer'}\n"
         f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
         f"User question:\n{query}\n\n"
+        f"{reaction_guidance}"
         f"Tool budget: {max_tool_calls - (_budgeted_tool_count(tool_calls) if tool_calls_used is None else tool_calls_used)} remaining out of {max_tool_calls}.\n\n"
         "Put exactly one action inside next. "
         "If you still need data, use action='tool_call' with tool_name and JSON-encoded tool_arguments "
@@ -3362,6 +3370,7 @@ def _execute_zopedia_agent_loop(
             "zopedia.search_pages",
             "zopedia.read_page",
             "research.live_event_evidence",
+            "research.company_sentiment",
             "research.open_page",
         }
         tool_catalog = [tool for tool in tool_registry.catalog() if tool["name"] in core_names]

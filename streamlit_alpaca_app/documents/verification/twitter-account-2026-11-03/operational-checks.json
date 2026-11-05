@@ -1,0 +1,45 @@
+{
+  "targeted_source_and_tool_checks": {
+    "passed": 67,
+    "deselected": 1,
+    "deselected_case": "Existing Trading approval test supplies no current authority; runtime record_trading_agent_action is AST-identical to accepted source."
+  },
+  "job_completion_ordering_checks": {
+    "passed": 4,
+    "cases": [
+      "Succeeded",
+      "Warning",
+      "Failed",
+      "no_publication"
+    ],
+    "publication_failure_does_not_change_research_completion": true
+  },
+  "broader_old_job_suite": {
+    "passed": 65,
+    "failed": 11,
+    "cause": "Legacy expectations reference removed Home agent interfaces, earlier dataset part names and incomplete database fakes. No runtime weakening applied."
+  },
+  "definition_comparison_to_accepted_source": {
+    "pipeline/jobs/main.py": {
+      "changed_definitions": [
+        "main"
+      ],
+      "added_definitions": []
+    },
+    "pipeline/jobs/attention_home_build.py": {
+      "changed_definitions": [],
+      "added_definitions": []
+    },
+    "services/pipeline_store.py": {
+      "changed_definitions": [
+        "latest_job_execution_receipt"
+      ],
+      "added_definitions": [
+        "job_execution_receipt",
+        "dataset_metadata_for_version"
+      ]
+    }
+  },
+  "llm_quality_verification": "Personally reviewed the actual 12 SHOP reaction posts and preserved model context/source references. These operational checks do not score sentiment prose.",
+  "new_paid_inference_calls_this_continuation": 0
+}

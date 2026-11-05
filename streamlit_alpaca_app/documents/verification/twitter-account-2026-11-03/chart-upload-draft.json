@@ -1,0 +1,102 @@
+{
+  "status": "draft_ready",
+  "images": 3,
+  "post_enabled": true,
+  "exact_text": true,
+  "post_clicked": false,
+  "minimum_request_gap_seconds": 0.1000756670255214,
+  "buttons": [
+    {
+      "text": "",
+      "label": "Close"
+    },
+    {
+      "text": "Drafts",
+      "label": null
+    },
+    {
+      "text": "Everyone",
+      "label": "Choose audience"
+    },
+    {
+      "text": "Edit",
+      "label": "Edit media"
+    },
+    {
+      "text": "",
+      "label": "Remove media"
+    },
+    {
+      "text": "Edit",
+      "label": "Edit media"
+    },
+    {
+      "text": "",
+      "label": "Remove media"
+    },
+    {
+      "text": "Edit",
+      "label": "Edit media"
+    },
+    {
+      "text": "",
+      "label": "Remove media"
+    },
+    {
+      "text": "Everyone can reply",
+      "label": "Everyone can reply"
+    },
+    {
+      "text": "",
+      "label": "Previous"
+    },
+    {
+      "text": "",
+      "label": "Add media"
+    },
+    {
+      "text": "",
+      "label": null
+    },
+    {
+      "text": "",
+      "label": "Add a GIF"
+    },
+    {
+      "text": "",
+      "label": "Generate image"
+    },
+    {
+      "text": "",
+      "label": "Add poll"
+    },
+    {
+      "text": "",
+      "label": "Add emoji"
+    },
+    {
+      "text": "",
+      "label": "Schedule post"
+    },
+    {
+      "text": "",
+      "label": "Tag location"
+    },
+    {
+      "text": "",
+      "label": "Content disclosure"
+    },
+    {
+      "text": "",
+      "label": "Next"
+    },
+    {
+      "text": "",
+      "label": "Add post"
+    },
+    {
+      "text": "Post",
+      "label": null
+    }
+  ]
+}

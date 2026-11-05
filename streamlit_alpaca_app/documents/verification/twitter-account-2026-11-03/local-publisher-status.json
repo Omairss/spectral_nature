@@ -1,0 +1,11 @@
+{
+  "status": "completed",
+  "running": false,
+  "standalone_watcher": false,
+  "current_feed_events_published": 9,
+  "automatic_route": "Home completion hook after finished-run receipt; production flag is not activated.",
+  "source": "documents/plans/ATTENTION_X_PUBLISHING_2026-11-03.json",
+  "automatic_service_running": false,
+  "cloud_connection": "Cloudflare verification; retry stopped",
+  "deployment_status": "held pending runtime choice"
+}

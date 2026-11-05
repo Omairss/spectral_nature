@@ -291,6 +291,28 @@ def _hypothesis_tools() -> list[dict[str, Any]]:
 def _research_tools() -> list[dict[str, Any]]:
     return [
         {
+            "name": "research.company_sentiment",
+            "description": (
+                "Read company-specific X reactions for research: earnings reactions, supportive/critical views "
+                "and changes in expectations. Returns authors, visible post text, links, original dates and "
+                "Top/Latest coverage. Interpret sentiment in the existing investigation; no score is assigned "
+                "by code. These are attributed opinions, not verified company facts. Pass post_url to read a "
+                "selected truncated post in full."
+            ),
+            "inputSchema": {"type": "object", "additionalProperties": False,
+                "properties": {
+                    "symbol": {"type": "string"}, "company_name": {"type": "string"},
+                    "query": {"type": "string", "description": "Optional topic or X search expression."},
+                    "start_date": {"type": "string", "description": "Inclusive ISO date."},
+                    "end_date": {"type": "string", "description": "Inclusive ISO date."},
+                    "max_results": {"type": "integer", "minimum": 1, "maximum": 20},
+                    "post_url": {"type": "string"}, "force_refresh": {"type": "boolean"},
+                    "timeout_seconds": {"type": "integer", "minimum": 30, "maximum": 300},
+                }, "required": ["symbol"]},
+            "execution": {"timeout_argument": "timeout_seconds", "default_seconds": 180,
+                          "maximum_seconds": 300, "cleanup_seconds": 10},
+        },
+        {
             "name": "research.completed_investigations",
             "description": (
                 "Read completed shared company investigations from the current environment. "
@@ -1002,7 +1024,7 @@ def build_tool_registry(service: QueryService) -> ToolRegistry:
             "supplied" if tool["name"] in {"research.list_supplied_evidence", "research.read_supplied_evidence"} else
             "web"
             if tool["name"]
-            in {"research.live_event_evidence", "research.open_page", "zopedia.ingest_youtube"}
+            in {"research.live_event_evidence", "research.company_sentiment", "research.open_page", "zopedia.ingest_youtube"}
             else "retained_or_data"
         )
         tool["knowledge_effect"] = (
@@ -1117,6 +1139,11 @@ def _invoke_research_tool(
             max_results=int(args.get("max_results") or 10),
         )
         datasets = ("saa_evidence_chunks", "saa_documents")
+    elif tool_name == "research.company_sentiment":
+        from .x_research import company_sentiment
+        payload = company_sentiment(**args, asof_time_utc=str((request_context or {}).get("asof_time_utc") or ""),
+                                    timezone_name=str((request_context or {}).get("timezone") or "UTC"))
+        datasets = ("x_company_reactions",)
     elif tool_name == "research.live_event_evidence":
         payload = zopedia_research.live_event_evidence(
             query=str(args.get("query") or ""),

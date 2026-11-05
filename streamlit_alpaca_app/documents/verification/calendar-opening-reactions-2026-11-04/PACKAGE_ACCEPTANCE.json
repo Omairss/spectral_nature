@@ -1,0 +1,23 @@
+[
+  {
+    "status": "passed",
+    "source_revision": "233189f15384bd6932f860794a7c328220a8138a",
+    "runtime_files": 200,
+    "runtime_inventory_sha256": "1cb8ea793c9fb68d934d5f3971bd7c21a69fd9167f49dc256d2d686f0fb53042",
+    "all_packaged_files_checked": true,
+    "checks": [
+      "complete Git runtime inventory",
+      "worker/API/broker imports and retained Trading routes",
+      "next-open eligibility before session close",
+      "opposite-sign current close ignored",
+      "EPS status and same-day neutrality",
+      "new-basis outage retention and old-basis invalidation",
+      "121-day public calendar projection"
+    ],
+    "external_requests": 0,
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ce3bb89965a700e80b441cf717089a18dea869917ee3595151fda931ebdfe8ee",
+    "role": "worker",
+    "source_inventory_sha256": "54973ef9f375856124a7c39b5e995885a432f04312f227fbf3ab9a896dcf4629",
+    "qualification_run": "cj1fj"
+  }
+]

@@ -1,0 +1,80 @@
+{
+  "status": "accepted_locally",
+  "recorded_at_utc": "2026-11-04T09:24:02.747234+00:00",
+  "review_base_revision": "965e46f67da351208e6d6ac08e0a40449fdc773c",
+  "scope": "Attention posts carry the Home charts as images, the complete reviewed explanation and an exact saved-event deep link.",
+  "reviewed_changes": {
+    ".env.example": "Document optional image-render origin. Public link continues to use the existing APP_PUBLIC_BASE_URL; no credentials added.",
+    "api/main.py": "Add the optional exact publication version to the public Home read. AST review confirms public_home is the only changed API definition; all authentication and financial routes remain intact.",
+    "pipeline/jobs/attention_home_build.py": "Existing writer reserves link space in its headline (250 characters). Full story and charts remain source-owned. No extra editor, model, provider, stage or schedule.",
+    "services/attention_x.py": "Queue headline plus exact-version link on new event IDs; retain existing published content and receipts. Render missing media once before opening X; pin immutable PNG receipts before dispatch. Research completion and failure isolation remain unchanged.",
+    "services/attention_x_media.py": "Use existing Chromium and Home React image page. Verify version, run and bundle identity, fit each complete panel in the viewport, and capture PNGs. Existing immutable Blob archive verifies checksums; account-wide receipts survive process/environment changes. No image-generation model or duplicated chart implementation.",
+    "services/home_view.py": "Exact-version reads use embedded snapshots without current quote merges. Shared card selection skips data-empty company placeholders while retaining all company identities and order. Latest/replay loaders, summary/audio, calendar, graph, chart transformations and financial metric definitions remain.",
+    "services/x_publishing.py": "Owned composer uploads the retained files, verifies attachment count and enabled Post. CreateTweet requires the expected unique numeric media IDs. PostgreSQL refuses replacement images after pinning. Existing lease, pacing, credentials, dispatch ownership, receipts and uncertain-submission rules remain.",
+    "web/app/attention/[version]/[event]/page.tsx": "Anonymous saved-event detail route; exact version and event only, with interactive Home ticker charts and stock-investigator links.",
+    "web/app/attention/[version]/[event]/images/page.tsx": "Read-only image layout for the same saved event. No research or mutation.",
+    "web/components/attention-event.tsx": "Shared Home story and ticker components produce chart-first panels, the complete story, source date and brand. Single-company layouts use full width; up to four visible data-bearing company cards are retained.",
+    "web/components/attention-story.tsx": "One rendering of existing reviewed title, summary, development, explanation, business context and watch-next fields. No summarization or inference.",
+    "web/components/home-workspace.tsx": "Reuse shared story renderer, including the already-public reviewed development field. Calendar, graph, highlights, dates, audio, background polling and ticker components retained.",
+    "web/components/workbench-shell.tsx": "Only the image route renders without navigation/agent rails or an irrelevant auth request; normal pages retain the shell and session behavior.",
+    "web/app/globals.css": "Event page and image typography, source-sized charts, single/two-company grids. Export overrides follow base card rules. Existing trading/calendar/mobile rules retained.",
+    "web/lib/server/attention-event.ts": "Validate version syntax, decode event route parameter, load the exact publication and require an exact event. Missing versions/events return 404 rather than the latest story.",
+    "web/lib/server/home.ts": "Existing no-store public loader accepts optional version. Default/current and date-based requests retain the same paths and ETag behavior.",
+    "web/lib/types.ts": "Optional source_version added to public Home DTO. Existing fields/types retained; additive field is ignored by native decoders.",
+    "web/next.config.ts": "Disable development status overlay so exports and previews contain the product only. Security headers and production behavior unchanged."
+  },
+  "verification": {
+    "events": 9,
+    "image_panels": 24,
+    "charts": 147,
+    "maximum_photos_per_post": 3,
+    "anonymous_links": 9,
+    "desktop_and_phone_events": 3,
+    "missing_event_http_status": 404,
+    "actual_x_uploads_finalized": 3,
+    "composer_post_enabled": true,
+    "composer_exact_text": true,
+    "minimum_actual_request_gap_seconds": 0.1000756670255214,
+    "new_public_posts": 0,
+    "prepared_and_repeat_queue_checks": "Passed with nine new events in a temporary account; nine actual published event receipts remained unchanged. Temporary rows removed.",
+    "media_replacement_refused": true,
+    "media_dispatch_guard_cases": 5,
+    "focused_operational_tests": "22 passed",
+    "typescript_and_changed_frontend_lint": "passed",
+    "visual_review": "Reviewed story, paired fundamentals, single-company price and tall financial panels; corrected tiny labels, empty cards, development overlay and ancestor clipping. Dates, units and all 147 chart views retained.",
+    "new_inference_calls": 0,
+    "current_home_consumer": {
+      "status": 200,
+      "signals": 9,
+      "tickers": 30,
+      "calendar": 1,
+      "brief": 1,
+      "highlights": 1,
+      "graph": 1,
+      "audio": 1
+    },
+    "release_source_checks": "Passed all four roles against committed, locally accepted source; no build or deployment."
+  },
+  "limitations": {
+    "public_media_submission": "Not sent: the public route has not been deployed. Actual browser upload, enabled composer and the existing proven CreateTweet path are separate evidence.",
+    "cloud": "Existing Azure Cloudflare boundary and runtime-placement decision remain unresolved. No verification bypass, Mac service installation, application release build or deployment in this extension.",
+    "packages": "packages.json describes the earlier text/research source. Those images do not contain this extension and cannot be promoted as its implementation."
+  },
+  "evidence": [
+    "chart-capture-review.json",
+    "deeplink-review.json",
+    "chart-upload-draft.json",
+    "chart-upload-diagnostic.json",
+    "chart-media-immutability.json",
+    "media-queue-and-guard.json",
+    "home-consumer-readback.json",
+    "media-source-checks.json",
+    "media-final-account-status.json"
+  ],
+  "platform_references": [
+    "https://help.x.com/en/using-x/how-to-post",
+    "https://help.x.com/en/using-x/posting-gifs-and-pictures",
+    "https://help.x.com/en/using-twitter/how-to-tweet-a-link.html"
+  ],
+  "preview": "../../../output/visualizations/attention-x-20261104/index.html"
+}

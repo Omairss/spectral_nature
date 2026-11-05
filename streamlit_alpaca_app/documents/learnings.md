@@ -1,5 +1,11 @@
 # Learnings — Active Guidelines
 
+## X research and Attention publishing — 2026-11-03
+
+Use attributed, dated Top/Latest company reactions as source material for the existing research model. Retain differing opinions and original links; do not add a score or another model stage. Send each existing reviewed Attention headline verbatim after the owning run's completion receipt, using its exact version and existing event ID. The owner rejected a separate post editor. Shared PostgreSQL ownership, encrypted cookies and durable post pacing support the saved Key Vault connection. Async browser handlers must yield while waiting so JavaScript and responses can complete. Queue completed events independently of browser ownership; concurrent research readers wait within their acquisition deadlines. Hold ambiguous event IDs for reconciliation rather than repeating them or blocking unrelated research forever. Linux qualification must cover browser binaries and native libraries for every consuming role, plus actual JavaScript output. A successful task status alone is insufficient. Local browser success does not establish Azure access: the first cloud probe hit verification with native handling disabled. The November4 follow-up qualified Scrapling’s existing handler in two Azure sessions, including public fetch with clearance cookies omitted. Raw Page.goto does not invoke that handler. Use the documented fetch path in the same browser context, bounded timeouts and unchanged account caps; do not add a paid service before testing installed capabilities. [Implementation and live evidence](plans/ATTENTION_X_PUBLISHING_2026-11-03.json).
+
+The November4 extension captures the actual Home React price and fundamentals charts, with the complete reviewed story, as chart-first image panels. Both images and the public event page read the exact saved publication and embedded ticker snapshots; later quotes cannot alter an old event. Reserve headline space for X's 23-character link cost. Retain PNGs by checksum in the existing immutable Blob archive and pin receipts before submission; retries cannot replace images or duplicate published IDs. Browser selectors must follow the observed upload UI: nested dialogs appear after upload, and completed attachments contain images rather than a `removeMedia` test ID. Qualify anonymous desktop/phone links and real X uploads separately from public posting and deployment.
+
 ## Calendar publication freshness is not results coverage — 2026-11-03
 
 Verify the latest reporting date's actual price colors separately from job success, publication timestamp, old positive/negative examples and optional EPS confirmation. The requested next-session price observation comes from consolidated bars; it must not depend on a per-company fundamental-history allowance. Preserve source confirmation status honestly rather than making a price move confirm a report. Prioritize recent optional confirmations over backfill, and use official session close plus provider data delay instead of excluding today's date. Real November 2 replay and both production gateways measure all 152 entries despite the history allowance being full; two unchanged prices remain neutral. [Delivery](verification/calendar-history-reactions-2026-11-01/CURRENT_RESULTS_PRODUCTION.json).
@@ -1700,3 +1706,15 @@ Shared writing and reviewer prompts also affect upstream research and planning. 
 ## Home upstream verification and completed-answer retention — 2026-11-05
 
 Completed provider output must reach the existing draft checkpoint before bookkeeping can exhaust an inference phase. Keep validity, narrative acceptance, financial settlement and publication authority separate. Only exact schema-valid completed artifacts may signal an owner or be replayed without a second charge; malformed responses retain existing repair rules. Drain only workers that already delivered completed bodies, using the existing bounded receipt finalization. Native adapter replay preserves real paid research while testing the next stage; label the replay and never call a direct-handoff diagnostic complete end-to-end verification. See [evidence](verification/home-upstream-verification-2026-11-05.json).
+
+### November 4, 2026 — concurrent release reconciliation
+
+Recheck all live consumers immediately before mutation. The X rollout preflight caught the separately promoted next-open calendar producer after packaging and stopped with zero deployments. Integrate its two accepted calendar modules from Git, retain the existing research source, and rebuild/requalify all selected roles against the combined source. Do not import the calendar worktree’s unrelated held writing experiments.
+
+### November 4, 2026 — saved publication namespaces
+
+Saved Attention versions carry the owning dataset namespace. Validate the actual producer ID and exact manifest in each environment; the read service must enforce current-namespace isolation while the shared web route admits the canonical namespaced format.
+
+### November 5, 2026 — Home release source integration
+
+Integrate the full newer accepted Git branch before release, then review overlapping semantic contracts. A clean merge or source checkpoint does not transfer qualitative acceptance. Preserve accepted X/browser/media/namespace and next-open calendar behavior alongside Home context and reliability fixes; refresh every consumer baseline before packaging.

@@ -153,5 +153,13 @@
     "live_source_revision": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
     "release_integration": "Production advanced to the namespace-aware X/calendar release; reconcile that accepted source before any candidate release. No production deployment from the older branch.",
     "latest_evidence": "documents/verification/home-upstream-verification-2026-11-05.json"
+  },
+  "source_integration": {
+    "status": "integrated_awaiting_root_review_and_qualification",
+    "candidate_parent": "03ce83e3345c5ad909502f24cedcdefa4e315ceb",
+    "accepted_live_parent": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
+    "branch": "fix/home-reliability-release-20261105",
+    "evidence": "documents/verification/home-reliability-source-integration-2026-11-05.json",
+    "no_release_acceptance_granted": true
   }
 }

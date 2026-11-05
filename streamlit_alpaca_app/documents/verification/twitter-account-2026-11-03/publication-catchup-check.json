@@ -1,0 +1,10 @@
+{
+  "account": "spectral_x_rate_check",
+  "first_pending": [
+    "attention_home_snapshots_1d__20261104T045610Z__168d03d7__22070e46d07f46b2b9808dce355136b5"
+  ],
+  "restart_with_older_pointer_kept_boundary": true,
+  "acknowledged_versions_skipped": true,
+  "x_requests_sent": 0,
+  "inference_requests_sent": 0
+}

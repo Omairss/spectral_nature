@@ -29,20 +29,26 @@ export function WorkbenchShell({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const tab = useMemo(() => tabForPath(pathname), [pathname]);
   const conversationOwnsCanvas = pathname.startsWith("/zopedia") || pathname.startsWith("/admin");
+  const attentionImages = pathname.startsWith("/attention/") && pathname.endsWith("/images");
 
   useEffect(() => {
+    if (attentionImages) return;
     let active = true;
     readAuthenticatedSession()
       .then((payload: Session) => { if (active) setSession(payload); })
       .catch(() => { /* Keep the last verified identity during an auth-store outage. */ });
     return () => { active = false; };
-  }, [pathname]);
+  }, [pathname, attentionImages]);
 
   async function logout() {
     await secureMutation("/api/auth/logout", { method: "POST" });
     setSession({ authenticated: false });
     router.push("/");
     router.refresh();
+  }
+
+  if (attentionImages) {
+    return <main className="attention-images-canvas">{children}</main>;
   }
 
   if (pathname.startsWith("/login")) {

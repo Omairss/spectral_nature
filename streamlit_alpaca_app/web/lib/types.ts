@@ -121,6 +121,7 @@ export type HomeView = {
   is_replay: boolean;
   as_of: string;
   run_id: string;
+  source_version?: string;
   summary: null | {
     headline: string;
     markdown: string;

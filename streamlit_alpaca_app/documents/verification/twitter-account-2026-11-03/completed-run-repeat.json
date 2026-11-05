@@ -1,0 +1,28 @@
+{
+  "run_id": "168d03d7-a792-471c-ade4-0d343217fbad",
+  "source_version": "attention_home_snapshots_1d__20261104T045610Z__168d03d7__22070e46d07f46b2b9808dce355136b5",
+  "status": "delivered",
+  "event_ids": [
+    "home-e6398b1135a0978d16de751c7a8c655b7968da2d0e3150a73b0058b1e8382755",
+    "home-ada507429e676457e894bd5ac3dc0e0d3ea002194a6ebe14ce43d5ef68fb8810",
+    "home-5c2af84cedbc3645b3b5e7cfb11c7593314080a7107459edfb796a59e84029be",
+    "home-72c47f8527b369fb2276d9dac1b8315d4de709541316e8ff2409ae45277cae6a",
+    "home-71d925b3ec86d07d0410cab16a7fa7268f141469f30e688700788ef550b902e1",
+    "home-c8ae722b2a3b9454e36a1f17d7cf4e41231d14b4144fca232b67c8b6b7d1ea61",
+    "home-f329e2fc7d2a2200f2bcd4bc30c9d6f51eaa81b8d7d35344d488804829e2ccab",
+    "home-3e1f3ef074c3c87c692ee39e24182d54293ff91feeaf3816775d87a1ae4ce617",
+    "home-1d64eaedb6f21ed635e124780a104c6a0657e82b655b39ea4ed41bc211b18174"
+  ],
+  "new_post_count": 0,
+  "receipts": [
+    "https://x.com/OmairS2/status/2117886131530559837",
+    "https://x.com/OmairS2/status/2117885608479900102",
+    "https://x.com/OmairS2/status/2117885078839996779",
+    "https://x.com/OmairS2/status/2117884555059413162",
+    "https://x.com/OmairS2/status/2117884028414316778",
+    "https://x.com/OmairS2/status/2117883498002534457",
+    "https://x.com/OmairS2/status/2117882968404611120",
+    "https://x.com/OmairS2/status/2117882442208190937",
+    "https://x.com/OmairS2/status/2117879517570339136"
+  ]
+}

@@ -504,7 +504,7 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
                     "description": "Exact source index/reader identities. Primary research first, then supporting originals or observations."},
                 "supporting_symbols": {"type": "array", "items": {"type": "string"}},
                 "time_basis": _STORY_TIME_BASIS_SCHEMA,
-                "event_title": {"type": "string", "description": "A short headline naming the central development. Keep chronology and the strength of a likely explanation intact."},
+                "event_title": {"type": "string", "maxLength": 250, "description": "A short headline naming the central development. Keep chronology and the strength of a likely explanation intact. This headline also opens the X post; write a complete thought within 250 characters, reserving space for the Attention page link. The full explanation and charts are attached as images."},
                 "surface_summary_text": {"type": "string", "description": "One concise sentence giving the development's main business consequence, adding meaning to the headline."},
                 "what_happened_text": {"type": "string", "description": "Select the reported developments needed to understand the story. Include figures that change its interpretation, with their baseline; supporting measurements remain in research and charts."},
                 "why_happened_text": {"type": "string", "description": "Name the leading likely business drivers and explain their concrete effect. Keep research limitations and discarded explanations in issues. Leave empty if already explained."},

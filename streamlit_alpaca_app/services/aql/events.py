@@ -550,6 +550,9 @@ def research_source_events(
             "results through existing source tools rather than repeat a preview as an upcoming event. "
             "Return substantive findings, key facts, comparisons, interpretations and useful next observations. "
             "Attach original source IDs/URLs and dates to claims. Separate reported facts, business context and hypotheses. "
+            "When external research is available, read company-specific X reactions with research.company_sentiment for the central companies. "
+            "Use them to assess investor expectations, disagreements and reported concerns; distinguish "
+            "sampled opinions from established company facts and preserve original dates. "
             "This is research for later synthesis, not a Home card. Keep execution failures and research bookkeeping internal."
         )
         prior_research = [

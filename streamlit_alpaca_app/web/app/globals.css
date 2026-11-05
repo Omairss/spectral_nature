@@ -446,6 +446,12 @@ button { color: inherit; }
 .signal-row h3 { font-size: 0.93rem; font-weight: 620; letter-spacing: -0.015em; line-height: 1.38; margin: 0.45rem 0 0.48rem; }
 .signal-row p { color: var(--muted); font-size: 0.75rem; line-height: 1.55; margin: 0; }
 .signal-row .business-context { border-top: 1px solid var(--line); color: #aab5c0; margin-top: 0.75rem; padding-top: 0.75rem; }
+.signal-row article > p + p { margin-top: 0.6rem; }
+.attention-story h3 { font-size: 1.65rem; line-height: 1.3; margin: 0 0 1rem; }
+.attention-story p { color: var(--ink-soft); font-size: 0.95rem; line-height: 1.65; margin: 0 0 1rem; }
+.attention-story .business-context { border-top: 1px solid var(--line); padding-top: 1rem; }
+.attention-return { color: var(--teal); display: inline-block; margin-top: 1.5rem; }
+
 .attention-ticker-grid { align-items: start; display: grid; gap: 0.55rem; grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr)); margin-top: 1rem; }
 .attention-ticker {
   background: linear-gradient(145deg, rgba(82, 214, 199, 0.025), transparent 44%), #090e13;
@@ -1102,3 +1108,31 @@ input:focus, select:focus, textarea:focus { border-color: #596a7a; box-shadow: 0
 .research-activity > summary { display: list-item; list-style-position: inside; }
 .research-activity > summary::marker { color: var(--teal); }
 .research-activity > summary span { float: right; }
+
+.attention-images-canvas { height: 100vh; overflow: auto; }
+.attention-images { width: 1200px; }
+.attention-image { background: var(--surface); padding: 44px; width: 1200px; }
+.attention-share-brand { align-items: baseline; border-bottom: 1px solid var(--line-strong); display: flex; justify-content: space-between; gap: 24px; padding-bottom: 22px; }
+.attention-share-brand strong { color: var(--teal); font-size: 28px; letter-spacing: -0.6px; }
+.attention-share-brand span { color: var(--muted); font-size: 20px; }
+.attention-image h2 { font-size: 28px; font-weight: 550; line-height: 1.35; margin: 28px 0; }
+.attention-image .attention-story { padding-top: 32px; }
+.attention-image .attention-story h3 { font-size: 36px; }
+.attention-image .attention-story p { font-size: 26px; line-height: 1.55; margin-bottom: 24px; }
+.attention-image footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 18px; margin-top: 30px; padding-top: 20px; }
+.attention-image-tickers { align-items: start; display: grid; gap: 24px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.attention-image-tickers.single { grid-template-columns: minmax(0, 1fr); }
+.attention-image-tickers.single .attention-price-chart svg { height: 400px; }
+.attention-image-tickers .attention-ticker { padding: 24px; }
+.attention-image-tickers .ticker-heading header strong { font-size: 28px; }
+.attention-image-tickers .ticker-heading header span { font-size: 18px; }
+.attention-image-tickers .attention-price-chart svg { height: 235px; }
+.attention-image-tickers .attention-price-chart figcaption span { font-size: 18px; }
+.attention-image-tickers dl { padding-top: 20px; }
+.attention-image-tickers dt { font-size: 16px; }
+.attention-image-tickers dd { font-size: 22px; margin-top: 8px; }
+.attention-image-tickers .ticker-fundamentals { gap: 24px; margin-top: 22px; padding-top: 22px; }
+.attention-image-tickers .ticker-fundamentals figcaption span, .attention-image-tickers .ticker-fundamental-value > span { font-size: 17px; }
+.attention-image-tickers .ticker-fundamentals figcaption strong, .attention-image-tickers .ticker-fundamental-value > strong { font-size: 24px; }
+.attention-image-tickers .ticker-fundamentals .trend-chart.compact svg { height: 80px; margin: 12px 0; }
+.attention-image-tickers .ticker-fundamentals .trend-range { font-size: 14px; }

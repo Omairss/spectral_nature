@@ -17,6 +17,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   output: "standalone",
   poweredByHeader: false,
   reactStrictMode: true,

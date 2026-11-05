@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "source_revision": "1ea77529ff10461b5bc76a96b1bec252b1dbab8a",
+  "runtime_files": 203,
+  "all_packaged_files_checked": true,
+  "complete_git_inventory_matches": true,
+  "imports": [
+    "api",
+    "worker",
+    "broker"
+  ],
+  "research_tool": "read-only web",
+  "completion_hook_disabled_without_external_io": true,
+  "browser_javascript_dom": "42",
+  "new_inference_calls": 0,
+  "qualification_run": "cj1f9",
+  "native_dependency_install": "python -m patchright install-deps chromium",
+  "tmp_mode": "1777",
+  "ephemeral_dependency_preflight_only": true
+}

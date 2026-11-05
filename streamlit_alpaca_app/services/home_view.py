@@ -160,7 +160,23 @@ def _home_payload(
     service: QueryService,
     *,
     target_date: str = "",
+    source_version: str = "",
 ) -> tuple[dict[str, Any], dict[str, dict[str, Any]], DataProvenance, bool]:
+    if source_version:
+        import re
+        from services.attention_materialized import deserialize_attention_home_payload
+        from services.pipeline_store import dataset_metadata_for_version, dataset_namespace, load_dataset_frame
+
+        namespace = dataset_namespace()
+        prefix = re.escape(namespace + "__") if namespace else ""
+        if not re.fullmatch(prefix + r"attention_home_snapshots_1d__[A-Za-z0-9_]+", source_version):
+            raise ValueError("Invalid Attention publication version.")
+        metadata = dataset_metadata_for_version("attention_home_snapshots_1d", source_version)
+        payload = deserialize_attention_home_payload(load_dataset_frame(metadata)) if metadata else {}
+        return payload, dict(payload.get("ticker_snapshots") or {}), DataProvenance(
+            mode="historical", datasets=("attention_home_snapshots_1d",),
+            details={"source_version": source_version},
+        ), True
     if not target_date:
         resolved = service.data_access.resolve_attention_home_1d(force_refresh=False)
         payload = dict(resolved.payload) if isinstance(resolved.payload, dict) else {}
@@ -188,11 +204,15 @@ def build_public_home_view(
     service: QueryService | None = None,
     *,
     target_date: str | None = None,
+    source_version: str = "",
 ) -> dict[str, Any]:
     """Build the public Home DTO from the materialized attention snapshot only."""
     resolved_service = service or QueryService.from_environment()
     replay_date = _validated_target_date(target_date)
-    payload, ticker_snapshots, resolved_provenance, is_replay = _home_payload(resolved_service, target_date=replay_date)
+    payload, ticker_snapshots, resolved_provenance, is_replay = _home_payload(
+        resolved_service, target_date=replay_date, source_version=source_version)
+    if source_version and payload:
+        replay_date = str(payload.get("generated_at_utc") or "")[:10]
     provenance = resolved_provenance.to_dict()
     calendar = load_public_calendar(target_date=replay_date)
     if not payload:
@@ -283,6 +303,19 @@ def build_public_home_view(
         primary_symbol = _clean(item.get("primary_symbol"), limit=20).upper() or (symbols[0] if symbols else "")
         ordered_symbols = list(dict.fromkeys(([primary_symbol] if primary_symbol else []) + symbols))
         attention_change_pct = item.get("change_pct")
+        ticker_cards = [
+            _ticker_snapshot_view(symbol, ticker_snapshots.get(symbol),
+                attention_change_pct=attention_change_pct if symbol == primary_symbol else None)
+            for symbol in ordered_symbols
+        ]
+        # Keep the company identities in symbols; a card requires actual data.
+        # Missing snapshots must not occupy one of the four visible chart cards.
+        ticker_cards = [card for card in ticker_cards if (
+            card["price_trend"] or card["intraday_price_history"]["points"]
+            or any(card["financial_trends"].values())
+            or any(card.get(field) is not None for field in (
+                "latest_close", "price_change_1d_pct", "price_change_1m_pct", "market_cap", "revenue", "net_income", "free_cash_flow",
+                "operating_cash_flow", "total_assets", "stockholders_equity")))][:4]
         beats.append(
             {
                 "id": _clean(item.get("bundle_id"), limit=160),
@@ -296,14 +329,7 @@ def build_public_home_view(
                 "symbols": ordered_symbols,
                 "primary_symbol": primary_symbol,
                 "change_pct": _number(attention_change_pct),
-                "tickers": [
-                    _ticker_snapshot_view(
-                        symbol,
-                        ticker_snapshots.get(symbol),
-                        attention_change_pct=attention_change_pct if symbol == primary_symbol else None,
-                    )
-                    for symbol in ordered_symbols[:4]
-                ],
+                "tickers": ticker_cards,
             }
         )
 
@@ -328,6 +354,7 @@ def build_public_home_view(
         "is_replay": is_replay,
         "as_of": _clean(payload.get("generated_at_utc"), limit=80),
         "run_id": _clean(payload.get("run_id"), limit=160),
+        "source_version": source_version,
         "summary": summary,
         "calendar": calendar,
         "graph": graph,

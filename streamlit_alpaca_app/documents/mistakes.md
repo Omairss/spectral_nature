@@ -1,5 +1,19 @@
 # Mistakes — Active Guidelines
 
+## Overcomplicated Attention publishing — 2026-11-03
+
+I added a separate model editor and semantic reconciliation even though Attention already supplies reviewed headlines. It incurred unnecessary paid calls and delay; the owner told me to simplify it. Removed that pipeline, archived its eight unsent drafts and preserved its original usage records, including the $0.273145 reservation estimate with unknown actual charge.
+
+The first browser request guard blocked the synchronous event loop while pacing every internal request, causing aborted background requests and an unconfirmed post. Two authenticated profile reads established that attempt was absent; it was deliberately released once after replacing the transport with nonblocking asynchronous handlers. All nine current Attention events then received real X receipts. Human actions and browser-generated resource traffic need separate caps. A running process or one successful old post does not establish a complete delivery path. The completion hook now uses a finished run receipt, exact source version and per-event immutable receipt. Before deployment, review also exposed a concurrency gap: initial queue insertion required browser ownership, so a busy reader could drop an entire completed batch. Queue insertion now uses its own transaction and cannot overwrite receipts; research readers wait for account ownership.
+
+The first dependency probe checked only the worker. Real API qualification later found the browser library without its matching binary or native libraries. Browser assets alone were insufficient. The official native installer also exposed inherited /tmp permissions that prevented apt's unprivileged signature check; restore 1777 permissions rather than disabling repository verification. Pin and verify browser assets for all consuming roles. An ACR task marked Succeeded without executing its oversized command was not a check result; the explicit compact task and actual output exposed the gap before deployment.
+
+The first Azure probe established a real challenge, but I treated it as a runtime blocker without testing Scrapling’s installed challenge handler. The owner’s November4 request led to two successful Azure checks, including the public fetch path with old clearance cookies omitted. The original code explicitly disabled handling and raw Page.goto bypassed it. Correct startup at the shared browser boundary, retain bounded failure and pacing, and do not request a Mac bridge or paid service before checking existing capabilities.
+
+The operator identity could read Blob but not write it. Reuse the existing PostgreSQL store and Vault encryption key rather than expanding permissions. In the ACR dependency probe, its overridden HOME hid the already-installed browser; setting the probe's browser path resolved launch without installing or changing runtime dependencies.
+
+For the chart extension I initially guessed a `removeMedia` selector and treated the compose dialog as a single permanent node. Real uploads produce nested dialogs; all three images finalized successfully while that guessed selector waited. Scope the current composer by its textbox and verify the observed attachment images and enabled Post button. The first saved-event link also revealed encoded dynamic route parameters in this Next.js runtime; decode the event identity before matching it. Review exported CSS after the original card rules: earlier overrides left labels too small. Fit the capture viewport to each panel so the canvas cannot clip tall cards; discard source-empty cards in the shared Home projection rather than spending image space on placeholders. Blob qualification uses the existing storage account credential inside the operator process; the CLI's Blob reader role remains unchanged, and no key is logged or saved.
+
 ## Shipped calendar history without current-results coverage — 2026-11-03
 
 I accepted older red/green examples and successful refreshes without verifying the next reporting day's results. The initial November 3 inspection found 152 November 2 scheduled earnings entries and zero confirmations/reactions. The application history allowance is full; market-cap backfill ranks ahead of pending reports and only 14 of 1,000 companies have cached history. The observer also excludes current-date closes after the market has closed, adding a day of delay. The deeper mistake was gating a directly measurable share-price color on an optional per-company earnings-history lookup. The correction separates those paths, uses the official session close, and prioritizes recent optional confirmations. All 152 November 2 entries are measured in a fresh provider replay (76 green, 74 red, two unchanged/neutral); the exact qualified image is now verified live in DEV and production. I also stopped after diagnosis and a status answer instead of carrying the owner’s repair through. A successful job or a diagnosis is not completion.
@@ -1658,3 +1672,15 @@ The owner identified that the latest shared prompt changes had never been exerci
 ## Home upstream verification and completed-answer retention — 2026-11-05
 
 The missing-proof regression survived shared review because old review judgments were also presented as evidence to later planning/research/public writing. The Nov5 real upstream test further exposed a reviewer moving an observation past its reporting cutoff. A subsequent valid paid draft was lost when receipt bookkeeping crossed the request deadline, and premature expiry sampling prevented replay. The narrow public diagnostic repeated that timeout and did not include the native event bundle. Its output is not acceptance. Corrected context boundaries and completed-body handoff at source, then replayed actual outputs through synthesis, review, cleanup and the unchanged event adapter; fresh public quality remains open. See [evidence](verification/home-upstream-verification-2026-11-05.json).
+
+### November 4, 2026 — source moved during X packaging
+
+The calendar jobs changed images while X packages were building. The mandatory consumer guard stopped before mutation; the first package set cannot be promoted over that newer producer. Reconcile the accepted calendar behavior and fresh consumer baselines before resuming.
+
+### November 4, 2026 — saved publication namespaces
+
+The first saved-link validation was qualified only with production IDs. A real development read exposed its rejected namespace prefix before deployment. Correct the backend and frontend version contract together and requalify the source; do not strip identity or fall back to latest data.
+
+### November 5, 2026 — Home release source integration
+
+The Home candidate branched before the November4 accepted X/calendar rollout. Building directly from that earlier worktree would remove current shared X research, completion publishing, saved-event/media routes and next-open calendar behavior. Merged the full accepted Git branch in a separate worktree, resolved overlapping contracts explicitly, and retained the release hold until integrated-source qualification and a new acceptance record.

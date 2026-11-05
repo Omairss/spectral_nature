@@ -3684,6 +3684,17 @@ def main() -> None:
                 print(f"[warn] failed to finalize postgres run status: {exc}")
             db_conn.close()
 
+    # X delivery starts only after the research completion receipt and database
+    # status are saved. It cannot reopen or fail the completed research run.
+    if ctx.name == "attention-home-build" and status in {"Succeeded", "Warning"}:
+        version = ctx.published_datasets.get("attention_home_snapshots_1d")
+        if version:
+            try:
+                from services.attention_x import publish_completed_attention
+                delivery = publish_completed_attention(run_id=ctx.run_id, source_version=version)
+                print(f"[info] attention-x status={delivery['status']}", flush=True)
+            except Exception as exc:
+                print(f"[warn] attention-x delivery remains pending: {type(exc).__name__}", flush=True)
     print("[info] completed")
 
 

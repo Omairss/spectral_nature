@@ -1,0 +1,264 @@
+{
+  "metadata": {
+    "dataset_name": "attention_home_snapshots_1d",
+    "dataset_version_id": "attention_home_snapshots_1d__20261104T045610Z__168d03d7__22070e46d07f46b2b9808dce355136b5",
+    "blob_path": "datasets/attention_home_snapshots_1d/dt=2026-11-04/asof=2026-11-04T04-56-10Z/universe=20260919/part-attention_home_snapshots_1d__20261104T045610Z__168d03d7__22070e46d07f46b2b9808dce355136b5.parquet",
+    "asof_time_utc": "2026-11-04T04:56:10.420662+00:00",
+    "ingested_at_utc": "2026-11-04T05:30:52.166534+00:00",
+    "row_count": 1,
+    "partitioning": {}
+  },
+  "run_id": "168d03d7-a792-471c-ade4-0d343217fbad",
+  "generated_at_utc": "2026-11-04T04:56:10.420662+00:00",
+  "events": [
+    {
+      "source_ref": "top_events:0",
+      "bundle_id": "event::home-e6398b1135a0978d16de751c7a8c655b7968da2d0e3150a73b0058b1e8382755",
+      "event_id": "home-e6398b1135a0978d16de751c7a8c655b7968da2d0e3150a73b0058b1e8382755",
+      "event_title": "Chip-equipment, optical, and memory shares rose sharply on Nov. 3 after a month-long slide, but the evidence points to several drivers rather than one common cause.",
+      "surface_summary_text": "The rebound was broad but uneven and left most groups far below their earlier levels, so it is a partial recovery rather than a proved turn.",
+      "what_happened_text": "Chip packaging, test, and factory-equipment suppliers gained about 6.5% on the day, and optical suppliers about 5.1%. The group containing Nvidia and large chipmakers rose only about 3.1%, and memory and hard-disk shares about 3.0%. These groups were still down between about 18% and 37% over the prior 20 sessions.",
+      "why_happened_text": "No single company or policy event explains all groups. Memory pricing is one shared thread: Apple said higher memory costs would lower its hardware profit share, and Micron coverage said more than three-quarters of Micron's 2027 output was already committed. Lattice, Fabrinet, and Lam Research gave separate positive company news. Job openings and factory orders came in above forecasts, and the 10-year government bond rate rose to 4.95%, but those were not the main driver. AMD's pre-report gain reflected its own pending results, not a broad cause.",
+      "business_context_text": "Memory costs matter because they raise the direct cost of devices and data-center hardware; a durable memory shortage would support memory makers while squeezing buyers such as Apple.",
+      "watch_next_text": "AMD's after-close results and guidance will show whether the chip recovery extends beyond anticipation; holding gains through more full sessions and fresh memory or equipment order confirmations would strengthen the signal.",
+      "source_ids": [
+        "doc::event-news::40c247a869524b5a509f",
+        "doc::event-news::9089079b7aee65ae067f",
+        "agent_source::3bf1bc1b59df07e7884b"
+      ],
+      "anchor_symbol": "NVDA",
+      "symbol": "NVDA",
+      "supporting_symbols": [
+        "NVDA",
+        "AMD",
+        "MU",
+        "SNDK",
+        "LRCX",
+        "FN",
+        "LSCC",
+        "AAPL",
+        "MRVL",
+        "LITE"
+      ]
+    },
+    {
+      "source_ref": "top_events:1",
+      "bundle_id": "event::home-ada507429e676457e894bd5ac3dc0e0d3ea002194a6ebe14ce43d5ef68fb8810",
+      "event_id": "home-ada507429e676457e894bd5ac3dc0e0d3ea002194a6ebe14ce43d5ef68fb8810",
+      "event_title": "Nov. 3's bounce came from previously beaten-down electrical, power, and AI-equipment groups, while the real-estate and rail groups that had supported the index did not lead.",
+      "surface_summary_text": "The day's strength was narrow and concentrated in groups still down sharply over the prior month, not a broad market turn.",
+      "what_happened_text": "Real-estate owners, mainly landlords and shopping-center owners, averaged about +6.2% over 20 sessions, and freight rail operators about +7.5%; on Nov. 3, real estate was nearly flat and all five rail companies fell. The gains came from electrical and mechanical equipment, construction services, AI data-center equipment, power producers, and specialty metals and aerospace groups, all of which were still down over 20 sessions.",
+      "why_happened_text": "This is a rotation within a still-negative month rather than broad market strength. Strong job openings and factory orders raised the 10-year bond rate to 4.95%, which hurt homebuilders. Apple's profit-per-sale warning and Nvidia's rise were large-stock shifts rather than market-wide buying. The evidence does not yet show that the bounce is broad enough to change the market's direction.",
+      "business_context_text": "Electrical and power-equipment groups are tied to AI data-center construction, so a rebound there can reflect expectations for future AI infrastructure spending rather than current broad demand.",
+      "watch_next_text": "A more convincing turn would require the real-estate and rail groups to resume rising, the beaten-down groups to hold gains through several sessions, and the S&P 500 to climb back above short-term levels.",
+      "source_ids": [
+        "doc::event-news::40c247a869524b5a509f"
+      ],
+      "anchor_symbol": "SPY",
+      "symbol": "SPY",
+      "supporting_symbols": [
+        "SPY",
+        "NVDA",
+        "AAPL",
+        "XLK",
+        "SMH",
+        "XLB",
+        "XLP",
+        "XHB",
+        "FISV",
+        "LSCC",
+        "FN",
+        "ETN",
+        "PWR",
+        "CEG",
+        "VST",
+        "CNI",
+        "UNP",
+        "O",
+        "SPG"
+      ]
+    },
+    {
+      "source_ref": "top_events:2",
+      "bundle_id": "event::home-5c2af84cedbc3645b3b5e7cfb11c7593314080a7107459edfb796a59e84029be",
+      "event_id": "home-5c2af84cedbc3645b3b5e7cfb11c7593314080a7107459edfb796a59e84029be",
+      "event_title": "Apple's holiday-quarter warning that it will keep less profit from each sale, not a sales miss, sent its stock lower on Nov. 3 while other large technology shares rose.",
+      "surface_summary_text": "Apple's own outlook for keeping less profit from each sale is the operating concern, and the drop did not spread to other large technology shares.",
+      "what_happened_text": "Apple beat analyst expectations for sales and profit, but said the share of sales left after direct costs would decline in the holiday quarter. The stock fell about 2% early and closed down about 2.1%, while Microsoft, Nvidia, Amazon, and Alphabet all rose.",
+      "why_happened_text": "The company's own lower profit-per-sale outlook is the main concern. Analysts cited memory costs, supply limits, currency effects, and weaker Services and China sales. Later analyst notes could not explain the first move because Apple was already falling before they appeared.",
+      "business_context_text": "Strong iPhone and Mac sales support current results, but higher memory costs make devices more expensive to produce and can continue into the holiday quarter.",
+      "watch_next_text": "Apple's exact holiday-quarter profit-share outlook and product-line detail will show whether the cost pressure is temporary or longer-lasting.",
+      "source_ids": [
+        "doc::event-news::09d558741b2795b33a88",
+        "doc::event-news::736c72e023749badabbc",
+        "doc::event-news::1228cc792f7182a2a338"
+      ],
+      "anchor_symbol": "AAPL",
+      "symbol": "AAPL",
+      "supporting_symbols": [
+        "AAPL",
+        "MSFT",
+        "NVDA",
+        "AMZN",
+        "GOOGL"
+      ]
+    },
+    {
+      "source_ref": "top_events:3",
+      "bundle_id": "event::home-72c47f8527b369fb2276d9dac1b8315d4de709541316e8ff2409ae45277cae6a",
+      "event_id": "home-72c47f8527b369fb2276d9dac1b8315d4de709541316e8ff2409ae45277cae6a",
+      "event_title": "Energy shares split by business on Nov. 3; oil producers and drillers stayed weak after Iran-deal hopes lowered oil, but no actual supply change is confirmed.",
+      "surface_summary_text": "The split fits how each energy business is exposed to oil prices, but the evidence stops short of confirming a change in actual oil supply.",
+      "what_happened_text": "Oil producers mostly kept falling: ExxonMobil, Chevron, ConocoPhillips, and Diamondback declined. Well-drilling and oilfield-service companies such as Transocean and Halliburton fell more. Refiners were split and mostly better: PBF Energy, Valero, and HF Sinclair rose, while Phillips 66 and Marathon Petroleum fell. Pipeline companies were also split. Over the week, the broad energy group was down about 4.4%, with drillers and producers accounting for most of the loss.",
+      "why_happened_text": "Lower oil prices reduce revenue per barrel for producers, which can shrink drilling budgets and future work for oilfield-service companies. Refiners buy crude as a raw material, so cheaper crude lowers their input cost even if fuel prices fall. Pipeline companies often collect fees tied to volumes rather than the oil price itself. The Nov. 3 split matches that chain, but a same-day stock move cannot prove oil price was the sole cause, and no source confirms a production or shipping change.",
+      "business_context_text": "The week's energy weakness came mainly from producers and drillers; on 3 November those groups stayed weak while some refiners and pipelines steadied.",
+      "watch_next_text": "A signed deal or official production change, final 3 November closing oil prices, refinery fuel margins, and separate company news for Kosmos, Transocean, PBF Energy, or Phillips 66 would clarify whether the split reflects more than oil-price expectations.",
+      "source_ids": [
+        "saa_doc::e30fb378b8c5d31ba21680a4",
+        "agent_source::982d75c98dd396da4e2c"
+      ],
+      "anchor_symbol": "XOM",
+      "symbol": "XOM",
+      "supporting_symbols": [
+        "XOM",
+        "CVX",
+        "COP",
+        "FANG",
+        "KOS",
+        "RIG",
+        "HAL",
+        "PTEN",
+        "PBF",
+        "VLO",
+        "DINO",
+        "PSX",
+        "MPC",
+        "WMB",
+        "KMI",
+        "AM",
+        "OKE",
+        "ENB",
+        "TRP"
+      ]
+    },
+    {
+      "source_ref": "top_events:4",
+      "bundle_id": "event::home-71d925b3ec86d07d0410cab16a7fa7268f141469f30e688700788ef550b902e1",
+      "event_id": "home-71d925b3ec86d07d0410cab16a7fa7268f141469f30e688700788ef550b902e1",
+      "event_title": "Restaurant suppliers fell after Sysco's softer traffic warning; ADM and Keurig Dr Pepper dropped on separate reports with unresolved drivers.",
+      "surface_summary_text": "One direct restaurant-demand warning explains the distributor moves; no shared food-cost event is supported.",
+      "what_happened_text": "Sysco's sales missed market forecasts and management said full-year sales growth would be at the low end of its range because restaurants are buying less. Performance Food Group and US Foods, which also supply restaurants, fell about 4% but had no separate company news in captured sources. Archer-Daniels-Midland and Keurig Dr Pepper each reported quarterly results around the same time; their stock drops have no captured detail explaining the exact cause.",
+      "why_happened_text": "Sysco's warning is a direct driver for Sysco and likely spilled over to other restaurant suppliers. There is no evidence of one common food-cost event; ADM and Keurig Dr Pepper's drops remain unresolved.",
+      "business_context_text": "Restaurant suppliers' sales depend on restaurant traffic, so a traffic warning from a major distributor can lower expectations for peers.",
+      "watch_next_text": "Full ADM and Keurig Dr Pepper releases or call comments would clarify whether the declines reflect company-specific results or a broader food-demand signal.",
+      "source_ids": [
+        "doc::event-news::40c247a869524b5a509f",
+        "agent_source::7cbad05e7b8990172a14",
+        "agent_source::aecb025144b4d19bdaad"
+      ],
+      "anchor_symbol": "SYY",
+      "symbol": "SYY",
+      "supporting_symbols": [
+        "SYY",
+        "PFGC",
+        "USFD",
+        "ADM",
+        "KDP"
+      ]
+    },
+    {
+      "source_ref": "must_read_movers:0",
+      "bundle_id": "event::home-c8ae722b2a3b9454e36a1f17d7cf4e41231d14b4144fca232b67c8b6b7d1ea61",
+      "event_id": "home-c8ae722b2a3b9454e36a1f17d7cf4e41231d14b4144fca232b67c8b6b7d1ea61",
+      "event_title": "Shopify fell 8.7% after a tiny sales miss and a softer fourth-quarter profit outlook, not because demand collapsed.",
+      "surface_summary_text": "The profit share on each sale is falling as services grow faster than subscriptions, and the fourth-quarter guide implies that pressure continues.",
+      "what_happened_text": "Shopify's reported sales missed the average analyst estimate by only about $5 million, or 0.1%, and a profit measure that leaves out changes in investment values beat the estimate. Merchants sold $119.15 billion through the platform, up 29%. The company's fees from payments, shipping, and lending grew faster than subscription fees but cost more to provide. For every $100 of sales, Shopify kept $47.60, down from $48.90 a year earlier. Management's fourth-quarter sales outlook topped estimates, but profit after direct costs is expected to grow in the high-twenties percent, implying the squeeze on profit share will continue. Shares dropped 15% in premarket and closed down 8.7%.",
+      "why_happened_text": "The sales miss alone is too small to explain the move. The lower share of profit on each sale, slower expected sales and profit growth, and a high stock valuation are the reported investor concerns. Shopify also filed papers to allow future share or debt sales, but supplied evidence does not connect that filing to the price move.",
+      "business_context_text": "Faster-growing services cost more to provide, so their growing share reduces the profit per sale even as sales rise.",
+      "watch_next_text": "Full call comment linking the margin guidance to the decline would strengthen the explanation.",
+      "source_ids": [
+        "agent_source::7987501fc129b43f2a16",
+        "agent_source::daaceca85f20a3d9ac51",
+        "agent_source::7f8073bd861bf59e8501"
+      ],
+      "anchor_symbol": "SHOP",
+      "symbol": "SHOP",
+      "supporting_symbols": [
+        "SHOP"
+      ]
+    },
+    {
+      "source_ref": "must_read_movers:1",
+      "bundle_id": "event::home-f329e2fc7d2a2200f2bcd4bc30c9d6f51eaa81b8d7d35344d488804829e2ccab",
+      "event_id": "home-f329e2fc7d2a2200f2bcd4bc30c9d6f51eaa81b8d7d35344d488804829e2ccab",
+      "event_title": "Lattice Semiconductor and Fabrinet rose on their own strong sales, showing the chip rebound was not one uniform trade.",
+      "surface_summary_text": "Direct earnings-driven gains explain part of the equipment and optical rebound, but not the entire group.",
+      "what_happened_text": "Lattice Semiconductor reported record quarterly sales of $291 million, up 118% from a year earlier. Fabrinet reported sales up 51% to $1.47 billion and gave a current-quarter outlook above forecasts. Lam Research's shareholder meeting said factory-equipment spending should exceed $200 billion in 2027, while noting supply and factory-capacity constraints remain.",
+      "why_happened_text": "These are separate company-specific positives, not one common event. They explain part of the equipment and optical rebound but not the entire group.",
+      "business_context_text": "",
+      "watch_next_text": "Check whether these gainers hold their moves after AMD's results and after the rebound's first full sessions.",
+      "source_ids": [
+        "doc::event-news::e2d73d51940816c1caa9",
+        "doc::event-news::40c247a869524b5a509f",
+        "agent_source::3bf1bc1b59df07e7884b"
+      ],
+      "anchor_symbol": "LSCC",
+      "symbol": "LSCC",
+      "supporting_symbols": [
+        "LSCC",
+        "FN",
+        "LRCX"
+      ]
+    },
+    {
+      "source_ref": "must_read_movers:2",
+      "bundle_id": "event::home-3e1f3ef074c3c87c692ee39e24182d54293ff91feeaf3816775d87a1ae4ce617",
+      "event_id": "home-3e1f3ef074c3c87c692ee39e24182d54293ff91feeaf3816775d87a1ae4ce617",
+      "event_title": "Lumentum's discount to the Marvell share package widened to 12.1% on Nov. 3 even as optical peers rallied; the pattern remains more consistent with deal-closing risk than weak operations.",
+      "surface_summary_text": "The market appears to price a lower chance that the deal closes on current terms; Lumentum's strong results do not explain the drop.",
+      "what_happened_text": "Marvell rose slightly and Lumentum fell slightly while the optical group that includes both stocks averaged a gain of about 5.1%, with 11 of 12 members rising. The value of the Marvell shares a Lumentum holder would receive rose, but Lumentum still closed 12.1% below that package, wider than 11.3% the prior day. Two analyst notes blamed the Lumentum deal for hurting Marvell: Bank of America pulled its positive recommendation on Marvell and cut its expected price to $225 from $400, while Cantor kept a cautious stance and also cut to $225 from $350. Lumentum's own results were strong and above estimates.",
+      "why_happened_text": "The pattern is more consistent with a lower chance that the deal closes on current terms than with weak Lumentum operations: if completion looks less likely, Marvell avoids issuing the new shares and Lumentum loses the deal value. Analyst estimates show Marvell would issue many more shares, reducing each existing share's claim on future profit, and the promised yearly cost savings may not offset that. Same-day prices are not proof, and no new regulatory or shareholder event has been confirmed.",
+      "business_context_text": "An all-share deal ties Lumentum's value directly to Marvell's stock, so closing risk and Marvell's share price drive the gap.",
+      "watch_next_text": "China approval or a new closing-condition filing would be the next direct test; a narrower or wider discount would update the market's view of completion.",
+      "source_ids": [
+        "doc::event-news::58d57b080a80bf91e2ce",
+        "saa_doc::343e9d2bbe272191e65d0d9c",
+        "saa_doc::09fa023a23ba8b280fc06ba6"
+      ],
+      "anchor_symbol": "MRVL",
+      "symbol": "MRVL",
+      "supporting_symbols": [
+        "MRVL",
+        "LITE"
+      ]
+    },
+    {
+      "source_ref": "unresolved_large_moves:0",
+      "bundle_id": "event::home-1d64eaedb6f21ed635e124780a104c6a0657e82b655b39ea4ed41bc211b18174",
+      "event_id": "home-1d64eaedb6f21ed635e124780a104c6a0657e82b655b39ea4ed41bc211b18174",
+      "event_title": "Crypto-mining and computing-hosting shares rebounded about 14.6% while Bitcoin stayed near $77,000; the same-day cause is not established.",
+      "surface_summary_text": "The move looks like a sharp rebound after a deep decline rather than a response to fresh digital-asset or business news.",
+      "what_happened_text": "The nine companies rose unevenly, with Cipher, Riot, Hut 8, and Galaxy Digital among the largest. Wider crypto-related names gained less: Coinbase 5.5%, Circle 4.4%, Strategy 3.7%, and Robinhood 2.2%. Bitcoin itself rose about 1%. The group had already fallen sharply over the prior 20 sessions.",
+      "why_happened_text": "A rebound after a deep decline can show large percentage gains from low starting prices without fresh business news. Traders who had borrowed shares to bet on a fall may have had to buy them back, but no supplied source confirms that. No same-day company-specific cause is visible. Some of these companies also rent computing power for AI, but supplied articles do not connect the nine to a new AI contract or earnings release.",
+      "business_context_text": "Heavy selling before the bounce is consistent with a later recovery, but the connection to miner shares is not directly sourced.",
+      "watch_next_text": "The next close will show whether this is a one-day rebound or a stronger trend; a company-specific announcement would be needed to assign a cause.",
+      "source_ids": [
+        "doc::event-news::697c16a3ff69a80d76d4",
+        "doc::event-news::e2d73d51940816c1caa9"
+      ],
+      "anchor_symbol": "APLD",
+      "symbol": "APLD",
+      "supporting_symbols": [
+        "APLD",
+        "CIFR",
+        "CLSK",
+        "CORZ",
+        "GLXY",
+        "HUT",
+        "IREN",
+        "RIOT",
+        "WULF"
+      ]
+    }
+  ]
+}

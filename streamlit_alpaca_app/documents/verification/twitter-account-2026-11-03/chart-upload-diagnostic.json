@@ -1,0 +1,110 @@
+{
+  "traffic": [
+    {
+      "host": "upload.x.com",
+      "path": "/i/media/upload.json",
+      "command": [
+        "INIT"
+      ],
+      "status": 202
+    },
+    {
+      "host": "upload.x.com",
+      "path": "/i/media/upload.json",
+      "command": [
+        "INIT"
+      ],
+      "status": 202
+    },
+    {
+      "host": "upload.x.com",
+      "path": "/i/media/upload.json",
+      "command": [
+        "INIT"
+      ],
+      "status": 202
+    },
+    {
+      "host": "upload.x.com",
+      "path": "/i/media/upload.json",
+      "command": [
+        "APPEND"
+      ],
+      "status": 204
+    },
+    {
+      "host": "upload.x.com",
+      "path": "/i/media/upload.json",
+      "command": [
+        "APPEND"
+      ],
+      "status": 204
+    },
+    {
+      "host": "upload.x.com",
+      "path": "/i/media/upload.json",
+      "command": [
+        "APPEND"
+      ],
+      "status": 204
+    },
+    {
+      "host": "upload.x.com",
+      "path": "/i/media/upload.json",
+      "command": [
+        "FINALIZE"
+      ],
+      "status": 201
+    },
+    {
+      "host": "upload.x.com",
+      "path": "/i/media/upload.json",
+      "command": [
+        "FINALIZE"
+      ],
+      "status": 201
+    },
+    {
+      "host": "upload.x.com",
+      "path": "/i/media/upload.json",
+      "command": [
+        "FINALIZE"
+      ],
+      "status": 201
+    }
+  ],
+  "dialog_text": [
+    "DraftsEveryoneChip-equipment, optical, and memory shares rose sharply on Nov. 3 after a month-long slide, but the evidence points to several drivers rather than one common cause.\n\nhttps://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T045610Z__168d03d7__22070e46d07f46b2b9808dce355136b5/event%3A%3Ahome-e6398b1135a0978d16de751c7a8c655b7968da2d0e3150a73b0058b1e8382755EditEditEditTag peopleAdd descriptionsEveryone can replyPost",
+    "DraftsEveryoneChip-equipment, optical, and memory shares rose sharply on Nov. 3 after a month-long slide, but the evidence points to several drivers rather than one common cause.\n\nhttps://spectral-nature.com/attention/attention_home_snapshots_1d__20261104T045610Z__168d03d7__22070e46d07f46b2b9808dce355136b5/event%3A%3Ahome-e6398b1135a0978d16de751c7a8c655b7968da2d0e3150a73b0058b1e8382755EditEditEditTag peopleAdd descriptionsEveryone can replyPost"
+  ],
+  "testids": [
+    "mask",
+    "progressBar-bar",
+    "app-bar-close",
+    "unsentButton",
+    "UserAvatar-Container-OmairS2",
+    "tweetTextarea_0_label",
+    "tweetTextarea_0RichTextInputContainer",
+    "tweetTextarea_0",
+    "attachments",
+    "tagPeopleLabel",
+    "altTextWrapper",
+    "altTextLabel",
+    "toolBar",
+    "ScrollSnap-prevButtonWrapper",
+    "ScrollSnap-SwipeableList",
+    "ScrollSnap-List",
+    "fileInput",
+    "gifSearchButton",
+    "grokImgGen",
+    "createPollButton",
+    "scheduleOption",
+    "geoButton",
+    "contentDisclosureButton",
+    "ScrollSnap-nextButtonWrapper",
+    "countdown-circle",
+    "addButton",
+    "tweetButton"
+  ],
+  "post_clicked": false
+}

@@ -1,0 +1,23 @@
+{
+  "new_event_queue_verified": 9,
+  "repeat_existing_receipts_preserved": 9,
+  "published_account_count": 10,
+  "new_public_posts": 0,
+  "media_dispatch_guard": {
+    "missing": {
+      "aborted": true
+    },
+    "partial": {
+      "aborted": true
+    },
+    "duplicate": {
+      "aborted": true
+    },
+    "extra": {
+      "aborted": true
+    },
+    "exact": {
+      "continued": true
+    }
+  }
+}

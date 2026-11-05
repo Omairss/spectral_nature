@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "checked_revision": "a1001ab875e0c69f7ea1acbebe2e1aa2f3b1cb47",
+  "accepted_source_revision": "0bcec9b108b21a0b5161c0c5da78168823c2b44e",
+  "source_files": 336,
+  "source_inventory_sha256": "fd016903f21810ec8b02faab9e3b07c07d6103c508252c2f6b1871e07d59694c",
+  "roles": {
+    "worker": {
+      "runtime_files": 204,
+      "runtime_inventory_sha256": "c15d97714222381c509610ca94f64bff97724e3bd6c6ce037828e0a7be35a3d1"
+    },
+    "api-next": {
+      "runtime_files": 204,
+      "runtime_inventory_sha256": "c15d97714222381c509610ca94f64bff97724e3bd6c6ce037828e0a7be35a3d1"
+    },
+    "broker": {
+      "runtime_files": 204,
+      "runtime_inventory_sha256": "c15d97714222381c509610ca94f64bff97724e3bd6c6ce037828e0a7be35a3d1"
+    },
+    "web": {
+      "runtime_files": 101,
+      "runtime_inventory_sha256": "823d39cff6eb2ebf0aee675cdf397350d032e773ce0f0ca921722c331526de70"
+    }
+  },
+  "application_images_built": false,
+  "application_deployments": 0,
+  "previous_images_removed_from_current_acceptance": true
+}

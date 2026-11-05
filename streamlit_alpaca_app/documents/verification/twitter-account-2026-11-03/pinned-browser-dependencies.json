@@ -1,0 +1,15 @@
+{
+  "status": "browser_launch_passed",
+  "run_id": "cj1eq",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:72fd68cd44c2d3a2f749e927edd3658fb6088b0d5c849af7fd72cce146c86e83",
+  "read_only_dependency_probe": true,
+  "result": {
+    "javascript": null,
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
+  },
+  "probe_limit": "Page.evaluate uses an isolated execution context by default; the page script global is not visible there. Browser launched and evaluation returned the user agent. Real X read must qualify the deployed image.",
+  "documentation": "https://github.com/Kaliiiiiiiiii-Vinyzu/patchright-python#extended-patchright-api",
+  "acr_home_override": "PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright",
+  "new_browser_downloads": 0,
+  "preceding_probe": "cj1ep used ACR-overridden HOME; installed browser was under /root, not /acb/home."
+}

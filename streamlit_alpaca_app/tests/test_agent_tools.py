@@ -13,6 +13,7 @@ def test_build_tool_catalog_uses_typed_param_schemas():
     assert "query.execute" not in tools_by_name
     assert "research.retained_context" in tools_by_name
     assert "research.live_event_evidence" in tools_by_name
+    assert "research.company_sentiment" in tools_by_name
     assert "research.open_page" in tools_by_name
     assert "zopedia.search_pages" in tools_by_name
     assert "zopedia.read_source" in tools_by_name
@@ -36,7 +37,11 @@ def test_build_tool_catalog_uses_typed_param_schemas():
     assert price_tool["inputSchema"]["properties"]["ticker"]["type"] == "string"
     assert open_page_tool["inputSchema"]["properties"]["require_main_content"]["type"] == "boolean"
     assert open_page_tool["inputSchema"]["properties"]["min_text_chars"]["type"] == "integer"
-    assert analysis_tool["inputSchema"]["required"] == ["objective", "code"]
+    assert analysis_tool["inputSchema"]["required"] == ["code"]
+    sentiment_tool = tools_by_name["research.company_sentiment"]
+    assert sentiment_tool["inputSchema"]["required"] == ["symbol"]
+    assert sentiment_tool["source_access"] == "web"
+    assert sentiment_tool["knowledge_effect"] == "read"
     assert tools_by_name["analysis.read_raw_output"]["inputSchema"]["required"] == ["analysis_run_id"]
 
 

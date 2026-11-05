@@ -1,0 +1,60 @@
+{
+  "status": "accepted_locally",
+  "as_of": "2026-11-04T18:16:36.254186+00:00",
+  "event_date": "2026-11-03",
+  "events": 279,
+  "measured": 279,
+  "colors": {
+    "green": 177,
+    "red": 99,
+    "neutral": 3
+  },
+  "unavailable": [],
+  "price_rows": 558,
+  "market_sessions": [
+    {
+      "close": "16:00",
+      "date": "2026-11-02",
+      "open": "09:30",
+      "session_close": "2000",
+      "session_open": "0400",
+      "settlement_date": "2026-11-03"
+    },
+    {
+      "close": "16:00",
+      "date": "2026-11-03",
+      "open": "09:30",
+      "session_close": "2000",
+      "session_open": "0400",
+      "settlement_date": "2026-11-04"
+    },
+    {
+      "close": "16:00",
+      "date": "2026-11-04",
+      "open": "09:30",
+      "session_close": "2000",
+      "session_open": "0400",
+      "settlement_date": "2026-11-05"
+    },
+    {
+      "close": "16:00",
+      "date": "2026-11-05",
+      "open": "09:30",
+      "session_close": "2000",
+      "session_open": "0400",
+      "settlement_date": "2026-11-06"
+    },
+    {
+      "close": "16:00",
+      "date": "2026-11-06",
+      "open": "09:30",
+      "session_close": "2000",
+      "session_open": "0400",
+      "settlement_date": "2026-11-09"
+    }
+  ],
+  "event_identity_preserved": true,
+  "confirmation_status_preserved": true,
+  "production_writes": 0,
+  "inference_calls": 0
+}

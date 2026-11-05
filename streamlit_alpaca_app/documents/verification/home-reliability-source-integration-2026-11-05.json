@@ -1,0 +1,57 @@
+{
+  "status": "source_integrated_not_qualified",
+  "recorded_at_utc": "2026-11-05T19:26:08.165912+00:00",
+  "candidate_parent": "03ce83e3345c5ad909502f24cedcdefa4e315ceb",
+  "accepted_live_parent": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
+  "merge_base": "3fcfb706f2cf69aa031c32643ae1d5991779955f",
+  "method": "Full Git merge in an isolated worktree; no image/extracted-source overlays.",
+  "conflict_resolutions": {
+    "pipeline/jobs/attention_home_build.py": "Keep candidate direct explanatory fields and absence of public cause_status; preserve accepted X headline maximum250 and headline/link/media contract.",
+    "services/aql/events.py": "Keep candidate likely-mechanism research, selective prior context and chronology; preserve company-specific X reaction acquisition and original dates/attribution.",
+    "services/zopedia_agent.py": "Keep candidate completed-body/checkpoint/receipt lifecycle, reviewer and tool_calls_used accounting; preserve shared X reaction guidance and core tool discovery.",
+    "documents/learnings.md": "Retain relevant entries from both branches.",
+    "documents/mistakes.md": "Retain relevant entries from both branches."
+  },
+  "static_checks": {
+    "status": "passed",
+    "python_changed_paths_parsed": true,
+    "git_diff_check": true,
+    "all_live_only_runtime_paths_identical_to_live_parent": 26,
+    "all_candidate_only_runtime_paths_identical_to_candidate_parent": 8,
+    "overlapping_runtime_paths": [
+      "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "streamlit_alpaca_app/services/aql/events.py",
+      "streamlit_alpaca_app/services/pipeline_store.py",
+      "streamlit_alpaca_app/services/zopedia_agent.py"
+    ],
+    "live_immutable_receipt_and_dataset_lookup_functions_preserved": true,
+    "candidate_provider_receipt_and_response_retention_functions_preserved": true,
+    "calendar_next_open_modules_identical_to_live_parent": true
+  },
+  "preserved_accepted_behaviors": [
+    "Company-specific X reactions remain an existing shared web research tool with dated attributed observations.",
+    "Attention X enqueue/delivery remains after immutable publication and completion receipts, with account-wide deduplication and independent failures.",
+    "Pinned browser binaries/dependencies, native challenge handling, serialized account sessions and bounded browser operations remain.",
+    "Existing Attention chart/explanation images and exact saved-event links remain available; backend enforces owning namespace and web accepts canonical namespaced IDs.",
+    "Calendar measures next trading-day open versus preceding close using consolidated adjusted bars and the existing delay/session convention.",
+    "All accepted API/web/native-compatible contracts, saved event routes and existing broker commands remain in Git."
+  ],
+  "not_performed": [
+    "Paid inference",
+    "New qualitative acceptance",
+    "Build",
+    "Development deployment",
+    "Production deployment",
+    "Release acceptance refresh"
+  ],
+  "qualification_required": [
+    "Root review of merged source and accepted current live consumer inventory.",
+    "Fresh narrow native research/public composition against integrated X-enabled tool discovery and headline schema; keep separate from candidate03ce83e3 evidence.",
+    "Operational provider receipt/checkpoint/cancellation/replay probes on integrated source.",
+    "Preservation checks for X completion hooks, shared sentiment reads, media/deeplinks/namespaces and next-open calendar.",
+    "Review candidate schedule change before applying: final producer/news/Home slots move to21UTC while Trading remains20:35UTC; no live schedule has changed here.",
+    "Committed complete source/runtime acceptance with every changed runtime path reviewed and refreshed consumer-specific immutable baselines.",
+    "Exact DEV image qualification and managed-identity SQL/Blob probes before authorized production promotion."
+  ],
+  "release_acceptance_state": "The merged acceptance file is the accepted X/calendar baseline96d0a52f. Its source_revision6d937907 and200+4 runtime inventory do not certify this integration."
+}

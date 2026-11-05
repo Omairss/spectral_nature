@@ -6,7 +6,7 @@ import pytest
 
 from services.alpha_vantage import AlphaVantageClient, AlphaVantageError, AlphaVantageQuotaError
 from services.market_calendar import SourceResult, merge_calendar, parse_earnings
-from services.market_calendar_reactions import observe_reactions
+from services.market_calendar_reactions import REACTION_BASIS, fetch_reaction_prices, observe_reactions
 
 NOW = datetime(2026, 11, 2, 8, tzinfo=timezone.utc)
 SESSIONS = ["2026-10-28", "2026-10-29", "2026-10-30", "2026-11-02"]
@@ -20,7 +20,7 @@ def report(session="post-market", day="2026-10-29"):
 
 
 def measure(events, missing=()):
-    prices = pd.DataFrame([{"symbol": symbol, "timestamp": day + "T16:00:00Z", "close": value}
+    prices = pd.DataFrame([{"symbol": symbol, "timestamp": day + "T16:00:00Z", "open": value, "close": value}
         for symbol, values in {"IBM": [100, 110, 99, 200], "SPY": [100, 101, 100, 300]}.items()
         for day, value in zip(SESSIONS, values) if (symbol, day) not in missing])
     state = {"market_sessions": [{"date": day} for day in SESSIONS], "events": deepcopy(events)}
@@ -36,9 +36,9 @@ def test_pre_post_and_date_only_reports_use_only_the_next_trading_day():
     assert post["market_reaction"]["end_session"] == "2026-10-30"
 
 
-def test_missing_close_does_not_skip_to_another_session_and_today_is_partial():
+def test_missing_open_does_not_skip_to_another_session_or_use_an_unopened_session():
     assert "market_reaction" not in measure([report()], missing=[("IBM", "2026-10-30")])[0]
-    # Friday after-close cannot use Monday's still-incomplete daily bar.
+    # Friday cannot use Monday's opening quote before Monday's regular open.
     assert "market_reaction" not in measure([report(day="2026-10-30")])[0]
 
 
@@ -126,19 +126,21 @@ def test_failed_history_keeps_good_rows_and_records_retry_cooldown(provider_stor
     assert provider_store[key]["last_attempt_at"] == NOW.timestamp()
 
 
-def test_current_session_is_eligible_only_after_its_official_close_and_data_delay():
+def test_current_open_is_eligible_before_close_but_only_after_the_open_and_data_delay():
     prices = pd.DataFrame([
-        {"symbol": "IBM", "timestamp": "2026-10-30T04:00:00Z", "close": 100},
-        {"symbol": "IBM", "timestamp": "2026-11-02T05:00:00Z", "close": 105},
+        {"symbol": "IBM", "timestamp": "2026-10-30T04:00:00Z", "open": 99, "close": 100},
+        {"symbol": "IBM", "timestamp": "2026-11-02T05:00:00Z", "open": 105, "close": 90},
     ])
-    state = {"market_sessions": [{"date": d, "close": "16:00"} for d in SESSIONS],
+    state = {"market_sessions": [{"date": d, "open": "09:30", "close": "16:00"} for d in SESSIONS],
              "events": [report(day="2026-10-30")]}
-    # The November DST change makes this 16:15 New York, not 16:15 UTC.
-    for minute, colored in [(14, False), (15, True)]:
+    # The November DST change makes this 09:45 New York, not 09:45 UTC.
+    for minute, colored in [(29, False), (44, False), (45, True)]:
         result = observe_reactions(deepcopy(state), prices,
-            as_of=datetime(2026, 11, 2, 21, minute, tzinfo=timezone.utc), price_version="fixture")
+            as_of=datetime(2026, 11, 2, 14, minute, tzinfo=timezone.utc), price_version="fixture")
         assert bool(result["events"][0].get("market_reaction")) == colored
-    state["market_sessions"][-1].pop("close")
+        if colored:
+            assert result["events"][0]["market_reaction"]["return_pct"] == pytest.approx(5)
+    state["market_sessions"][-1].pop("open")
     result = observe_reactions(state, prices,
         as_of=datetime(2026, 11, 2, 23, tzinfo=timezone.utc), price_version="fixture")
     assert "market_reaction" not in result["events"][0]
@@ -146,14 +148,47 @@ def test_current_session_is_eligible_only_after_its_official_close_and_data_dela
 
 def test_early_close_and_holiday_use_the_exchange_schedule():
     prices = pd.DataFrame([
-        {"symbol": "IBM", "timestamp": d + "T05:00:00Z", "close": close}
+        {"symbol": "IBM", "timestamp": d + "T05:00:00Z", "open": close, "close": close}
         for d, close in [("2026-11-25", 100), ("2026-11-27", 95)]])
-    state = {"market_sessions": [{"date": "2026-11-25", "close": "16:00"},
-                                 {"date": "2026-11-27", "close": "13:00"}],
+    state = {"market_sessions": [{"date": "2026-11-25", "open": "09:30", "close": "16:00"},
+                                 {"date": "2026-11-27", "open": "09:30", "close": "13:00"}],
              "events": [report(day="2026-11-25")]}
     result = observe_reactions(state, prices,
         as_of=datetime(2026, 11, 27, 18, 15, tzinfo=timezone.utc), price_version="fixture")
     assert result["events"][0]["market_reaction"]["return_pct"] == pytest.approx(-5)
+
+
+def test_old_close_based_observations_are_recomputed_or_removed_on_quote_outage():
+    old = measure([report()])[0]
+    old["market_reaction"].pop("price_basis")
+    state = {"events": [old], "market_sessions": [{"date": d} for d in SESSIONS]}
+    unavailable = observe_reactions(deepcopy(state), pd.DataFrame(), as_of=NOW, price_version="outage")
+    assert "market_reaction" not in unavailable["events"][0]
+    prices = pd.DataFrame([
+        {"symbol": "IBM", "timestamp": "2026-10-29T04:00:00Z", "open": None, "close": 100},
+        {"symbol": "IBM", "timestamp": "2026-10-30T04:00:00Z", "open": 110, "close": None},
+    ])
+    reaction = observe_reactions(state, prices, as_of=NOW, price_version="new")["events"][0]["market_reaction"]
+    assert reaction["price_basis"] == REACTION_BASIS
+    assert reaction["return_pct"] == pytest.approx(10)
+
+
+def test_missing_open_never_falls_back_to_the_days_close():
+    prices = pd.DataFrame([
+        {"symbol": "IBM", "timestamp": "2026-10-29T04:00:00Z", "open": 99, "close": 100},
+        {"symbol": "IBM", "timestamp": "2026-10-30T04:00:00Z", "open": None, "close": 110},
+    ])
+    state = {"events": [report()], "market_sessions": [{"date": d} for d in SESSIONS]}
+    assert "market_reaction" not in observe_reactions(state, prices, as_of=NOW, price_version="fixture")["events"][0]
+
+
+def test_consolidated_price_fetch_retains_open_and_close_fields():
+    class API:
+        def get_stock_bars(self, symbols, **options):
+            assert options["feed"] == "sip" and options["adjustment"] == "all"
+            return {"IBM": pd.DataFrame([{"timestamp": "2026-10-30T04:00:00Z", "open": 110, "close": 90}])}
+    prices = fetch_reaction_prices(API(), ["IBM"], start=NOW, end=NOW)
+    assert prices.iloc[0]["open"] == 110 and prices.iloc[0]["close"] == 90
 
 
 def test_latest_pending_reports_precede_larger_historical_backfill(monkeypatch):
