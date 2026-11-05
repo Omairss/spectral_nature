@@ -118,7 +118,7 @@
     "owner_response": "Owner liked the original-report writing example on November 4. This accepts that example; it does not establish that the experimental input change is integrated or that current upstream prompts are verified."
   },
   "upstream_prompt_verification": {
-    "status": "prepared_awaiting_api_window_approval",
+    "status": "first_current_prompt_test_completed_correction_under_verification",
     "current_source_runtime": "9b16bcae",
     "previous_actual_upstream_run": "20bc503e",
     "gap": "The shared final-synthesis, reviewer and narrative prompts changed after the last actual upstream research run. Later paid comparisons covered only final public writing.",
@@ -134,6 +134,14 @@
       ]
     },
     "requested_window_minutes": 30,
-    "private_preflight": "operations/home-reliability-completion-20261103/upstream-preflight.json"
+    "private_preflight": "operations/home-reliability-completion-20261103/upstream-preflight.json",
+    "tested_revision": "e9f88c8a",
+    "actual_result": "Fresh planner, planner review, research synthesis and research review completed. The planner retained the inherited binary framing; the research reviewer introduced a next-day stock close beyond the reporting cutoff.",
+    "source_correction": [
+      "Keep prior research as a dated readable catalog, with findings and originals available through the existing readers. Exclude previous top-level review judgments from supplied event/company research records and inline context. Stored audit records remain unchanged.",
+      "The shared reviewer must distinguish observation, event and publication times, and may not change an observation date to make an explanation fit."
+    ],
+    "live_source_revision": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
+    "release_integration": "Production advanced to the namespace-aware X/calendar release; reconcile that accepted source before any candidate release. No production deployment from the older branch."
   }
 }

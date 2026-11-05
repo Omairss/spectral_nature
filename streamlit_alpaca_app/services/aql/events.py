@@ -263,12 +263,10 @@ def research_source_events(
             previous_nomination = None
         prior_investigations = [
             {key: artifact.get(key) for key in ("artifact_id", "subject", "task", "created_at_utc")}
-            | {"research_summary": {key: ((artifact.get("result") or {}).get("payload") or {}).get(key)
-                                    for key in ("event_title", "supporting_symbols", "cause_status")},
-               "quality_review": ((artifact.get("result") or {}).get("agent_result") or {}).get("quality_review") or {},
-               "limitations": ((artifact.get("result") or {}).get("agent_result") or {}).get("limitations") or [],
-               "artifact_context": {key: value for key, value in ((artifact.get("result") or {}).get("artifact_context") or {}).items()
-                                    if key != "source_documents"}}
+            | {"source_id": "retained-research:" + artifact["artifact_id"],
+               "research_asof_time_utc": ((artifact.get("result") or {}).get("artifact_context") or {}).get("asof_time_utc"),
+               "research_summary": {key: ((artifact.get("result") or {}).get("payload") or {}).get(key)
+                                    for key in ("event_title", "supporting_symbols")}}
             for artifact in retained[:max(int(get_config_param(_P_PRIOR_EVENT_LIMIT)), 1)]
         ]
     except WorkCancelled:
@@ -392,7 +390,12 @@ def research_source_events(
         "title": ((artifact.get("result") or {}).get("payload") or {}).get("event_title") or artifact["subject"],
         "metadata": {"kind": "prior_model_analysis", "created_at_utc": artifact["created_at_utc"],
                      "research_asof_time_utc": ((artifact.get("result") or {}).get("artifact_context") or {}).get("asof_time_utc")},
-        "content": to_jsonable(artifact)} for artifact in retained})
+        # Keep originals and findings readable. Previous review judgments stay
+        # in the stored audit record, outside this independent assessment.
+        "content": to_jsonable({**artifact, "result": {
+            **(artifact.get("result") or {}), "agent_result": {
+                key: value for key, value in ((artifact.get("result") or {}).get("agent_result") or {}).items()
+                if key != "quality_review"}}})} for artifact in retained})
     service = QueryService.from_environment().with_supplied_evidence(source_records)
     nomination = run_aql_zopedia_structured_agent(
         query=get_prompt(_NOMINATION_PROMPT)
@@ -559,7 +562,10 @@ def research_source_events(
             **{"company-research:" + artifact["artifact_id"]: {
                 "title": artifact["subject"],
                 "metadata": {"created_at_utc": artifact["created_at_utc"], "kind": "prior_model_analysis"},
-                "content": artifact,
+                "content": {**artifact, "result": {
+                    **(artifact.get("result") or {}), "agent_result": {
+                        key: value for key, value in ((artifact.get("result") or {}).get("agent_result") or {}).items()
+                        if key != "quality_review"}}},
             } for artifact in prior_research},
         })
         prior_research = [{key: artifact.get(key) for key in ("artifact_id", "subject", "created_at_utc")}
@@ -567,9 +573,8 @@ def research_source_events(
                           for artifact in prior_research]
         company_prior_research = list(prior_research)
         prior_event = ({key: prior.get(key) for key in ("artifact_id", "subject", "created_at_utc")}
-                       | {"payload": prior["result"].get("payload") or {},
-                          "quality_review": (prior["result"].get("agent_result") or {}).get("quality_review") or {},
-                          "limitations": (prior["result"].get("agent_result") or {}).get("limitations") or []}) if prior else None
+                       | {"source_id": "retained-research:" + prior["artifact_id"],
+                          "research_asof_time_utc": prior_context.get("asof_time_utc")}) if prior else None
         if prior_event:
             prior_research.insert(0, prior_event)
         related = {_normalize_symbol(symbol) for symbol in plan["related_symbols"]}
