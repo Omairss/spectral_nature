@@ -1,5 +1,5 @@
 {
-  "status": "execution_repair_verified_public_quality_pending",
+  "status": "public_source_delivery_failure_confirmed_candidate_rejected",
   "source_checkpoint": "4cbc475b",
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
   "offline_verification": {
@@ -9,7 +9,8 @@
     "scope": "Isolated local/development; all requests and unknown charges count; no production writes.",
     "total_window_seconds": 7200,
     "approval_amendment": "Owner: Approve up to$3 more and30 minutes. All previous charges and bounds remain counted.",
-    "owner_continuation": "November5owner: Yes, stop asking me for today. It is all approved. Finish the job. Preserve cumulativecharges; no moreprovider/window questions today."
+    "owner_continuation": "November5owner: Yes, stop asking me for today. It is all approved. Finish the job. Preserve cumulativecharges; no moreprovider/window questions today.",
+    "latest_counted_exposure_usd": 15.197348
   },
   "requirements": [
     {
@@ -92,34 +93,33 @@
     "evidence": "documents/verification/home-closing-schedule-2026-11-05.json",
     "summary": "Preserve 20:35 equities and add a 21:35 numerical refresh; keep two news runs at 14:05/21:05 UTC, four Home runs with final 21:50, and every Trading schedule and authority. Opening news timing stays unchanged. Raw headlines at 21:05 exclude later earnings; integrated-source qualification must verify fresh acquisition through the existing due-calendar/live Zopedia path."
   },
-  "current_source_revision": "44650d92 plus committed next completed-response handoff checkpoint",
-  "current_verification_record": "documents/verification/home-upstream-verification-2026-11-05.json",
+  "current_source_revision": "646588e3",
+  "current_verification_record": "documents/verification/home-cause-framing-2026-11-05.json",
   "remaining": [
     {
       "id": 1,
-      "task": "Verify fresh native public composition/review with the materialized reviewed investigation; inspect complete feed and resulting Brief/charts.",
-      "state": "prepared_requires_verification_allowance",
-      "supersedes": "The two previous study-guard refusals are historical evidence; owner requested the smallest native case instead of repeating the full pipeline."
+      "task": "Correct original-evidence delivery and probability-based explanation in the existing flow, then personally review full writer/reviewer results.",
+      "state": "source_contract_failure_confirmed; latest full candidate rejected"
     },
     {
       "id": 2,
-      "task": "Accept the complete substantive public explanation after actual writer/reviewer output; source contracts alone do not establish quality.",
-      "state": "not_accepted"
+      "task": "Qualify Brief/chart continuation and integrated source acceptance after actual narrative acceptance.",
+      "state": "pending"
     },
     {
       "id": 3,
-      "task": "Reconcile accepted96d0a52f X/calendar source, review changed runtime and every current consumer, then prepare committed release acceptance.",
-      "state": "source_review_in_progress"
+      "task": "Build accepted Git source, qualify exact DEV images and managed-identity SQL/Blob recovery.",
+      "state": "not_started; backend release held"
     },
     {
       "id": 4,
-      "task": "Build accepted Git source, deploy exact images to development, verify managed-identity SQL/Blob receipt recovery and API contracts",
-      "state": "not_started"
+      "task": "Promote exact qualified images, reviewed closing schedule, recover five original receipts and regenerate/read back live feed.",
+      "state": "owner_authorized; contingent on local and DEV acceptance"
     },
     {
       "id": 5,
-      "task": "Promote the same qualified images to production, apply reviewed closing-cycle schedules, reconcile five retained production receipts, regenerate and read back the live feed",
-      "state": "authorized_not_started"
+      "task": "Finish separately gated native23 rendering and device delivery with current web content parity.",
+      "state": "native-only source and signed Simulator compile accepted; actual rendering underway; cloud backend unchanged"
     }
   ],
   "writing_follow_up": {
@@ -168,16 +168,10 @@
     "no_release_acceptance_granted": true
   },
   "current_writing_iteration": {
-    "status": "prepared_for_fresh_small_native_comparison",
-    "reason": "Native final review retained missing-proof framing, repetitive statistics and misplaced demand inference despite recovering after-close facts.",
-    "changes": [
-      "Present current recorded claims and numerical observations first; prior full prose remains in the existing dated research reader, with duplicate execution traces and private cause status excluded from the public model view.",
-      "Keep existing original-page and retained-source readers available during synthesis/review under the same caller source policy.",
-      "Propagate artifact/reporting cutoff explicitly instead of defaulting historical requests to execution time.",
-      "Restore probability-based explanation and distinguish market expectations from measured business activity in shared guidance.",
-      "Give the public editor a soft80\u2013140word story objective; no word-count filter or truncation."
-    ],
-    "source_only": true,
-    "verification": "Fresh public small case, then shared research synthesis/review; no new common planner or full acquisition batch."
+    "source": "646588e3",
+    "status": "full_case_rejected",
+    "record": "documents/verification/home-cause-framing-2026-11-05.json",
+    "small_case_limit": "The focused primary-report query passed; it did not generalize to the complete feed.",
+    "minor_repetition": "Owner says use a simple existing editorial correction only; no design change for repeated supplier/buyer explanation."
   }
 }

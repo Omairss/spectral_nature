@@ -1691,3 +1691,7 @@ The Home candidate branched before the November4 accepted X/calendar rollout. Bu
 ### November 5, 2026 — closing source schedule audit
 
 The first closing schedule proposal moved the existing 20:35 numerical producer and treated a 21:05 headline snapshot as if it covered later earnings. A proposed minute-40 news change would also remove morning news availability before 14:35 Trading. The source-only correction preserves the 20:35 numerical tick and 14:05 news, adds a 21:35 numerical tick, and requires the existing calendar/live research path to acquire later reports. No live schedule changes follow from editing infra/job_schedules.env.
+
+### November5,2026 — factual handoff and full-feed review
+
+Removing all inline claims left the full public writer with numerical observations and a large catalog but no central report bodies. It wrote without opening reports; the reviewer read one unrelated movers article and retained concrete ADMA/Warby errors and generic EPAM text. Candidate646 is rejected. The catalog still exposes old proof-oriented research titles. No backend deployment follows this result. See verification/home-cause-framing-2026-11-05.json.

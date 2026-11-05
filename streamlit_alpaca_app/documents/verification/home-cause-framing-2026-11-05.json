@@ -1,0 +1,71 @@
+{
+  "status": "full_candidate_rejected_after_personal_review",
+  "live_source": "96d0a52f",
+  "candidate_source": "646588e3",
+  "production_research_instruction": {
+    "path": "services/aql/events.py",
+    "text": "retain unresolved observations without substituting an unsupported common cause. Different companies in a numerical group can have different causes."
+  },
+  "actual_case": {
+    "original_bundle": "event::question-f132452dc23b69fe7fd4",
+    "claim_index": 6,
+    "claim_ending": "but the available evidence does not separately prove which item caused the gain.",
+    "input_path": "initial_evidence[0].completed_research_claims[3].recorded_claims[6].claim_text",
+    "f9_first_writer_request": "ee8da13",
+    "observed_writer_behavior": "Returned complete draft without opening any original company report. Recast claim as cannot isolate which item drove the gain.",
+    "final_reviewer_request": "2c231",
+    "observed_review_behavior": "Preserved missing-proof framing despite shared instructions to remove it."
+  },
+  "candidate_change": {
+    "research_instructions": "Rank plausible explanations and business mechanisms with qualitative likelihood; several mechanisms may act together.",
+    "public_initial_context": "Original source catalog and numerical observations. Prior generated claims/findings remain readable through existing evidence tools, without automatic inline injection.",
+    "focused_observation": "Focused query explicitly identified EPAM and its primary report. It opened that report; this does not isolate the input-removal effect, and the full case did not generalize.",
+    "full_feed_verification": "Completed, personally rejected; no backend deployment."
+  },
+  "causal_claim_limit": "Exact copied/inherited framing and observed tool behavior confirmed. Other disclaimers are model-added continuations; this trace alone does not quantify each instruction contribution.",
+  "generated_at_utc": "2026-11-05T21:29:19.826200+00:00",
+  "full_case": {
+    "source_revision": "646588e3",
+    "writer_request": "179ab5bba0444631a06b7e9bf4c25eb4",
+    "reviewer_requests": [
+      "38ae89f3b8124d3f973587468ce0105d",
+      "a30038f9f3e34113bc829cb1783ade0d"
+    ],
+    "elapsed_seconds": 369,
+    "additional_usage_estimate_usd": 0.1576,
+    "cumulative_counted_exposure_usd": 15.197348,
+    "writer_original_reads": 0,
+    "reviewer_original_reads": 1,
+    "reviewer_read_subject": "Zillow/HubSpot/Snap premarket movers article",
+    "rejection_reasons": [
+      "ADMA marketed ASCENIV business confused with experimental SG-001 development.",
+      "Warby earlier article price move replaces newer dated numerical observation.",
+      "EPAM loses the concrete margins/buyback explanation.",
+      "Proof commentary remains in central themes."
+    ]
+  },
+  "remaining_automatic_framing": {
+    "location": "initial_evidence[0].source_index[*].title",
+    "examples": [
+      "no lost order, permit stop, or missed loan payment is confirmed",
+      "no new signed rule, order loss, or missed payment appears"
+    ],
+    "catalog_characters": 409087,
+    "numerical_overview_characters": 92530,
+    "note": "No hidden old claim bodies in this request. Interpretive titles remain visible; first writer inferred business details without opening reports."
+  },
+  "reader_contract_finding": {
+    "path": "services/zopedia_research.py",
+    "function": "read_evidence",
+    "behavior": "Requested chunk is replaced by full original.raw_text when present, and complete provider_payload_json is included.",
+    "introduced_before_candidate": "9b003867, October18",
+    "status": "confirmed_source_contract_mismatch; no correction in this record"
+  },
+  "handoff_limits": [
+    "Stored claim chunk IDs map every source chunk; they are not narrow model-selected passages.",
+    "Recorded EPAM acquisition opened the entire original report; no saved narrow passage selection exists.",
+    "Reported-fact role is free-form and can itself contain stale wording or proof commentary; a two-role whitelist would also hide useful accepted research."
+  ],
+  "next_work": "Correct evidence delivery within the existing research/writer/reader flow; preserve numerical authority, useful prior research and readable originals. No new planner, sidecar or phrase filter. Requalify actual outputs before release.",
+  "production_writes": 0
+}

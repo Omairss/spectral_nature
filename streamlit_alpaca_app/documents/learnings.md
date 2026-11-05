@@ -1729,3 +1729,7 @@ Integrate the full newer accepted Git branch before release, then review overlap
 ### November 5, 2026 — closing source schedule audit
 
 Measure source publication separately from job completion. News headlines publish within seconds of the fixed acquisition cutoff, before company research. A later job finish cannot add earnings released after that cutoff. Preserve existing numerical ticks and morning news timing when adding a closing snapshot. Qualify reports released after the snapshot through the existing calendar and live research tools; do not claim complete headlines from a later job finish.
+
+### November5,2026 — factual handoff and full-feed review
+
+A catalog is a discovery aid, not the underlying report. Inspect actual model reads: a finished writer can cite a catalog ID without reading its source. Old research titles can carry the same defensive framing as old claim bodies. The focused EPAM query explicitly selected a primary report; its success did not establish full-feed improvement. Preserve original numerical timestamps, and do not use free-form claim-role labels as factual admission rules.
