@@ -1852,7 +1852,6 @@ def _review_home_public_surface(
         "unresolved_large_moves": _attention_home_unresolved_display_limit(),
     }
     records = {}
-    findings = []
     for artifact in retained_research or []:
         result = artifact.get("result") or {}
         context = result.get("artifact_context") or {}
@@ -1896,13 +1895,6 @@ def _review_home_public_surface(
                 "research_asof_time_utc", "research_completed_at_utc", "current_assessment_asof_time_utc",
             )}, "findings_markdown": bundle.get("findings_markdown") or bundle.get("research_result")}),
         }
-        answer = bundle.get("findings_markdown") or bundle.get("research_result")
-        if answer:
-            findings.append({"source_id": source_id, "asof_time_utc": bundle.get("asof_time_utc"),
-                "supporting_symbols": bundle.get("supporting_symbols") or [],
-                "recorded_claims": [{key: claim.get(key) for key in (
-                    "claim_text", "source_id", "source_url")}
-                    for claim in bundle.get("claims") or []]})
     for index, row in enumerate(enrichment_rows or []):
         if row.get("research_origin") == "common_market_agenda":
             continue
@@ -1962,14 +1954,15 @@ def _review_home_public_surface(
         "and name the leading likely drivers, which developments they explain and how they affect businesses. "
         "Lead with the explanation and its importance; keep research-status commentary internal. "
         "Read the dated calendar to check material releases already due before assigning future follow-ups. "
-        "Use the latest completed observations and keep earlier source snapshots dated. Use original sources when the explanation "
-        "depends on a material detail. Section limits are ceilings; leave redundant fields empty and include only "
+        "Read original reports for the central developments. Use dated research to find useful sources and connections; "
+        "form the reader's explanation from the underlying reports and numerical observations. "
+        "Use the latest observations at their actual time and keep earlier source snapshots dated. "
+        "Section limits are ceilings; leave redundant fields empty and include only "
         "material follow-ups. Use exact source IDs and valid source-title links."
     )
     initial_evidence = [{
         "numerical_overview": {key: value for key, value in (payload.get("market_context") or {}).items()
                                if key not in {"observations", "columns", "previous_groups"}},
-        "completed_research_claims": findings,
         "source_index": [{"source_id": source_id, "title": record["title"], "metadata": record["metadata"],
                           "read_pointer": record.get("read_pointer", ""),
                           "fields": list(record["content"]) if isinstance(record["content"], dict) else []}
