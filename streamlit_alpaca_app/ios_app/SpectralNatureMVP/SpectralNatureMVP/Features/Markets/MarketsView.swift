@@ -119,6 +119,14 @@ struct MarketsView: View {
           }
           ForEach(rows.map(MarketInstrument.init)) { instrument in
             let row = instrument.row
+            let scores = [
+              ("opportunity_score", "Opportunity score", 2),
+              ("momentum_score", "3M price trend score", 6),
+              ("momentum_roc_score", "Trend change score", 6),
+            ].compactMap { field -> (String, String)? in
+              guard let value = row.number(field.0) else { return nil }
+              return (field.1, Format.number(value, digits: field.2))
+            }
             VStack(spacing: 0) {
               NavigationLink {
                 InvestigatorView(ticker: row.text("symbol"))
@@ -135,13 +143,9 @@ struct MarketsView: View {
                     .font(.caption2).foregroundStyle(.secondary)
                 }.padding(.vertical, 6).contentShape(Rectangle())
               }.buttonStyle(.plain)
-              if ["opportunity_score", "momentum_score", "momentum_roc_score"].contains(where: { row.number($0) != nil }) {
+              if !scores.isEmpty {
                 DisclosureGroup("Market scores") {
-                  Metrics(items: [
-                    ("Opportunity score", Format.number(row.number("opportunity_score"), digits: 2)),
-                    ("3M price trend score", Format.number(row.number("momentum_score"), digits: 6)),
-                    ("Trend change score", Format.number(row.number("momentum_roc_score"), digits: 6)),
-                  ])
+                  Metrics(items: scores)
                 }.font(.caption).tint(Theme.secondaryText).padding(.vertical, 8)
               }
               Divider()

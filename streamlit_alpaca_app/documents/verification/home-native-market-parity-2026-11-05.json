@@ -4,7 +4,7 @@
   "base_revision": "d68e579fd8b7e9169037c6bcdecc509cfe38adb6",
   "scope": "Expose existing web market scores and portfolio risk concentration in native readers, preserving native analysis and actions.",
   "files": {
-    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Markets/MarketsView.swift": "f49f5e3c7281aee904c0bd64739fca8c4ed2ad9dd33702ee9967e44c7c2b2424",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Markets/MarketsView.swift": "384d2c7280101c29a7931dc097792f9c39a7ac120faaf550b01abf4a0ed4382e",
     "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Portfolio/PortfolioView.swift": "10dacae77287fc68457cdaca56c58c45820b74e46673018f14b341b443a85174"
   },
   "market": {
@@ -15,7 +15,7 @@
       "services/market_opportunity.py returns opportunity_score,momentum_score,momentum_roc_score. Existing native join retains complete momentum universe with per-symbol research metadata.",
       "web/app/market-explorer/page.tsx uses these same fields in momentum scatter,3Dcolor and ranked table."
     ],
-    "display_semantics": "Raw scores remain scores, with no percent conversion or probability claim. Existing formatters retain sign; absent values use existing unavailable representation. No replacement of return plots,3Dreturns,volume,matrix,sorting,universe or Investigator navigation.",
+    "display_semantics": "Raw scores remain scores, with no percent conversion or probability claim. One compact mapping keeps signed values with existing formatters and omits absent/nonfinite score fields; the disclosure is omitted when no score exists. No replacement of return plots,3Dreturns,volume,matrix,sorting,universe or Investigator navigation.",
     "retained_input_readback": {
       "captured_profile_rows": 999,
       "finite_momentum_score": 999,
