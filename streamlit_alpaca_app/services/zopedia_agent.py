@@ -1253,7 +1253,7 @@ def _run_evidence_model_step(
             }
         reader = service.with_supplied_evidence(records)
         read_tools = [tool for tool in build_tool_registry(reader).catalog() if tool["name"] in read_tool_names]
-        selected = context_state.setdefault("tool_call_ids", [])
+        selected = context_state.setdefault("tool_call_ids", None)
         visible = [call for call in tool_calls if selected is None or call["tool_call_id"] in selected]
         base_prompt = prompt([] if catalog_only else visible)
         if input_reference:
