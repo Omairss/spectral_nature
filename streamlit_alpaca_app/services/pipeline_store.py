@@ -1314,18 +1314,20 @@ def _uncached_latest_dataset_metadata(dataset_name: str) -> PipelineDataset | No
     return dataset
 
 
-def dataset_metadata_asof(dataset_name: str, target_date: str) -> PipelineDataset | None:
+def dataset_metadata_asof(dataset_name: str, target_date: str, *, asof_time_utc: str = "") -> PipelineDataset | None:
     """Load the most recent dataset version whose asof_time_utc falls on or before *target_date*.
 
     *target_date* should be an ISO date string like ``"2026-04-20"``.  The query
     finds the newest ``ready`` version where the asof timestamp is within the
-    target calendar day (UTC) or before it.
+    target calendar day (UTC) or before it. An exact cutoff additionally requires
+    that the immutable version was ingested by that instant.
     """
     conn = open_database_connection()
     if conn is None:
         return None
     target_end = f"{target_date}T23:59:59.999999+00:00"
     try:
+        cutoff = pd.to_datetime(asof_time_utc, utc=True).isoformat() if asof_time_utc else None
         with conn.cursor() as cur:
             cur.execute(
                 """
@@ -1334,10 +1336,11 @@ def dataset_metadata_asof(dataset_name: str, target_date: str) -> PipelineDatase
                 FROM dataset_versions
                 WHERE dataset_name = %s AND status = 'ready'
                   AND asof_time_utc <= %s
+                  AND (%s::timestamptz IS NULL OR ingested_at_utc <= %s::timestamptz)
                 ORDER BY asof_time_utc DESC
                 LIMIT 1
                 """,
-                (dataset_storage_name(dataset_name), target_end),
+                (dataset_storage_name(dataset_name), cutoff or target_end, cutoff, cutoff),
             )
             row = cur.fetchone()
             if not row:
@@ -1356,13 +1359,13 @@ def dataset_metadata_asof(dataset_name: str, target_date: str) -> PipelineDatase
         conn.close()
 
 
-def load_dataset_frame_asof(dataset_name: str, target_date: str) -> tuple[pd.DataFrame, PipelineDataset | None]:
+def load_dataset_frame_asof(dataset_name: str, target_date: str, *, asof_time_utc: str = "") -> tuple[pd.DataFrame, PipelineDataset | None]:
     """Load the dataset frame closest to (but not after) *target_date*.
 
     Uses ``dataset_metadata_asof`` for discovery, then the same blob/cache
     read path as ``load_latest_dataset_frame``.
     """
-    metadata = dataset_metadata_asof(dataset_name, target_date)
+    metadata = dataset_metadata_asof(dataset_name, target_date, asof_time_utc=asof_time_utc)
     if metadata is None:
         return pd.DataFrame(), None
     cached = _read_local_frame_cache(metadata)

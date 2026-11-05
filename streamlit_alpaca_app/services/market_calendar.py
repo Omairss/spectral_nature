@@ -379,11 +379,16 @@ def project_calendar(state: dict, *, reference: date, past_days: int = 30, futur
     return {"reference_date": reference.isoformat(), "as_of": state["as_of"], "days": list(days.values())}
 
 
-def load_public_calendar(*, target_date: str = "") -> dict | None:
+def load_public_calendar(*, target_date: str = "", asof_time_utc: str = "") -> dict | None:
     from services.pipeline_store import load_dataset_frame_asof, load_latest_dataset_frame
     try:
-        frame, _ = load_dataset_frame_asof(DATASET, target_date) if target_date else load_latest_dataset_frame(DATASET)
-        reference = date.fromisoformat(target_date) if target_date else datetime.now(NY).date()
+        if asof_time_utc:
+            cutoff = pd.to_datetime(asof_time_utc, utc=True)
+            reference = cutoff.tz_convert(NY).date()
+            frame, _ = load_dataset_frame_asof(DATASET, reference.isoformat(), asof_time_utc=cutoff.isoformat())
+        else:
+            frame, _ = load_dataset_frame_asof(DATASET, target_date) if target_date else load_latest_dataset_frame(DATASET)
+            reference = date.fromisoformat(target_date) if target_date else datetime.now(NY).date()
         return project_calendar(calendar_from_frame(frame), reference=reference)
     except Exception as exc:
         print(f"[warn] retained calendar unavailable: {type(exc).__name__}")

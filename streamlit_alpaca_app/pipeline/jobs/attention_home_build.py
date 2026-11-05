@@ -2154,7 +2154,7 @@ def build_attention_home_output_frames(
         f"research_limit={research_limit} "
         f"review_pool=top_events:{top_events_review_limit},must_read:{must_read_review_limit},unresolved:{unresolved_review_limit}"
     )
-    event_calendar = load_public_calendar()
+    event_calendar = load_public_calendar(asof_time_utc=pd.Timestamp(ctx.asof).isoformat())
     artifacts = build_bottom_up_attention_artifacts(
         movers,
         attention_rows=attention_rows,
