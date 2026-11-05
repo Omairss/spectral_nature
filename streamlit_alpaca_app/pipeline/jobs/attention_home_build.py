@@ -494,7 +494,7 @@ _HOME_PUBLIC_TEXT_FIELDS = (
 _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
     "type": "object", "additionalProperties": False,
     "properties": {
-        "stories": {"type": "array", "description": "Each story is one concise explanation, roughly 80–140 words. Put the complete explanation in what_happened_text. Add other text fields only when they contribute a distinct useful point.", "items": {
+        "stories": {"type": "array", "description": "Each story is one concise explanation, roughly 80–140 words. Put the complete explanation in surface_summary_text. Add other text fields only when they contribute a distinct useful point.", "items": {
             "type": "object", "additionalProperties": False,
             "properties": {
                 "section": {"type": "string", "enum": ["top_events", "must_read_movers", "unresolved_large_moves"],
@@ -505,15 +505,15 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
                 "supporting_symbols": {"type": "array", "items": {"type": "string"}},
                 "time_basis": _STORY_TIME_BASIS_SCHEMA,
                 "event_title": {"type": "string", "maxLength": 250, "description": "A short headline naming the central development. Keep chronology and the strength of a likely explanation intact. This headline also opens the X post; write a complete thought within 250 characters, reserving space for the Attention page link. The full explanation and charts are attached as images."},
-                "surface_summary_text": {"type": "string", "description": "Optional short summary. Include only when it adds meaning beyond the headline and main explanation."},
-                "what_happened_text": {"type": "string", "description": "The complete explanation for the reader: the important development, its leading likely drivers and probable business or economic effects. Use one or two short paragraphs. Select figures that help explain the theme, with a useful comparison; keep supporting measurements in the research and charts."},
+                "surface_summary_text": {"type": "string", "description": "The complete explanation for every reader: the central development, its most likely drivers and probable business or economic effects. Use one or two short paragraphs in everyday words. Include only figures that explain the theme, with a useful comparison. This text must stand on its own."},
+                "what_happened_text": {"type": "string", "description": "Optional additional facts that materially deepen the main explanation. Keep supporting measurements in the research and charts; omit repetition."},
                 "why_happened_text": {"type": "string", "description": "Optional further explanation of a distinct important driver. The main explanation must stand on its own; omit repetition."},
                 "affected_assets_summary_text": {"type": "string", "description": "Add a consequential effect on related businesses when it contributes useful new information. Leave empty when redundant."},
                 "business_context_text": {"type": "string", "description": "Explain a business model or economic relationship needed to understand the event. Leave empty when the other fields already make it clear."},
                 "watch_next_text": {"type": "string", "description": "Name a material observable development genuinely upcoming after this briefing's cutoff, and how it could change the interpretation. Leave empty when there is no useful distinct point; research tasks belong in issues."},
             },
             "required": [
-                "section", "question", "source_ids", "supporting_symbols", "time_basis", "event_title", "what_happened_text",
+                "section", "question", "source_ids", "supporting_symbols", "time_basis", "event_title", "surface_summary_text",
             ],
         }},
         "market_summary": {
@@ -1901,7 +1901,7 @@ def _review_home_public_surface(
             findings.append({"source_id": source_id, "asof_time_utc": bundle.get("asof_time_utc"),
                 "supporting_symbols": bundle.get("supporting_symbols") or [],
                 "recorded_claims": [{key: claim.get(key) for key in (
-                    "claim_text", "source_id", "source_url", "evidence_role", "citation_status")}
+                    "claim_text", "source_id", "source_url")}
                     for claim in bundle.get("claims") or []]})
     for index, row in enumerate(enrichment_rows or []):
         if row.get("research_origin") == "common_market_agenda":
