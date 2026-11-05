@@ -67,5 +67,49 @@
     "Reported-fact role is free-form and can itself contain stale wording or proof commentary; a two-role whitelist would also hide useful accepted research."
   ],
   "next_work": "Correct evidence delivery within the existing research/writer/reader flow; preserve numerical authority, useful prior research and readable originals. No new planner, sidecar or phrase filter. Requalify actual outputs before release.",
-  "production_writes": 0
+  "production_writes": 0,
+  "regression_history": [
+    {
+      "date": "2026-10-29",
+      "source": "8c11d522",
+      "state": "Owner-accepted coherent feed",
+      "behavior": "Reviewer explicitly prioritizes useful hypotheses and explanatory depth, says refinement is not certification, and rejects proof demands and missing-evidence paragraphs."
+    },
+    {
+      "date": "2026-10-30",
+      "sources": [
+        "5ec1b781",
+        "bc123c6f"
+      ],
+      "change": "Investigation instructions add unsupported-common-cause/unresolved framing. Prior review judgments and limitations are supplied to the common planner alongside retained findings."
+    },
+    {
+      "date": "2026-10-30/31",
+      "sources": [
+        "4a604346",
+        "b8b9fd8c"
+      ],
+      "change": "Public writing receives research critique_summary, unsupported_claims, evidence_gaps and later retained-review research_requests/limitations, alongside findings. The preceding Oct29 public handoff did not explicitly inline those critique fields."
+    },
+    {
+      "date": "2026-11-01",
+      "sources": [
+        "5e2a8c5e",
+        "a696fcef"
+      ],
+      "change": "Compression removes detailed anti-proof/anti-caveat safeguards and mechanism/editorial guidance while retaining verification language. Later7a48adf7 restores positive editorial/plain-language and NO DISCLAIMERS guidance before deployment; compression alone is not a complete explanation."
+    },
+    {
+      "date": "2026-11-02",
+      "source": "f960d945 / packaging59e8c7e5",
+      "change": "Combined Market-First trial deployed at2026-11-02T08:09:30Z,00:09Pacific. These changes remain ancestors of current production96d0a52f."
+    },
+    {
+      "date": "2026-11-04/05",
+      "state": "Unreleased repair candidates",
+      "change": "Separating old review judgments, stronger probabilistic instructions and catalog-only experiments are not live. The catalog-only candidate646 has an additional factual-delivery failure; it does not explain the earlier production regression."
+    }
+  ],
+  "historical_conclusion": "The instruction/context changes shifted emphasis toward avoiding causal overstatement and recirculated prior private critiques into later reasoning. Exact current input/output traces show proof commentary being reused. The source history identifies contributing changes; it does not isolate a numeric causal contribution for each commit.",
+  "verification_gap": "Shared prompt changes were followed by narrow writer/saved-draft checks that did not qualify every affected upstream role or complete publication. A return to the old reviewer core on already-generated bad research also failed; restoring prompt length alone is insufficient."
 }
