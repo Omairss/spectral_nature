@@ -406,6 +406,7 @@ struct TimeSeriesChart: View {
   var height: CGFloat = 200
   var price = false
   var intraday = false
+  var includesZero = false
   private let seriesColors: [Color] = [Theme.teal, Theme.violet, Theme.blue, Theme.coral, .orange, .pink]
   private var seriesNames: [String] {
     points.reduce(into: []) { names, point in
@@ -423,11 +424,12 @@ struct TimeSeriesChart: View {
   }
   init(
     rows: [Record], date: String = "timestamp", series: [(String, String)], height: CGFloat = 200,
-    price: Bool = false, intraday: Bool = false
+    price: Bool = false, intraday: Bool = false, includesZero: Bool = false
   ) {
     self.height = height
     self.price = price
     self.intraday = intraday
+    self.includesZero = includesZero
     var output: [Point] = []
     let ordered = rows.sorted { $0.text(date) < $1.text(date) }
     for (key, label) in series {
@@ -504,7 +506,7 @@ struct TimeSeriesChart: View {
           }
         }
         .chartXScale(range: .plotDimension(startPadding: 12, endPadding: 24))
-        .chartYScale(domain: .automatic(includesZero: false))
+        .chartYScale(domain: .automatic(includesZero: includesZero))
         .chartLegend(.hidden)
         .frame(height: height)
         .accessibilityLabel("Time series, \(points.count) observations. Drag to inspect values.")

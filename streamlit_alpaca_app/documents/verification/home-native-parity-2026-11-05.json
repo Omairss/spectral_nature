@@ -61,10 +61,11 @@
       "Attention network opens the full 197-node view. NVDA node selection shows its published sector and movement."
     ],
     "http_observations": {
-      "home_200": 1,
-      "home_304": 17,
-      "retained_audio_200": 1,
-      "dated_home_200": 1
+      "/api/auth/session 200": 2,
+      "/api/home 200": 1,
+      "/api/home 304": 17,
+      "/api/home/audio 200": 1,
+      "/api/home?date=2026-11-05 200": 1
     },
     "fixture_server": "Owned loopback only; no external inference or application writes.",
     "screenshots": [
@@ -127,5 +128,50 @@
     "statement": "Home/Attention display parity is observed. App-wide parity has not been established.",
     "known_route_difference": "Immutable saved Attention event/image URLs remain web routes. Native incoming URLs handle account links, not saved-event navigation. This is distinct from current Home content.",
     "parallel_audit": "Parent owns separate Markets score and Portfolio risk-share consumer additions; not present in this branch."
+  },
+  "cleanup": {
+    "requested_at_utc": "2026-11-05T20:52:19.895431+00:00",
+    "server_pid": 12719,
+    "server_script": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/frozen_home_server.py",
+    "simulator_udid": "E8ED3481-DBDB-4DB7-A6D8-64884EE7AA2F",
+    "shutdown_exit": 0,
+    "verified_at_utc": "2026-11-05T20:52:30.742369+00:00",
+    "server_process_absent": true,
+    "loopback_port_closed": true,
+    "simulator_state": "Shutdown",
+    "scope": "Only this task-owned loopback fixture server and named Simulator were stopped. No parent services or other Simulators were changed."
+  },
+  "source_inventory_probe": {
+    "source_revision": "af0cd383",
+    "status": "nine_unpaid_inventory_contract_checks_passed",
+    "evidence_private_path": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/native-source-inventory-probe.json",
+    "native_inputs": 50,
+    "python_runtime_files": 204,
+    "web_inputs": 101,
+    "actual_current_checkout_result": "Blocked: committed acceptance does not yet cover these source changes.",
+    "scope": "The native omission case executes the real verifier against an in-memory otherwise matching manifest; no acceptance mutation, application build, deployment or qualitative claim."
+  },
+  "native_health_contract": {
+    "source_status": "implemented; final gated build and actual authenticated rendering pending",
+    "endpoint": "GET /api/admin/health?hours=<1|24|72|168>&resource=<existing resource>",
+    "source_reference": "web/components/admin/operational-health.tsx and services/operational_health.py",
+    "sections": [
+      "health totals and receipt source",
+      "maintenance reports, article results and attempts",
+      "published output identities and observation/publication times",
+      "hourly input/output tokens",
+      "selected resource allocation and average/peak telemetry",
+      "provider attempts, costs, unknown usage and latency",
+      "shared database capacity and connections",
+      "learning episode states",
+      "latest executions"
+    ],
+    "preservation": [
+      "Existing APIClient and role checks remain unchanged. No user creation, credential borrowing, writes or inference.",
+      "The view loads only while selected; no new background polling. Changing resource/window clears the previous selection; failures clear its data and remain visible.",
+      "Health timestamps retain time-of-day; CPU/memory units match web and resource axes include zero. Existing chart defaults remain unchanged.",
+      "Existing Users, Usage & Security, LLM, API Keys, System and History controls remain. Trading authority and order workflows remain unchanged."
+    ],
+    "fixture_status": "No actual current authenticated Health response was available in the shared operation records. The historical api-baseline.json is image metadata, not a Health payload; it was not presented as one."
   }
 }

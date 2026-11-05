@@ -184,7 +184,7 @@ struct AdminHealthView: View {
           Text(metricTitle(metric, unit: series.text("unit"))).font(.subheadline.weight(.semibold))
           TimeSeriesChart(
             rows: points, date: "time", series: [("average", "Average"), ("maximum", "Peak")],
-            intraday: hours <= 24)
+            intraday: hours <= 24, includesZero: true)
         }
       }
     }
