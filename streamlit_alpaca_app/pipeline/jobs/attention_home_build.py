@@ -494,7 +494,7 @@ _HOME_PUBLIC_TEXT_FIELDS = (
 _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
     "type": "object", "additionalProperties": False,
     "properties": {
-        "stories": {"type": "array", "description": "Each story is one explanation, roughly 80–140 words in total across its public text fields. Use each fact once; leave nonessential text fields empty.", "items": {
+        "stories": {"type": "array", "description": "Each story is one concise explanation, roughly 80–140 words. Put the complete explanation in what_happened_text. Add other text fields only when they contribute a distinct useful point.", "items": {
             "type": "object", "additionalProperties": False,
             "properties": {
                 "section": {"type": "string", "enum": ["top_events", "must_read_movers", "unresolved_large_moves"],
@@ -505,17 +505,15 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
                 "supporting_symbols": {"type": "array", "items": {"type": "string"}},
                 "time_basis": _STORY_TIME_BASIS_SCHEMA,
                 "event_title": {"type": "string", "maxLength": 250, "description": "A short headline naming the central development. Keep chronology and the strength of a likely explanation intact. This headline also opens the X post; write a complete thought within 250 characters, reserving space for the Attention page link. The full explanation and charts are attached as images."},
-                "surface_summary_text": {"type": "string", "description": "One concise sentence giving the development's main business consequence, adding meaning to the headline."},
-                "what_happened_text": {"type": "string", "description": "Select the reported developments needed to understand the story. Include figures that change its interpretation, with their baseline; supporting measurements remain in research and charts."},
-                "why_happened_text": {"type": "string", "description": "Name the leading likely business drivers and explain their concrete effect. Keep research limitations and discarded explanations in issues. Leave empty if already explained."},
+                "surface_summary_text": {"type": "string", "description": "Optional short summary. Include only when it adds meaning beyond the headline and main explanation."},
+                "what_happened_text": {"type": "string", "description": "The complete explanation for the reader: the important development, its leading likely drivers and probable business or economic effects. Use one or two short paragraphs. Select figures that help explain the theme, with a useful comparison; keep supporting measurements in the research and charts."},
+                "why_happened_text": {"type": "string", "description": "Optional further explanation of a distinct important driver. The main explanation must stand on its own; omit repetition."},
                 "affected_assets_summary_text": {"type": "string", "description": "Add a consequential effect on related businesses when it contributes useful new information. Leave empty when redundant."},
                 "business_context_text": {"type": "string", "description": "Explain a business model or economic relationship needed to understand the event. Leave empty when the other fields already make it clear."},
                 "watch_next_text": {"type": "string", "description": "Name a material observable development genuinely upcoming after this briefing's cutoff, and how it could change the interpretation. Leave empty when there is no useful distinct point; research tasks belong in issues."},
             },
             "required": [
-                "section", "question", "source_ids", "supporting_symbols", "time_basis", "event_title", "surface_summary_text",
-                "what_happened_text", "why_happened_text", "affected_assets_summary_text",
-                "business_context_text", "watch_next_text",
+                "section", "question", "source_ids", "supporting_symbols", "time_basis", "event_title", "what_happened_text",
             ],
         }},
         "market_summary": {
@@ -1792,7 +1790,7 @@ def _apply_home_surface_quality_items(
             evidence.extend({**doc, "headline": doc.get("title", ""),
                              "source": doc.get("source_provider", ""),
                              "source_text": doc.get("raw_text", "")} for doc in documents)
-            canonical = {key: str(revision[key]).strip() for key in _HOME_PUBLIC_TEXT_FIELDS}
+            canonical = {key: str(revision.get(key, "")).strip() for key in _HOME_PUBLIC_TEXT_FIELDS}
             text = {**canonical,
                 "headline": canonical["event_title"], "what_changed_text": canonical["what_happened_text"],
                 "why_now_text": canonical["why_happened_text"], "what_else_moved_text": canonical["affected_assets_summary_text"],
