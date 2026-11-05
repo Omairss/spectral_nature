@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "recorded_at_utc": "2026-11-05T19:29:43.955858+00:00",
+  "scope": "Real isolated PostgreSQL; in-memory Blob substitute; native provider_post/reconciliation; saved synthetic response only",
+  "checks": [
+    "small financial receipt precedes full-response archival",
+    "persistent SQL outage retains enriched reference in same final outbox pointer",
+    "restored SQL reconciles one receipt and original run/account settlement",
+    "second reconciliation drains zero duplicates",
+    "known usage and original complete body restored",
+    "same-root exact request replay performs no additional transport or reservation"
+  ],
+  "provider_fixture_transports": 1,
+  "network_calls": 0,
+  "paid_calls": 0,
+  "production_writes": 0,
+  "remaining": "Exact-image Azure managed-identity SQL/Blob execution is still required",
+  "source_base_revision": "07c7d5062dc9d28445e5aec90d26c8b6c4ef033f",
+  "runtime_file": "services/llm_execution.py",
+  "runtime_sha256": "dc3d39ba6bd3b789d509180a7b89d2c0fb3f7bb84055c8cda5243bdbbcc5c67e",
+  "change": "When complete paid output falls back to Blob, update its existing small final outbox receipt with the response reference. Preserve the first small financial receipt before response archival.",
+  "original_database_stopped_verified": true,
+  "private_evidence": "operations/home-reliability-completion-20261103/receipt-recovery-20261105/"
+}

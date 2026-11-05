@@ -1374,7 +1374,11 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
                             "created_at_utc": datetime.now(timezone.utc).isoformat()})
                 except Exception:
                     log.warning("Complete provider response retention unavailable: %s", attempt_id, exc_info=True)
-            if not record_provider_attempt(event, archive_on_failure=False):
+            # An archived response needs its reference in the same small outbox
+            # receipt while SQL remains unavailable, so existing recovery can
+            # restore both the charge and the original paid output.
+            response_archived = (event["metadata"].get("retained_response") or {}).get("stored") == "archive"
+            if not record_provider_attempt(event, archive_on_failure=response_archived):
                 log.warning("Provider receipt metadata awaits reconciliation: %s", attempt_id)
         try:
             retain_paid_result(retain)
