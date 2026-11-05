@@ -1,0 +1,53 @@
+{
+  "status": "implemented_pending_simulator_review",
+  "recorded_at_utc": "2026-11-05T20:30:53.783560+00:00",
+  "owner_instruction": "iPhone will show everything the web shows; Home/Attention parity is part of the current repair.",
+  "base_revision": "9936e59e",
+  "scope": "Native rendering and decoding only. No provider, research, publication, API or server logic changes.",
+  "actual_gaps": [
+    "Native Beat discarded published what_changed, why and watch_next fields that Next.js renders.",
+    "Native Business context required disclosure while web presents it inline.",
+    "Native story metadata omitted the published company count visible on web."
+  ],
+  "changes": [
+    "Decode the three optional published fields without making them required in historical snapshots or gateway-scoped cache records.",
+    "Render headline, summary, what changed, why, business context and next observation in the same order as the web, verbatim. Optional empty fields remain absent; no rewriting, phrase filters or content fallback.",
+    "Keep business context inline and company count beside the existing Event/Mover/Watch label."
+  ],
+  "existing_parity_preserved": {
+    "brief": "Full Markdown, accepted inline expansion, retained audio controls and publication-change/audio deferral.",
+    "attention": "All published stories in server order; all ticker cards supplied by the same DTO.",
+    "charts": "Preceding-week/latest-session prices, intraday/close values, market cap, monthly return, five available financial metrics and fiscal histories.",
+    "navigation": "Ticker-to-Investigator, research context navigation, date replay/latest, calendar detail with original source link, attention network preview/drilldown.",
+    "highlights": "All five published charts with significance, units, dates and selection timestamp.",
+    "refresh": "Same public gateway,30-second active refresh, ETag handling, gateway-scoped durable cache and audio-safe publication replacement.",
+    "links": "Existing Markdown links stay actionable. Web Home has no extra story action beyond its shared text and ticker links; saved-event/X routes remain the existing web publication contract."
+  },
+  "verification_fixture": {
+    "private_path": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/production-observation-20261105T200919Z/home.private.json",
+    "sha256": "bc35d83dbda5bc562724b16a9f5a02a1d2a53945ce578b4526d30bd28983be39",
+    "http_status": 200,
+    "run_id": "6bc95b75-62da-4fdc-89db-a49b228e4cbf",
+    "as_of": "2026-11-05T18:50:33.330363+00:00",
+    "stories": 8,
+    "published_nonempty_fields": {
+      "summary": 8,
+      "what_changed": 8,
+      "why": 8,
+      "business_context": 8,
+      "watch_next": 8
+    },
+    "highlights": 5,
+    "audio_available": true,
+    "source_version": "",
+    "note": "Same captured reader response used for web/current-feed comparison; no new research or latest refresh. The actual capture has an empty source_version, so this case cannot qualify immutable saved-event routing."
+  },
+  "planned_review": [
+    "Signed isolated Simulator build from committed native source; no physical install.",
+    "Read the actual story fields, inline context and next observations; inspect chart/calendar/Brief/audio/replay preservation.",
+    "Record exact limitations instead of treating compile success as visual acceptance."
+  ],
+  "physical_device_install": false,
+  "paid_calls": 0,
+  "production_writes": 0
+}

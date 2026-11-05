@@ -97,15 +97,31 @@ struct HomeView: View {
                 .secondary)
               ForEach(home.beats) { beat in
                 Panel {
-                  Text(beat.kind == "unresolved" ? "Watch" : beat.kind.capitalized).font(
-                    .caption.weight(.medium)
-                  ).foregroundStyle(Theme.violet)
-                  Text(beat.title).font(.headline)
-                  if !beat.summary.isEmpty { MarkdownView(text: beat.summary) }
+                  HStack {
+                    Text(beat.kind == "unresolved" ? "Watch" : beat.kind.capitalized)
+                      .foregroundStyle(Theme.violet)
+                    Spacer()
+                    if !beat.symbols.isEmpty {
+                      Text("\(beat.symbols.count) \(beat.symbols.count == 1 ? "company" : "companies")")
+                        .foregroundStyle(.secondary)
+                    }
+                  }.font(.caption.weight(.medium))
+                  Text(beat.title).font(.headline).accessibilityIdentifier("attention-title-\(beat.id)")
+                  if !beat.summary.isEmpty {
+                    MarkdownView(text: beat.summary).accessibilityIdentifier("attention-summary-\(beat.id)")
+                  }
+                  if let whatChanged = beat.whatChanged, !whatChanged.isEmpty {
+                    MarkdownView(text: whatChanged).accessibilityIdentifier("attention-what-changed-\(beat.id)")
+                  }
+                  if let why = beat.why, !why.isEmpty {
+                    MarkdownView(text: why).accessibilityIdentifier("attention-why-\(beat.id)")
+                  }
                   if !beat.businessContext.isEmpty {
-                    DisclosureGroup("Business context") {
-                      MarkdownView(text: beat.businessContext).padding(.top, 10)
-                    }.font(.subheadline)
+                    MarkdownView(text: beat.businessContext).accessibilityIdentifier("attention-context-\(beat.id)")
+                  }
+                  if let watchNext = beat.watchNext, !watchNext.isEmpty {
+                    MarkdownView(text: "**Watch next:** " + watchNext)
+                      .accessibilityIdentifier("attention-watch-next-\(beat.id)")
                   }
                   ForEach(beat.tickers) { ticker in
                     AttentionTickerCard(ticker: ticker)

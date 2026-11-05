@@ -41,6 +41,9 @@ struct HomeSnapshot: Codable {
     let title: String
     let summary: String
     let businessContext: String
+    var whatChanged: String? = nil
+    var why: String? = nil
+    var watchNext: String? = nil
     let symbols: [String]
     let tickers: [TickerSnapshot]
   }
