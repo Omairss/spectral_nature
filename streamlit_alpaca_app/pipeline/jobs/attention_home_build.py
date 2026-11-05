@@ -1924,8 +1924,15 @@ def _review_home_public_surface(
     records["market-groups"] = {"title": "Market-wide numerical observations and changing groups",
         "metadata": {"kind": "numerical_context", "asof_time_utc": str(asof_time_utc)},
         "content": to_jsonable(payload.get("market_context") or {})}
+    # Execution traces and review verdicts remain in the audit store. Give the
+    # public editor the dated findings and agenda; originals use existing readers.
+    public_market_research = [
+        {key: row[key] for key in ("run_id", "asof_time_utc", "market_context_text", "research_agenda_json")
+         if key in row}
+        for row in market_research or []
+    ]
     records["market-research"] = {"title": "Shared market research and question agenda",
-        "metadata": {"kind": "shared_research"}, "content": to_jsonable(market_research or [])}
+        "metadata": {"kind": "shared_research"}, "content": to_jsonable(public_market_research)}
     if event_calendar:
         records["market-calendar"] = {"title": "Dated scheduled events and confirmed results",
             "metadata": {"kind": "event_calendar", "asof_time_utc": str(asof_time_utc)},
@@ -1959,7 +1966,7 @@ def _review_home_public_surface(
         "numerical_overview": {key: value for key, value in (payload.get("market_context") or {}).items()
                                if key not in {"observations", "columns", "previous_groups"}},
         "completed_research_findings": findings,
-        "market_research_findings": market_research or [],
+        "market_research_findings": public_market_research,
         "source_index": [{"source_id": source_id, "title": record["title"], "metadata": record["metadata"],
                           "fields": list(record["content"]) if isinstance(record["content"], dict) else []}
                          for source_id, record in records.items()],
