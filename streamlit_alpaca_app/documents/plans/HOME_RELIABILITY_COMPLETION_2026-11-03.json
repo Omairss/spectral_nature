@@ -1,5 +1,5 @@
 {
-  "status": "implemented_qualitative_acceptance_incomplete",
+  "status": "execution_repair_verified_public_quality_pending",
   "source_checkpoint": "4cbc475b",
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
   "offline_verification": {
@@ -14,37 +14,44 @@
     {
       "id": 1,
       "task": "Selective evidence context with originals retained",
-      "status": "implemented_awaiting_verification"
+      "status": "implemented_context_boundaries_verified_native_replay",
+      "evidence": "Dated source catalogs and model-selected reads; public market-research projection excludes execution traces. Native real-output adapter replay produces one reviewed bundle."
     },
     {
       "id": 2,
       "task": "Small durable financial receipts before large response archival; existing recovery",
-      "status": "implemented_awaiting_verification"
+      "status": "isolated_execution_verified_dev_identity_pending",
+      "evidence": "Previous isolated SQL receipt reconciliation plus7transport and5native completion/cancellation replay checks; DEV managed identity still required."
     },
     {
       "id": 3,
       "task": "Reserve review/wiki funding and time before exploration; retain failed handoffs",
-      "status": "implemented_awaiting_verification"
+      "status": "funding_handoff_verified_phase_repair_execution_verified",
+      "evidence": "Prior fresh wiki updates and funding handoff retained. Completed-answer loss at phase expiry repaired and replayed through native synthesis/review. Public quality still requires fresh check."
     },
     {
       "id": 4,
       "task": "Semantic-first retrieval with bounded keyword fallback",
-      "status": "implemented_awaiting_verification"
+      "status": "readonly_semantic_and_keyword_probes_verified",
+      "evidence": "Previous actual retained semantic search and deadline-bounded keyword fallback probes passed; DEV binding pending."
     },
     {
       "id": 5,
       "task": "Dated scheduled-event freshness in existing planner/research and market-local schedules",
-      "status": "implemented_awaiting_verification"
+      "status": "implemented_historical_review_timing_checked",
+      "evidence": "The second real research review preserved after-close timing; do not infer complete historical accuracy from one case."
     },
     {
       "id": 6,
       "task": "Probabilistic explanations and concise expert public review",
-      "status": "implemented_awaiting_verification"
+      "status": "upstream_review_exercised_public_quality_pending",
+      "evidence": "Actual current planner/research/review exercised; context contamination removed. No fresh public feed accepted yet."
     },
     {
       "id": 7,
       "task": "Chart structural validity independent of prose lengths",
-      "status": "implemented_awaiting_verification"
+      "status": "chart_structure_verified_fresh_brief_chain_pending",
+      "evidence": "Five prior chart contracts passed; final fresh Brief/caption chain remains open."
     },
     {
       "id": 8,
@@ -80,22 +87,23 @@
     "latest_public_continuation": "Retained reads work in economical completion; full composition timed out. No release acceptance."
   },
   "schedule_decision": "Keep run counts; final UTC data/news/Home cycle moves from hour20 to21, after the U.S. close in both DST seasons. This is 13:50 Pacific in winter and14:50 in summer; no timezone scheduler service added.",
-  "current_source_revision": "9a92931581329c0ea6f79712bec283b33381ef98",
-  "current_verification_record": "documents/verification/home-reliability-completion-2026-11-04.json",
+  "current_source_revision": "44650d92 plus committed next completed-response handoff checkpoint",
+  "current_verification_record": "documents/verification/home-upstream-verification-2026-11-05.json",
   "remaining": [
     {
       "id": 1,
-      "task": "Complete the two refused investigations through the native data-first flow using saved inputs and completed findings",
-      "state": "needs_authorized_verification_window"
+      "task": "Verify fresh native public composition/review with the materialized reviewed investigation; inspect complete feed and resulting Brief/charts.",
+      "state": "prepared_requires_verification_allowance",
+      "supersedes": "The two previous study-guard refusals are historical evidence; owner requested the smallest native case instead of repeating the full pipeline."
     },
     {
       "id": 2,
-      "task": "Complete corrected public composition and review; generate charts from that completed Brief; personally assess complete outputs",
+      "task": "Accept the complete substantive public explanation after actual writer/reviewer output; source contracts alone do not establish quality.",
       "state": "not_accepted"
     },
     {
       "id": 3,
-      "task": "Review changed runtime source and all 38 consumers; prepare committed source acceptance after qualitative acceptance",
+      "task": "Reconcile accepted96d0a52f X/calendar source, review changed runtime and every current consumer, then prepare committed release acceptance.",
       "state": "source_review_in_progress"
     },
     {
@@ -111,37 +119,39 @@
   ],
   "writing_follow_up": {
     "owner_feedback": "Live prose replaces likely drivers with common-cause caveats and rhetorical contrasts; writing regressed after compression.",
-    "status": "focused_model_comparisons_failed_release_acceptance",
+    "status": "owner_accepted_original_report_example_integrated_public_case_pending",
     "evidence": "documents/verification/home-writing-verification-2026-11-04.json",
-    "next": "Run the prepared small native current-planner -> one model-selected investigation -> research review replay before changing more prompts. Inspect complete outputs personally; a reuse decision or cache hit is not a fresh prompt test.",
+    "next": "Use the replayed native reviewed bundle for the fresh public writer/reviewer; retain originals and numerical context without prior audit judgments.",
     "latest_evidence": "documents/verification/home-writing-originals-verification-2026-11-04.json",
     "owner_response": "Owner liked the original-report writing example on November 4. This accepts that example; it does not establish that the experimental input change is integrated or that current upstream prompts are verified."
   },
   "upstream_prompt_verification": {
-    "status": "first_current_prompt_test_completed_correction_under_verification",
-    "current_source_runtime": "9b16bcae",
+    "status": "fresh_upstream_tested_phase_failure_repaired_execution_verified",
+    "current_source_runtime": "44650d92 plus completed-response handoff",
     "previous_actual_upstream_run": "20bc503e",
     "gap": "The shared final-synthesis, reviewer and narrative prompts changed after the last actual upstream research run. Later paid comparisons covered only final public writing.",
     "scope": "The native common planner receives the saved original numerical context and headlines and may select one investigation; retain original native tools, full Pro, existing retained findings and shared review. No full Home rerun, wiki writes, public recomposition or deployment.",
     "interpretation": "A reuse-only or cached result leaves fresh research synthesis/review unverified. Execution checks are not qualitative acceptance.",
     "spending": {
       "cap_usd": 13,
-      "counted_exposure_usd": 10.592415,
-      "remaining_usd": 2.407585,
-      "expected_additional_usd": [
-        1.5,
-        2.4
-      ]
+      "known_usage_estimate_usd": 9.290583,
+      "unresolved_maximum_usd": 3.309932,
+      "counted_exposure_usd": 12.600515,
+      "remaining_usd": 0.399485,
+      "pending_requests": 0,
+      "all_prior_charges_retained": true,
+      "gpu_instances_rented": 0
     },
     "requested_window_minutes": 30,
     "private_preflight": "operations/home-reliability-completion-20261103/upstream-preflight.json",
-    "tested_revision": "e9f88c8a",
-    "actual_result": "Fresh planner, planner review, research synthesis and research review completed. The planner retained the inherited binary framing; the research reviewer introduced a next-day stock close beyond the reporting cutoff.",
+    "tested_revision": "46fe155b",
+    "actual_result": "Current native upstream prompts were genuinely exercised. Native continuation completed shared review; timed-out automatic adoption was then repaired and verified with unchanged provider-response replay. Fresh public output is still not accepted.",
     "source_correction": [
       "Keep prior research as a dated readable catalog, with findings and originals available through the existing readers. Exclude previous top-level review judgments from supplied event/company research records and inline context. Stored audit records remain unchanged.",
       "The shared reviewer must distinguish observation, event and publication times, and may not change an observation date to make an explanation fit."
     ],
     "live_source_revision": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
-    "release_integration": "Production advanced to the namespace-aware X/calendar release; reconcile that accepted source before any candidate release. No production deployment from the older branch."
+    "release_integration": "Production advanced to the namespace-aware X/calendar release; reconcile that accepted source before any candidate release. No production deployment from the older branch.",
+    "latest_evidence": "documents/verification/home-upstream-verification-2026-11-05.json"
   }
 }

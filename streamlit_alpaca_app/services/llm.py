@@ -991,6 +991,23 @@ class DeepSeekChatJSONClient:
         schema: dict[str, Any],
     ) -> dict[str, Any]:
         deadline = _request_deadline(self.config.timeout_seconds)
+        from .llm_execution import _CALL
+        completed_callback = _CALL.get().get("completed_json_callback")
+        completed_result: LLMJSONResult | None = None
+
+        def on_response(response: requests.Response) -> bool:
+            nonlocal completed_result
+            try:
+                data = response.json()
+                message = (data.get("choices") or [{}])[0].get("message") or {}
+                result = LLMJSONResult(_extract_first_json_object(_chat_message_text(message)), data)
+            except (LLMJSONParseError, ValueError, TypeError, AttributeError, IndexError):
+                return False
+            if completed_callback(result):
+                completed_result = result
+                return True
+            return False
+
         json_instruction = (
             f"Return only one valid JSON object for schema `{schema_name}`. "
             "Do not wrap it in markdown. The JSON object must match this JSON Schema:\n"
@@ -1034,6 +1051,7 @@ class DeepSeekChatJSONClient:
                     headers=headers,
                     json=payload,
                     timeout=_remaining_request_timeout(deadline),
+                    on_response=on_response if callable(completed_callback) else None,
                 )
             except (
                 _requests_mod.exceptions.ReadTimeout,
@@ -1043,6 +1061,8 @@ class DeepSeekChatJSONClient:
                 if attempt == 0:
                     continue
                 raise
+            if completed_result is not None:
+                return completed_result
             if response.status_code != 200:
                 raise self._response_error(response)
             try:

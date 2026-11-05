@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from presentation.visualization_artifacts import collect_research_visualizations
 
-from services.work_scope import WorkScope
+from services.work_scope import WorkScope, check_work, work_expired
 
 from contextvars import copy_context
+from copy import deepcopy
 from .llm_execution import (LLMContextWindowExceeded, ResearchBudgetExceeded, research_run_context,
                             research_spending_context, best_effort_required, funded_core_research,
-                            model_call_context, checkpoint_memory_update, _CALL)
+                            model_call_context, checkpoint_memory_update, check_execution_ownership,
+                            PAID_RESULT_RETENTION_SECONDS, _CALL)
 
 from dataclasses import replace
 
@@ -1173,18 +1175,32 @@ def _run_evidence_model_step(
     supplied_evidence_allowed: bool = True,
     model_timeout_seconds: float | None = None,
     read_tool_names: tuple[str, ...] = ("research.list_supplied_evidence", "research.read_supplied_evidence"),
+    completed_result_callback: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Keep source reads available through planning, writing and review.
 
     The trace retains every result. The model owns which results stay in its
     working context and can reopen any original through the existing reader.
     """
+    def completed_result(step: dict[str, Any]) -> bool:
+        public = {key: value for key, value in step.items() if not key.startswith("__")}
+        artifact = public if not list(Draft202012Validator(schema).iter_errors(public)) else public.get("decision")
+        if not isinstance(artifact, dict) or list(Draft202012Validator(schema).iter_errors(artifact)):
+            return False
+        # Only the waiting owner can checkpoint or publish. Late valid output
+        # remains replayable, without extending this phase or its outer scope.
+        value = deepcopy(artifact)
+        if time.monotonic() < deadline_monotonic and not work_expired():
+            completed_result_callback(value)
+        return True
+
     if not isinstance(service, QueryService):
         return generate_json_via_aql_zopedia_gateway(
             llm_client=llm_client, surface=surface, purpose=purpose, call_type=call_type,
             system_prompt=system_prompt, user_prompt=prompt(tool_calls), schema_name=schema_name,
             schema=schema, deadline_monotonic=min(deadline_monotonic, time.monotonic() + model_timeout_seconds)
             if model_timeout_seconds is not None else deadline_monotonic, metadata=metadata,
+            completed_result_callback=completed_result if completed_result_callback is not None else None,
         )
     step_schema = {
         "type": "object", "additionalProperties": False,
@@ -1268,6 +1284,7 @@ def _run_evidence_model_step(
                     user_prompt=user_prompt, schema_name=schema_name + "_evidence_step", schema=active_schema,
                     deadline_monotonic=min(deadline_monotonic, time.monotonic() + model_timeout_seconds)
                     if model_timeout_seconds is not None else deadline_monotonic, metadata=metadata,
+                    completed_result_callback=completed_result if completed_result_callback is not None else None,
                 )
         except ResearchBudgetExceeded as exc:
             if answer_only or not protected_step:
@@ -2171,6 +2188,7 @@ def _run_answer_judge(
     supplied_evidence_allowed: bool = True,
     model_timeout_seconds: float | None = None,
     artifact_preview: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+    completed_workers: list[threading.Thread] | None = None,
 ) -> dict[str, Any]:
     """Review a draft answer against evidence without blocking the whole run."""
     if int(get_config_param(_P_ANSWER_JUDGE_ENABLED)) == 0:
@@ -2241,6 +2259,7 @@ def _run_answer_judge(
                 ),
                 schema_name="zopedia_agent_judge",
                 schema=review_schema,
+                completed_result_callback=lambda value: result_box.__setitem__(0, value),
                 deadline_monotonic=deadline,
                 model_timeout_seconds=model_timeout_seconds,
                 metadata={
@@ -2259,7 +2278,7 @@ def _run_answer_judge(
     elapsed = 0.0
     while judge_thread.is_alive():
         judge_thread.join(timeout=max(min(heartbeat_interval, deadline - time.monotonic()), 0))
-        if not judge_thread.is_alive():
+        if result_box[0] is not None or not judge_thread.is_alive():
             break
         elapsed = timeout_seconds - max(deadline - time.monotonic(), 0)
         if time.monotonic() >= deadline:
@@ -2281,7 +2300,12 @@ def _run_answer_judge(
             tool_call_count=len(tool_calls),
         )
 
-    if error_box[0] is not None:
+    if result_box[0] is not None:
+        if completed_workers is not None:
+            completed_workers.append(judge_thread)
+        check_work()
+        check_execution_ownership()
+    if error_box[0] is not None and result_box[0] is None:
         _emit_progress(
             progress_callback,
             stage="answer_judge_failed",
@@ -3110,6 +3134,8 @@ def _run_zopedia_agent_loop(
     session_progress_callback = session.progress_callback(
         progress_callback, checkpoint_callback=checkpoint_callback,
     )
+    completed_workers: list[threading.Thread] = []
+    unsettled_workers = 0
     try:
         with research_run_context(resolved_run_id):
             from .llm_execution import _CALL, model_call_context, protect_core_research, complete_core_research
@@ -3148,6 +3174,7 @@ def _run_zopedia_agent_loop(
                     resume_state=resume_state,
                     answer_review_owner=answer_review_owner,
                     artifact_preview=artifact_preview,
+                    completed_workers=completed_workers,
                 )
             if not inherited_core and result.get("answer_markdown"):
                 complete_core_research(core_id)
@@ -3155,10 +3182,21 @@ def _run_zopedia_agent_loop(
         session.finish(error=exc)
         session.close()
         raise
+    finally:
+        # These workers have delivered a valid completed body. Drain only their
+        # existing receipt finalization; this grants no acquisition/publication time.
+        cleanup_deadline = time.monotonic() + PAID_RESULT_RETENTION_SECONDS
+        for worker in completed_workers:
+            worker.join(timeout=max(0, cleanup_deadline - time.monotonic()))
+        unsettled_workers = sum(worker.is_alive() for worker in completed_workers)
+        if unsettled_workers:
+            logging.getLogger(__name__).warning("Completed model receipt cleanup remains pending: %s", unsettled_workers)
     session.finish(result=result)
     result.setdefault("runtime", {})
     result["runtime"].update(session.runtime_metadata())
     result["runtime"]["budget"] = run_budget.metadata()
+    result["runtime"]["paid_result_cleanup"] = {"status": "pending" if unsettled_workers else "completed",
+                                              "pending_workers": unsettled_workers}
     session.close()
     return result
 
@@ -3188,6 +3226,7 @@ def _execute_zopedia_agent_loop(
     resume_state: dict[str, Any] | None = None,
     answer_review_owner: str = "agent",
     artifact_preview: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+    completed_workers: list[threading.Thread] | None = None,
 ) -> dict[str, Any]:
     budget = run_budget or ResearchBudget.start(None, llm_step_timeout_seconds or 60)
     normalized_query = str(query or "").strip()
@@ -3652,6 +3691,7 @@ def _execute_zopedia_agent_loop(
                         service=resolved_service,
                         context_state=context_state,
                         supplied_evidence_allowed=allowed_source_access is None or "supplied" in allowed_source_access,
+                        completed_workers=completed_workers,
                     )
                     if quality_review.get("status") == "completed":
                         best_draft = quality_review.get("answer_markdown") or best_draft
@@ -3900,6 +3940,7 @@ def _execute_zopedia_agent_loop(
                         ),
                         schema_name=response_schema_name or "zopedia_agent_final",
                         schema=response_schema or _FINAL_SCHEMA,
+                        completed_result_callback=lambda value: _final_result.__setitem__(0, value),
                         deadline_monotonic=synthesis_deadline,
                         model_timeout_seconds=llm_step_timeout_seconds,
                         metadata={
@@ -3919,6 +3960,8 @@ def _execute_zopedia_agent_loop(
                 _final_thread.join(
                     timeout=max(min(_heartbeat_interval, synthesis_deadline - time.monotonic()), 0)
                 )
+                if _final_result[0] is not None:
+                    break
                 if _final_thread.is_alive():
                     _heartbeat_elapsed = time.monotonic() - synthesis_started
                     if time.monotonic() >= synthesis_deadline:
@@ -3942,19 +3985,18 @@ def _execute_zopedia_agent_loop(
                         elapsed_seconds=int(_heartbeat_elapsed),
                         tool_call_count=len(tool_calls),
                     )
-            if _final_error[0] is not None and not final_answer:
-                raise _final_error[0]
-            if _final_error[0] is not None:
+            final_payload = _final_result[0]
+            if final_payload is not None:
+                if completed_workers is not None:
+                    completed_workers.append(_final_thread)
+                check_work()
+                check_execution_ownership()
+            elif _final_error[0] is not None:
+                if not final_answer:
+                    raise _final_error[0]
                 limitations.append(f"Final writing step failed: {type(_final_error[0]).__name__}")
-            final_payload = (
-                _final_result[0]
-                if _final_error[0] is None
-                else (
-                    json.loads(final_answer)
-                    if response_schema
-                    else {"answer_markdown": final_answer, "confidence": final_confidence}
-                )
-            )
+                final_payload = (json.loads(final_answer) if response_schema else
+                                 {"answer_markdown": final_answer, "confidence": final_confidence})
             assert final_payload is not None
             final_reasoning_trace = _clean(final_payload.get("__reasoning_content"))
             if final_reasoning_trace:
@@ -4087,6 +4129,7 @@ def _execute_zopedia_agent_loop(
             progress_callback=progress_callback,
             response_schema=response_schema,
             artifact_preview=artifact_preview,
+            completed_workers=completed_workers,
             service=resolved_service,
             context_state=context_state,
             supplied_evidence_allowed=allowed_source_access is None or "supplied" in allowed_source_access,
@@ -4141,6 +4184,8 @@ def _execute_zopedia_agent_loop(
                 "reason": "Review did not preserve the structured response schema.",
             }
     answer_markdown = _clean_model_output(final_answer)
+    if quality_review.get("status") == "completed":
+        checkpoint("research_review_complete")
     # Confidence is a semantic judgment over the actual context. Tool counts
     # and whether a page was opened are not reliable confidence estimators.
     if resolved_write_policy != "none" and answer_markdown and budget.remaining("completion") > 0:

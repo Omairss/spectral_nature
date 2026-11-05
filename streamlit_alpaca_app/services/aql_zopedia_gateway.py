@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from copy import deepcopy
 import hashlib
 import json
 import time
-from typing import Any
+from typing import Any, Callable
 import uuid
 
 from . import pipeline_store
@@ -167,6 +168,7 @@ def generate_json_via_aql_zopedia_gateway(
     inference_effort: str = "",
     literal_output: bool = False,
     force_full_model: bool = False,
+    completed_result_callback: Callable[[dict[str, Any]], bool] | None = None,
 ) -> dict[str, Any]:
     """Run a JSON model call through the enforceable AQL/Zopedia boundary.
 
@@ -230,11 +232,25 @@ def generate_json_via_aql_zopedia_gateway(
         }
     )
 
+    completed_payload: dict[str, Any] | None = None
+
+    def completed_json(value: dict[str, Any]) -> bool:
+        nonlocal completed_payload
+        candidate = deepcopy(value)
+        for key in list(candidate):
+            if key.startswith("__"):
+                candidate.pop(key)
+        if completed_result_callback is not None and completed_result_callback(candidate):
+            completed_payload = candidate
+            return True
+        return False
+
     try:
         with llm_request_deadline(deadline_monotonic), model_call_context(**{
             **safe_metadata, "surface": clean_surface, "purpose": clean_purpose,
             "core_work_id": core_work_id if core_completion else inherited_core_id,
             "literal_output": literal_output,
+            "completed_json_callback": completed_json if completed_result_callback is not None else None,
             **({"inference_effort": inference_effort} if inference_effort else {}),
         }):
             payload = llm_client.generate_json(
@@ -244,44 +260,51 @@ def generate_json_via_aql_zopedia_gateway(
                 schema=schema,
             )
     except Exception as exc:
-        _record_gateway_call(
-            model_call_id=model_call_id,
-            surface=clean_surface,
-            purpose=clean_purpose,
-            call_type=clean_call_type,
-            llm_client=llm_client,
-            status="failure",
-            started_at_utc=started_at,
-            duration_ms=(time.perf_counter() - t0) * 1000.0,
-            schema_name=clean_schema_name,
-            prompt_hash=prompt_hash,
-            schema_hash=schema_hash,
-            metadata=safe_metadata,
-            error=exc,
-        )
-        from .llm import LLMAPIError
-        import requests
-        if isinstance(exc, ResearchBudgetExceeded) and not economical_completion and not navigation:
-            finish_research_economically(str(exc),
-                                        required_microusd=getattr(exc, "required_microusd", 0))
-            with model_call_context(completion_only=True):
+        if completed_payload is not None:
+            # Acquisition has completed. Bookkeeping crossing its request
+            # deadline cannot erase the schema-valid draft already handed off.
+            payload = completed_payload
+            safe_metadata["completed_result_bookkeeping_error"] = type(exc).__name__
+        else:
+            _record_gateway_call(
+                model_call_id=model_call_id,
+                surface=clean_surface,
+                purpose=clean_purpose,
+                call_type=clean_call_type,
+                llm_client=llm_client,
+                status="failure",
+                started_at_utc=started_at,
+                duration_ms=(time.perf_counter() - t0) * 1000.0,
+                schema_name=clean_schema_name,
+                prompt_hash=prompt_hash,
+                schema_hash=schema_hash,
+                metadata=safe_metadata,
+                error=exc,
+            )
+            from .llm import LLMAPIError
+            import requests
+            if isinstance(exc, ResearchBudgetExceeded) and not economical_completion and not navigation:
+                finish_research_economically(str(exc),
+                                            required_microusd=getattr(exc, "required_microusd", 0))
+                with model_call_context(completion_only=True):
+                    return generate_json_via_aql_zopedia_gateway(
+                        llm_client=full_client, surface=surface, purpose=purpose, call_type=call_type,
+                        system_prompt=system_prompt, user_prompt=user_prompt,
+                        schema_name=schema_name, schema=schema,
+                        metadata={**(metadata or {}), "budget_transition_call_id": model_call_id},
+                        deadline_monotonic=deadline_monotonic, inference_effort=inference_effort,
+                        literal_output=literal_output, completed_result_callback=completed_result_callback)
+            if (not economical_completion and llm_client is not full_client
+                    and isinstance(exc, (LLMAPIError, requests.RequestException))):
                 return generate_json_via_aql_zopedia_gateway(
                     llm_client=full_client, surface=surface, purpose=purpose, call_type=call_type,
                     system_prompt=system_prompt, user_prompt=user_prompt,
                     schema_name=schema_name, schema=schema,
-                    metadata={**(metadata or {}), "budget_transition_call_id": model_call_id},
+                    metadata={**(metadata or {}), "economy_failure_call_id": model_call_id},
                     deadline_monotonic=deadline_monotonic, inference_effort=inference_effort,
-                    literal_output=literal_output)
-        if (not economical_completion and llm_client is not full_client
-                and isinstance(exc, (LLMAPIError, requests.RequestException))):
-            return generate_json_via_aql_zopedia_gateway(
-                llm_client=full_client, surface=surface, purpose=purpose, call_type=call_type,
-                system_prompt=system_prompt, user_prompt=user_prompt,
-                schema_name=schema_name, schema=schema,
-                metadata={**(metadata or {}), "economy_failure_call_id": model_call_id},
-                deadline_monotonic=deadline_monotonic, inference_effort=inference_effort,
-                literal_output=literal_output, force_full_model=True)
-        raise
+                    literal_output=literal_output, force_full_model=True,
+                    completed_result_callback=completed_result_callback)
+            raise
 
     response_metadata = getattr(payload, "response_metadata", {})
     if isinstance(payload, dict) and "__reasoning_content" in payload:

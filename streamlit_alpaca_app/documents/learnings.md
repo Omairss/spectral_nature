@@ -1695,3 +1695,8 @@ A longer prompt is not a demonstrated quality fix. Compare actual outputs on the
 A fresh original-report-only writer removed the inherited common-cause framing and the hardware-only margin error in one chip example, but still produced excessive figures, repetition and a weak business explanation; the full Pro reviewer accepted it unchanged. Earlier narration can anchor output, but changing it alone is not an accepted fix. This diagnostic also changed available numerical context and selected focus, so it does not establish a single cause.
 
 Shared writing and reviewer prompts also affect upstream research and planning. After changing them, verify fresh model calls in each affected stage; a saved-draft public comparison or a cached investigation is not evidence of current upstream behavior. Keep one native planner-selected case small before widening the run.
+
+
+## Home upstream verification and completed-answer retention — 2026-11-05
+
+Completed provider output must reach the existing draft checkpoint before bookkeeping can exhaust an inference phase. Keep validity, narrative acceptance, financial settlement and publication authority separate. Only exact schema-valid completed artifacts may signal an owner or be replayed without a second charge; malformed responses retain existing repair rules. Drain only workers that already delivered completed bodies, using the existing bounded receipt finalization. Native adapter replay preserves real paid research while testing the next stage; label the replay and never call a direct-handoff diagnostic complete end-to-end verification. See [evidence](verification/home-upstream-verification-2026-11-05.json).

@@ -19,7 +19,7 @@ import os
 import re
 import threading
 import time
-from typing import Any
+from typing import Any, Callable
 import uuid
 from pathlib import Path
 from urllib.parse import urlparse
@@ -72,6 +72,9 @@ def check_execution_ownership() -> None:
         check()
 
 
+PAID_RESULT_RETENTION_SECONDS = 15
+
+
 def retain_paid_result(function):
     """Complete only paid-result retention in its own bounded execution context.
 
@@ -83,7 +86,7 @@ def retain_paid_result(function):
     from .work_scope import WorkScope
     context = {**_CALL.get(), "retaining_paid_receipt": True}
     def retain():
-        with model_call_context(**context), database_workload("interactive"), WorkScope(time.monotonic() + 15).activate():
+        with model_call_context(**context), database_workload("interactive"), WorkScope(time.monotonic() + PAID_RESULT_RETENTION_SECONDS).activate():
             return function()
     return Context().run(retain)
 
@@ -1187,7 +1190,8 @@ def request_composition(payload: dict[str, Any], *, operation: str = "chat") -> 
 
 
 def provider_post(client: Any = None, *, config: Any = None, session: Any = None,
-                  operation: str = "chat", **kwargs: Any) -> requests.Response:
+                  operation: str = "chat", on_response: Callable[[requests.Response], bool] | None = None,
+                  **kwargs: Any) -> requests.Response:
     """Meter each transport attempt, including failures and nested JSON repairs."""
     from .llm import llm_settings_scope, _remaining_request_timeout
     from .pipeline_store import record_provider_attempt
@@ -1224,7 +1228,11 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
             adopted.status_code = 200
             adopted._content = json.dumps(retained["data"], ensure_ascii=False).encode()
             adopted.headers["x-spectral-retained-attempt"] = retained["attempt_id"]
-            return adopted
+            try:
+                if on_response is None or on_response(adopted):
+                    return adopted
+            except Exception as exc:
+                log.warning("Completed response handoff failed: %s", type(exc).__name__)
     ensure_provider_available(config, timeout=timeout)
     kwargs["timeout"] = _remaining_request_timeout(deadline)
     composition = request_composition(payload, operation=operation)
@@ -1259,6 +1267,7 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
     error_type = ""
     transport_attempted = False
     budget_reserved = False
+    completed_response = False
     try:
         if context_budget and not context_budget["fits"]:
             raise LLMContextWindowExceeded(json.dumps(context_budget))
@@ -1268,6 +1277,13 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
         kwargs["timeout"] = _remaining_request_timeout(deadline)
         transport_attempted = True
         response = session.post(**kwargs)
+        if response.status_code == 200 and on_response is not None:
+            try:
+                # The callback only parses and hands a valid draft to its
+                # phase owner; financial settlement still runs unconditionally.
+                completed_response = bool(on_response(response))
+            except Exception as exc:
+                log.warning("Completed response handoff failed: %s", type(exc).__name__)
         if response.status_code == 400 and re.search(
             r"maximum context length|context[_ ](?:length|window).*exceed|too many tokens",
             response.text, re.IGNORECASE,
@@ -1353,7 +1369,8 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
                 try:
                     event["metadata"]["retained_response"] = retain_provider_response(
                         *response_identity, value={"attempt_id": attempt_id, "data": data,
-                            "root_run_id": root, "replayable_after_cancellation": late_response,
+                            "root_run_id": root, "replayable_after_cancellation": completed_response or (
+                                late_response and on_response is None),
                             "created_at_utc": datetime.now(timezone.utc).isoformat()})
                 except Exception:
                     log.warning("Complete provider response retention unavailable: %s", attempt_id, exc_info=True)

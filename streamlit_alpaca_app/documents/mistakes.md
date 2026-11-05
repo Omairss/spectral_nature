@@ -1653,3 +1653,8 @@ The approved November 4 writing window completed without any accepted replacemen
 The November 4 original-report writing comparison still failed personal review even though the model reviewer accepted it. Do not equate removing the reported phrase or correcting one metric with restoring editorial quality. Retain the complete unchanged output and its $0.088166 additional estimate; no deployment follows this result.
 
 The owner identified that the latest shared prompt changes had never been exercised in upstream research synthesis/review. The last actual upstream run was 20bc503e; subsequent paid checks targeted final public writing. Narrowing the experiment did not justify leaving the other affected consumers unverified. The prepared correction preserves the existing $13 ledger and requires a new explicit verification window.
+
+
+## Home upstream verification and completed-answer retention — 2026-11-05
+
+The missing-proof regression survived shared review because old review judgments were also presented as evidence to later planning/research/public writing. The Nov5 real upstream test further exposed a reviewer moving an observation past its reporting cutoff. A subsequent valid paid draft was lost when receipt bookkeeping crossed the request deadline, and premature expiry sampling prevented replay. The narrow public diagnostic repeated that timeout and did not include the native event bundle. Its output is not acceptance. Corrected context boundaries and completed-body handoff at source, then replayed actual outputs through synthesis, review, cleanup and the unchanged event adapter; fresh public quality remains open. See [evidence](verification/home-upstream-verification-2026-11-05.json).

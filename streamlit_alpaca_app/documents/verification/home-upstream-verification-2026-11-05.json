@@ -1,0 +1,133 @@
+{
+  "status": "execution_repair_verified_public_quality_still_open",
+  "generated_at_utc": "2026-11-05T19:20:55.073686+00:00",
+  "production_deployment": false,
+  "live_source": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
+  "live_capture_asof_utc": "2026-11-05T16:50:41.680414Z",
+  "live_job": "eea518a2-a2e5-4e6f-bee0-4bbc31be990c",
+  "model": "deepseek-v4-pro, thinking enabled, high effort",
+  "confirmed_findings": [
+    "Fresh production prose reproduced missing-proof framing. Five investigations and their reviews completed; core research and public composition use Pro. Planner review had a timeout.",
+    "November1 compression removed explicit protections against demanding proven causality; October30 continuity preloaded prior review judgments into subsequent planning/research. These source changes can reinforce the observed framing; source history alone is not a controlled causal experiment.",
+    "The public editor also received entire planner execution rows. Candidate now projects dated findings and agenda at both model-facing entry points, preserving execution audits separately.",
+    "First actual current upstream test completed native planning, investigation and review. It retained binary framing and its reviewer incorrectly inserted the next trading session close beyond the cutoff.",
+    "After separating prior judgments and reinforcing observation dates, the next research call returned a valid draft, but bookkeeping consumed its remaining request time. Shared review was never reached.",
+    "Native continuation of that exact draft completed Pro review. It recovered omitted report figures and preserved after-close timing. Internal research remains mechanical; this is not public-quality acceptance.",
+    "The native public diagnostic timed out twice. Its first returned draft also used older article snapshots and stale future-report language. No candidate feed was accepted. That diagnostic used an explicit direct research handoff rather than a materialized native event bundle.",
+    "The saved real planner, investigation and completed review have now been replayed through the unchanged native event adapter: one reviewed bundle and109documents, no new paid inference. The next public check will use that native bundle."
+  ],
+  "timeout_evidence": {
+    "http_body_saved_utc": "2026-11-05T18:32:39.656Z",
+    "retained_response_created_utc": "2026-11-05T18:32:40.425Z",
+    "gateway_deadline_error_utc": "2026-11-05T18:32:40.455Z",
+    "error": "LLMDeadlineExceeded after synchronous paid-result bookkeeping",
+    "additional_defect": "Replayability was sampled before bookkeeping crossed the deadline."
+  },
+  "execution_repair": {
+    "design": "A per-call local callback parses and validates a completed artifact before bookkeeping. The waiting owner retains it through existing checkpoints, then performs normal review under the original ownership/outer work fence. The original reservation remains until real settlement; only valid complete artifacts receive exact-request replay. Completed receipt workers drain through the existing bounded financial-finalization window. No new planner, retrieval provider, queue, prose filter or publication exemption.",
+    "transport_probe": {
+      "generated_at_utc": "2026-11-05T19:16:48.597675+00:00",
+      "status": "passed",
+      "scope": "Transport/gateway execution contracts only; no narrative-quality assertion.",
+      "source_response": "response-1aac4fe51e3b4f85b0296dd76f0d66a5.json",
+      "network_calls": 0,
+      "paid_inference_calls": 0,
+      "production_writes": 0,
+      "case_count": 7,
+      "results": [
+        {
+          "case": "valid_body_before_deadline_delayed_receipt_after_deadline",
+          "passed": true,
+          "elapsed_seconds": 0.1114,
+          "result_preserved": true,
+          "reservation_settled": true,
+          "counts": {
+            "transports": 1,
+            "reservations": 1,
+            "settlements": 1,
+            "receipt_writes": 3
+          }
+        },
+        {
+          "case": "exact_request_same_root_replay",
+          "passed": true,
+          "additional_transport": 0,
+          "additional_reservation": 0,
+          "additional_receipt": 0
+        },
+        {
+          "case": "fresh_logical_root_does_not_reuse_another_run",
+          "passed": true,
+          "additional_transport": 1
+        },
+        {
+          "case": "schema_invalid_json_not_early_accepted_or_replayable",
+          "passed": true
+        },
+        {
+          "case": "malformed_json_cannot_signal_or_cache_valid_artifact",
+          "passed": true,
+          "no_repair_after_deadline": true
+        },
+        {
+          "case": "callback_absent_keeps_prior_deadline_behavior",
+          "passed": true
+        },
+        {
+          "case": "malformed_json_retains_existing_in_budget_repair_path",
+          "passed": true,
+          "primary_and_repair_fake_transports": 2
+        }
+      ],
+      "verified_runtime_sha256": {
+        "services/aql_zopedia_gateway.py": "a5637946646e771f0496a626e3ad074f3cfc02a530520c1642db10a91d5757bb",
+        "services/llm.py": "205f434d413db80267ab1bd3a4aebf53e5f515606188361ee0d155b68aab9d9a",
+        "services/llm_execution.py": "35502b5219d7387e1d2cd4db2b8e3a656d7dcd18132071992f1379f97f759d03",
+        "services/zopedia_agent.py": "3039401ccad0968daac33a849af47834fbc6472bd25abd0a69f914c2fd59ba09"
+      }
+    },
+    "native_probe": {
+      "status": "execution_contracts_verified",
+      "network_requests": 0,
+      "additional_inference_spending_usd": 0,
+      "content_source": "Unchanged actual full-Pro synthesis and review responses from November5; replay proves execution behavior, not fresh model quality.",
+      "checks": {
+        "completed_synthesis_survives_slow_receipts": true,
+        "native_shared_review_runs_after_synthesis": true,
+        "completed_review_checkpointed": true,
+        "receipt_workers_drained_before_return": true,
+        "outer_cancellation_prevents_adoption": true
+      },
+      "elapsed_seconds": 1.8997070000041276,
+      "source_files": [
+        "services/zopedia_agent.py",
+        "services/llm.py",
+        "services/llm_execution.py",
+        "services/aql_zopedia_gateway.py"
+      ],
+      "verified_runtime_sha256": {
+        "services/aql_zopedia_gateway.py": "a5637946646e771f0496a626e3ad074f3cfc02a530520c1642db10a91d5757bb",
+        "services/llm.py": "205f434d413db80267ab1bd3a4aebf53e5f515606188361ee0d155b68aab9d9a",
+        "services/llm_execution.py": "35502b5219d7387e1d2cd4db2b8e3a656d7dcd18132071992f1379f97f759d03",
+        "services/zopedia_agent.py": "3039401ccad0968daac33a849af47834fbc6472bd25abd0a69f914c2fd59ba09"
+      }
+    },
+    "acceptance_limit": "Execution probes replay unchanged actual provider outputs. They verify failure handling, not fresh narrative quality or deployment."
+  },
+  "budget": {
+    "cap_usd": 13,
+    "known_usage_estimate_usd": 9.290583,
+    "unresolved_maximum_usd": 3.309932,
+    "counted_exposure_usd": 12.600515,
+    "remaining_usd": 0.399485,
+    "pending_requests": 0,
+    "all_prior_charges_retained": true,
+    "gpu_instances_rented": 0
+  },
+  "remaining": [
+    "Native public writer/reviewer using the materialized reviewed bundle; personally inspect full output and Brief/chart continuation.",
+    "Reconcile currently accepted96d0a52f X/calendar source before release; preserve all current consumers.",
+    "DEV exact-image and managed-identity receipt recovery verification.",
+    "Authorized production promotion, reviewed closing-cycle schedule changes, five retained receipt recoveries and fresh feed readback."
+  ]
+}
