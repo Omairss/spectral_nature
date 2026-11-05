@@ -142,9 +142,9 @@
     "scope": "Only this task-owned loopback fixture server and named Simulator were stopped. No parent services or other Simulators were changed."
   },
   "source_inventory_probe": {
-    "source_revision": "af0cd383",
+    "source_revision": "143e157df2bb312d4af166464552c05f634f8f48",
     "status": "nine_unpaid_inventory_contract_checks_passed",
-    "evidence_private_path": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/native-source-inventory-probe.json",
+    "evidence_private_path": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/native-source-inventory-probe-final.json",
     "native_inputs": 50,
     "python_runtime_files": 204,
     "web_inputs": 101,
@@ -172,6 +172,44 @@
       "Health timestamps retain time-of-day; CPU/memory units match web and resource axes include zero. Existing chart defaults remain unchanged.",
       "Existing Users, Usage & Security, LLM, API Keys, System and History controls remain. Trading authority and order workflows remain unchanged."
     ],
-    "fixture_status": "No actual current authenticated Health response was available in the shared operation records. The historical api-baseline.json is image metadata, not a Health payload; it was not presented as one."
+    "fixture_status": "Actual current production DTOs captured through the unchanged read-only backend producer; authenticated HTTP and native rendering remain pending.",
+    "actual_captures": [
+      {
+        "payload_private_path": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/health-current-resource.private.json",
+        "metadata_private_path": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/health-current-capture.json",
+        "selected_resource": "sn-pg-03130136",
+        "database_observed_at": "2026-11-05T20:56:18.966844+00:00",
+        "metrics_observed_at": "2026-11-05T20:56:26.532758+00:00",
+        "resources": 23,
+        "published_outputs": 6,
+        "provider_attempt_groups": 53,
+        "metric_series": 5,
+        "database_unavailable": {},
+        "metrics_unavailable": null,
+        "cloud_unavailable": null
+      },
+      {
+        "payload_private_path": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/health-current-sn-api-next.private.json",
+        "metadata_private_path": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/health-current-sn-api-next-capture.json",
+        "selected_resource": "sn-api-next",
+        "database_observed_at": "2026-11-05T20:57:08.529639+00:00",
+        "metrics_observed_at": "2026-11-05T20:57:10.384338+00:00",
+        "resources": 23,
+        "published_outputs": 6,
+        "provider_attempt_groups": 53,
+        "metric_series": 4,
+        "database_unavailable": {},
+        "metrics_unavailable": null,
+        "cloud_unavailable": null
+      }
+    ],
+    "capture_provenance": {
+      "producer_source_identical_to_live": "96d0a52f",
+      "database": "Existing authorized production reader; all connections enforce default_transaction_read_only=on.",
+      "cloud": "Actual ARM GETs using the established local Azure credential; managed-identity selection changed only inside the isolated capture process.",
+      "limits": "Backend DTO capture does not establish authenticated HTTP authorization, final native compilation or rendering. Dates stay separate from the frozen18:50Home case.",
+      "paid_calls": 0,
+      "production_writes": 0
+    }
   }
 }
