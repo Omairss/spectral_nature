@@ -268,12 +268,14 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "Form your own explanation from the evidence, then compare the draft with the person's request. "
         "Check the main theme, leading likely explanations, important omissions, business consequences and event timing. "
         "Keep observation time, event time and publication time distinct. Never change an observation's date to make "
-        "an explanation fit. Later reports or price moves cannot explain an earlier move. Exclude observations beyond "
-        "the reporting cutoff from that historical explanation. "
+        "an explanation fit. A later publication can document an earlier event; use the event and observation dates "
+        "to decide what existed at the reporting cutoff. Exclude later events and price moves from that historical explanation. "
         "For market reports, name the most likely drivers, explain how each affects the relevant businesses, "
         "and put the strongest explanation first. A statement that several drivers exist cannot replace naming them. "
-        "Check who sells, who buys and who bears the costs. Check the reasoning connecting observations to conclusions; "
-        "a matching fact alone does not establish the proposed connection. Read the original report behind the main "
+        "Check who sells, who buys and who bears the costs. Explain how each proposed driver changes demand, costs, "
+        "sales or profits. Rank explanations by how well they fit the observations, preserving useful inferences "
+        "even when causal evidence is indirect. Review improves the explanation rather than certifying a proven cause. "
+        "Read the original report behind the main "
         "development and check consequential quantities against its text before judging. Earlier generated research "
         "and reviews are fallible interpretations, not verification. Use established subject knowledge to interpret the facts. "
         "Preserve useful hypotheses at their actual strength; express "
@@ -2197,6 +2199,7 @@ def _run_answer_judge(
     model_timeout_seconds: float | None = None,
     artifact_preview: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
     completed_workers: list[threading.Thread] | None = None,
+    read_tool_names: tuple[str, ...] = ("research.list_supplied_evidence", "research.read_supplied_evidence"),
 ) -> dict[str, Any]:
     """Review a draft answer against evidence without blocking the whole run."""
     if int(get_config_param(_P_ANSWER_JUDGE_ENABLED)) == 0:
@@ -2268,6 +2271,7 @@ def _run_answer_judge(
                 schema_name="zopedia_agent_judge",
                 schema=review_schema,
                 completed_result_callback=lambda value: result_box.__setitem__(0, value),
+                read_tool_names=read_tool_names,
                 deadline_monotonic=deadline,
                 model_timeout_seconds=model_timeout_seconds,
                 metadata={
@@ -3356,6 +3360,10 @@ def _execute_zopedia_agent_loop(
                                 if tool.get("source_access") in allowed_source_access]
     if source_policy == "retained_only":
         allowed_tool_catalog = [tool for tool in allowed_tool_catalog if tool.get("source_access") != "web"]
+    completion_read_tools = tuple(tool["name"] for tool in allowed_tool_catalog if tool["name"] in {
+        "research.list_supplied_evidence", "research.read_supplied_evidence",
+        "research.read_evidence", "zopedia.read_page", "research.open_page",
+    })
     tool_registry = ToolRegistry(allowed_tool_catalog)
     deferred_tool_discovery = int(get_config_param(_P_DEFERRED_TOOL_DISCOVERY_ENABLED)) != 0
     if deferred_tool_discovery:
@@ -3701,6 +3709,7 @@ def _execute_zopedia_agent_loop(
                         context_state=context_state,
                         supplied_evidence_allowed=allowed_source_access is None or "supplied" in allowed_source_access,
                         completed_workers=completed_workers,
+                        read_tool_names=completion_read_tools,
                     )
                     if quality_review.get("status") == "completed":
                         best_draft = quality_review.get("answer_markdown") or best_draft
@@ -3950,6 +3959,7 @@ def _execute_zopedia_agent_loop(
                         schema_name=response_schema_name or "zopedia_agent_final",
                         schema=response_schema or _FINAL_SCHEMA,
                         completed_result_callback=lambda value: _final_result.__setitem__(0, value),
+                        read_tool_names=completion_read_tools,
                         deadline_monotonic=synthesis_deadline,
                         model_timeout_seconds=llm_step_timeout_seconds,
                         metadata={
@@ -4139,6 +4149,7 @@ def _execute_zopedia_agent_loop(
             response_schema=response_schema,
             artifact_preview=artifact_preview,
             completed_workers=completed_workers,
+            read_tool_names=completion_read_tools,
             service=resolved_service,
             context_state=context_state,
             supplied_evidence_allowed=allowed_source_access is None or "supplied" in allowed_source_access,

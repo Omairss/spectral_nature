@@ -452,6 +452,8 @@ def run_aql_zopedia_structured_agent(
     This keeps product feature modules out of direct LLM calls while still
     giving them typed materialization contracts.
     """
+    if (artifact_context or {}).get("asof_time_utc"):
+        request_context = {"asof_time_utc": str(artifact_context["asof_time_utc"]), **(request_context or {})}
     budget = resolve_research_budget(llm_step_timeout_seconds=llm_step_timeout_seconds)
     timeout = run_timeout_seconds if run_timeout_seconds is not None else budget["run_timeout_seconds"]
     if run_timeout_seconds is None and max_tool_calls is not None and int(max_tool_calls) <= 0 and llm_step_timeout_seconds is not None:

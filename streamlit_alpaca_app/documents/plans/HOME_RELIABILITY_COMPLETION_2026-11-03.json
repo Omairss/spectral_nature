@@ -4,11 +4,12 @@
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
   "offline_verification": {
     "provider": "DeepSeek production Pro",
-    "approved_cap_usd": 13,
+    "approved_cap_usd": 15,
     "approval": "Owner explicit new exception in this turn",
     "scope": "Isolated local/development; all requests and unknown charges count; no production writes.",
     "total_window_seconds": 7200,
-    "approval_amendment": "Owner: Approve up to$3 more and30 minutes. All previous charges and bounds remain counted."
+    "approval_amendment": "Owner: Approve up to$3 more and30 minutes. All previous charges and bounds remain counted.",
+    "owner_continuation": "November5owner: Yes, stop asking me for today. It is all approved. Finish the job. Preserve cumulativecharges; no moreprovider/window questions today."
   },
   "requirements": [
     {
@@ -165,5 +166,18 @@
     "branch": "fix/home-reliability-release-20261105",
     "evidence": "documents/verification/home-reliability-source-integration-2026-11-05.json",
     "no_release_acceptance_granted": true
+  },
+  "current_writing_iteration": {
+    "status": "prepared_for_fresh_small_native_comparison",
+    "reason": "Native final review retained missing-proof framing, repetitive statistics and misplaced demand inference despite recovering after-close facts.",
+    "changes": [
+      "Present current recorded claims and numerical observations first; prior full prose remains in the existing dated research reader, with duplicate execution traces and private cause status excluded from the public model view.",
+      "Keep existing original-page and retained-source readers available during synthesis/review under the same caller source policy.",
+      "Propagate artifact/reporting cutoff explicitly instead of defaulting historical requests to execution time.",
+      "Restore probability-based explanation and distinguish market expectations from measured business activity in shared guidance.",
+      "Give the public editor a soft80\u2013140word story objective; no word-count filter or truncation."
+    ],
+    "source_only": true,
+    "verification": "Fresh public small case, then shared research synthesis/review; no new common planner or full acquisition batch."
   }
 }

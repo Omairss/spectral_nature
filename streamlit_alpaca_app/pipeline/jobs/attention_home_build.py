@@ -494,7 +494,7 @@ _HOME_PUBLIC_TEXT_FIELDS = (
 _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
     "type": "object", "additionalProperties": False,
     "properties": {
-        "stories": {"type": "array", "description": "Each story is one concise explanation distributed across its fields. Use each fact once; leave nonessential text fields empty.", "items": {
+        "stories": {"type": "array", "description": "Each story is one explanation, roughly 80–140 words in total across its public text fields. Use each fact once; leave nonessential text fields empty.", "items": {
             "type": "object", "additionalProperties": False,
             "properties": {
                 "section": {"type": "string", "enum": ["top_events", "must_read_movers", "unresolved_large_moves"],
@@ -1874,8 +1874,8 @@ def _review_home_public_surface(
                          "symbols": research.get("supporting_symbols") or []},
             "content": to_jsonable({
                 **{key: artifact.get(key) for key in ("artifact_id", "subject", "created_at_utc")},
-                "research_asof_time_utc": context.get("asof_time_utc"), "payload": research,
-                "limitations": agent.get("limitations") or [],
+                "research_asof_time_utc": context.get("asof_time_utc"),
+                "payload": {key: value for key, value in research.items() if key != "cause_status"},
                 "source_documents": [*(context.get("source_documents") or []),
                     *materialize_research_artifacts(agent, candidate_id="retained-research:" + artifact["artifact_id"],
                         subject=artifact.get("subject") or "", run_id=agent.get("run_id") or artifact["artifact_id"],
@@ -1893,11 +1893,15 @@ def _review_home_public_surface(
                          "symbols": bundle.get("supporting_symbols") or [bundle.get("symbol")]},
             # Prior review verdicts are audit records, not evidence for an
             # independent public explanation. The stored bundle stays intact.
-            "content": to_jsonable({key: value for key, value in bundle.items() if key != "quality_review"}),
+            "content": to_jsonable({**{key: bundle.get(key) for key in (
+                "event_title", "supporting_symbols", "claims", "asof_time_utc",
+                "research_asof_time_utc", "research_completed_at_utc", "current_assessment_asof_time_utc",
+            )}, "findings_markdown": bundle.get("findings_markdown") or bundle.get("research_result")}),
         }
         answer = bundle.get("findings_markdown") or bundle.get("research_result")
         if answer:
-            findings.append({"source_id": source_id, "findings": answer,
+            findings.append({"source_id": source_id, "asof_time_utc": bundle.get("asof_time_utc"),
+                "supporting_symbols": bundle.get("supporting_symbols") or [],
                 "recorded_claims": [{key: claim.get(key) for key in (
                     "claim_text", "source_id", "source_url", "evidence_role", "citation_status")}
                     for claim in bundle.get("claims") or []]})
@@ -1908,9 +1912,9 @@ def _review_home_public_surface(
         records[source_id] = {"title": str(row.get("symbol") or source_id),
             "metadata": {"kind": "company_research", "symbol": row.get("symbol"), "status": row.get("status")},
             "content": to_jsonable(row)}
-        if row.get("status") == "completed" and row.get("answer_markdown") and row.get("research_origin") != "common_market_agenda":
-            findings.append({"source_id": source_id, "findings": row["answer_markdown"]})
     for doc in intake:
+        if doc.get("source_kind") == "research_tool_result":
+            continue
         identity = doc.get("canonical_document_id") or build_canonical_document_fields(doc)["canonical_document_id"]
         records["source:" + identity] = {"title": doc.get("title") or identity,
             "metadata": {"kind": "source_document", "original_source_id": doc.get("source_id"), "url": doc.get("url"),
@@ -1965,8 +1969,7 @@ def _review_home_public_surface(
     initial_evidence = [{
         "numerical_overview": {key: value for key, value in (payload.get("market_context") or {}).items()
                                if key not in {"observations", "columns", "previous_groups"}},
-        "completed_research_findings": findings,
-        "market_research_findings": public_market_research,
+        "completed_research_claims": findings,
         "source_index": [{"source_id": source_id, "title": record["title"], "metadata": record["metadata"],
                           "fields": list(record["content"]) if isinstance(record["content"], dict) else []}
                          for source_id, record in records.items()],
@@ -1986,6 +1989,8 @@ def _review_home_public_surface(
                 task="attention_home_public_surface_quality", surface="attention_home.public_surface_quality",
                 max_tool_calls=0, run_timeout_seconds=remaining, llm_step_timeout_seconds=remaining,
                 persist_findings=False, call_type="research_grade", review_answer=True, write_policy="none",
+                request_context={"asof_time_utc": pd.Timestamp(asof_time_utc).isoformat(),
+                                 "timezone": "America/New_York"},
                 initial_evidence=initial_evidence,
             )
         if isinstance(result, dict) and str(result.get("status") or "") == "completed":
