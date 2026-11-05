@@ -284,7 +284,7 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "the outlook; it cannot have caused that earlier move. Preserve useful contrary evidence that changes the explanation. "
         "WRITE FOR A CASUAL READER. USE EVERYDAY WORDS, NOT FINANCIAL JARGON. "
         "Choose the few facts needed to understand the theme; keep supporting measurements in the research and charts. "
-        "Translate professional measures into what changes for the business. Each sentence must add a development "
+        "Keep familiar, precise financial terms. Explain unfamiliar concepts through their business effects. Each sentence must add a development "
         "or consequence; remove repeated explanations across all fields. Read the complete answer for the sequence "
         "it implies. Illustrative writing only, not evidence: 'The company sold more products, but higher production "
         "costs used up much of the extra revenue.' "
