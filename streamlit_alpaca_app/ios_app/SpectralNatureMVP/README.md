@@ -12,6 +12,14 @@ Installed build **19** adds past calendar events with red/green labels and keeps
 
 ## Run
 
+Before any Xcode or command-line application build, the committed acceptance record must cover the selected source, including native inputs and their review. From `streamlit_alpaca_app/`, run the shared source gate and stop if it rejects the checkout:
+
+```bash
+python3 scripts/release_source.py --role api-next
+```
+
+The shared gate checks the complete application inventory; `api-next` selects its existing dependency/consumer contract and does not package or deploy an API. Record the native source, Xcode version and signed rendering checks with the native release. A Simulator preview is an application build and has no exemption.
+
 Open `SpectralNature.xcodeproj`, select the `SpectralNature` scheme and an iPhone simulator, and press Run. The project is included; XcodeGen is only needed when changing `project.yml`.
 
 The app connects to the live modern workbench:

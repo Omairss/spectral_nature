@@ -13,6 +13,7 @@
 		1803C6A58D901B49281DB097 /* AttentionCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 781A3A7ADD07C0EEDF20AF51 /* AttentionCharts.swift */; };
 		1DA5C61F489DD662B0772000 /* HomePublicationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DE59D7B1A5FB4A2F73D5B05 /* HomePublicationStore.swift */; };
 		2057566DB4B05C6090593AAA /* MarkdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F459B557FCEBDC9603D31F67 /* MarkdownView.swift */; };
+		27BA009279482D49006E7C63 /* AdminHealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A07B815A3988D71883CBF949 /* AdminHealthView.swift */; };
 		2F1690BA8878D03056A92037 /* AdminView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4856459186FF12F76245C4A /* AdminView.swift */; };
 		31EEFDD7E5E4358EA79DFB2D /* MarketReturnAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C83D7CE72E408E54DA63740 /* MarketReturnAnalysis.swift */; };
 		40ADDDAAF4FFEF09FAD5DD69 /* KeychainTokenStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58E405A554D2F0A372817FB3 /* KeychainTokenStore.swift */; };
@@ -78,6 +79,7 @@
 		9105CABB2D95C242435BC9F8 /* PeripheralScatterSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralScatterSelection.swift; sourceTree = "<group>"; };
 		989AF5756E900CF3AB692196 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		9DA297768AAF8D0AFFAA13C0 /* AnalysisCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisCharts.swift; sourceTree = "<group>"; };
+		A07B815A3988D71883CBF949 /* AdminHealthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminHealthView.swift; sourceTree = "<group>"; };
 		A4856459186FF12F76245C4A /* AdminView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminView.swift; sourceTree = "<group>"; };
 		AD34389ADD57087731F92368 /* AttentionGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttentionGraphView.swift; sourceTree = "<group>"; };
 		C755A62778C968F730746C88 /* PortfolioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioView.swift; sourceTree = "<group>"; };
@@ -114,6 +116,7 @@
 		57298BD5B824D425C2F26D06 /* Workspaces */ = {
 			isa = PBXGroup;
 			children = (
+				A07B815A3988D71883CBF949 /* AdminHealthView.swift */,
 				A4856459186FF12F76245C4A /* AdminView.swift */,
 				AD34389ADD57087731F92368 /* AttentionGraphView.swift */,
 				7F92390DAA513A6AE9FE8F19 /* FeatureRequestsView.swift */,
@@ -335,6 +338,7 @@
 				BD9B9E951CC890EBBD713FFE /* APIClient.swift in Sources */,
 				5763E5C132E15A95FBD8FFF2 /* APIModels.swift in Sources */,
 				468BE42640D7151B549EFD1B /* AccountLink.swift in Sources */,
+				27BA009279482D49006E7C63 /* AdminHealthView.swift in Sources */,
 				2F1690BA8878D03056A92037 /* AdminView.swift in Sources */,
 				5AF6EA3D0F58F555F73819D6 /* AnalysisCharts.swift in Sources */,
 				F4DA5389A1B9484655031CC5 /* AppEnvironment.swift in Sources */,

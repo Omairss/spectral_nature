@@ -1,6 +1,6 @@
 {
-  "status": "implemented_pending_simulator_review",
-  "recorded_at_utc": "2026-11-05T20:30:53.783560+00:00",
+  "status": "home_render_observed_release_gate_and_final_integrated_build_pending",
+  "recorded_at_utc": "2026-11-05T20:49:39.295285+00:00",
   "owner_instruction": "iPhone will show everything the web shows; Home/Attention parity is part of the current repair.",
   "base_revision": "9936e59e",
   "scope": "Native rendering and decoding only. No provider, research, publication, API or server logic changes.",
@@ -42,12 +42,90 @@
     "source_version": "",
     "note": "Same captured reader response used for web/current-feed comparison; no new research or latest refresh. The actual capture has an empty source_version, so this case cannot qualify immutable saved-event routing."
   },
-  "planned_review": [
-    "Signed isolated Simulator build from committed native source; no physical install.",
-    "Read the actual story fields, inline context and next observations; inspect chart/calendar/Brief/audio/replay preservation.",
-    "Record exact limitations instead of treating compile success as visual acceptance."
-  ],
   "physical_device_install": false,
   "paid_calls": 0,
-  "production_writes": 0
+  "production_writes": 0,
+  "native_source_revision": "a3cddeaa9ee535f7ecaa2d7ff6097aba1b396845",
+  "simulator_observations": {
+    "device": "Spectral Nature Home Parity 20261105 / iPhone 16 / iOS 18.3",
+    "udid": "E8ED3481-DBDB-4DB7-A6D8-64884EE7AA2F",
+    "application": "com.torrescapital.spectralnature",
+    "build": "Debug 19, signed; no physical installation",
+    "checks": [
+      "All eight story titles and all five nonempty published text fields are present in native accessibility output, in server order.",
+      "Business context and next observations are visible inline; company counts agree with the DTO. Screens confirm full multiline paragraphs reflow.",
+      "Ticker cards retain preceding-week/latest-session prices and actual intraday observations. Full market-cap/month-return and available fiscal financial charts remain.",
+      "Brief displays its full captured summary. Original retained audio played and paused at 0:05 of 0:40, with seek/speed controls present.",
+      "All five dated Highlights and corresponding 1200-observation charts remain. Selection changes the visible chart.",
+      "Calendar expands in place, shows original Unity fiscal period/EPS estimate/source link/check date; replay sheet, replay label and return to Latest render.",
+      "Attention network opens the full 197-node view. NVDA node selection shows its published sector and movement."
+    ],
+    "http_observations": {
+      "home_200": 1,
+      "home_304": 17,
+      "retained_audio_200": 1,
+      "dated_home_200": 1
+    },
+    "fixture_server": "Owned loopback only; no external inference or application writes.",
+    "screenshots": [
+      {
+        "file": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/attention-company-context-followup.png",
+        "sha256": "cf92e2d5e286fd29d2b25ecc6486d2ab641fd07f8104c0c2d9dfd0e28fe32cad"
+      },
+      {
+        "file": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/attention-inline-context-and-followup.png",
+        "sha256": "dd46bb502d75b939ea34c1a78b980665ba470a0f0cee885baaed884998726c36"
+      },
+      {
+        "file": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/attention-network-drilldown.png",
+        "sha256": "6004495b08d64bff7895b422e1abfb14273817c29b858634dfd3838cc4937d80"
+      },
+      {
+        "file": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/attention-price-financial-charts.png",
+        "sha256": "03c9eb81f90b99b1e4ae4975a5b6c12439c12d1dc4310b4c2875fec24b988f02"
+      },
+      {
+        "file": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/brief-retained-audio.png",
+        "sha256": "bdead4a53a387eb990b43823e13faca2c287c3e27ad87d786f735cc4a6c711d1"
+      },
+      {
+        "file": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/calendar-event-original-source.png",
+        "sha256": "06317dd4507a728b701dc6ec687ae86958ad18ca8f978fbedf3ae9d3e65c64f6"
+      },
+      {
+        "file": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/highlights-dated-chart.png",
+        "sha256": "0af7d743c209d30d642fdc3f155b3d8b784a4372c84288921f43585899fd044c"
+      },
+      {
+        "file": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/native-parity-20261105/replay-calendar-and-latest.png",
+        "sha256": "47a6031c3f14fddbbe0be059c44626e5b6a38e5432ae9b0f4e3bfd88ff3db383"
+      }
+    ],
+    "limits": [
+      "The Simulator preview omitted the mandatory release_source.py gate. There is no preview exemption. These are local render observations only, not release/build acceptance.",
+      "Final integrated native source must pass the committed acceptance/source gate and be rebuilt and rendered before physical installation.",
+      "The frozen 18:50 production prose is preserved verbatim for display parity; this record does not accept its writing quality.",
+      "The isolated dated route only changes the replay envelope around the frozen DTO. It verifies client dispatch/rendering, not backend historical dataset selection.",
+      "No authenticated Investigator or Research run, external source navigation, physical device, or app-wide behavior qualification was performed.",
+      "The captured source_version is empty; immutable saved-publication routing is not qualified."
+    ]
+  },
+  "additional_native_work": {
+    "status": "source_implemented_not_built_or_rendered",
+    "changes": [
+      "Native Health uses existing /api/admin/health data and controls; all web Health sections are represented.",
+      "Trading shows actual incomplete refresh components and filled-call observation/close timestamps from existing DTOs.",
+      "Source gate now includes native tracked inputs in its complete application inventory without changing container runtime packaging."
+    ],
+    "remaining": [
+      "Commit/integrate native source and source-review evidence.",
+      "Run mandatory gate against the final committed acceptance record.",
+      "Build and render the complete integrated source, including authenticated Health and Trading screens."
+    ]
+  },
+  "broader_scope": {
+    "statement": "Home/Attention display parity is observed. App-wide parity has not been established.",
+    "known_route_difference": "Immutable saved Attention event/image URLs remain web routes. Native incoming URLs handle account links, not saved-event navigation. This is distinct from current Home content.",
+    "parallel_audit": "Parent owns separate Markets score and Portfolio risk-share consumer additions; not present in this branch."
+  }
 }

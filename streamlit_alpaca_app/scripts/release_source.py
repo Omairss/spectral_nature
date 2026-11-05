@@ -12,8 +12,9 @@ import subprocess
 
 APP = Path(__file__).resolve().parents[1]
 MANIFEST = APP / "infra/release_acceptance.json"
-# These trees are excluded by .dockerignore and cannot supply runtime code.
-EXCLUDED = ("documents/", "infra/", "ios_app/", "tests/", "output/", "notebooks/")
+# Evidence and generated output cannot supply runtime code. Native application
+# inputs remain inventoried even though container roles do not package them.
+EXCLUDED = ("documents/", "infra/", "tests/", "output/", "notebooks/")
 SUPPORTED_ROLES = ("worker", "api-next", "broker", "web")
 RUNTIME_ROOTS = ("api/", "compute/", "config/", "data/", "data_access/", "pipeline/",
                  "presentation/", "services/", "branding/")

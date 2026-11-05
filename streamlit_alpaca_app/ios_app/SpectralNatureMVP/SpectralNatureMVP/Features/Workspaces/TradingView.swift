@@ -311,7 +311,12 @@ private struct PaperCallDetailView: View {
           TradingSurface { Metrics(items: [("Call P/L", Format.money(performance.number("pl"))), ("Return on filled capital", Format.percent(performance.number("return_pct"))), ("Realized", Format.money(performance.number("realized_pl"))), ("Unrealized", Format.money(performance.number("unrealized_pl")))]) }
           if performance.number("entry_capital") != nil {
             TradingSurface { Metrics(items: [("Average entry", Format.price(performance.number("average_entry"))), ("Filled capital", Format.money(performance.number("entry_capital"))), ("Remaining shares", performance.text("quantity")), ("Current mark", Format.price(performance.number("mark_price")))]) }
-            Text("Fills and linked fees").font(.caption2).foregroundStyle(Theme.secondaryText)
+            HStack {
+              Text("Fills and linked fees")
+              if let date = Format.date(performance.text(performance.text("status") == "closed" ? "closed_at" : "as_of")) {
+                Text("\(performance.text("status") == "closed" ? "Closed" : "As of") \(date.formatted(date: .abbreviated, time: .shortened))")
+              }
+            }.font(.caption2).foregroundStyle(Theme.secondaryText)
           }
           if !path.isEmpty {
             Chart {
@@ -586,7 +591,11 @@ private struct PaperPortfolioView: View {
         TradingSurface {
           Metrics(items: [("Cash", Format.money(summary.number("cash"))), ("Open P/L", Format.money(summary.number("unrealized_pl"))), ("\(dataPeriod) drawdown", Format.percent(portfolio.number("max_drawdown_pct"))), ("\(dataPeriod) Sharpe", Format.number(portfolio.object("performance").number("sharpe_ratio"), digits: 2))])
         }
-        if portfolio.text("status") == "partial" { Label("Refresh incomplete", systemImage: "clock").font(.caption).foregroundStyle(Theme.coral) }
+        if portfolio.text("status") == "partial" {
+          let components = portfolio["unavailable"]?.array.map(\.string).joined(separator: ", ") ?? ""
+          Label("Refresh incomplete" + (components.isEmpty ? "" : ": " + components), systemImage: "clock")
+            .font(.caption).foregroundStyle(Theme.coral)
+        }
         if let date = Format.date(portfolio.text("as_of")) { Text("Updated \(date.formatted(date: .abbreviated, time: .shortened)) · cashflow adjusted").font(.caption2).foregroundStyle(Theme.secondaryText) }
       } else { Text(portfolio.text("status") == "unlinked" ? "No paper account connected" : "Paper account unavailable").font(.subheadline).foregroundStyle(Theme.secondaryText) }
     }

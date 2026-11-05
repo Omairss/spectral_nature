@@ -5,6 +5,7 @@ struct AdminView: View {
   @EnvironmentObject private var session: AppSession
   @StateObject private var resource = Resource<JSONValue>()
   @State private var section = "Users"
+  @State private var healthRefresh = 0
   @State private var days = 7
   @State private var email = ""
   @State private var role = "investor"
@@ -14,45 +15,56 @@ struct AdminView: View {
   @State private var actionError = ""
   @State private var notice = ""
   @State private var issuedURL: URL?
-  private let sections = ["Users", "Usage & Security", "LLM", "API Keys", "System", "History"]
+  private let sections = [
+    "Users", "Usage & Security", "LLM", "API Keys", "System", "History", "Health",
+  ]
   var body: some View {
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 20) {
         HStack {
           Picker("Section", selection: $section) { ForEach(sections, id: \.self) { Text($0) } }
           Spacer()
-          Picker("History", selection: $days) {
-            ForEach([3, 7, 14, 30], id: \.self) { Text("\($0) days").tag($0) }
+          if section != "Health" {
+            Picker("History", selection: $days) {
+              ForEach([3, 7, 14, 30], id: \.self) { Text("\($0) days").tag($0) }
+            }
           }
         }
-        ResourceStatus(resource: resource) { Task { await load() } }
-        if !actionError.isEmpty { Failure(message: actionError) }
-        if !notice.isEmpty { Text(notice).font(.subheadline).foregroundStyle(Theme.teal) }
-        if let issuedURL { ShareLink("Share account link", item: issuedURL).privacySensitive() }
-        if let value = resource.value {
-          switch section {
-          case "Users": users(value)
-          case "Usage & Security": access(value["access"])
-          case "LLM": models(value["llm"])
-          case "API Keys":
-            table(
-              "API keys", value["agent_keys"].records,
-              [
-                .init(key: "name", title: "Name"), .init(key: "key_prefix", title: "Prefix"),
-                .init(key: "scopes", title: "Scopes"), .init(key: "status", title: "Status"),
-                .init(key: "created_at", title: "Created"),
-                .init(key: "last_used_at", title: "Last used"),
-                .init(key: "expires_at", title: "Expires"),
-              ])
-          case "History":
-            table("Job history", value["system"]["job_history"].records, jobColumns)
-            table("Dataset history", value["system"]["dataset_history"].records, datasetColumns)
-          default: system(value["system"])
+        if section == "Health" {
+          AdminHealthView(refresh: $healthRefresh)
+        } else {
+          ResourceStatus(resource: resource) { Task { await load() } }
+          if !actionError.isEmpty { Failure(message: actionError) }
+          if !notice.isEmpty { Text(notice).font(.subheadline).foregroundStyle(Theme.teal) }
+          if let issuedURL { ShareLink("Share account link", item: issuedURL).privacySensitive() }
+          if let value = resource.value {
+            switch section {
+            case "Users": users(value)
+            case "Usage & Security": access(value["access"])
+            case "LLM": models(value["llm"])
+            case "API Keys":
+              table(
+                "API keys", value["agent_keys"].records,
+                [
+                  .init(key: "name", title: "Name"), .init(key: "key_prefix", title: "Prefix"),
+                  .init(key: "scopes", title: "Scopes"), .init(key: "status", title: "Status"),
+                  .init(key: "created_at", title: "Created"),
+                  .init(key: "last_used_at", title: "Last used"),
+                  .init(key: "expires_at", title: "Expires"),
+                ])
+            case "History":
+              table("Job history", value["system"]["job_history"].records, jobColumns)
+              table("Dataset history", value["system"]["dataset_history"].records, datasetColumns)
+            default: system(value["system"])
+            }
           }
         }
       }.padding(20)
     }.navigationTitle("Admin").navigationBarTitleDisplayMode(.inline).workbench()
-      .task(id: days) { await load() }.refreshable { await load() }
+      .task(id: days) { await load() }
+      .refreshable {
+        if section == "Health" { healthRefresh += 1 } else { await load() }
+      }
   }
   private var jobColumns: [WorkbookColumn] {
     [

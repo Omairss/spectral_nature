@@ -292,7 +292,7 @@ struct AccessGate<Content: View>: View {
 }
 
 struct WorkbookColumn {
-  enum Style { case text, number, money, price, percent, fraction, date }
+  enum Style { case text, number, money, price, percent, fraction, date, dateTime }
   let key: String
   let title: String
   var style: Style = .text
@@ -308,6 +308,10 @@ struct WorkbookColumn {
     case .fraction: return Format.percent(row.number(key), fraction: true)
     case .date:
       return Format.date(row.text(key)).map(Format.observationDay) ?? "—"
+    case .dateTime:
+      return Format.date(row.text(key)).map {
+        $0.formatted(date: .abbreviated, time: .standard)
+      } ?? "—"
     }
   }
 }
