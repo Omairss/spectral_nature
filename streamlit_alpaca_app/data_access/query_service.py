@@ -149,6 +149,8 @@ class QueryService:
         for source_id, record in self.supplied_evidence.items():
             entry = {"source_id": source_id, "title": record.get("title", source_id), "metadata": record.get("metadata") or {}}
             content = record.get("content")
+            if record.get("read_pointer"):
+                entry["read_pointer"] = record["read_pointer"]
             entry["content_type"] = type(content).__name__
             if isinstance(content, dict):
                 entry["fields"] = list(content)
@@ -159,12 +161,13 @@ class QueryService:
         return {"sources": matches[offset:end], "total_matches": len(matches), "offset": offset,
                 "next_offset": end if end < len(matches) else None, "total_sources": len(self.supplied_evidence)}
 
-    def read_supplied_evidence(self, *, source_id: str, pointer: str = "", offset: int = 0, max_characters: int = 16000) -> dict[str, Any]:
+    def read_supplied_evidence(self, *, source_id: str, pointer: str | None = None, offset: int = 0, max_characters: int = 16000) -> dict[str, Any]:
         """Read an original or a JSON Pointer within it, with lossless continuation."""
         if source_id not in self.supplied_evidence:
             raise QueryValidationError(f"Unknown supplied source: {source_id}")
         record = self.supplied_evidence[source_id]
         content = record.get("content")
+        pointer = record.get("read_pointer", "") if pointer is None else pointer
         if pointer:
             if not pointer.startswith("/"):
                 raise QueryValidationError("pointer must be a JSON Pointer beginning with /.")

@@ -1673,6 +1673,9 @@ The owner identified that the latest shared prompt changes had never been exerci
 
 The missing-proof regression survived shared review because old review judgments were also presented as evidence to later planning/research/public writing. The Nov5 real upstream test further exposed a reviewer moving an observation past its reporting cutoff. A subsequent valid paid draft was lost when receipt bookkeeping crossed the request deadline, and premature expiry sampling prevented replay. The narrow public diagnostic repeated that timeout and did not include the native event bundle. Its output is not acceptance. Corrected context boundaries and completed-body handoff at source, then replayed actual outputs through synthesis, review, cleanup and the unchanged event adapter; fresh public quality remains open. See [evidence](verification/home-upstream-verification-2026-11-05.json).
 
+
+The next native public comparison completed, but its reviewer kept research-status commentary, jargon and numerical lists. The prompt trace also exposed recursively wrapped evidence and duplicated article/archive fields. This output is rejected; stronger prompt wording alone is not acceptance. The first supplied-only scope probe bound no sources and therefore advertised no supplied reader; corrected the probe fixture, with no runtime change.
+
 ### November 4, 2026 — source moved during X packaging
 
 The calendar jobs changed images while X packages were building. The mandatory consumer guard stopped before mutation; the first package set cannot be promoted over that newer producer. Reconcile the accepted calendar behavior and fresh consumer baselines before resuming.

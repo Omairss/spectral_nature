@@ -1707,6 +1707,9 @@ Shared writing and reviewer prompts also affect upstream research and planning. 
 
 Completed provider output must reach the existing draft checkpoint before bookkeeping can exhaust an inference phase. Keep validity, narrative acceptance, financial settlement and publication authority separate. Only exact schema-valid completed artifacts may signal an owner or be replayed without a second charge; malformed responses retain existing repair rules. Drain only workers that already delivered completed bodies, using the existing bounded receipt finalization. Native adapter replay preserves real paid research while testing the next stage; label the replay and never call a direct-handoff diagnostic complete end-to-end verification. See [evidence](verification/home-upstream-verification-2026-11-05.json).
 
+
+Model-facing context should serialize once. Re-encoding already serialized read results creates nested reference graphs that obscure the actual passages. A reporting cutoff must reach every role explicitly; the execution date is not the event date. Inspect actual prompts and complete outputs, not just source instructions.
+
 ### November 4, 2026 — concurrent release reconciliation
 
 Recheck all live consumers immediately before mutation. The X rollout preflight caught the separately promoted next-open calendar producer after packaging and stopped with zero deployments. Integrate its two accepted calendar modules from Git, retain the existing research source, and rebuild/requalify all selected roles against the combined source. Do not import the calendar worktree’s unrelated held writing experiments.

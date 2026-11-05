@@ -47,6 +47,7 @@ from .agents.research_session import (
     research_request_context,
 )
 from .llm_context import serialize_llm_context
+from .json_utils import to_jsonable
 
 
 LLMClient = JSONLLMClient
@@ -264,40 +265,31 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        "You are an independent subject expert and an expert communicator for casual readers with no financial training. "
-        "Form your own explanation from the evidence, then compare the draft with the person's request. "
-        "Check the main theme, leading likely explanations, important omissions, business consequences and event timing. "
-        "Keep observation time, event time and publication time distinct. Never change an observation's date to make "
-        "an explanation fit. A later publication can document an earlier event; use the event and observation dates "
-        "to decide what existed at the reporting cutoff. Exclude later events and price moves from that historical explanation. "
-        "For market reports, name the most likely drivers, explain how each affects the relevant businesses, "
-        "and put the strongest explanation first. A statement that several drivers exist cannot replace naming them. "
-        "Check who sells, who buys and who bears the costs. Explain how each proposed driver changes demand, costs, "
-        "sales or profits. Rank explanations by how well they fit the observations, preserving useful inferences "
-        "even when causal evidence is indirect. Review improves the explanation rather than certifying a proven cause. "
-        "Read the original report behind the main "
-        "development and check consequential quantities against its text before judging. Earlier generated research "
-        "and reviews are fallible interpretations, not verification. Use established subject knowledge to interpret the facts. "
-        "Preserve useful hypotheses at their actual strength; express "
-        "material uncertainty in the claim itself. Market prices respond to expectations before outcomes occur. "
-        "Check what each quantity measures, its units, baseline and period. Distinguish sales, gross profit, "
-        "net profit, cash flow and stock-market value; compare the same metric when describing a beat or miss. "
-        "Keep a company-wide measure distinct from a product or segment measure. Preserve that meaning when simplifying. "
-        "Review the actual headline, summary and body as one explanation for someone who has not read the research. "
-        "DO NOT ACCEPT FINANCIAL JARGON or abstract labels that conceal the business meaning. "
-        "Rewrite unclear passages directly in precise everyday words. Lead with what happened and why it matters. "
-        "Rewrite rhetorical 'not X, but Y' openings as direct substantive statements. "
-        "NO DISCLAIMERS, missing-proof commentary or research bookkeeping in public prose. "
-        "Keep the broad explanation; cut repeated facts, padding, unnecessary definitions and weak side issues. "
-        "Remove irrelevant comparisons, rejected research hypotheses and descriptions of what information was available "
-        "to the researcher. Reconsider the draft's organizing premise when it distracts from the actual development. "
-        "When a draft revolves around missing proof, rhetorical contrasts or a list of numbers, rewrite its opening "
-        "and structure around the business explanation. Replacing individual words is insufficient. "
-        "Each paragraph or field should add a distinct useful point. A public follow-up must name a material "
-        "observable development that could change the interpretation. Keep other research needs in research_requests. "
-        "Return the corrected complete artifact and judge that exact text; put essential ideas in answer_points. "
-        "Accept a clear, sound draft; revise meaning, framing or clarity failures. Use insufficient only when "
-        "you cannot form a substantive answer. A requested complete knowledge rewrite preserves every useful original observation and qualifier."
+        "You are an independent research editor and an expert communicator. The reader has no financial training. "
+        "Deliver a precise, useful explanation in the requested format. First form your own account from the underlying "
+        "facts, then improve the draft's reasoning, selection and writing. Read the original report for the central "
+        "development and consequential quantities. Earlier generated findings are interpretations to assess. "
+        "Lead with the important development, its leading likely drivers and its business or economic significance. "
+        "Explain the connection: who buys or sells, what changes for them, and how that affects demand, costs, sales or profit. "
+        "Rank plausible explanations by their fit with the observations; useful inference does not require causal proof. "
+        "Distinguish facts, attributed expectations and your interpretation through precise wording. "
+        "Match quantities to what they measure, with the right entity, units, baseline and period. A share-price change "
+        "measures investor expectations; business activity needs evidence such as customer use, orders or sales. "
+        "Keep observation, event and publication dates distinct. A later report may describe an earlier event; exclude "
+        "events and observations beyond the reporting cutoff. Preserve useful contrary evidence that changes the explanation. "
+        "WRITE FOR A CASUAL READER. USE EVERYDAY WORDS, NOT FINANCIAL JARGON. "
+        "Choose the few facts needed to understand the theme; keep supporting measurements in the research and charts. "
+        "Each sentence must explain a development or add a consequence. Say each point once across all fields. "
+        "Illustrative writing only, not evidence: 'Customers are ordering more servers for AI. That lifted the supplier's "
+        "sales, while higher electricity costs reduced the profit it kept.' This connects facts to business meaning. "
+        "NO DISCLAIMERS, 'NOT X, BUT Y' RHETORIC, missing-proof commentary, rejected hypotheses or descriptions of "
+        "what information the researcher had. Put research gaps and operational limits in research_requests. "
+        "A useful public follow-up names a future business development that could change the interpretation. "
+        "Rewrite a weak organizing premise, rather than polishing its words. Return the complete corrected artifact "
+        "and judge that exact version. Accept a sound, clear draft; revise substantive or communication failures. "
+        "Use insufficient only when a substantive answer cannot be formed. A requested complete knowledge rewrite "
+        "preserves every useful original observation and qualifier."
+
     ),
 )
 
@@ -1155,15 +1147,18 @@ def _tool_history_prompt(
                 "error": call.get("error"),
             }
         )
-    # Random call/turn identities and capture bookkeeping must not precede the
-    # large, reusable source bodies. Preserve their exact association by index.
+    # Results already serialized for the model remain text. Serializing them
+    # again builds nested reference graphs around the original evidence.
     evidence = [record.pop("evidence") for record in records]
     return ("Collected evidence, in record order:\n"
-            + serialize_llm_context(evidence, append_only=True)
+            + "\n\n".join(
+                f"Evidence {index}:\n" + (value if isinstance(value, str) else
+                    json.dumps(to_jsonable(value), ensure_ascii=False, default=str))
+                for index, value in enumerate(evidence))
             + "\n\nEvidence record metadata (evidence_index is zero based):\n"
-            + serialize_llm_context([
+            + json.dumps(to_jsonable([
                 {"evidence_index": index, **record} for index, record in enumerate(records)
-            ]))
+            ]), ensure_ascii=False, default=str))
 
 
 def _run_evidence_model_step(
@@ -1269,9 +1264,8 @@ def _run_evidence_model_step(
             "history_catalog": history_catalog, "supplied_sources": reader.supplied_evidence_manifest,
             "tools": read_tools, "context_feedback": feedback,
         })
-        # Reading retained inputs is part of completion, including when the
-        # allowance ends optional acquisition. These tools cannot acquire web
-        # evidence or mutate knowledge.
+        # Completion may read permitted originals, including selected web
+        # pages. It cannot widen source permissions or write knowledge.
         active_schema = step_schema
         try:
             with model_call_context(discretionary_core_step=protected_step and not answer_only and funded_core_research()):
@@ -1345,7 +1339,8 @@ def _run_evidence_model_step(
             continue
         call_id = "agtc_read_" + uuid.uuid4().hex
         try:
-            result = invoke_tool(service=reader, tool_name=tool_name, arguments=arguments)
+            with WorkScope(deadline_monotonic).activate():
+                result = invoke_tool(service=reader, tool_name=tool_name, arguments=arguments)
             call = {"tool_call_id": call_id, "tool_name": tool_name, "arguments": arguments,
                     "status": "completed", "error": None, "result_summary": _summarize_tool_result(result)}
         except Exception as exc:
@@ -3673,6 +3668,7 @@ def _execute_zopedia_agent_loop(
                 tool_registry = ToolRegistry(
                     [tool for tool in tool_registry.catalog() if tool.get("source_access") != "web"]
                 )
+                completion_read_tools = tuple(name for name in completion_read_tools if tool_registry.get(name))
             action = decision.get("action")
             candidate = _clean_model_output(decision.get("answer_markdown"))
             if candidate:

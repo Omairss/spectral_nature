@@ -988,7 +988,7 @@ def build_tool_registry(service: QueryService) -> ToolRegistry:
              "inputSchema": {"type": "object", "additionalProperties": False, "properties": {
                  "terms": {"type": "array", "items": {"type": "string"}}, "offset": {"type": "integer", "minimum": 0},
                  "limit": {"type": "integer", "minimum": 1, "maximum": 100}}}},
-            {"name": "research.read_supplied_evidence", "description": "Read a supplied source's complete original content, optionally at a JSON Pointer (e.g. /points). Continue with next_offset. All originals remain available; catalog metadata alone does not establish a trend or cause.",
+            {"name": "research.read_supplied_evidence", "description": "Read a supplied source, optionally at a JSON Pointer (e.g. /points). Omit pointer to use its advertised read_pointer or whole record; set pointer to an empty string for the complete original record. Continue with next_offset. All original fields remain readable; catalog metadata alone does not establish a trend or cause.",
              "inputSchema": {"type": "object", "additionalProperties": False, "required": ["source_id"], "properties": {
                  "source_id": {"type": "string", "description": "Read handle from the catalog entry's source_id field. Original document IDs inside metadata may differ."}, "pointer": {"type": "string"}, "offset": {"type": "integer", "minimum": 0},
                  "max_characters": {"type": "integer", "minimum": 1, "maximum": 60000}}}},

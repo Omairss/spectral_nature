@@ -1917,6 +1917,8 @@ def _review_home_public_surface(
             continue
         identity = doc.get("canonical_document_id") or build_canonical_document_fields(doc)["canonical_document_id"]
         records["source:" + identity] = {"title": doc.get("title") or identity,
+            **({"read_pointer": "/raw_text"} if isinstance(doc.get("raw_text"), str) and doc["raw_text"]
+               else {"read_pointer": "/text"} if isinstance(doc.get("text"), str) and doc["text"] else {}),
             "metadata": {"kind": "source_document", "original_source_id": doc.get("source_id"), "url": doc.get("url"),
                          "published_at": doc.get("published_at"), "provider_symbols": doc.get("provider_symbols"),
                          "raw_text_origin": doc.get("raw_text_origin"), "source_kind": doc.get("source_kind"),
@@ -1971,6 +1973,7 @@ def _review_home_public_surface(
                                if key not in {"observations", "columns", "previous_groups"}},
         "completed_research_claims": findings,
         "source_index": [{"source_id": source_id, "title": record["title"], "metadata": record["metadata"],
+                          "read_pointer": record.get("read_pointer", ""),
                           "fields": list(record["content"]) if isinstance(record["content"], dict) else []}
                          for source_id, record in records.items()],
         "publication_capacity": limits,

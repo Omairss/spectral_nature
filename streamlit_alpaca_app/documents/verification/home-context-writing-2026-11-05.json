@@ -1,0 +1,30 @@
+{
+  "status": "native_public_completed_writing_rejected",
+  "source": "feb6d1af",
+  "model": "deepseek-v4-pro, thinking enabled, high effort",
+  "scope": "One saved real reviewed investigation, recorded-claim originals and related retained finding; original numerical context; native public writer, shared review and materialization. No fresh planner or investigation batch.",
+  "public_stories": 5,
+  "personal_assessment": {
+    "improved": [
+      "Recovered AMD, Arista and Astera report figures.",
+      "Native composition and review both completed; production display limits materialized five stories."
+    ],
+    "failed": [
+      "Narrates unavailable reports and discarded explanations in public text.",
+      "Uses specialist labels and excessive price lists instead of the business theme.",
+      "Treats later stock reactions as a test of demand rather than distinguishing investor response from customer purchases."
+    ],
+    "decision": "Do not deploy this output. Test fresh synthesis/review without the old answer, simplify repeated context encoding, and check the resulting native public composition."
+  },
+  "source_permissions_and_cutoff": {
+    "status": "passed",
+    "scope": "Unpaid execution contracts, not prose acceptance",
+    "checks": [
+      "Allowed source readers reach synthesis and review.",
+      "Retained-only and supplied-only restrictions are preserved.",
+      "Artifact reporting cutoff propagates; explicit request cutoff takes precedence."
+    ]
+  },
+  "production_writes": 0,
+  "private_evidence": "operations/home-reliability-completion-20261103/facts-originals-small-output.private.json"
+}
