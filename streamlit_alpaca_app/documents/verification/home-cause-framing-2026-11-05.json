@@ -448,10 +448,12 @@
     "pending_workers": 0
   },
   "planner_rationale_alias_finding": {
-    "status": "source_and_actual_model_input_confirmed_correction_pending",
+    "status": "source_corrected_actual_projection_and_model_comparison_pending",
     "producer": "services/aql/events.py: plan[rationale] copied to current_assessment on every investigation/reuse bundle",
     "actual_public_input": "Presented as dated research interpretation despite describing planned work and missing inputs, before the selected investigation completed.",
     "consequence": "Writer copies verify-formal-record/unresolved-fuel-price tasks as news. Claims also contain mixed business observations and reading-status notes; no deterministic phrase filtering is proposed.",
-    "quality_limit": "Input lineage establishes a concrete source defect, not the amount of editorial improvement from correcting it."
+    "quality_limit": "Input lineage establishes a concrete source defect, not the amount of editorial improvement from correcting it.",
+    "repair": "Remove current_assessment and alias timestamp from future bundle/reuse metadata and public projection. No replacement field; complete plans/rationale/asof already persisted twice.",
+    "preservation": "Actual research payload, source/observation identity and dates unchanged; stored old artifacts remain untouched. Rationale remains in planner dataset/nomination/current research request/financial reason."
   }
 }

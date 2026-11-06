@@ -1,8 +1,8 @@
 {
-  "status": "Review/version ownership and terminal-review continuation repaired;18unpaid native controls pass. Full current-production public comparison still fails the owner writing standard; deployment held.",
+  "status": "Planner rationale is no longer mislabeled as a completed current assessment. Native public re-projection/comparison pending; writing unaccepted and deployment held.",
   "objective": "Reliable current data-first research with predictable adaptive costs, useful probable explanations and concise public reporting. The90% savings target is retired.",
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
-  "current_source_revision": "3d2b1878 plus verified terminal-review continuation, pending commit",
+  "current_source_revision": "046c4c6e plus planner-rationale alias correction, pending commit",
   "production": {
     "source": "96d0a52f",
     "writes_during_verification": 0,
@@ -98,13 +98,19 @@
       "finding": "bbf26236 replaced the accepted8c structured-artifact instruction with the generic markdown-answer prompt. Earlier registered-prompt restorations did not restore the actual accepted structured writer.",
       "repair": "Restore existing response_schema branch; actual current global style/timeline/analysis suffix remains applied once. No new stage/helper/provider.",
       "quality_limit": "Actual controlled pair used byte-identical236reader catalog/current inputs; restoration is a task-contract correction but did not cure inherited proof framing."
+    },
+    "public_input_contract": {
+      "status": "source_corrected_unpaid_native_projection_pending",
+      "finding": "Every current_assessment value was pre-investigation plan.rationale, not an output assessment. Removed alias and alias timestamp from new bundles/reuse metadata and public model views.",
+      "preservation": "Original plan_json/rationale/asof, nomination payload, financial reason, focused research request, dated findings/claims/raw observations and original readers remain. Stored historical artifacts unchanged; no new field or migration.",
+      "quality_limit": "This corrects meaning at source; actual writing improvement remains unproven."
     }
   },
   "remaining": [
     {
       "id": 1,
       "task": "Qualify current planner, focused research, complete public reporting and material late-correction continuity.",
-      "state": "Execution repairs verified; full3d comparison rejected. Concrete new source defect under review: pre-investigation planner rationale is mislabeled current_assessment and supplied as research output."
+      "state": "Execution verified; latest full public output rejected. Concrete planner-rationale alias corrected at its producer and public context boundary; one controlled fresh composition comparison pending."
     },
     {
       "id": 2,
@@ -148,7 +154,7 @@
     "daily_allowance_usd": 25,
     "operational_guard_usd": 45,
     "operational_guard_note": "Internal guard under broad continuation authority, not a new owner dollar grant; every prior metered estimate and unknown maximum remains counted.",
-    "internal_working_window_ends_at_utc": "2026-11-06T14:45:00+00:00",
+    "internal_working_window_ends_at_utc": "2026-11-06T15:30:00+00:00",
     "pending_requests": 0,
     "authoritative_private_record": "operations/home-reliability-completion-20261103/ledger.json"
   },

@@ -661,7 +661,7 @@ def research_source_events(
             )
         if plan["research_action"] == "reuse":
             result = {**prior["result"], "artifact_reuse": {"artifact_id": prior["artifact_id"],
-                "created_at_utc": prior["created_at_utc"], "current_assessment": plan["rationale"]}}
+                "created_at_utc": prior["created_at_utc"]}}
         else:
             result = None
         if deadline <= time.monotonic():
@@ -832,11 +832,9 @@ def research_source_events(
             "source_event": True,
             "research_priority": index,
             "research_action": plan["research_action"],
-            "current_assessment": plan["rationale"],
             "research_asof_time_utc": prior_context.get("asof_time_utc") if plan["research_action"] == "reuse" else asof,
             "research_completed_at_utc": (prior.get("created_at_utc") if plan["research_action"] == "reuse" else
                                           (result.get("artifact_reuse") or {}).get("created_at_utc") or pd.Timestamp.now(tz="UTC")),
-            "current_assessment_asof_time_utc": asof,
             "prior_artifact_id": plan["prior_artifact_id"],
             "event_score": 0.0,
             "supporting_symbols": symbols,

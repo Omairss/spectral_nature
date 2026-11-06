@@ -1890,14 +1890,13 @@ def _review_home_public_surface(
             "title": bundle.get("event_title") or bundle.get("headline") or bundle_id,
             "metadata": {"kind": "shared_research", "bundle_id": bundle_id,
                          "asof_time_utc": bundle.get("asof_time_utc"),
-                         **{key: bundle.get(key) for key in ("research_action", "research_asof_time_utc", "research_completed_at_utc", "current_assessment_asof_time_utc")},
+                         **{key: bundle.get(key) for key in ("research_action", "research_asof_time_utc", "research_completed_at_utc")},
                          "symbols": bundle.get("supporting_symbols") or [bundle.get("symbol")]},
             # Prior review verdicts are audit records, not evidence for an
             # independent public explanation. The stored bundle stays intact.
             "content": to_jsonable({**{key: bundle.get(key) for key in (
                 "event_title", "supporting_symbols", "claims", "asof_time_utc",
                 "research_asof_time_utc", "research_completed_at_utc",
-                "current_assessment", "current_assessment_asof_time_utc",
             )}, "findings_markdown": bundle.get("findings_markdown") or bundle.get("research_result"),
                 "market_observations": [item["market_observation"] for item in bundle.get("instrument_context") or []
                                         if item.get("market_observation")]}),
@@ -1906,9 +1905,9 @@ def _review_home_public_surface(
             "source_id": source_id,
             "asof_time_utc": bundle.get("asof_time_utc"),
             **{key: bundle.get(key) for key in (
-                "research_action", "research_asof_time_utc", "current_assessment", "current_assessment_asof_time_utc",
+                "research_action", "research_asof_time_utc",
             )},
-            # Compose from claims, current reassessments and observations;
+            # Compose from claims and observations;
             # complete findings remain in the same readable bundle above.
             "market_observations": [item["market_observation"] for item in bundle.get("instrument_context") or []
                                     if item.get("market_observation")],
@@ -1982,7 +1981,7 @@ def _review_home_public_surface(
         "Lead with the explanation and its importance; keep research-status commentary internal. "
         "Read the dated calendar to check material releases already due before assigning future follow-ups. "
         "Use the substantive shared findings, current observations and established business knowledge together. "
-        "The inline claims and dated reassessments are research interpretations; complete findings are in their bundle readers. "
+        "The inline claims are fallible research interpretations; complete findings are in their bundle readers. "
         "Research questions, earlier conclusions and claim-role labels are fallible; assess their meaning. "
         "Explain the leading likely mechanisms and useful forecasts, including facts that change the interpretation. "
         "Read the named originals when a consequential detail is missing, ambiguous or contradictory. "
@@ -1998,7 +1997,7 @@ def _review_home_public_surface(
                           "metadata": {key: value for key, value in record["metadata"].items()
                                        if key in {"kind", "symbols", "source_kind", "asof_time_utc",
                                                   "created_at_utc", "research_asof_time_utc",
-                                                  "research_completed_at_utc", "current_assessment_asof_time_utc",
+                                                  "research_completed_at_utc",
                                                   "published_at", "published_date", "source_capture"}},
                           "read_pointer": record.get("read_pointer", "")}
                          for source_id, record in records.items()],
