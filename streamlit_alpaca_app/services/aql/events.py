@@ -520,8 +520,13 @@ def research_source_events(
         # silently replacing a current capture with an earlier version.
         matches = {ref: [by_id[ref]] if ref in by_id else [doc for doc in documents if doc.get("url") == ref]
                    for ref in plan["source_refs"]}
-        resolved = [doc["source_id"] for captures in matches.values() for doc in captures]
-        plan["unresolved_source_refs"] = [ref for ref, captures in matches.items() if not captures]
+        resolved = []
+        for ref, captures in matches.items():
+            resolved.extend(doc["source_id"] for doc in captures)
+            if not captures and ref in service.supplied_evidence:
+                resolved.append(ref)
+        plan["unresolved_source_refs"] = [ref for ref, captures in matches.items()
+                                          if not captures and ref not in service.supplied_evidence]
         plan["source_ids"] = list(dict.fromkeys(resolved))
         # A nominated market observation is evidence for investigating an
         # unexplained move; it is not evidence of the move's eventual cause.

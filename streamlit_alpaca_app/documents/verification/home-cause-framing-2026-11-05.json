@@ -296,5 +296,29 @@
     "consumer_gap": "Public inline findings and supplied bundle content carried the assessment date but dropped its text.",
     "repair": "Carry current_assessment beside its existing date in both existing model views; retain older findings and originals unchanged.",
     "scope_limit": "Captured AI assessments themselves repeat missing-order/confirmation framing. The field repair preserves a contract but does not establish narrative improvement. New planning must be evaluated."
+  },
+  "fresh_common_planner_2b219": {
+    "source": "2b21980d",
+    "scope": "Fresh current-only historical Nov5 native common planner with999stock observations,224current and229prior groups,99headlines,100dated retained findings,267readers; empty prior model state.",
+    "requests": 3,
+    "new_estimated_usd": 0.759901,
+    "elapsed_seconds": 603.18,
+    "pending_workers": 0,
+    "selected_updates": [
+      "AI hardware",
+      "AI power and construction",
+      "Medical devices and hospitals",
+      "Gold and silver producers",
+      "Homebuilders and real estate"
+    ],
+    "result": "Useful broader selection, including groups without fresh headlines. Confirmation-focused framing persists in the current planner and review; not a narrative acceptance.",
+    "limits": "Missing earlier publication/company dossiers; no new acquisition, investigation, memory or production writes. Full pipeline and costed per-item agenda unqualified."
+  },
+  "valid_reader_reference_fix": {
+    "source": "services/aql/events.py",
+    "observed": "Three actual planner source IDs exist in supplied_evidence but were removed and marked missing by news-only reference normalization.",
+    "change": "Preserve exact supplied reader references when news ID/URL matching finds no document; retain real missing-reference diagnostics.",
+    "preservation": "Document selection already filters by_id, so retained references do not become news documents. First AI query unchanged.",
+    "verification": "Unpaid native dispatch replay pending; no new nomination inference required."
   }
 }
