@@ -1742,10 +1742,7 @@ A daily-bar timestamp labels its interval; capture and publication clocks have d
 A prompt can contain a clear style rule and still produce dense figures or spontaneous jargon. Restore the positive objective: main development, business action, likely mechanisms and wider significance, with a short reader-focused outline. Read the actual complete output. Preserve full retained knowledge while selecting explanatory detail for briefings. A recovered planning stage also needs the current dollar budget: time remaining alone does not establish affordable agenda selection.
 
 
-The shortened positive proposal did not remove dense figures, unexplained products or the old benchmark comparison. Its real reviewer timed out without a body. Restore the actual accepted independent-editor and audience/selection instructions as the next control, while preserving current observation, edited-answer and knowledge contracts. A returned writer draft is not completed review.
-
-
-Qualify the actual fresh writer as well as editing an old draft. Restored8c prompts improved business context but did not correct the older benchmark. Generic matching-period guidance was already present. Make the current numerical snapshot authority and article observation periods explicit, preserve adjustment/coverage limits, and teach the desired purpose→mechanism→outlook with one fictional example. Assess the meaning of figures, not their count.
+Restoring the accepted8c core and strengthening existing time guidance improved product context but did not repair benchmark logic. The cedda writer invented a14× comparison; the reviewer retained it and added an unmatched-horizon benchmark despite available timing. Its edits accumulated secondary facts. Scope the shared editorial objective by artifact purpose: public reporting selects the central explanation and implications; research preserves useful leads; complete knowledge replacements preserve the original useful information. Qualify the full saved feed rather than infer a market-wide Brief from a one-story fixture.
 
 ### November5,2026 — Home completion reserve
 

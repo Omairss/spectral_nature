@@ -1706,10 +1706,7 @@ The c539 public reviewer strengthened an older biotech-index comparison despite 
 The df7 fresh public chain removed the older benchmark comparison but still returned a numerical inventory and spontaneous jargon despite the real style instruction. Rejected it; no deployment follows. The actual native planner timed out in exploration and recovered six reviewed questions, but completion/review lacked the monetary snapshot supplied to planning. Carry the same live private execution controls through the existing shared stage rather than inventing another recovery policy.
 
 
-The a75 public writer still failed the communication bar; its shared reviewer returned no body by the original15minute deadline. Preserve its unknown maximum and local cleanup result, rather than calling the draft reviewed or resetting spending. The shorter proposal is rejected; restoration now uses the actual accepted8c11 prompt core, with necessary current contracts retained.
-
-
-The fresh8fc four-stage result was not a clean precision pass: both shared reviewers accepted an older biotech return as comparable with the current session. The product-purpose and profit explanation improved, so do not reject familiar terms or contextual figures by quota. Keep this factual defect separate from stylistic preference; no deployment follows the model verdict alone.
+The a75 reviewer timeout,8fc flawed comparison and cedda14× ratio all remain rejected and charged in the same ledger. Actual matching-period guidance was present; do not describe an ignored instruction as a missing one. The cedda reviewer corrected the intraday label but retained invalid comparison logic and secondary details. One-story ADMA fixtures also cannot establish market-wide Brief quality. Scope editorial preservation/selection by artifact purpose and widen to the saved full feed. No release follows the model verdict alone.
 
 ### November5,2026 — Home completion reserve
 

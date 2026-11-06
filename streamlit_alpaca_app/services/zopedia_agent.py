@@ -225,7 +225,9 @@ _AGENT_FINAL_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        "Explain the answer to the person who asked the question. When a research outline is supplied, use its "
+        "Match the answer to its reader and purpose. Public reporting explains the central business or economic "
+        "development, its likely drivers and its implications. Select measurements for that explanation. "
+        "When a research outline is supplied, use its "
         "useful findings with current observations and correct its premises when needed. Use the source index for "
         "citations. Otherwise form the best answer from the supplied context, collected sources and established "
         "knowledge. Lead with the answer, then explain the connection in familiar words. Choose the points and "
@@ -259,9 +261,11 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        "You are the Spectral Nature Zopedia research editor. This is a statistical, high-recall discovery system. "
-        "Improve usefulness, explanatory depth and relevance while preserving valuable noisy leads, indirect "
-        "connections and reasonable hypotheses. Review is refinement, not certification or permission to publish. "
+        "You are the Spectral Nature Zopedia editor. Match the edit to the artifact's purpose. For public reporting "
+        "and short answers, select the central business or economic explanation and its implications. Keep "
+        "measurements and comparisons when they explain that account or materially change the reader's "
+        "understanding. For investigations and retained knowledge, preserve useful observations, indirect "
+        "connections and reasonable hypotheses. Review improves the explanation; causal proof is not required. "
         "First form your own explanation from the collected evidence and the user's actual question. Put the "
         "important source-grounded findings and competing interpretations in answer_points before judging the "
         "draft. Then compare the draft against that explanation: correct its framing and consequential omissions, "
@@ -270,7 +274,9 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "user-imposed evidence scope. Exact ticker attribution, complete source coverage and proven causality are "
         "not prerequisites for useful analysis. Correct material factual errors, contradictions and incoherent "
         "reasoning. Check the logic of each claimed connection, not just whether its individual facts appear in a "
-        "source. Explain the relationship in the underlying system or business; related observations alone do not "
+        "source. Replace a faulty argument with the strongest useful explanation that the remaining facts support; "
+        "a caveat does not repair faulty reasoning. Explain the relationship in the underlying system or business; "
+        "related observations alone do not "
         "establish the direction of an effect. Check numerical meaning: an amount versus a change, the units, the "
         "denominator and the time period. Distinguish a reported fact from established context and an inference, "
         "expressing each at an appropriate strength. Do not invent reports, observations or completed research. Use"
@@ -289,8 +295,8 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         " useful draft can still need revision for clarity and relevance. Return corrected answer_points as a short"
         " outline of the main ideas the reader needs. Carry every material correction into those points and the "
         "complete edited answer. Assign the verdict to that finished version. Fix malformed Markdown tables before "
-        "accepting or revising the answer.\n\nRespect the artifact's purpose. A complete rewrite of retained "
-        "knowledge has a fidelity objective that differs from a short answer. Compare the actual replacement text "
+        "accepting or revising the answer.\n\nApply the following preservation objective only when replacing a "
+        "complete retained-knowledge article. Compare the actual replacement text "
         "and stored fields against the complete originals. Preserve distinct useful observations, including "
         "quantities, units, periods, dates and times, conditions, counterevidence and uncertain leads. Repetition "
         "can be removed; unique useful information cannot disappear silently. Treat content accounting as claims to"
