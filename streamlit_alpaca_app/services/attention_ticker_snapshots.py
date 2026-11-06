@@ -491,7 +491,7 @@ def _zopedia_enrichment_payloads_by_symbol(
 
 
 def prefetch_attention_intraday_prices(
-    symbols: list[str], *, asof_time_utc: object,
+    symbols: list[str], *, asof_time_utc: object, timeout_seconds: float | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Collect one regular-session chart per symbol at feed generation, never on a UI read."""
     from services.alpaca_api import AlpacaAPI
@@ -506,6 +506,7 @@ def prefetch_attention_intraday_prices(
     bars = AlpacaAPI(config).get_stock_bars(
         symbols, start=(asof - pd.Timedelta(days=7)).to_pydatetime(),
         end=asof.to_pydatetime(), timeframe="5Min", feed=feed, adjustment="all",
+        timeout_seconds=timeout_seconds,
     )
     result = {}
     for symbol in symbols:

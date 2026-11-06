@@ -1746,3 +1746,7 @@ The shortened positive proposal did not remove dense figures, unexplained produc
 
 
 Qualify the actual fresh writer as well as editing an old draft. Restored8c prompts improved business context but did not correct the older benchmark. Generic matching-period guidance was already present. Make the current numerical snapshot authority and article observation periods explicit, preserve adjustment/coverage limits, and teach the desired purpose→mechanism→outlook with one fictional example. Assess the meaning of figures, not their count.
+
+### November5,2026 — Home completion reserve
+
+A child model deadline needs room inside the original producer clock for completion SQL, chart preparation and canonical persistence. Carry one absolute cutoff through the existing Home research calls, preserve completed partial results, and leave the owner/lease fence active. Bound narration and materialization to that schedule; a core-funding reservation does not reserve wall-clock time.

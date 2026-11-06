@@ -154,6 +154,7 @@ def build_bottom_up_attention_artifacts(
     previous_publication: dict[str, Any] | None = None,
     write_policy: str = "none",
     progress_callback: Callable[[int, int, dict[str, Any]], None] | None = None,
+    research_deadline_monotonic: float | None = None,
 ) -> AgenticAttentionArtifacts:
     import uuid
     from compute.market_attention import build_market_attention_context
@@ -194,6 +195,7 @@ def build_bottom_up_attention_artifacts(
         universe_frame=topology_universe_frame, asof_time_utc=asof, run_id=run_id,
         llm_client=llm_client, market_context=numerical, macro_context=economic,
         previous_publication=previous_publication, write_policy=write_policy,
+        research_deadline_monotonic=research_deadline_monotonic,
         progress_callback=(lambda event: progress_callback(0, 1, event)) if progress_callback else None)
     # Selection narrows research and its display adapters, never numerical data.
     symbols = list(dict.fromkeys(

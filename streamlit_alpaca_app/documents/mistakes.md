@@ -1710,3 +1710,7 @@ The a75 public writer still failed the communication bar; its shared reviewer re
 
 
 The fresh8fc four-stage result was not a clean precision pass: both shared reviewers accepted an older biotech return as comparable with the current session. The product-purpose and profit explanation improved, so do not reject familiar terms or contextual figures by quota. Keep this factual defect separate from stylistic preference; no deployment follows the model verdict alone.
+
+### November5,2026 — Home completion reserve
+
+The focused public fixture gave writer/reviewer and outer owner the same900seconds, so a returned draft could fail at completion SQL. Production could reach the same boundary after long upstream research because Home had no completion reserve. Correct the caller schedule; do not detach core cleanup, which could clear a newer obligation generation. An unpaid native replay with real isolated PostgreSQL and a local Blob substitute persisted18saved output datasets while retaining the owner fence.

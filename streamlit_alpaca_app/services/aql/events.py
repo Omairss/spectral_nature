@@ -158,6 +158,7 @@ def research_source_events(
     previous_publication: dict[str, Any] | None = None,
     write_policy: str = "none",
     progress_callback: Callable[[dict[str, Any]], None] | None = None,
+    research_deadline_monotonic: float | None = None,
 ) -> dict[str, Any]:
     """Select all optional Home investigations after numerical preparation.
 
@@ -411,6 +412,13 @@ def research_source_events(
                 "source_documents": original_documents,
             })}
     service = QueryService.from_environment().with_supplied_evidence(source_records)
+    nomination_timeout = max(int(get_config_param(_P_NOMINATION_TIMEOUT)), 1)
+    if research_deadline_monotonic is not None:
+        nomination_timeout = min(nomination_timeout, research_deadline_monotonic - time.monotonic())
+    if nomination_timeout <= 0:
+        return {**empty, "status": "partial", "results": [{
+            "run_id": run_id, "status": "cancelled", "error": "Home research deadline reached before nomination.",
+        }]}
     nomination = run_aql_zopedia_structured_agent(
         query=get_prompt(_NOMINATION_PROMPT)
         + "\nContext JSON:\n"
@@ -447,7 +455,7 @@ def research_source_events(
         surface="aql.source_event_nomination",
         llm_client=llm_client,
         max_tool_calls=max(int(get_config_param(_P_DISCOVERY_TOOLS)), 0),
-        run_timeout_seconds=max(int(get_config_param(_P_NOMINATION_TIMEOUT)), 1),
+        run_timeout_seconds=nomination_timeout,
         llm_step_timeout_seconds=max(int(get_config_param(_P_NOMINATION_TIMEOUT)), 1),
         persist_findings=False,
         write_policy="none",
@@ -542,6 +550,11 @@ def research_source_events(
         plan: dict[str, Any], index: int
     ) -> tuple[dict[str, Any], dict[str, Any] | None]:
         deadline = time.monotonic() + max(int(get_config_param(_P_EVENT_TIMEOUT)), 1)
+        if research_deadline_monotonic is not None:
+            deadline = min(deadline, research_deadline_monotonic)
+        if deadline <= time.monotonic():
+            return {"run_id": run_id, "title": plan["title"], "status": "cancelled",
+                    "error": "Home research deadline reached before investigation."}, None
         selected = [
             by_id[source_id] for source_id in plan["source_ids"] if source_id in by_id
         ]
@@ -641,6 +654,9 @@ def research_source_events(
                 "created_at_utc": prior["created_at_utc"], "current_assessment": plan["rationale"]}}
         else:
             result = None
+        if deadline <= time.monotonic():
+            return {"run_id": run_id, "title": plan["title"], "status": "cancelled",
+                    "error": "Home research deadline reached before admission."}, None
         with event_research_context({"work_id": "event:" + event_id,
                 "evidence_ids": [*plan["source_ids"], *[row["evidence_id"] for row in plan["observation_refs"]]],
                 "observations": plan["observation_refs"], "reason": plan["rationale"],
@@ -652,6 +668,9 @@ def research_source_events(
             with model_call_context(core_work_id=core_id if funded else None,
                     **({"optional_core_unfunded": True, "completion_only": True} if not funded else {})):
                 try:
+                    if result is None and time.monotonic() >= deadline:
+                        return {"run_id": run_id, "title": plan["title"], "status": "cancelled",
+                                "error": "Home research deadline reached during admission."}, None
                     result = result or run_aql_zopedia_structured_agent(
                         query=query,
                         service=investigation_service,
@@ -666,7 +685,7 @@ def research_source_events(
                         reuse_identity=reuse_identity,
                         llm_client=llm_client,
                         max_tool_calls=max(int(get_config_param(_P_EVENT_TOOLS)), 0),
-                        run_timeout_seconds=max(1, (deadline - time.monotonic()) * (2 / 3 if write_policy != "none" else 1)),
+                        run_timeout_seconds=max(0, (deadline - time.monotonic()) * (2 / 3 if write_policy != "none" else 1)),
                         llm_step_timeout_seconds=max(int(get_config_param(_P_EVENT_TIMEOUT)), 1),
                         tool_call_timeout_seconds=45,
                         persist_findings=False,
@@ -675,9 +694,12 @@ def research_source_events(
                         progress_callback=progress_callback,
                     )
                     agent = deepcopy(result.get("agent_result") or {})
+                    if write_policy != "none" and time.monotonic() >= deadline:
+                        agent["memory_update"] = {"status": "timeout", "reason": "Home research completion deadline reached."}
                     if (write_policy != "none" and result.get("status") == "completed"
                             and isinstance(result.get("payload"), dict)
-                            and not list(Draft202012Validator(_EVENT_SCHEMA).iter_errors(result["payload"]))):
+                            and not list(Draft202012Validator(_EVENT_SCHEMA).iter_errors(result["payload"]))
+                            and time.monotonic() < deadline):
                         from ..zopedia_agent import _run_post_answer_memory_agent
 
                         agent["memory_update"] = _run_post_answer_memory_agent(

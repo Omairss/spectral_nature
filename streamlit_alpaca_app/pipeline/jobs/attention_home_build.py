@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-from services.work_scope import WorkScope
+from services.work_scope import WorkScope, remaining_work_seconds
 
 import hashlib
 import json
+import math
 import os
 import queue
 import re
 import threading
 import time
 from contextvars import copy_context
+from contextlib import nullcontext
 from jsonschema import Draft202012Validator
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Callable
@@ -1841,6 +1843,7 @@ def _review_home_public_surface(
     market_research: list[dict[str, Any]] | None = None,
     retained_research: list[dict[str, Any]] | None = None,
     event_calendar: dict[str, Any] | None = None,
+    deadline_monotonic: float | None = None,
 ) -> tuple[dict[str, Any], dict[str, dict[str, Any]], dict[str, Any]]:
     review_items = _home_surface_quality_items(payload, bundle_map)
     intake = list(source_documents or [])
@@ -1997,6 +2000,8 @@ def _review_home_public_surface(
     attempts = _env_positive_int("ATTENTION_HOME_SURFACE_QUALITY_ATTEMPTS", 2)
     result: dict[str, Any] = {}
     deadline = time.monotonic() + timeout_seconds
+    if deadline_monotonic is not None:
+        deadline = min(deadline, deadline_monotonic)
     for attempt in range(1, attempts + 1):
         remaining = deadline - time.monotonic()
         if remaining <= 0:
@@ -2065,7 +2070,15 @@ def build_attention_home_output_frames(
     load_materialized_frame_fn: LoadFrameFn = _load_latest_materialized_frame,
     research_progress_fn: ResearchProgressFn | None = None,
     include_page_agentic: bool = True,
+    deadline_monotonic: float | None = None,
 ) -> dict[str, pd.DataFrame]:
+    # One producer clock leaves writing, chart completion and persistence
+    # ahead of discretionary research. Standalone callers keep their limits.
+    chart_deadline = public_deadline = research_deadline = None
+    if deadline_monotonic is not None:
+        chart_deadline = deadline_monotonic - _env_positive_int("PIPELINE_JOB_PUBLICATION_RESERVE_SECONDS", 180)
+        public_deadline = chart_deadline - _env_positive_int("DAILY_MARKET_DATAPOINTS_TIMEOUT_SECONDS", 600)
+        research_deadline = public_deadline - _home_surface_quality_timeout_seconds()
     movers = (
         pd.concat(
             [frame for frame in [daily_movers, macro_movers] if isinstance(frame, pd.DataFrame) and not frame.empty],
@@ -2196,6 +2209,7 @@ def build_attention_home_output_frames(
         previous_publication=previous_publication,
         write_policy=_zopedia_write_policy(),
         progress_callback=research_progress_fn,
+        research_deadline_monotonic=research_deadline,
     )
     payload = dict(artifacts.home_payload or {})
     coverage = dict(payload.get("coverage_summary") or {})
@@ -2310,6 +2324,7 @@ def build_attention_home_output_frames(
             ],
             retained_research=artifacts.retained_research,
             event_calendar=event_calendar,
+            deadline_monotonic=public_deadline,
         )
     except Exception as exc:
         # An execution/contract failure cannot supply a new canonical artifact.
@@ -2339,7 +2354,7 @@ def build_attention_home_output_frames(
         "error": "", "result_json": json.dumps(public_surface_review, default=str),
     }])
     summary = dict(payload.get("homepage_summary") or {})
-    market_summary_row = _attach_market_summary_audio({
+    market_summary_row = {
         "symbol": ZOPEDIA_MARKET_SUMMARY_KEY,
         "status": "completed" if summary.get("summary_text") else "unavailable",
         "answer_markdown": summary.get("summary_text", ""),
@@ -2348,7 +2363,7 @@ def build_attention_home_output_frames(
         "tool_calls_json": "[]", "quality_review_json": json.dumps(public_surface_review),
         "run_id": ctx.run_id, "generated_at_utc": ctx.asof,
         "model": public_surface_review.get("model", ""),
-    })
+    }
     enrichment_rows.insert(0, market_summary_row)
     artifacts.frames["attention_ticker_zopedia_enrichments"] = pd.DataFrame(enrichment_rows)
     if market_summary_row["status"] == "completed":
@@ -2419,11 +2434,18 @@ def build_attention_home_output_frames(
         news_frame,
         _materialize_news_payload_frame(research_news_payloads, asof_time_utc=ctx.asof),
     )
-    momentum_profiles_frame = load_materialized_frame_fn("momentum_profiles")
-    quarterly_fundamentals_frame = load_materialized_frame_fn("quarterly_fundamentals")
+    try:
+        with WorkScope(chart_deadline).activate() if chart_deadline is not None else nullcontext():
+            momentum_profiles_frame = load_materialized_frame_fn("momentum_profiles")
+            quarterly_fundamentals_frame = load_materialized_frame_fn("quarterly_fundamentals")
+    except Exception as exc:
+        print(f"[warn] attention-home-build chart context unavailable: {type(exc).__name__}: {exc}")
+        momentum_profiles_frame = quarterly_fundamentals_frame = pd.DataFrame()
     print(f"[info] attention-home-build prefetching intraday prices: symbols={len(snapshot_symbols)}")
     try:
-        intraday_prices = prefetch_attention_intraday_prices(snapshot_symbols, asof_time_utc=ctx.asof)
+        with WorkScope(chart_deadline).activate() if chart_deadline is not None else nullcontext():
+            intraday_prices = prefetch_attention_intraday_prices(snapshot_symbols, asof_time_utc=ctx.asof,
+                timeout_seconds=max(0, chart_deadline - time.monotonic()) if chart_deadline is not None else None)
     except Exception as exc:
         # The independent ticker job retries market collection. A provider outage
         # must not discard an already completed research/news publication.
@@ -2431,46 +2453,49 @@ def build_attention_home_output_frames(
         intraday_prices = {}
 
     def _materialize_ticker_snapshots() -> pd.DataFrame:
-        print(f"[info] attention-home-build materializing ticker snapshots: symbols={len(snapshot_symbols)}")
-        return build_attention_ticker_snapshot_frame(
-            snapshot_symbols,
-            price_history_frame=price_history_frame,
-            universe_snapshot_frame=universe_snapshot_frame,
-            asof_time_utc=ctx.asof,
-            run_id=ctx.run_id,
-            quarterly_fundamentals_frame=quarterly_fundamentals_frame,
-            intraday_prices=intraday_prices,
-        )
+        with WorkScope(chart_deadline).activate() if chart_deadline is not None else nullcontext():
+            print(f"[info] attention-home-build materializing ticker snapshots: symbols={len(snapshot_symbols)}")
+            return build_attention_ticker_snapshot_frame(
+                snapshot_symbols,
+                price_history_frame=price_history_frame,
+                universe_snapshot_frame=universe_snapshot_frame,
+                asof_time_utc=ctx.asof,
+                run_id=ctx.run_id,
+                quarterly_fundamentals_frame=quarterly_fundamentals_frame,
+                intraday_prices=intraday_prices,
+            )
 
     def _materialize_ticker_background() -> pd.DataFrame:
-        print(f"[info] attention-home-build materializing ticker background snapshots: symbols={len(snapshot_symbols)}")
-        return build_attention_ticker_background_snapshot_frame(
-            snapshot_symbols,
-            price_history_frame=price_history_frame,
-            universe_snapshot_frame=universe_snapshot_frame,
-            news_frame=merged_news_frame,
-            attention_context_frame=attention_context_frame,
-            asof_time_utc=ctx.asof,
-            run_id=ctx.run_id,
-            entity_taxonomy_frame=taxonomy_labels_frame,
-            bundle_map=artifacts.bundle_map,
-            zopedia_enrichment_frame=artifacts.frames.get("attention_ticker_zopedia_enrichments", pd.DataFrame()),
-        )
+        with WorkScope(chart_deadline).activate() if chart_deadline is not None else nullcontext():
+            print(f"[info] attention-home-build materializing ticker background snapshots: symbols={len(snapshot_symbols)}")
+            return build_attention_ticker_background_snapshot_frame(
+                snapshot_symbols,
+                price_history_frame=price_history_frame,
+                universe_snapshot_frame=universe_snapshot_frame,
+                news_frame=merged_news_frame,
+                attention_context_frame=attention_context_frame,
+                asof_time_utc=ctx.asof,
+                run_id=ctx.run_id,
+                entity_taxonomy_frame=taxonomy_labels_frame,
+                bundle_map=artifacts.bundle_map,
+                zopedia_enrichment_frame=artifacts.frames.get("attention_ticker_zopedia_enrichments", pd.DataFrame()),
+            )
 
     def _materialize_market_opportunity_feed() -> pd.DataFrame:
-        print("[info] attention-home-build materializing market_opportunity_feed")
-        return build_materialized_market_opportunity_feeds(
-            movers=daily_movers,
-            momentum=momentum_profiles_frame,
-            name_map=_company_name_map(universe_snapshot_frame),
-            focus_symbol_map=_market_opportunity_focus_symbol_map(
-                taxonomy_labels_frame=taxonomy_labels_frame,
-                universe_snapshot_frame=universe_snapshot_frame,
-            ),
-            asof_time_utc=ctx.asof,
-            run_id=ctx.run_id,
-            limit=80,
-        )
+        with WorkScope(chart_deadline).activate() if chart_deadline is not None else nullcontext():
+            print("[info] attention-home-build materializing market_opportunity_feed")
+            return build_materialized_market_opportunity_feeds(
+                movers=daily_movers,
+                momentum=momentum_profiles_frame,
+                name_map=_company_name_map(universe_snapshot_frame),
+                focus_symbol_map=_market_opportunity_focus_symbol_map(
+                    taxonomy_labels_frame=taxonomy_labels_frame,
+                    universe_snapshot_frame=universe_snapshot_frame,
+                ),
+                asof_time_utc=ctx.asof,
+                run_id=ctx.run_id,
+                limit=80,
+            )
 
     parallel_tasks: dict[str, Callable[[], pd.DataFrame]] = {
         "attention_ticker_snapshots_1d": _materialize_ticker_snapshots,
@@ -2504,29 +2529,45 @@ def build_attention_home_output_frames(
         artifacts.frames["attention_home_snapshots_1d"] = serialize_attention_home_payload(payload)
 
     try:
-        catalog = build_daily_datapoint_catalog(snapshots=ticker_snapshot_frame, fred_observations=load_materialized_frame_fn("fred_observations"), fred_summary=load_materialized_frame_fn("fred_summary"), asof=ctx.asof)
-        artifacts.frames["daily_market_datapoints_1d"] = select_daily_market_datapoints(home=payload, catalog=catalog, asof=ctx.asof, run_id=ctx.run_id)
-        payload["daily_datapoints"] = frame_to_records(artifacts.frames["daily_market_datapoints_1d"])
-        artifacts.frames["attention_home_snapshots_1d"] = serialize_attention_home_payload(payload)
+        with WorkScope(chart_deadline).activate() if chart_deadline is not None else nullcontext():
+            catalog = build_daily_datapoint_catalog(snapshots=ticker_snapshot_frame, fred_observations=load_materialized_frame_fn("fred_observations"), fred_summary=load_materialized_frame_fn("fred_summary"), asof=ctx.asof)
+            artifacts.frames["daily_market_datapoints_1d"] = select_daily_market_datapoints(home=payload, catalog=catalog,
+                asof=ctx.asof, run_id=ctx.run_id, deadline_monotonic=chart_deadline)
+            payload["daily_datapoints"] = frame_to_records(artifacts.frames["daily_market_datapoints_1d"])
+            artifacts.frames["attention_home_snapshots_1d"] = serialize_attention_home_payload(payload)
     except Exception as exc:
         print(f"[warn] attention-home-build daily datapoint selection unavailable: {type(exc).__name__}: {exc}")
 
+    # Narration is best effort and must not consume the chart selection window
+    # or the producer's final persistence reserve.
+    try:
+        with WorkScope(chart_deadline).activate() if chart_deadline is not None else nullcontext():
+            market_summary_row = _attach_market_summary_audio(market_summary_row)
+    except Exception as exc:
+        print(f"[warn] attention-home-build narration unavailable: {type(exc).__name__}: {exc}")
+    enrichment_rows[0] = market_summary_row
+    artifacts.frames["attention_ticker_zopedia_enrichments"] = pd.DataFrame(enrichment_rows)
+    if market_summary_row["status"] == "completed":
+        payload["homepage_summary"] = _homepage_summary_payload_from_market_summary_row(market_summary_row)
+    artifacts.frames["attention_home_snapshots_1d"] = serialize_attention_home_payload(payload)
+
     if include_page_agentic:
         try:
-            print("[info] attention-home-build materializing page_agentic_summaries")
-            artifacts.frames["page_agentic_summaries"] = _build_page_agentic_summary_frame(
-                ctx=ctx,
-                llm_client=llm_client,
-                daily_movers=daily_movers,
-                momentum_profiles=momentum_profiles_frame,
-                ticker_background_frame=artifacts.frames["attention_ticker_background_snapshots"],
-                technical_signals_latest_frame=load_materialized_frame_fn("technical_signals_latest"),
-                universe_snapshot_frame=universe_snapshot_frame,
-            )
-            print(
-                "[info] attention-home-build materialized page_agentic_summaries "
-                f"rows={len(artifacts.frames['page_agentic_summaries'])}"
-            )
+            with WorkScope(chart_deadline).activate() if chart_deadline is not None else nullcontext():
+                print("[info] attention-home-build materializing page_agentic_summaries")
+                artifacts.frames["page_agentic_summaries"] = _build_page_agentic_summary_frame(
+                    ctx=ctx,
+                    llm_client=llm_client,
+                    daily_movers=daily_movers,
+                    momentum_profiles=momentum_profiles_frame,
+                    ticker_background_frame=artifacts.frames["attention_ticker_background_snapshots"],
+                    technical_signals_latest_frame=load_materialized_frame_fn("technical_signals_latest"),
+                    universe_snapshot_frame=universe_snapshot_frame,
+                )
+                print(
+                    "[info] attention-home-build materialized page_agentic_summaries "
+                    f"rows={len(artifacts.frames['page_agentic_summaries'])}"
+                )
         except Exception as exc:
             print(f"[warn] attention-home-build page agentic summaries failed (non-fatal): {type(exc).__name__}: {exc}")
             artifacts.frames["page_agentic_summaries"] = pd.DataFrame()
@@ -2645,6 +2686,8 @@ def run_attention_home_build(
             "response_schema": _HOME_SURFACE_QUALITY_SCHEMA,
         }}, stages=2)
 
+    owner_seconds = remaining_work_seconds(float("inf"))
+    owner_deadline = time.monotonic() + owner_seconds if math.isfinite(owner_seconds) else None
     persist_frames = build_attention_home_output_frames(
         ctx=ctx,
         daily_movers=daily_movers,
@@ -2660,6 +2703,7 @@ def run_attention_home_build(
         load_materialized_frame_fn=load_materialized_frame_fn,
         research_progress_fn=_research_progress,
         include_page_agentic=False,
+        deadline_monotonic=owner_deadline,
     )
 
     if not persist_frames:

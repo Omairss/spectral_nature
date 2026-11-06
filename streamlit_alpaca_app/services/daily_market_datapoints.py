@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import time
 from typing import Any
 
 import pandas as pd
@@ -96,7 +97,8 @@ def build_daily_datapoint_catalog(*, snapshots: pd.DataFrame, fred_observations:
     return catalog
 
 
-def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, dict[str, Any]], asof: object, run_id: str) -> pd.DataFrame:
+def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, dict[str, Any]], asof: object, run_id: str,
+                                  deadline_monotonic: float | None = None) -> pd.DataFrame:
     if len(catalog) < 5:
         raise ValueError("Daily datapoint selection requires at least five source-backed chart candidates.")
     records = {
@@ -143,6 +145,10 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
         operation_timeout = max(1, int(os.getenv("DAILY_MARKET_DATAPOINTS_TIMEOUT_SECONDS", "600")))
     except ValueError:
         operation_timeout = 600
+    if deadline_monotonic is not None:
+        operation_timeout = min(operation_timeout, deadline_monotonic - time.monotonic())
+    if operation_timeout <= 0:
+        raise TimeoutError("Home chart completion deadline reached before selection.")
     result = run_aql_zopedia_structured_agent(
         query=selection_query,
         schema_name="daily_market_datapoints", schema=schema, task="daily_market_datapoints",

@@ -1,0 +1,318 @@
+{
+  "change": "Reserve Home completion time before optional research",
+  "base_source": "8fc66932",
+  "status": "Source and unpaid execution qualification; not deployed or a model-quality acceptance",
+  "design": {
+    "owner": "Use the active original producer WorkScope deadline; no retry clock reset or detached completion.",
+    "research": "Pass an optional absolute cutoff through Home \u2192 existing bottom-up producer \u2192 common events planner/investigations. Stop new admission at that cutoff and preserve collected partial records.",
+    "completion": "Keep existing public writer/reviewer timeout, daily-chart timeout and PIPELINE_JOB_PUBLICATION_RESERVE_SECONDS. Public ends before chart phase; chart/preparation ends before final persistence reserve. Narration runs best effort after chart selection inside the same completion cutoff.",
+    "captured_configuration_seconds": {
+      "producer": 6900,
+      "public": 900,
+      "chart": 600,
+      "persistence_reserve": 180,
+      "research_cutoff": 5220,
+      "public_cutoff": 6120,
+      "chart_cutoff": 6720
+    }
+  },
+  "runtime_file_review": {
+    "pipeline/jobs/attention_home_build.py": "Original owner clock, explicit stage cutoffs; existing materializers retain same outputs/executor and inherit child cancellation. Public contract and partial-health reporting unchanged. Audio attached after charts, same fields; persistence/fences unchanged.",
+    "services/aql/pipeline.py": "Optional upstream cutoff forwarded only; complete numerical inputs/groups/assembler contracts unchanged.",
+    "services/aql/events.py": "Clamp native nomination/investigation clocks, prevent expired dispatch/admission/memory calls, retain partial cancellation and knowledge-handoff timeout status. No planner/model/schema change.",
+    "services/attention_ticker_snapshots.py": "Optional total acquisition timeout passed to existing Alpaca API. Default None keeps standalone behavior and chart data values unchanged.",
+    "services/daily_market_datapoints.py": "Optional absolute cutoff clamps existing direct selection timeout; no late model dispatch, chart identities/values/schema unchanged."
+  },
+  "unpaid_evidence": {
+    "native_public_and_persistence": {
+      "status": "passed",
+      "scope": "Unpaid native public/materializer/persistence mechanics only. Fresh real PostgreSQL; in-memory Blob transport substitute. Actual a75 public draft/reviewer timeout is unchanged; no fresh model quality or Azure transport qualification.",
+      "source_revision": "8fc6693205f5c93a14573f593600e7b9ce220af5",
+      "runtime_file_sha256": {
+        "pipeline/jobs/attention_home_build.py": "1780538ea5445cf7e613eadbe01e0c185d1b9239ddc0835ff042e9f03e6c1b42",
+        "services/aql/events.py": "42006397dad787b83e4dd28e890b0c36fc45f43e176ef783176e3758533f7a79",
+        "services/aql/pipeline.py": "ac2ccea41ff38f0708fa8be1f62b8d9d9c6cf5c9146e2e6f107b8a85a2259856",
+        "services/attention_ticker_snapshots.py": "58d073fc674518790080e96a993fe8b9c758803de293d89b8b3528a74c45546d",
+        "services/daily_market_datapoints.py": "e1a5dc059165ec62daa90d44b40bcd671e1b096239e104921af1998b7f246a53"
+      },
+      "checks": {
+        "public_draft_and_actual_timeout_state_survive_phase_cutoff": true,
+        "core_completion_SQL_succeeds_before_owner_expiry": true,
+        "complete_saved_output_set_persisted_via_native_Parquet_manifest_SQL": true,
+        "all_publications_retain_live_owner_fence": true,
+        "expired_owner_cannot_publish_or_clear_new_generation": true,
+        "late_public_phase_starts_no_model_request": true
+      },
+      "saved_result_sha256": "ddb8940d9bdc5fac13ef4b58642ffbe14c7541cadf3dedd607c4a28ee0738cfc",
+      "datasets_persisted": 18,
+      "rows_indexed": 18,
+      "gateway_fixture_returns": 1,
+      "production_writes": 0,
+      "network_calls": 0,
+      "paid_calls": 0,
+      "native_fence": 1,
+      "stale_upload_note": "An immutable orphan data object may be uploaded before the unchanged native manifest ownership check; no latest pointer or SQL publication advances.",
+      "clocks_seconds": {
+        "owner": 25,
+        "public_cutoff_from_owner_start": 8.0,
+        "chart_phase": 5,
+        "finish_reserve": 12,
+        "owner_remaining_at_persistence_start": 11.98996829194948,
+        "owner_remaining_after_full_persistence": 9.861869625048712
+      }
+    },
+    "actual_Home_upstream_dispatch": {
+      "status": "passed",
+      "scope": "Actual Home function dispatch capture only; no NLP/data-generation acceptance.",
+      "checks": {
+        "configured_schedule_research_offset1680": true,
+        "standalone_None_is_preserved": true,
+        "late_absolute_cutoff_is_not_reset": true
+      },
+      "configured_seconds": {
+        "producer": 6900,
+        "public": 900,
+        "chart": 600,
+        "finish_reserve": 180,
+        "research_window": 5220
+      },
+      "network_calls": 0,
+      "database_calls": 0,
+      "paid_calls": 0
+    },
+    "independent_child_cutoffs": {
+      "status": "passed_unpaid_operational_child_cutoffs",
+      "recorded_at_utc": "2026-11-06T10:01:21.644651+00:00",
+      "base_source_revision": "8fc6693205f5c93a14573f593600e7b9ce220af5",
+      "candidate_files_sha256": {
+        "pipeline/jobs/attention_home_build.py": "1780538ea5445cf7e613eadbe01e0c185d1b9239ddc0835ff042e9f03e6c1b42",
+        "services/aql/events.py": "42006397dad787b83e4dd28e890b0c36fc45f43e176ef783176e3758533f7a79",
+        "services/aql/pipeline.py": "ac2ccea41ff38f0708fa8be1f62b8d9d9c6cf5c9146e2e6f107b8a85a2259856",
+        "services/attention_ticker_snapshots.py": "58d073fc674518790080e96a993fe8b9c758803de293d89b8b3528a74c45546d",
+        "services/daily_market_datapoints.py": "e1a5dc059165ec62daa90d44b40bcd671e1b096239e104921af1998b7f246a53"
+      },
+      "original_production_run_id": "6bc95b75-62da-4fdc-89db-a49b228e4cbf",
+      "original_production_asof": "2026-11-05T18:50:33.330363+00:00",
+      "fixture_scope": "One unchanged ADMA plan selected from actual9-event nomination; actual saved production research result and5saved chart selections. Gateway is capture/replay only; no semantic quality claim.",
+      "checks": [
+        "None retains native configured nomination/investigation windows and completed saved bundle",
+        "Explicit absolute cutoff clamps nomination and investigation dispatch",
+        "Expired nomination makes zero gateway calls and preserves source collection",
+        "Worker starting after cutoff makes no investigation call; completed nomination remains partial output",
+        "Admission crossing cutoff launches no investigation and completes its own funding boundary once",
+        "Already completed saved research survives cutoff; no late memory call; partial status is retained",
+        "Actual bottom-up pipeline forwards None and absolute cutoff unchanged",
+        "Native chart None retains configured600second limit",
+        "Native chart explicit cutoff caps gateway to20seconds",
+        "Expired native chart makes zero gateway calls"
+      ],
+      "captures": {
+        "none": {
+          "gateway_calls": [
+            {
+              "task": "source_event_nomination",
+              "run_timeout_seconds": 1800,
+              "llm_step_timeout_seconds": 1800,
+              "clock_at_dispatch": 10000.0
+            },
+            {
+              "task": "source_event_research",
+              "run_timeout_seconds": 1200.0,
+              "llm_step_timeout_seconds": 1200,
+              "clock_at_dispatch": 10000.0
+            }
+          ],
+          "status": "completed",
+          "results": [
+            {
+              "status": "completed",
+              "memory_status": "completed",
+              "error": ""
+            }
+          ],
+          "completed_bundles": 1,
+          "original_documents_retained": 186,
+          "market_research_retained": 1,
+          "core_completion_calls": 1
+        },
+        "explicit": {
+          "gateway_calls": [
+            {
+              "task": "source_event_nomination",
+              "run_timeout_seconds": 20.0,
+              "llm_step_timeout_seconds": 1800,
+              "clock_at_dispatch": 10000.0
+            },
+            {
+              "task": "source_event_research",
+              "run_timeout_seconds": 20.0,
+              "llm_step_timeout_seconds": 1200,
+              "clock_at_dispatch": 10000.0
+            }
+          ],
+          "status": "completed",
+          "results": [
+            {
+              "status": "completed",
+              "memory_status": "completed",
+              "error": ""
+            }
+          ],
+          "completed_bundles": 1,
+          "original_documents_retained": 186,
+          "market_research_retained": 1,
+          "core_completion_calls": 1
+        },
+        "expired_nomination": {
+          "gateway_calls": [],
+          "status": "partial",
+          "results": [
+            {
+              "status": "cancelled",
+              "memory_status": null,
+              "error": "Home research deadline reached before nomination."
+            }
+          ],
+          "completed_bundles": 0,
+          "original_documents_retained": 178,
+          "market_research_retained": 0,
+          "core_completion_calls": 0
+        },
+        "expired_queued_worker": {
+          "gateway_calls": [
+            {
+              "task": "source_event_nomination",
+              "run_timeout_seconds": 20.0,
+              "llm_step_timeout_seconds": 1800,
+              "clock_at_dispatch": 10000.0
+            }
+          ],
+          "status": "partial",
+          "results": [
+            {
+              "status": "cancelled",
+              "memory_status": null,
+              "error": "Home research deadline reached before investigation."
+            }
+          ],
+          "completed_bundles": 0,
+          "original_documents_retained": 179,
+          "market_research_retained": 1,
+          "core_completion_calls": 0
+        },
+        "expired_during_admission": {
+          "gateway_calls": [
+            {
+              "task": "source_event_nomination",
+              "run_timeout_seconds": 20.0,
+              "llm_step_timeout_seconds": 1800,
+              "clock_at_dispatch": 10000.0
+            }
+          ],
+          "status": "partial",
+          "results": [
+            {
+              "status": "cancelled",
+              "memory_status": null,
+              "error": "Home research deadline reached during admission."
+            }
+          ],
+          "completed_bundles": 0,
+          "original_documents_retained": 179,
+          "market_research_retained": 1,
+          "core_completion_calls": 1
+        },
+        "completed_research_no_late_wiki": {
+          "gateway_calls": [
+            {
+              "task": "source_event_nomination",
+              "run_timeout_seconds": 20.0,
+              "llm_step_timeout_seconds": 1800,
+              "clock_at_dispatch": 10000.0
+            },
+            {
+              "task": "source_event_research",
+              "run_timeout_seconds": 13.333333333333332,
+              "llm_step_timeout_seconds": 1200,
+              "clock_at_dispatch": 10000.0
+            }
+          ],
+          "status": "partial",
+          "results": [
+            {
+              "status": "completed",
+              "memory_status": "timeout",
+              "error": ""
+            }
+          ],
+          "completed_bundles": 1,
+          "original_documents_retained": 186,
+          "market_research_retained": 1,
+          "core_completion_calls": 1
+        },
+        "bottom_up_forwarded_cutoffs": [
+          null,
+          10020.0
+        ],
+        "chart_none": {
+          "gateway_calls": [
+            {
+              "run_timeout_seconds": 600,
+              "llm_step_timeout_seconds": 180
+            }
+          ],
+          "status": "completed",
+          "rows": 5
+        },
+        "chart_explicit": {
+          "gateway_calls": [
+            {
+              "run_timeout_seconds": 20.0,
+              "llm_step_timeout_seconds": 180
+            }
+          ],
+          "status": "completed",
+          "rows": 5
+        },
+        "chart_expired": {
+          "gateway_calls": [],
+          "status": "timeout",
+          "rows": 0
+        }
+      },
+      "paid_calls": 0,
+      "database_calls": 0,
+      "external_network_calls": 0,
+      "application_edits": 0,
+      "limits": "Does not qualify full-model writing, real provider timing, real Blob/MI, or preemption of pure CPU work. Separate native persistence probe owns publication/fence qualification."
+    }
+  },
+  "evidence_integrity": {
+    "result.json": "886d24da0871f3037612efceef7fd4a5c70546e4b1ef25a6271ad54b79b4c8b2",
+    "home-schedule-result.json": "241ccbd8acc9d772d73bcace43f815b023ec81bedafe7dcc8bf551274141f2e9",
+    "saved-result.private.json": "ddb8940d9bdc5fac13ef4b58642ffbe14c7541cadf3dedd607c4a28ee0738cfc",
+    "local-resource.json": "daeac02b9677a987a6b8f8e1b5c0ddfa520c1fa77420ea31710fe636fb862c2c",
+    "probe-home-child-cutoffs-result.json": "6e8fc51caa9c343f0b276e31a8e3b12492c14b4aeeb142e5f19c9352afd9c32a"
+  },
+  "limits": [
+    "No new inference, build, development or production deployment performed. Existing output is a saved actual result with a reviewer timeout, used only to verify execution contracts.",
+    "Real fresh PostgreSQL; Blob transport is a local substitute. Azure managed-identity/storage latency and full-production deadlines remain deployment qualification.",
+    "Reserve provides bounded time to finish; it does not guarantee network/storage success or preempt long pure CPU work. Completed output remains subject to the existing owner/fence.",
+    "Existing immutable data upload can precede the manifest ownership check; stale owners cannot advance canonical latest pointers or SQL publication. No detached completion or generation behavior was changed."
+  ],
+  "resources": {
+    "owned_temporary_PostgreSQL": {
+      "stopped": true,
+      "termination_verified": true
+    },
+    "paid_calls": 0,
+    "production_writes": 0,
+    "network_calls": 0,
+    "full_output_persistence_seconds_remaining": {
+      "at_start": 11.98996829194948,
+      "at_finish": 9.861869625048712
+    }
+  },
+  "late_run_behavior": "Expired research admission retains collected source/nomination records as partial; no new investigation or late wiki call starts. A completed research bundle survives a wiki timeout. An already expired public cutoff starts no public inference and cannot supply a new canonical public artifact; collected research and the last canonical publication remain available. The owner deadline is never extended.",
+  "independent_review": "dev_runtime_probe reviewed the five runtime files including child-scope and queued-worker behavior; no material source blocker identified. This review does not establish NLP quality."
+}
