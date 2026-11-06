@@ -177,7 +177,7 @@
     "change": "Explain existing daily-bar field semantics in common numerical context and carry existing instrument_context.market_observation into public findings. Preserve raw values and full market coverage. Universe identity is not projected as a current price observation.",
     "prompt_change": "Restore accepted reviewer connection checking and precise familiar terminology; choose explanatory figures and explain unfamiliar business/product context."
   },
-  "latest_status": "Execution repaired; current full public writing rejected; deployment held. Planner-rationale alias is a concrete upstream input defect under review.",
+  "latest_status": "Public quality still unaccepted; smallest shared-review test of corrected analysis purpose pending. No deployment.",
   "fresh_df7_chain": {
     "source": "df7bdfb8",
     "scope": "Fresh synthesis/shared review from original ADMA evidence, then unchanged native event adapter and public writer/shared review. No planner or new acquisition.",
@@ -448,12 +448,30 @@
     "pending_workers": 0
   },
   "planner_rationale_alias_finding": {
-    "status": "source_corrected_actual_projection_and_model_comparison_pending",
+    "status": "unpaid_exact_projection_and_native_reuse_verified_full_prose_still_rejected",
     "producer": "services/aql/events.py: plan[rationale] copied to current_assessment on every investigation/reuse bundle",
     "actual_public_input": "Presented as dated research interpretation despite describing planned work and missing inputs, before the selected investigation completed.",
     "consequence": "Writer copies verify-formal-record/unresolved-fuel-price tasks as news. Claims also contain mixed business observations and reading-status notes; no deterministic phrase filtering is proposed.",
     "quality_limit": "Input lineage establishes a concrete source defect, not the amount of editorial improvement from correcting it.",
     "repair": "Remove current_assessment and alias timestamp from future bundle/reuse metadata and public projection. No replacement field; complete plans/rationale/asof already persisted twice.",
-    "preservation": "Actual research payload, source/observation identity and dates unchanged; stored old artifacts remain untouched. Rationale remains in planner dataset/nomination/current research request/financial reason."
+    "preservation": "Actual research payload, source/observation identity and dates unchanged; stored old artifacts remain untouched. Rationale remains in planner dataset/nomination/current research request/financial reason.",
+    "evidence": "operations/home-reliability-completion-20261103/alias-projection-source-3725a3df-20261106/alias-preservation-report.json",
+    "actual_scope": "All claims/findings/real dates/numerical values/readers unchanged. Actual saved prior artifact replay retained original research16:50/completion17:10 versus current18:50 cutoff, zero investigation dispatches; reuse action is an explicit structural control, not NLP acceptance."
+  },
+  "full_3725_current_production_comparison": {
+    "source": "3725a3df",
+    "cost_usd": 0.164254,
+    "stories": 9,
+    "root_read": "All9final stories/Brief read; rejected no-recession certitude, Texas missing expectation that existing moratorium would be lifted, energy research-coverage diary, and unsupported absence-of-orders→sentiment/demand exclusion.",
+    "reviewer_behavior": "Accepts and repeats absence-based causal argument; completed review does not establish useful or sound inference.",
+    "record": "operations/home-reliability-completion-20261103/full-home-public-7b18765a-3725a3df-captured-v2/literal-after.private.json",
+    "pending_workers": 0
+  },
+  "shared_market_objective_clarification": {
+    "status": "source_changed_smallest_actual_review_pending",
+    "analysis": "Explain most likely effect on expected profits, financing or risk; prices react to expectations before operating results/orders/policy change. Applies through existing shared suffix to planner/research/synthesis/review, scoped to market explanations.",
+    "field_semantics": "Existing event_title/claims describe substantive world findings and interpretations, including actual negative developments. Reading inventory and acquisition/tasks stay in existing private research_state. Schema shape/required/types/source-reference capability unchanged.",
+    "reason": "Actual reviewer treats absence of announced customer cuts as evidence excluding expected demand change. Texas original describes expectation of lifting an existing stop; private proof question loses that mechanism.",
+    "second_order": "No compulsory new fundamental catalyst; financing/risk permit liquidity/positioning/discount-rate mechanisms. Keep factual uncertainty, opposing observations and complete memory fidelity."
   }
 }

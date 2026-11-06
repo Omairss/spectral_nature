@@ -1,8 +1,8 @@
 {
-  "status": "Planner rationale is no longer mislabeled as a completed current assessment. Native public re-projection/comparison pending; writing unaccepted and deployment held.",
+  "status": "Planner-note alias correction preserves reuse; full public output still rejected. Shared market-mechanism objective and research-field semantics clarified; smallest native reviewer qualification pending. Deployment held.",
   "objective": "Reliable current data-first research with predictable adaptive costs, useful probable explanations and concise public reporting. The90% savings target is retired.",
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
-  "current_source_revision": "046c4c6e plus planner-rationale alias correction, pending commit",
+  "current_source_revision": "3725a3df plus shared market-analysis/claim semantics, pending commit",
   "production": {
     "source": "96d0a52f",
     "writes_during_verification": 0,
@@ -69,9 +69,9 @@
       "cost_usd": 0.065285
     },
     "public_writer_and_reviewer": {
-      "last_actual_source": "3d2b1878",
-      "result": "Seven stories add defensive-company/Oracle/Micron context, but retain no-order/no-signed-rule/absence narration and an unasked broad-collapse contrast. Reviewer corrected3details and accepted. Root read complete final; rejected.",
-      "cost_usd": 0.128351
+      "last_actual_source": "3725a3df",
+      "result": "Nine stories/current Brief: alias removal alone did not cure inherited absence narration. Memory story treats no named order cut as evidence of sentiment rather than demand; reviewer accepted. Full artifact personally read and rejected.",
+      "cost_usd": 0.164254
     },
     "complete_memory_reviewer": {
       "last_actual_source": "e03d52e7",
@@ -100,17 +100,24 @@
       "quality_limit": "Actual controlled pair used byte-identical236reader catalog/current inputs; restoration is a task-contract correction but did not cure inherited proof framing."
     },
     "public_input_contract": {
-      "status": "source_corrected_unpaid_native_projection_pending",
+      "status": "source_corrected_unpaid_native_projection_and_reuse_verified_actual_prose_still_rejected",
       "finding": "Every current_assessment value was pre-investigation plan.rationale, not an output assessment. Removed alias and alias timestamp from new bundles/reuse metadata and public model views.",
       "preservation": "Original plan_json/rationale/asof, nomination payload, financial reason, focused research request, dated findings/claims/raw observations and original readers remain. Stored historical artifacts unchanged; no new field or migration.",
-      "quality_limit": "This corrects meaning at source; actual writing improvement remains unproven."
+      "quality_limit": "This corrects meaning at source; actual writing improvement remains unproven.",
+      "evidence": "operations/home-reliability-completion-20261103/alias-projection-source-3725a3df-20261106/alias-preservation-report.json"
+    },
+    "market_analysis_objective": {
+      "status": "source_clarified_actual_qualification_pending",
+      "change": "Shared analysis guidance connects likely drivers to expected profits, financing or risk; prices can react before operating results/orders/policy change. Research schema identifies substantive outside-world findings/inferences, keeping acquisition inventory/tasks in existing private research state.",
+      "scope": "No new stage, field, filter, authority, model or publication gate. Real negative facts, uncertainty, counterevidence, dates and exact measures remain.",
+      "first_case": "Smallest unchanged SanDisk-card shared reviewer, before wider current-role qualification."
     }
   },
   "remaining": [
     {
       "id": 1,
       "task": "Qualify current planner, focused research, complete public reporting and material late-correction continuity.",
-      "state": "Execution verified; latest full public output rejected. Concrete planner-rationale alias corrected at its producer and public context boundary; one controlled fresh composition comparison pending."
+      "state": "Execution and alias/reuse boundary verified. New shared analytical objective/claim semantics require actual narrow review then wider current planner/research/public qualification; no writing acceptance yet."
     },
     {
       "id": 2,
@@ -149,8 +156,8 @@
   "offline_verification": {
     "provider": "Existing full production DeepSeekV4Pro/thinking/high, under owner Home-repair exception and Continue",
     "scope": "Same isolated repair, saved inputs, no production writes; no new unrelated study",
-    "counted_cumulative_exposure_usd": 22.061295,
-    "counted_pacific_day_2026_11_06_usd": 3.819939,
+    "counted_cumulative_exposure_usd": 22.225549,
+    "counted_pacific_day_2026_11_06_usd": 3.984193,
     "daily_allowance_usd": 25,
     "operational_guard_usd": 45,
     "operational_guard_note": "Internal guard under broad continuation authority, not a new owner dollar grant; every prior metered estimate and unknown maximum remains counted.",

@@ -117,7 +117,7 @@ _EVENT_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
-        "event_title": {"type": "string"},
+        "event_title": {"type": "string", "description": "Name the principal business, economic or market finding or useful interpretation, preserving its degree of certainty."},
         "findings_markdown": {"type": "string", "description": "Finished substantive research explanation: business mechanisms, dated findings, material alternatives and source links. Internal follow-up work belongs in the shared research state."},
         "cause_status": {
             "type": "string",
@@ -127,6 +127,13 @@ _EVENT_SCHEMA: dict[str, Any] = {
             "description": "Companies materially explained or investigated in the findings, including useful unresolved numerical discoveries. Not limited to companies with fresh articles; exclude incidental comparisons."},
         "claims": {
             "type": "array",
+            "description": (
+                "Distinct substantive observations or interpretations about businesses, the economy or markets. "
+                "Preserve attribution, scope, dates and actual evidence strength, including relevant negative "
+                "developments and attributed denials. Source references support interpretations; a source need not "
+                "state the interpretation verbatim. Research coverage, unavailable inputs and acquisition or "
+                "follow-up tasks belong in existing research_state open_questions or next_actions."
+            ),
             "items": {
                 "type": "object",
                 "additionalProperties": False,

@@ -22,7 +22,9 @@ RESEARCH_TIMELINE_GUIDANCE = (
 
 RESEARCH_ANALYSIS_GUIDANCE = (
     "Interpret observations using evidence and established subject knowledge. Explain how the business or system "
-    "works and what likely follows. Preserve each fact's entity, metric, scope, comparator, units and certainty. "
+    "works and what likely follows. For market explanations, connect the leading likely drivers to expected "
+    "profits, financing or risk, and explain the business mechanism. Prices can respond to expectations before "
+    "operating results, orders or policy change. Preserve each fact's entity, metric, scope, comparator, units and certainty. "
     "Keep reported developments, attributed views and inferred relationships distinct."
 )
 
