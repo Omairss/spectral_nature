@@ -3716,15 +3716,14 @@ def _execute_zopedia_agent_loop(
                 completion_read_tools = tuple(name for name in completion_read_tools if tool_registry.get(name))
             action = decision.get("action")
             candidate = _clean_model_output(decision.get("answer_markdown"))
-            if candidate:
-                if not response_schema:
-                    best_draft = candidate
-                else:
-                    try:
-                        if not list(Draft202012Validator(response_schema).iter_errors(json.loads(candidate))):
-                            best_draft = candidate
-                    except (TypeError, ValueError):
-                        pass
+            if candidate and candidate != best_draft:
+                try:
+                    if not response_schema or not list(Draft202012Validator(response_schema).iter_errors(json.loads(candidate))):
+                        best_draft = candidate
+                        reviewed_draft = False
+                        quality_review = {"status": "not_run"} if answer_review_owner == "agent" else {"status": "deferred", "owner": "downstream"}
+                except (TypeError, ValueError):
+                    pass
             if action == "final":
                 if answer_review_owner == "agent" and best_draft and not reviewed_draft and budget.remaining("completion") > 0:
                     reviewed_draft = True
@@ -3974,9 +3973,13 @@ def _execute_zopedia_agent_loop(
                         progress_callback=progress_callback,
                         surface=_clean(surface) or "zopedia.chat",
                         purpose="agent.final_synthesis",
-                        system_prompt=get_prompt(_AGENT_FINAL_SYSTEM_PROMPT) + (
-                            ' Return only the requested artifact JSON, with no extra wrappers.'
-                            if response_schema else ""
+                        system_prompt=(
+                            "You are the shared AQL/Zopedia research synthesis engine. Use the collected sources and supplied context. "
+                            "Return only the requested artifact JSON matching its schema. Preserve reported facts, business context and "
+                            "useful hypotheses at their actual evidence strength. Do not wrap the artifact in answer_markdown, "
+                            "confidence or limitations unless those fields belong to the artifact schema."
+                            if response_schema
+                            else get_prompt(_AGENT_FINAL_SYSTEM_PROMPT)
                         ),
                         prompt=lambda visible: _final_user_prompt(
                             query=agent_query,
@@ -4163,6 +4166,9 @@ def _execute_zopedia_agent_loop(
             )
         return _with_aql_evidence_pack(error_result)
 
+    if quality_review.get("status") == "completed" and quality_review.get("answer_markdown") != final_answer:
+        reviewed_draft = False
+        quality_review = {"status": "not_run"} if answer_review_owner == "agent" else {"status": "deferred", "owner": "downstream"}
     checkpoint("research_collection_complete")
     structured_draft = final_answer if response_schema else ""
     if (
