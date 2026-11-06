@@ -1695,3 +1695,5 @@ The first closing schedule proposal moved the existing 20:35 numerical producer 
 ### November5,2026 — factual handoff and full-feed review
 
 Removing all inline claims left the full public writer with numerical observations and a large catalog but no central report bodies. It wrote without opening reports; the reviewer read one unrelated movers article and retained concrete ADMA/Warby errors and generic EPAM text. Candidate646 is rejected. The catalog still exposes old proof-oriented research titles. No backend deployment follows this result. See verification/home-cause-framing-2026-11-05.json.
+
+Restoring the earlier explanatory prompt at4ccca727 improved ADMA product identity and business mechanics, but its funded reviewer accepted missing-consensus boilerplate and a mismatched-session benchmark. The findings schema still asked for follow-ups while the review offered accepting a broadly useful draft. Remove that task conflict and test the saved draft through the existing reviewer; stronger wording alone is not acceptance.

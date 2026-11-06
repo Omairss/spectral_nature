@@ -267,8 +267,9 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "high-recall discovery system. Improve usefulness, explanatory depth and relevance while preserving "
         "valuable leads, indirect connections and reasonable hypotheses. Review is refinement, not certification "
         "or permission to publish. Proven causality and complete source coverage are not prerequisites for useful analysis. "
-        "First form your own explanation from the collected evidence and the actual question. Put the important "
-        "findings and competing interpretations in answer_points, then compare the draft against that explanation. "
+        "Your deliverable is the finished explanation. Build it from the collected evidence and the actual question; "
+        "use the draft as a fallible reference for useful findings. Put the explanatory argument and material "
+        "alternative interpretations in answer_points, then deliver the complete edited answer. "
         "Correct weak framing and consequential omissions as well as individual facts. Earlier planning narratives "
         "and generated findings are working interpretations; new evidence can overturn them. "
         "Explain what changed, the most likely drivers, and the wider business or economic significance. Use "
@@ -282,7 +283,8 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "is missing or ambiguous. Ordinary business reasoning does not need a source-provided causal ranking. "
         "Use actual event, report and observation dates and respect the information cutoff. Current numerical "
         "observations retain their measurement time; an unfinished bar is not a final close. A later announcement "
-        "can change the outlook without explaining an earlier price move. "
+        "can change the outlook without explaining an earlier price move. Compare price changes and benchmarks "
+        "over matching sessions or periods. A recent report can describe an older observation. "
         "When evidence is incomplete, retain the useful interpretation and identify consequential follow-up in "
         "research_requests. Do not replace substantive analysis with missing-evidence paragraphs, generic caveats "
         "or an account of the researcher's limitations. Do not request proof for every reasonable inference. "
@@ -292,8 +294,10 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "Remove repetition, unnecessary figures, rejected-premise narration and rhetorical 'not X, but Y' framing. "
         "Express material uncertainty in the specific claim. Keep private reasoning, verdicts, editing instructions "
         "and execution diagnostics internal. NO DISCLAIMERS. "
-        "Apply corrections directly to the complete final answer and its answer_points; judge that exact version. "
-        "Accept a useful clear draft; otherwise return an improved answer preserving valuable connections. "
+        "The answer explains the subject; research_requests contains any work still worth doing. "
+        "Missing inputs belong there rather than in the explanation. Select details for their explanatory value. "
+        "Apply corrections directly to the complete final answer and its answer_points. Preserve strong draft "
+        "wording when it serves that explanation. Assign the verdict after editing, describing that exact final answer. "
         "Use insufficient only when a substantive answer cannot be formed, and retain the best useful analysis. "
         "For a complete retained-knowledge rewrite, preserve every unique useful observation, qualifier and date. "
         "Correct an erroneous claim explicitly in the knowledge itself so later research can reuse the corrected "
@@ -306,11 +310,14 @@ _JUDGE_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
-        "answer_points": {"type": "array", "items": {"type": "string"}},
-        "verdict": {"type": "string", "enum": ["accept", "revise", "insufficient"]},
+        "answer_points": {"type": "array", "items": {"type": "string"},
+                          "description": "The final explanatory argument and important findings after review."},
+        "verdict": {"type": "string", "enum": ["accept", "revise", "insufficient"],
+                    "description": "Assessment of the complete final answer after editing."},
         "critique_summary": {"type": "string"},
         "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
-        "research_requests": {"type": "array", "items": {"type": "string"}},
+        "research_requests": {"type": "array", "items": {"type": "string"},
+                              "description": "Internal consequential follow-up work, separate from the finished explanation."},
     },
     "required": [
         "verdict",
@@ -2227,14 +2234,16 @@ def _run_answer_judge(
             "answer_payload": response_schema,
             **{key: value for key, value in _JUDGE_SCHEMA["properties"].items() if key != "answer_points"},
         }
-        review_schema["required"] = [*_JUDGE_SCHEMA["required"], "answer_payload"]
+        review_schema["required"] = ["answer_points", "answer_payload",
+                                     *[key for key in _JUDGE_SCHEMA["required"] if key != "answer_points"]]
     else:
         review_schema["properties"] = {
             "answer_points": _JUDGE_SCHEMA["properties"]["answer_points"],
             "answer_markdown": {"type": "string", "description": "Complete final answer for the reader; no editorial instructions."},
             **{key: value for key, value in _JUDGE_SCHEMA["properties"].items() if key != "answer_points"},
         }
-        review_schema["required"] = [*_JUDGE_SCHEMA["required"], "answer_markdown"]
+        review_schema["required"] = ["answer_points", "answer_markdown",
+                                     *[key for key in _JUDGE_SCHEMA["required"] if key != "answer_points"]]
     preview = None
     if artifact_preview is not None:
         preview = artifact_preview(json.loads(draft_answer))

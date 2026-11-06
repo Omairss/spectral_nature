@@ -111,5 +111,18 @@
     }
   ],
   "historical_conclusion": "The instruction/context changes shifted emphasis toward avoiding causal overstatement and recirculated prior private critiques into later reasoning. Exact current input/output traces show proof commentary being reused. The source history identifies contributing changes; it does not isolate a numeric causal contribution for each commit.",
-  "verification_gap": "Shared prompt changes were followed by narrow writer/saved-draft checks that did not qualify every affected upstream role or complete publication. A return to the old reviewer core on already-generated bad research also failed; restoring prompt length alone is insufficient."
+  "verification_gap": "Shared prompt changes were followed by narrow writer/saved-draft checks that did not qualify every affected upstream role or complete publication. A return to the old reviewer core on already-generated bad research also failed; restoring prompt length alone is insufficient.",
+  "restored_prompt_case": {
+    "source": "4ccca727",
+    "scope": "One real saved ADMA question with original observations and two successful source responses. Fresh full-Pro synthesis and shared review; no planner/acquisition/public/wiki work.",
+    "result": "Rejected after personal reading of complete output.",
+    "improved": "Correct marketed ASCENIV versus investigational SG-001, stronger profitability explanation and relevant BIVIGAM weakness.",
+    "failed": [
+      "Reviewer accepted missing-consensus commentary in findings.",
+      "Reviewer compared ADMA current move with a biotech-index snippet describing an earlier session."
+    ],
+    "additional_estimated_usd": 0.107227,
+    "all_prior_charges_retained": true,
+    "next": "Same saved draft and original evidence through the shared reviewer only. Make finished explanation the deliverable, keep internal work in research_requests, compare matching periods; retain verdict and memory semantics."
+  }
 }

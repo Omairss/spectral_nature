@@ -116,7 +116,7 @@ _EVENT_SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
     "properties": {
         "event_title": {"type": "string"},
-        "findings_markdown": {"type": "string", "description": "Substantive shared research: operating explanation, dated findings, alternatives, source references and useful follow-ups."},
+        "findings_markdown": {"type": "string", "description": "Finished substantive research explanation: business mechanisms, dated findings, material alternatives and source links. Internal follow-up work belongs in the shared research state."},
         "cause_status": {
             "type": "string",
             "enum": ["supported", "partial", "unresolved", "continuation"],
