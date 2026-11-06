@@ -94,7 +94,7 @@ struct AdminHealthView: View {
         TimeSeriesChart(
           rows: database["usage_trend"].records, date: "time",
           series: [("input_tokens", "Input"), ("output_tokens", "Output")],
-          intraday: hours <= 24)
+          intraday: hours <= 24, fullSelectionTimestamp: true)
       }
     }
     resourceUsage(value)
@@ -184,7 +184,7 @@ struct AdminHealthView: View {
           Text(metricTitle(metric, unit: series.text("unit"))).font(.subheadline.weight(.semibold))
           TimeSeriesChart(
             rows: points, date: "time", series: [("average", "Average"), ("maximum", "Peak")],
-            intraday: hours <= 24, includesZero: true)
+            intraday: hours <= 24, includesZero: true, fullSelectionTimestamp: true)
         }
       }
     }

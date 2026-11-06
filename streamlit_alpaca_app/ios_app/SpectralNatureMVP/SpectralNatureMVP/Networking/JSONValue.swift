@@ -79,7 +79,12 @@ enum JSONValue: Codable, Equatable, Sendable {
     }
   }
   var number: Double? {
-    if case let .number(value) = self, value.isFinite { return value }
+    switch self {
+    case let .number(value) where value.isFinite: return value
+    case let .string(value):
+      if let number = Double(value), number.isFinite { return number }
+    default: break
+    }
     return nil
   }
   subscript(_ key: String) -> JSONValue { dictionaryValue?[key] ?? .null }

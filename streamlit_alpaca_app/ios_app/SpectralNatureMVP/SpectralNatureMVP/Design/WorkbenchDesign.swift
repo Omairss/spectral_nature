@@ -407,6 +407,7 @@ struct TimeSeriesChart: View {
   var price = false
   var intraday = false
   var includesZero = false
+  var fullSelectionTimestamp = false
   private let seriesColors: [Color] = [Theme.teal, Theme.violet, Theme.blue, Theme.coral, .orange, .pink]
   private var seriesNames: [String] {
     points.reduce(into: []) { names, point in
@@ -424,12 +425,14 @@ struct TimeSeriesChart: View {
   }
   init(
     rows: [Record], date: String = "timestamp", series: [(String, String)], height: CGFloat = 200,
-    price: Bool = false, intraday: Bool = false, includesZero: Bool = false
+    price: Bool = false, intraday: Bool = false, includesZero: Bool = false,
+    fullSelectionTimestamp: Bool = false
   ) {
     self.height = height
     self.price = price
     self.intraday = intraday
     self.includesZero = includesZero
+    self.fullSelectionTimestamp = fullSelectionTimestamp
     var output: [Point] = []
     let ordered = rows.sorted { $0.text(date) < $1.text(date) }
     for (key, label) in series {
@@ -459,8 +462,13 @@ struct TimeSeriesChart: View {
     } else {
       VStack(alignment: .leading, spacing: 8) {
         ForEach(selectedPoints, id: \.series) { point in
+          let observedAt = fullSelectionTimestamp
+            ? point.date.formatted(Date.FormatStyle(
+              date: .abbreviated, time: .complete,
+              timeZone: TimeZone(identifier: "America/New_York") ?? .current))
+            : intraday ? Format.marketTime(point.date) + " ET" : Format.observationDay(point.date)
           Text(
-            "\(intraday ? Format.marketTime(point.date) + " ET" : Format.observationDay(point.date)) · \(point.series) \(price ? Format.price(point.value) : Format.number(point.value))"
+            "\(observedAt) · \(point.series) \(price ? Format.price(point.value) : Format.number(point.value))"
           ).font(.caption).monospacedDigit()
         }
         Chart {
