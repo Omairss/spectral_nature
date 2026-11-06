@@ -494,7 +494,7 @@ _HOME_PUBLIC_TEXT_FIELDS = (
 _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
     "type": "object", "additionalProperties": False,
     "properties": {
-        "stories": {"type": "array", "description": "Each story is one concise explanation, roughly 80–140 words. Put the complete explanation in surface_summary_text. Add other text fields only when they contribute a distinct useful point.", "items": {
+        "stories": {"type": "array", "description": "Each story is one focused, concise explanation. Put the complete explanation in surface_summary_text. Add other text fields only when they contribute a distinct useful point.", "items": {
             "type": "object", "additionalProperties": False,
             "properties": {
                 "section": {"type": "string", "enum": ["top_events", "must_read_movers", "unresolved_large_moves"],

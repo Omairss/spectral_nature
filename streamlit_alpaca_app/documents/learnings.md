@@ -1743,3 +1743,6 @@ A prompt can contain a clear style rule and still produce dense figures or spont
 
 
 The shortened positive proposal did not remove dense figures, unexplained products or the old benchmark comparison. Its real reviewer timed out without a body. Restore the actual accepted independent-editor and audience/selection instructions as the next control, while preserving current observation, edited-answer and knowledge contracts. A returned writer draft is not completed review.
+
+
+Qualify the actual fresh writer as well as editing an old draft. Restored8c prompts improved business context but did not correct the older benchmark. Generic matching-period guidance was already present. Make the current numerical snapshot authority and article observation periods explicit, preserve adjustment/coverage limits, and teach the desired purpose→mechanism→outlook with one fictional example. Assess the meaning of figures, not their count.

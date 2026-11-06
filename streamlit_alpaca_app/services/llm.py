@@ -145,7 +145,10 @@ NARRATIVE_STYLE_RULE = (
     "unrequested next steps. Keep internal research notes private. Do not change URLs, identifiers, JSON keys, "
     "code, formulas or other machine-readable fields. Apply this preference to answers, titles, summaries, "
     "explanations, progress messages, reports, knowledge pages and audio scripts. It is a writing preference, "
-    "not a numeric compliance score or a limit on research depth."
+    "not a numeric compliance score or a limit on research depth.\n\n"
+    "Fictional style illustration, not evidence: 'Acme makes pumps that factories use to move liquids. "
+    "Customers bought more of its higher-margin models, so profit grew faster than sales. "
+    "Management raised its profit forecast as orders increased.'"
 )
 
 

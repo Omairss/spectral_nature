@@ -1707,3 +1707,6 @@ The df7 fresh public chain removed the older benchmark comparison but still retu
 
 
 The a75 public writer still failed the communication bar; its shared reviewer returned no body by the original15minute deadline. Preserve its unknown maximum and local cleanup result, rather than calling the draft reviewed or resetting spending. The shorter proposal is rejected; restoration now uses the actual accepted8c11 prompt core, with necessary current contracts retained.
+
+
+The fresh8fc four-stage result was not a clean precision pass: both shared reviewers accepted an older biotech return as comparable with the current session. The product-purpose and profit explanation improved, so do not reject familiar terms or contextual figures by quota. Keep this factual defect separate from stylistic preference; no deployment follows the model verdict alone.

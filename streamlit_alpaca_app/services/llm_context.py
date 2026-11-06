@@ -11,8 +11,11 @@ from .json_utils import to_jsonable
 
 RESEARCH_TIMELINE_GUIDANCE = (
     "Respect source scope and the reporting cutoff. Keep event, report, observation and retrieval times distinct. "
-    "A recently fetched article can describe an earlier session; resolve relative publication dates against its "
-    "retrieval time. Compare changes over the same period. Daily bars can be unfinished, and their timestamps "
+    "Use supplied numerical snapshots as the reference for their current prices and relative performance. "
+    "Keep article quotations in the observation period they describe. Publication and retrieval times describe "
+    "report availability; measurement times describe the values. A recently fetched article can describe an earlier "
+    "session; resolve relative publication dates against its retrieval time. Compare matching periods and compatible "
+    "price bases. Daily bars can be unfinished, and their timestamps "
     "identify intervals rather than the last trade. Preserve earlier observations as dated context."
 )
 
