@@ -1918,11 +1918,17 @@ def _review_home_public_surface(
         if doc.get("source_kind") == "research_tool_result":
             continue
         identity = doc.get("canonical_document_id") or build_canonical_document_fields(doc)["canonical_document_id"]
+        capture = (_json_payload(doc.get("source_capture"), default={})
+                   or _json_payload(doc.get("source_trace"), default={}))
         records["source:" + identity] = {"title": doc.get("title") or identity,
             **({"read_pointer": "/raw_text"} if isinstance(doc.get("raw_text"), str) and doc["raw_text"]
                else {"read_pointer": "/text"} if isinstance(doc.get("text"), str) and doc["text"] else {}),
             "metadata": {"kind": "source_document", "original_source_id": doc.get("source_id"), "url": doc.get("url"),
-                         "published_at": doc.get("published_at"), "provider_symbols": doc.get("provider_symbols"),
+                         "published_at": doc.get("published_at"), "published_date": doc.get("published_date"),
+                         "source_capture": {key: capture[key] for key in (
+                             "capture_kind", "provider", "reader", "retrieved_at", "reported_date", "reported_publication_date",
+                         ) if key in capture},
+                         "provider_symbols": doc.get("provider_symbols"),
                          "raw_text_origin": doc.get("raw_text_origin"), "source_kind": doc.get("source_kind"),
                          "capture_characters": len(str(doc.get("raw_text") or doc.get("text") or ""))},
             "content": to_jsonable(doc)}

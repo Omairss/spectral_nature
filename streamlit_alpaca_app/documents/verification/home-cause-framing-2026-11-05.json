@@ -141,6 +141,11 @@
       "after": 42281,
       "reduction_percent": 50.38
     },
-    "qualitative_result": "Pending actual model review; context-size reduction is not demonstrated writing improvement."
+    "qualitative_result": "Same-draft reviewer input tokens fell23981to12091; measured charge fell0.068856to0.063275. Writing retained useful mechanisms and removed missing-consensus commentary, but the older benchmark comparison remained and internal answer_points mislabeled an intraday observation as a close. This is not complete qualitative acceptance."
+  },
+  "public_capture_date_handoff": {
+    "finding": "All7saved sources have blank published_at; source_trace retains capture times and5of6search snippets retain relative publication labels, but the public catalog/default raw-text read omitted them.",
+    "repair": "Copy compact existing capture metadata beside published_at and the selected passage. Infer no timestamp; keep full publisher/provider metadata readable in the original record.",
+    "next": "Carry the actual useful reviewed research through native public writing/review with original observations and readable dated sources. Preserve known upstream deficiencies in the verification record; no hand-edited correction is injected."
   }
 }
