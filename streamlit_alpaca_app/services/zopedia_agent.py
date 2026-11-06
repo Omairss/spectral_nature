@@ -826,7 +826,8 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
     payload = result.get("payload")
     source_documents = []
     if isinstance(payload, dict):
-        source_documents = list(payload.get("candidate_sources") or [])
+        source_documents = list(payload["source_documents"] if isinstance(payload.get("source_documents"), list)
+                                else payload.get("candidate_sources") or [])
         if payload.get("page_text") and not source_documents:
             page = (payload.get("summary") or [{}])[0]
             source_documents.append(
@@ -1132,11 +1133,42 @@ def _tool_history_prompt(
     records = []
     for call in tool_calls:
         summary = call.get("result_summary") or {}
-        candidates = summary.get("candidate_sources") or []
+        candidates = list(enumerate(summary.get("candidate_sources") or []))
         if candidates and selected_source_ids is not None:
             selected = set(selected_source_ids)
-            candidates = [source for source in candidates if
+            candidates = [(index, source) for index, source in candidates if
                 (source.get("chunk_record_id") or source.get("canonical_document_id")) in selected]
+        model_sources = []
+        source_id = "history:" + str(call.get("tool_call_id"))
+        for index, source in candidates:
+            source = deepcopy(source)
+            if call.get("tool_call_id"):
+                source["source_record_resource"] = {"tool": "research.read_supplied_evidence", "arguments": {
+                    "source_id": source_id, "pointer": f"/result_summary/candidate_sources/{index}",
+                }}
+                source.pop("provider_payload_json", None)
+                trace = source.get("source_trace")
+                if isinstance(trace, str):
+                    try:
+                        trace = json.loads(trace)
+                    except (TypeError, ValueError):
+                        pass
+                if isinstance(trace, dict):
+                    source["source_trace"] = trace
+                    if source.get("source_metadata") == trace.get("publisher_metadata"):
+                        source.pop("source_metadata", None)
+                original = source.get("original_source_resource") or {}
+                if original.get("tool") == "research.read_supplied_evidence":
+                    original.setdefault("arguments", {}).setdefault("source_id", source_id)
+            model_sources.append(source)
+        bibliographies = {}
+        for name in ("evidence_refs", "source_links"):
+            entries = summary.get(name) or []
+            bibliographies[name] = ({"count": len(entries), "resource": {
+                "tool": "research.read_supplied_evidence", "arguments": {
+                    "source_id": source_id, "pointer": "/result_summary/" + name,
+                }}} if summary.get("candidate_sources") and call.get("tool_call_id")
+                else entries) if full_evidence else {"count": len(entries)}
         records.append(
             {
                 "tool_call_id": call.get("tool_call_id"),
@@ -1147,7 +1179,7 @@ def _tool_history_prompt(
                 "status": call.get("status"),
                 "arguments": call.get("arguments") or {},
                 "evidence": (
-                    candidates
+                    model_sources
                     if summary.get("candidate_sources")
                     else (
                         summary.get("evidence_context_text")
@@ -1157,9 +1189,8 @@ def _tool_history_prompt(
                     )
                 ) if full_evidence else (summary.get("llm_context_text") or summary.get("preview_text") or ""),
                 "retrieval_context": summary.get("retrieval_context") or {},
-                "source_id": "history:" + str(call.get("tool_call_id")),
-                "evidence_refs": summary.get("evidence_refs") or [] if full_evidence else {"count": len(summary.get("evidence_refs") or [])},
-                "source_links": summary.get("source_links") or [] if full_evidence else {"count": len(summary.get("source_links") or [])},
+                "source_id": source_id,
+                **bibliographies,
                 "error": call.get("error"),
             }
         )

@@ -124,5 +124,23 @@
     "additional_estimated_usd": 0.107227,
     "all_prior_charges_retained": true,
     "next": "Same saved draft and original evidence through the shared reviewer only. Make finished explanation the deliverable, keep internal work in research_requests, compare matching periods; retain verdict and memory semantics."
+  },
+  "reviewer_only_continuation": {
+    "source": "4acc433d",
+    "scope": "Exact saved first ADMA draft and original evidence through the current shared reviewer only.",
+    "result": "Missing-consensus paragraph removed and explanation improved; mismatched benchmark period and ambiguous title sequence remain. Public generation held.",
+    "additional_estimated_usd": 0.068856,
+    "cumulative_counted_exposure_usd": 15.373431
+  },
+  "model_view_contract_repair": {
+    "finding": "The open-page requested view was capped at12000 characters, but shared history supplied its full37433-character original and duplicate provider/provenance metadata.",
+    "repair": "Keep full source_documents; give inference the exact bounded original passage, structured existing dates and original-record/continuation resources through the existing supplied reader. Keep bibliography bodies readable instead of repeating them.",
+    "operational_result": "All7captured originals, IDs, dates and provider payloads materialize unchanged. Exact source reconstructs12000+12000+12000+1433. Unknown source access remains denied.",
+    "measured_same_request_characters": {
+      "before": 85218,
+      "after": 42281,
+      "reduction_percent": 50.38
+    },
+    "qualitative_result": "Pending actual model review; context-size reduction is not demonstrated writing improvement."
   }
 }

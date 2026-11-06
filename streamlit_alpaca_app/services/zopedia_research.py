@@ -772,8 +772,7 @@ def live_event_evidence(
 
     ordered = deduped[:safe_limit]
     llm_lines = [
-        "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies.",
-        "These are source reports. They do not establish a causal ranking.",
+        "Search results include headlines, snippets, URLs and captured dates. Open the articles for details.",
     ]
     if selected_symbols:
         llm_lines.append("Focused symbols: " + ", ".join(selected_symbols) + ".")
@@ -1047,8 +1046,8 @@ def open_page(
         llm_lines.append(f"Quality issue: {summary_row['quality_issue']}.")
     if summary_row["excerpt"]:
         llm_lines.append(f"Excerpt: {summary_row['excerpt']}.")
-    text = str(page.get("text") or "").strip()[:safe_max_chars]
-    source_text = str(page.get("source_text") or text).strip()
+    source_text = str(page.get("source_text") or page.get("text") or "")
+    text = source_text[:safe_max_chars]
     source = {
         **summary_row, "chunk_text": source_text,
         "source_kind": "opened_page", "raw_text_origin": "page_capture",
@@ -1058,14 +1057,25 @@ def open_page(
             "publisher_metadata": summary_row["source_metadata"],
         }, ensure_ascii=False),
     }
+    selected_source = {
+        **source, "chunk_text": text, "offset": 0,
+        "total_characters": len(source_text),
+        "next_offset": len(text) if len(text) < len(source_text) else None,
+        "original_source_resource": {"tool": "research.read_supplied_evidence", "arguments": {
+            "pointer": "/result_summary/source_documents/0/chunk_text",
+            "offset": len(text) if len(text) < len(source_text) else 0,
+            "max_characters": safe_max_chars,
+        }},
+    }
     if text:
         llm_lines.append(f"Visible text: {text}")
     return {
         "url": summary_row["url"],
         "summary": [summary_row],
-        "candidate_sources": [source],
+        "candidate_sources": [selected_source],
+        "source_documents": [source],
         "source_text": source_text,
-        "evidence_context_text": json.dumps([source], ensure_ascii=False, default=str),
+        "evidence_context_text": json.dumps([selected_source], ensure_ascii=False, default=str),
         "page_text": text,
         "llm_context_text": " ".join(item for item in llm_lines if item),
     }
