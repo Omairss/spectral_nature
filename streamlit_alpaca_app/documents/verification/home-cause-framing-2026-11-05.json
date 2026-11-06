@@ -1,7 +1,7 @@
 {
   "status": "full_candidate_rejected_after_personal_review",
   "live_source": "96d0a52f",
-  "candidate_source": "e3edbc41 last tested; concrete-facts/editor-purpose refinement pending",
+  "candidate_source": "0c45c22d last tested; coherent concise editor replacement pending",
   "production_research_instruction": {
     "path": "services/aql/events.py",
     "text": "retain unresolved observations without substituting an unsupported common cause. Different companies in a numerical group can have different causes."
@@ -177,7 +177,7 @@
     "change": "Explain existing daily-bar field semantics in common numerical context and carry existing instrument_context.market_observation into public findings. Preserve raw values and full market coverage. Universe identity is not projected as a current price observation.",
     "prompt_change": "Restore accepted reviewer connection checking and precise familiar terminology; choose explanatory figures and explain unfamiliar business/product context."
   },
-  "latest_status": "e3 actual research repaired joint-driver reasoning and removed invalid relative-return exclusions. Fresh public pair completed but copied proof/confirmation commentary; reviewer accepted it unchanged. Public quality remains unaccepted.",
+  "latest_status": "0c reviewer-only changed benchmark precision but retained confirmation diary despite receiving both new instructions. Stop appending corrective bans. Replace competing editorial objectives with one positive brief and simplify duplicate analysis suffix; quality remains unaccepted.",
   "fresh_df7_chain": {
     "source": "df7bdfb8",
     "scope": "Fresh synthesis/shared review from original ADMA evidence, then unchanged native event adapter and public writer/shared review. No planner or new acquisition.",
@@ -346,5 +346,18 @@
     "completed_artifact_retained_on_optional_followup_timeout": true,
     "record": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/fresh-native-ai-public-e3edbc41/literal-public-output.private.json",
     "next": "Only shared reviewer on this saved fresh story after refining concrete-facts/explanatory-purpose objective. No new research or acquisition."
+  },
+  "reviewer_0c_result": {
+    "cost_usd": 0.030883,
+    "cumulative_counted_usd": 21.501073,
+    "actual_instruction_delivery_confirmed": true,
+    "result": "Comparison/terminology improved; proof/confirmation diary retained; root rejected public copy.",
+    "record": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/fresh-public-review-only-0c45c22d/literal-public-output.private.json"
+  },
+  "coherent_editor_reset": {
+    "status": "prepared_unverified",
+    "change": "Replace617-word first review block with225-word positive editorial brief. Preserve complete memory-only fidelity block byte-for-byte, schema, readers and execution controls. Replace duplicate analysis suffix with concise mechanism/meaning/measure guidance; remove explicit share-price-versus-orders storyline.",
+    "reason": "Actual editor followed audit/competing-view preservation incentives and repeated their framing. More instructions did not repair the conflict. This is a new objective arrangement, not demonstrated acceptance.",
+    "next": "One actual shared reviewer on unchanged fresh e3 draft and originals. No new research or acquisition."
   }
 }

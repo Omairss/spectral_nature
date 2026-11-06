@@ -21,12 +21,9 @@ RESEARCH_TIMELINE_GUIDANCE = (
 
 
 RESEARCH_ANALYSIS_GUIDANCE = (
-    "Explain the leading likely mechanisms and their business consequences. Compare how well each explanation fits "
-    "the observations, using evidence and established subject knowledge. Markets respond to changing expectations. "
-    "Preserve reasonable inferences at their actual strength; causal proof is not required for a useful explanation. "
-    "Share prices show investor expectations; orders, customer use, sales and company forecasts describe business activity. "
-    "Match each conclusion to what its evidence actually measures. "
-    "Keep facts, attributed expectations and inference distinct. Preserve entity, metric, scope, comparator, units and certainty."
+    "Interpret observations using evidence and established subject knowledge. Explain how the business or system "
+    "works and what likely follows. Preserve each fact's entity, metric, scope, comparator, units and certainty. "
+    "Keep reported developments, attributed views and inferred relationships distinct."
 )
 
 
