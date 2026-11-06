@@ -1,5 +1,5 @@
 {
-  "status": "public_source_delivery_failure_confirmed_candidate_rejected",
+  "status": "restoring_shared_explanation_prompts_and_substantive_handoff_small_native_case_pending",
   "source_checkpoint": "4cbc475b",
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
   "offline_verification": {
@@ -98,8 +98,8 @@
   "remaining": [
     {
       "id": 1,
-      "task": "Correct original-evidence delivery and probability-based explanation in the existing flow, then personally review full writer/reviewer results.",
-      "state": "source_contract_failure_confirmed; latest full candidate rejected"
+      "task": "Verify restored shared synthesis/review and substantive public handoff on the smallest actual case, then widen. Complete material late-correction continuity through existing research/wiki paths.",
+      "state": "implementation_in_progress; no fresh result accepted"
     },
     {
       "id": 2,
@@ -173,5 +173,23 @@
     "record": "documents/verification/home-cause-framing-2026-11-05.json",
     "small_case_limit": "The focused primary-report query passed; it did not generalize to the complete feed.",
     "minor_repetition": "Owner says use a simple existing editorial correction only; no design change for repeated supplier/buyer explanation."
+  },
+  "repair_in_progress": {
+    "owner_request": "Get to work. Restore the previous prompt as needed.",
+    "scope": [
+      "Restore the earlier shared synthesis/reviewer purpose: useful explanation, business mechanisms, probabilistic inference and refinement rather than causal certification; preserve precise facts and chronology.",
+      "Restore substantive reviewed findings in the public input; keep prior critiques/execution traces separate, preserve all claim roles, and make consequential originals readable.",
+      "Return actual retained passages instead of an entire source/provider payload; provide lossless continuation through the existing original-source tool.",
+      "Preserve the shared reviewer outline in the final research state for continuation and memory."
+    ],
+    "verification": "One actual saved planner-selected ADMA question, fresh full-Pro synthesis/review, native bundle adapter, then native public writer/reviewer. No old draft or desired explanation. Inspect research before public generation.",
+    "not_yet_established": [
+      "Fresh research quality",
+      "Public writing quality",
+      "Late public factual correction to retained investigation and wiki",
+      "Full affected-role qualification",
+      "Development and production release"
+    ],
+    "production": "Unchanged; candidate remains held."
   }
 }

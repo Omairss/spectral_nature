@@ -1852,6 +1852,7 @@ def _review_home_public_surface(
         "unresolved_large_moves": _attention_home_unresolved_display_limit(),
     }
     records = {}
+    findings = []
     for artifact in retained_research or []:
         result = artifact.get("result") or {}
         context = result.get("artifact_context") or {}
@@ -1864,7 +1865,7 @@ def _review_home_public_surface(
         research = result.get("payload") or {}
         agent = result.get("agent_result") or {}
         records["retained-research:" + artifact["artifact_id"]] = {
-            "title": research.get("event_title") or artifact.get("subject") or artifact["artifact_id"],
+            "title": context.get("question") or research.get("event_title") or artifact.get("subject") or artifact["artifact_id"],
             "metadata": {"kind": "retained_research", "artifact_id": artifact["artifact_id"],
                          "created_at_utc": artifact.get("created_at_utc"),
                          "research_asof_time_utc": context.get("asof_time_utc"),
@@ -1895,6 +1896,17 @@ def _review_home_public_surface(
                 "research_asof_time_utc", "research_completed_at_utc", "current_assessment_asof_time_utc",
             )}, "findings_markdown": bundle.get("findings_markdown") or bundle.get("research_result")}),
         }
+        findings.append({
+            "source_id": source_id,
+            "asof_time_utc": bundle.get("asof_time_utc"),
+            **{key: bundle.get(key) for key in (
+                "research_action", "research_asof_time_utc", "current_assessment_asof_time_utc",
+            )},
+            "findings": bundle.get("findings_markdown") or bundle.get("research_result"),
+            "claims": [{key: claim.get(key) for key in (
+                "claim_text", "source_id", "source_url", "evidence_role", "published_at",
+            )} for claim in bundle.get("claims") or []],
+        })
     for index, row in enumerate(enrichment_rows or []):
         if row.get("research_origin") == "common_market_agenda":
             continue
@@ -1954,8 +1966,10 @@ def _review_home_public_surface(
         "and name the leading likely drivers, which developments they explain and how they affect businesses. "
         "Lead with the explanation and its importance; keep research-status commentary internal. "
         "Read the dated calendar to check material releases already due before assigning future follow-ups. "
-        "Read original reports for the central developments. Use dated research to find useful sources and connections; "
-        "form the reader's explanation from the underlying reports and numerical observations. "
+        "Use the substantive shared findings, current observations and established business knowledge together. "
+        "Research questions, earlier conclusions and claim-role labels are fallible; assess their meaning. "
+        "Explain the leading likely mechanisms and useful forecasts, including facts that change the interpretation. "
+        "Read the named originals when a consequential detail is missing, ambiguous or contradictory. "
         "Use the latest observations at their actual time and keep earlier source snapshots dated. "
         "Section limits are ceilings; leave redundant fields empty and include only "
         "material follow-ups. Use exact source IDs and valid source-title links."
@@ -1963,9 +1977,9 @@ def _review_home_public_surface(
     initial_evidence = [{
         "numerical_overview": {key: value for key, value in (payload.get("market_context") or {}).items()
                                if key not in {"observations", "columns", "previous_groups"}},
+        "completed_research_findings": findings,
         "source_index": [{"source_id": source_id, "title": record["title"], "metadata": record["metadata"],
-                          "read_pointer": record.get("read_pointer", ""),
-                          "fields": list(record["content"]) if isinstance(record["content"], dict) else []}
+                          "read_pointer": record.get("read_pointer", "")}
                          for source_id, record in records.items()],
         "publication_capacity": limits,
         "evidence_manifest": service.supplied_evidence_manifest,

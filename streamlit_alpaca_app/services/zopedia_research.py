@@ -970,18 +970,22 @@ def search_evidence(
 
 
 def read_evidence(*, chunk_record_id: str, include_source_references: bool = False) -> dict[str, Any]:
-    from .saa.storage import load_retained_evidence_chunk, load_retained_document_metadata, load_retained_document
+    from .saa.storage import load_retained_evidence_chunk, load_retained_document_metadata
 
     row = load_retained_evidence_chunk(chunk_record_id, include_source_references=include_source_references)
     if not row:
         return {"summary": [], "llm_context_text": "The retained source is unavailable."}
     doc = load_retained_document_metadata(row.get("canonical_document_id") or "", include_source_references=False) or {}
-    original = load_retained_document(row.get("canonical_document_id") or "") or {}
     source = {
         "chunk_record_id": chunk_record_id,
         "canonical_document_id": row.get("canonical_document_id"),
+        "document_id": row.get("document_id"),
+        "chunk_id": row.get("chunk_id"),
+        "chunk_index": row.get("chunk_index"),
+        "document_chunk_count": row.get("document_chunk_count"),
         "title": row.get("title"),
-        "chunk_text": original.get("raw_text") or row.get("chunk_text"),
+        "chunk_text": row.get("chunk_text"),
+        "source_provider": row.get("source_provider") or doc.get("source_provider"),
         "source_kind": row.get("source_kind"),
         "evidence_type": row.get("evidence_type"),
         "source_refs": row.get("source_refs") or [],
@@ -989,13 +993,15 @@ def read_evidence(*, chunk_record_id: str, include_source_references: bool = Fal
         "source_reference_resource": {"tool": "research.read_evidence", "arguments": {
             "chunk_record_id": chunk_record_id, "include_source_references": True,
         }},
+        "original_source_resource": {"tool": "zopedia.read_source", "arguments": {
+            "canonical_document_id": row.get("canonical_document_id"),
+        }},
         "page_id": row.get("page_id"),
         "url": doc.get("canonical_url") or row.get("canonical_url"),
         "recorded_dates": {"published_date": row.get("published_date"), "published_at": str(row.get("published_at") or "")},
-        "source_trace": original.get("source_trace") or doc.get("source_trace") or "",
-        "provider_payload_json": original.get("provider_payload_json") or "",
-        "source_capture": original.get("source_capture") or doc.get("source_capture") or {},
-        "date_basis": original.get("raw_text_origin") or "legacy_unspecified",
+        "source_trace": row.get("source_trace") or doc.get("source_trace") or "",
+        "source_capture": row.get("source_capture") or doc.get("source_capture") or {},
+        "date_basis": row.get("raw_text_origin") or doc.get("raw_text_origin") or "legacy_unspecified",
         "raw_text_origin": "retained_reference",
         "retained_at": str(row.get("asof_time_utc") or ""),
     }
@@ -1279,6 +1285,8 @@ def zopedia_read_source(
     chunk_record_id: str = "",
     canonical_document_id: str = "",
     url: str = "",
+    offset: int = 0,
+    max_characters: int = 2200,
 ) -> dict[str, Any]:
     result = load_zopedia_read_source(
         page_id=page_id,
@@ -1288,17 +1296,41 @@ def zopedia_read_source(
         canonical_document_id=canonical_document_id,
         url=url,
     )
+    result = dict(result)
+    full_text = result.get("text") or ""
+    if result.get("source_kind") == "zopedia_page":
+        full_text = (result.get("page") or {}).get("body_markdown") or full_text
+    elif result.get("source_kind") == "retained_evidence_chunk":
+        full_text = (result.get("chunk") or {}).get("chunk_text") or full_text
+    elif result.get("source_kind") == "retained_source_document":
+        document = result.get("document") or {}
+        full_text = next((document[key] for key in ("raw_text", "provider_text", "display_excerpt", "title")
+                          if document.get(key)), full_text)
+    full_text = str(full_text)
+    offset = max(int(offset), 0)
+    max_characters = max(1, min(int(max_characters), 20000))
+    text = full_text[offset:offset + max_characters]
+    result.update(text=text, offset=offset, total_characters=len(full_text),
+                  next_offset=offset + len(text) if offset + len(text) < len(full_text) else None)
+    # Original bodies remain in retained storage and are readable by continuing
+    # this source. Do not duplicate them through the loader's nested records.
+    for key in ("page", "chunk", "document", "document_metadata"):
+        if isinstance(result.get(key), dict):
+            result[key] = {name: value for name, value in result[key].items() if name not in {
+                "raw_text", "provider_text", "provider_payload_json", "body_markdown", "chunk_text", "search_text",
+            }}
     title = _clean(result.get("title") or result.get("source_title") or result.get("url") or result.get("ref"))
     source_kind = _clean(result.get("source_kind"))
     source_url = _clean(result.get("url") or result.get("source_url"))
-    text = _trim(result.get("text"), limit=2200)
     line = f"Zopedia source read: {title or _clean(ref) or _clean(page_id)}"
     if source_kind:
         line += f" [{source_kind}]"
     if source_url:
         line += f" | url={source_url}"
     if text:
-        line += f": {text}"
+        line += "\n\n" + text
+    if result["next_offset"] is not None:
+        line += f"\n\nContinue with offset={result['next_offset']}."
     result["summary"] = [
         {
             "kind": source_kind,
@@ -1307,6 +1339,9 @@ def zopedia_read_source(
             "url": source_url,
             "summary_text": text,
             "status": _clean(result.get("status")),
+            "offset": offset,
+            "next_offset": result["next_offset"],
+            "total_characters": result["total_characters"],
         }
     ]
     result["llm_context_text"] = line

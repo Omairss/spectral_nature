@@ -420,7 +420,7 @@ def _research_tools() -> list[dict[str, Any]]:
         },
         {
             "name": "research.read_evidence",
-            "description": "Read a retained passage in full with dates and source type. Set include_source_references=true to also inspect its complete inherited provenance. No browsing or knowledge write.",
+            "description": "Read the requested retained passage with dates and source type. Use its original_source_resource to read more of the source. Set include_source_references=true to inspect inherited provenance. No browsing or knowledge write.",
             "inputSchema": {
                 "type": "object",
                 "properties": {"chunk_record_id": {"type": "string"}, "include_source_references": {"type": "boolean"}},
@@ -494,7 +494,8 @@ def _zopedia_tools() -> list[dict[str, Any]]:
             "description": (
                 "Open the concrete source behind a Zopedia source reference: a Zopedia source page, "
                 "retained evidence chunk, retained source document, or source URL. Use this after "
-                "sources_for_page or trace_to_evidence when final claims need original evidence."
+                "sources_for_page or trace_to_evidence when final claims need original evidence. "
+                "Returns a contiguous passage (default 2200 characters); continue with next_offset."
             ),
             "inputSchema": {
                 "type": "object",
@@ -505,6 +506,8 @@ def _zopedia_tools() -> list[dict[str, Any]]:
                     "chunk_record_id": {"type": "string"},
                     "canonical_document_id": {"type": "string"},
                     "url": {"type": "string"},
+                    "offset": {"type": "integer", "minimum": 0},
+                    "max_characters": {"type": "integer", "minimum": 1, "maximum": 20000},
                 },
                 "required": [],
                 "additionalProperties": False,
@@ -1209,6 +1212,8 @@ def _invoke_zopedia_tool(
             chunk_record_id=str(args.get("chunk_record_id") or ""),
             canonical_document_id=str(args.get("canonical_document_id") or ""),
             url=str(args.get("url") or ""),
+            offset=int(args.get("offset", 0)),
+            max_characters=int(args.get("max_characters", 2200)),
         )
     elif tool_name == "zopedia.sources_for_page":
         payload = zopedia_research.zopedia_sources_for_page(page_id=str(args.get("page_id") or ""))
