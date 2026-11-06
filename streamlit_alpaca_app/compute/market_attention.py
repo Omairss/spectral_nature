@@ -178,6 +178,13 @@ def build_market_attention_context(
             "relationship_ineligible": sorted(set(current.index) - set(common)),
             "index_attribution": "unavailable: no dated benchmark membership and weights supplied"},
         "method": {"grouping": "complete-linkage positive return correlation",
+            "snapshot_fields": {
+                "close": "Latest close within the captured daily bar; the bar can still be in progress.",
+                "price_observed_at / bar_time_utc": "Daily bar interval start in UTC, identifying its New York session date.",
+                "observed_at_utc": "Time the snapshot was captured. The publication cutoff is asof_time_utc.",
+                "prev_close / previous_close_observed_at": "Previous daily bar close and interval start.",
+                "change_pct / day_pct": "Percent change from the previous daily bar close to the captured daily bar close.",
+            },
             "aggregation": "Group and sector returns are equal-weight means of covered instruments, not official sector or capitalization-weighted index returns.",
             "peer_comparison": "Both peer-correlation windows use the company's prior group peers, not its newly assigned current group.",
             "anomaly_features": "Existing daily return, volume and range anomaly features retain their snapshot basis. Adjusted-history daily_return_z and return groups are separate observations, not confirmations of those raw features.",

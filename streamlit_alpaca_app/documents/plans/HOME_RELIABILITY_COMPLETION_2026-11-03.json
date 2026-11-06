@@ -1,5 +1,5 @@
 {
-  "status": "source_handoff_repaired_fresh_public_editor_pending",
+  "status": "fresh_small_case_pending_after_context_contract_repairs",
   "source_checkpoint": "4cbc475b",
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
   "offline_verification": {
@@ -10,7 +10,8 @@
     "total_window_seconds": 7200,
     "approval_amendment": "Owner: Approve up to$3 more and30 minutes. All previous charges and bounds remain counted.",
     "owner_continuation": "November5owner: Yes, stop asking me for today. It is all approved. Finish the job. Preserve cumulativecharges; no moreprovider/window questions today.",
-    "latest_counted_exposure_usd": 15.436706
+    "latest_counted_exposure_usd": 15.436706,
+    "counted_cumulative_exposure_usd": 15.599631
   },
   "requirements": [
     {
@@ -99,7 +100,7 @@
     {
       "id": 1,
       "task": "Verify restored shared synthesis/review and substantive public handoff on the smallest actual case, then widen. Complete material late-correction continuity through existing research/wiki paths.",
-      "state": "useful_upstream_findings_with_known_timing_error; public_quality_not_accepted"
+      "state": "fresh_native_synthesis_and_reviews_pending; c539_public_rejected_for_timing_errors"
     },
     {
       "id": 2,
@@ -119,7 +120,7 @@
     {
       "id": 5,
       "task": "Finish separately gated native23 rendering and device delivery with current web content parity.",
-      "state": "native-only source and signed Simulator compile accepted; actual rendering underway; cloud backend unchanged"
+      "state": "native-only partial qualification recorded separately; device delivery held for lower Health chart observation"
     }
   ],
   "writing_follow_up": {
@@ -175,21 +176,13 @@
     "minor_repetition": "Owner says use a simple existing editorial correction only; no design change for repeated supplier/buyer explanation."
   },
   "repair_in_progress": {
-    "owner_request": "Get to work. Restore the previous prompt as needed.",
-    "scope": [
-      "Restore the earlier shared synthesis/reviewer purpose: useful explanation, business mechanisms, probabilistic inference and refinement rather than causal certification; preserve precise facts and chronology.",
-      "Restore substantive reviewed findings in the public input; keep prior critiques/execution traces separate, preserve all claim roles, and make consequential originals readable.",
-      "Return actual retained passages instead of an entire source/provider payload; provide lossless continuation through the existing original-source tool.",
-      "Preserve the shared reviewer outline in the final research state for continuation and memory."
+    "scope": "Shared prompts and model evidence views; preserve current data-first architecture.",
+    "latest_rejected_case": "c539f63b native ADMA writer/shared reviewer",
+    "source_fix": [
+      "Retained findings reader excludes old critiques/execution from factual context, originals remain exact and readable.",
+      "Existing raw market capture and daily bar meaning reach public and focused research.",
+      "Reviewer checks connections and preserves financial measures while explaining unfamiliar products."
     ],
-    "verification": "Actual full-Pro research plus two saved-draft review continuations completed; important business explanation improved but benchmark timing remains wrong. Next: native public writer/shared reviewer on actual research with compact source capture dates; no new planner/acquisition or manual prose corrections.",
-    "not_yet_established": [
-      "Fresh research quality",
-      "Public writing quality",
-      "Late public factual correction to retained investigation and wiki",
-      "Full affected-role qualification",
-      "Development and production release"
-    ],
-    "production": "Unchanged; candidate remains held."
+    "next": "Fresh smallest native research/shared-review/public/shared-review case, then widen to affected planner and saved examples before release."
   }
 }

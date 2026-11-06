@@ -133,7 +133,7 @@ def _deepseek_response_error(response: requests.Response, *, operation: str = "r
 NARRATIVE_STYLE_RULE = (
     "Use an 80% ASD-STE100-inspired Simplified Technical English style. "
     "Write for a casual reader unfamiliar with the subject; assume no financial training for market reports. "
-    "DO NOT USE FINANCIAL JARGON in reader-facing reporting. "
+    "DO NOT ASSUME READERS KNOW SPECIALIST FINANCIAL JARGON. Use familiar financial measures precisely. "
     "Follow the SEC Plain English Handbook and Microsoft Style Guide: "
     "give each passage one main message and select only details needed to explain it. "
     "Use everyday words, concrete nouns and strong verbs, usually in active voice. "

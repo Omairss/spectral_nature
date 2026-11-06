@@ -386,16 +386,30 @@ def research_source_events(
         "metadata": {"date": day["id"], "timezone": "America/New_York", "kind": "event_calendar"},
         "content": day,
     } for day in ((macro_context or {}).get("market_calendar") or {}).get("days", []) if day.get("events")})
-    source_records.update({"retained-research:" + artifact["artifact_id"]: {
-        "title": ((artifact.get("result") or {}).get("payload") or {}).get("event_title") or artifact["subject"],
-        "metadata": {"kind": "prior_model_analysis", "created_at_utc": artifact["created_at_utc"],
-                     "research_asof_time_utc": ((artifact.get("result") or {}).get("artifact_context") or {}).get("asof_time_utc")},
-        # Keep originals and findings readable. Previous review judgments stay
-        # in the stored audit record, outside this independent assessment.
-        "content": to_jsonable({**artifact, "result": {
-            **(artifact.get("result") or {}), "agent_result": {
-                key: value for key, value in ((artifact.get("result") or {}).get("agent_result") or {}).items()
-                if key != "quality_review"}}})} for artifact in retained})
+    for artifact in retained:
+        retained_result = artifact.get("result") or {}
+        retained_context = retained_result.get("artifact_context") or {}
+        original_documents = [*(retained_context.get("source_documents") or []),
+            *materialize_research_artifacts(retained_result.get("agent_result") or {},
+                candidate_id="retained-research:" + artifact["artifact_id"], subject=artifact["subject"],
+                run_id=(retained_result.get("agent_result") or {}).get("run_id") or artifact["artifact_id"],
+                asof_time_utc=retained_context.get("asof_time_utc") or artifact["created_at_utc"])["documents"]]
+        source_records["retained-research:" + artifact["artifact_id"]] = {
+            "title": (retained_result.get("payload") or {}).get("event_title") or artifact["subject"],
+            "read_pointer": "/payload",
+            "metadata": {"kind": "prior_model_analysis", "created_at_utc": artifact["created_at_utc"],
+                         "research_asof_time_utc": retained_context.get("asof_time_utc"),
+                         "source_documents_pointer": "/source_documents", "source_document_count": len(original_documents)},
+            # Findings and original captures are evidence; execution and prior
+            # editorial judgments remain in the unchanged stored artifact.
+            "content": to_jsonable({
+                **{key: artifact.get(key) for key in ("artifact_id", "subject", "task", "created_at_utc")},
+                "research_asof_time_utc": retained_context.get("asof_time_utc"),
+                "question": retained_context.get("question"), "prior_artifact_id": retained_context.get("prior_artifact_id"),
+                "payload": {key: value for key, value in (retained_result.get("payload") or {}).items()
+                            if key != "cause_status"},
+                "source_documents": original_documents,
+            })}
     service = QueryService.from_environment().with_supplied_evidence(source_records)
     nomination = run_aql_zopedia_structured_agent(
         query=get_prompt(_NOMINATION_PROMPT)
@@ -596,6 +610,7 @@ def research_source_events(
         related_headlines = [preview for preview in previews
             if related.intersection(_normalize_symbol(s) for s in preview.get("provider_symbols") or [])]
         research_request = to_jsonable({"asof": asof, "investigation": {key: value for key, value in plan.items() if key != "observation_refs"},
+            "snapshot_fields": ((market_context or {}).get("method") or {}).get("snapshot_fields", {}),
             "market_observations": focused_observations, "numerical_columns": context_columns,
             "numerical_observations": focused_context, "groups": selected_groups,
             "economic_observations": focused_macro,

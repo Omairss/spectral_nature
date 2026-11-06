@@ -146,6 +146,35 @@
   "public_capture_date_handoff": {
     "finding": "All7saved sources have blank published_at; source_trace retains capture times and5of6search snippets retain relative publication labels, but the public catalog/default raw-text read omitted them.",
     "repair": "Copy compact existing capture metadata beside published_at and the selected passage. Infer no timestamp; keep full publisher/provider metadata readable in the original record.",
-    "next": "Carry the actual useful reviewed research through native public writing/review with original observations and readable dated sources. Preserve known upstream deficiencies in the verification record; no hand-edited correction is injected."
+    "next": "Carry the actual useful reviewed research through native public writing/review with original observations and readable dated sources. Preserve known upstream deficiencies in the verification record; no hand-edited correction is injected.",
+    "actual_result": {
+      "source": "c539f63b",
+      "requests": 2,
+      "estimated_new_usd": 0.162925,
+      "counted_cumulative_exposure_usd": 15.599631,
+      "status": "rejected_after_personal_review",
+      "improvement": "Useful product sales, profitability and outlook explanation; no missing-proof prose in the main story.",
+      "remaining_errors": [
+        "Older biotech-index return was treated as a current-period comparator and strengthened into causal attribution.",
+        "Intraday snapshot was labeled ended.",
+        "Familiar financial terms were expanded while product purpose remained unfamiliar."
+      ],
+      "no_new_planning_or_acquisition": true,
+      "production_writes": 0
+    }
+  },
+  "retained_context_follow_up": {
+    "status": "source_repaired_pending_model_qualification",
+    "evidence": "OPS/retained-reader-contract-20261105/retained-projection-applied-report.json",
+    "finding": "Default retained-source view exposed nested old reviews, execution state and old queries. The factual reader now presents dated findings and complete originals, preserving full stored artifacts and resumption.",
+    "characters_before": 15858183,
+    "characters_after": 350306,
+    "default_findings_characters": 5336,
+    "original_records_preserved": 34
+  },
+  "observation_context_follow_up": {
+    "status": "source_repaired_pending_model_qualification",
+    "change": "Explain existing daily-bar field semantics in common numerical context and carry existing instrument_context.market_observation into public findings. Preserve raw values and full market coverage. Universe identity is not projected as a current price observation.",
+    "prompt_change": "Restore accepted reviewer connection checking and precise familiar terminology; choose explanatory figures and explain unfamiliar business/product context."
   }
 }
