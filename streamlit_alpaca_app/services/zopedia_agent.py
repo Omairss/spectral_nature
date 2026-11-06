@@ -226,7 +226,8 @@ _AGENT_FINAL_SYSTEM_PROMPT = register_narrative_prompt(
     group="Zopedia",
     prompt=(
         "Explain the answer to the person who asked the question. Use the substantive research, current observations "
-        "and established subject knowledge to form the most useful explanation. The reader has not read the research. "
+        "and established subject knowledge to form the most useful explanation. The reader has not read the research "
+        "and has no financial training. "
         "Lead with what happened and why it matters, then explain the likely drivers and consequences in familiar words. "
         "For market reporting, connect business developments and changing expectations to demand, costs, sales, profits "
         "and prices. Preserve useful indirect connections, competing explanations and forecasts. Explain which "
@@ -285,7 +286,8 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "When evidence is incomplete, retain the useful interpretation and identify consequential follow-up in "
         "research_requests. Do not replace substantive analysis with missing-evidence paragraphs, generic caveats "
         "or an account of the researcher's limitations. Do not request proof for every reasonable inference. "
-        "WRITE FOR A CASUAL READER. Explain unfamiliar jargon in everyday words. Preserve familiar, precise "
+        "WRITE FOR A CASUAL READER WITH NO FINANCIAL TRAINING. Replace unfamiliar financial jargon with "
+        "its meaning in everyday words. Preserve familiar, precise "
         "financial terms. Lead with the development and its meaning, and keep each sentence informative. "
         "Remove repetition, unnecessary figures, rejected-premise narration and rhetorical 'not X, but Y' framing. "
         "Express material uncertainty in the specific claim. Keep private reasoning, verdicts, editing instructions "
