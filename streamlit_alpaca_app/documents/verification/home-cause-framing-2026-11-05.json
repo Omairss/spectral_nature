@@ -66,7 +66,7 @@
     "Recorded EPAM acquisition opened the entire original report; no saved narrow passage selection exists.",
     "Reported-fact role is free-form and can itself contain stale wording or proof commentary; a two-role whitelist would also hide useful accepted research."
   ],
-  "next_work": "Correct evidence delivery within the existing research/writer/reader flow; preserve numerical authority, useful prior research and readable originals. No new planner, sidecar or phrase filter. Requalify actual outputs before release.",
+  "next_work": "Qualify the positive reader-focused shared prompt replacement on one saved research/public case first. Widen only after personal acceptance; include upstream shared-role outputs and native complete public flow before release. No phrase filter, new planner or extra publication gate.",
   "production_writes": 0,
   "regression_history": [
     {
@@ -176,5 +176,25 @@
     "status": "source_repaired_pending_model_qualification",
     "change": "Explain existing daily-bar field semantics in common numerical context and carry existing instrument_context.market_observation into public findings. Preserve raw values and full market coverage. Universe identity is not projected as a current price observation.",
     "prompt_change": "Restore accepted reviewer connection checking and precise familiar terminology; choose explanatory figures and explain unfamiliar business/product context."
+  },
+  "latest_status": "df7 fresh research/public and native common-planner completed; public writing remains rejected. Positive shared prompt replacement and global budget-context handoff are pending qualification.",
+  "fresh_df7_chain": {
+    "source": "df7bdfb8",
+    "scope": "Fresh synthesis/shared review from original ADMA evidence, then unchanged native event adapter and public writer/shared review. No planner or new acquisition.",
+    "estimated_new_usd": 0.149973,
+    "requests": 4,
+    "research_result": "Correct business mechanism and intraday date; older benchmark is dated but still used poorly.",
+    "public_result": "Removed old-session comparison and preserved intraday observation. Rejected for dense numerical inventory, unnecessary unmatched-horizon market comparison, unexplained product context and down-tape wording.",
+    "causal_finding": "The public writer invented this jargon; it was absent from its actual input. Existing audience/style instructions were present.",
+    "production_writes": 0
+  },
+  "common_planner_df7": {
+    "source": "df7bdfb8",
+    "scope": "Native common planner over captured full numerical/group/economic/headline context. No new investigations. Prior publication body and inherited original documents were not pinned; this is not a full historical replay.",
+    "result": "Initial planning request hit its native phase deadline; completion and funded shared review returned six questions. Broader rotation nomination is useful but reliability and dollar-aware recovered selection are not accepted.",
+    "estimated_new_usd": 0.518916,
+    "unknown_maximum_usd": 1.407229,
+    "budget_handoff_finding": "Initial planning received the live monetary snapshot; final synthesis and review did not. Central shared model-stage prompt now refreshes private execution controls for every request. Admission/reservation/clock/model behavior stays unchanged.",
+    "production_writes": 0
   }
 }

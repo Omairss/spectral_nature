@@ -225,26 +225,19 @@ _AGENT_FINAL_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        "Explain the answer to the person who asked the question. Use the substantive research, current observations "
-        "and established subject knowledge to form the most useful explanation. The reader has not read the research "
-        "and has no financial training. "
-        "Lead with what happened and why it matters, then explain the likely drivers and consequences in familiar words. "
-        "For market reporting, connect business developments and changing expectations to demand, costs, sales, profits "
-        "and prices. Preserve useful indirect connections, competing explanations and forecasts. Explain which "
-        "observations each mechanism accounts for; several mechanisms can operate together. "
-        "A research outline and earlier narratives are fallible analysis. Use their useful findings and correct their "
-        "premises when the evidence calls for it. Read original passages for consequential details or conflicting claims. "
-        "Preserve the entity, financial measure, comparison, date and strength of included claims. "
-        "Distinguish reported developments, your reasoned interpretation and conditional forecasts in the wording of "
-        "each claim. A useful inference does not require proven causality. Keep material contrary evidence within the "
-        "explanation. Research gaps and rejected premises belong in internal fields, not a public diary of the investigation. "
-        "Choose the points and details that help this reader understand. Omit secondary figures, unrelated examples "
-        "and repeated conclusions; each paragraph or structured field adds a distinct useful point. "
-        "Use familiar, precise financial terms without laborious definitions. Explain unfamiliar shorthand through "
-        "its business meaning; say what an unfamiliar company or product does when that helps explain the development. "
-        "Follow the requested length, purpose and format. Give useful source-title links when supplied URLs exist. "
-        "A complete retained-knowledge rewrite preserves unique useful observations and their qualifiers; a briefing "
-        "selects the consequential ideas. Keep execution diagnostics, review instructions and private reasoning internal."
+        "Explain the answer to a reader who is new to the subject. Start with the main development and why it "
+        "matters. Give enough context to understand what the business, product or process does and why people use "
+        "it. Then explain who is doing what, the likely drivers and how those actions affect the business or the "
+        "wider economy.\n\n"
+        "Use the substantive research and established subject knowledge. Treat earlier findings and the question's "
+        "premises as working interpretations. Read original passages when an important detail needs clarification. "
+        "Rank likely explanations by supporting and contrary evidence. Preserve useful indirect connections and "
+        "forecasts at their appropriate strength.\n\n"
+        "Build a focused explanation. Choose the few details and comparisons that make its meaning clear; "
+        "supporting measurements stay in the research and charts. Use each paragraph or field for a distinct useful "
+        "idea. Follow the requested purpose, length and format, with useful source-title links.\n\n"
+        "For a complete retained-knowledge rewrite, preserve every distinct useful observation, qualifier and date, "
+        "and correct errors in the knowledge itself. A briefing selects the main ideas the reader needs."
     ),
 )
 
@@ -264,49 +257,23 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        "You are the Spectral Nature Zopedia research editor and an expert communicator. This is a statistical, "
-        "high-recall discovery system. Improve usefulness, explanatory depth and relevance while preserving "
-        "valuable leads, indirect connections and reasonable hypotheses. Review is refinement, not certification "
-        "or permission to publish. Proven causality and complete source coverage are not prerequisites for useful analysis. "
-        "Your deliverable is the finished explanation. Build it from the collected evidence and the actual question; "
-        "use the draft as a fallible reference for useful findings. Put the explanatory argument and material "
-        "alternative interpretations in answer_points, then deliver the complete edited answer. "
-        "Correct weak framing and consequential omissions as well as individual facts. Earlier planning narratives "
-        "and generated findings are working interpretations; new evidence can overturn them. "
-        "Explain what changed, the most likely drivers, and the wider business or economic significance. Use "
-        "established subject knowledge to explain who changes their behavior and how that affects orders, demand, "
-        "costs, profits, valuations or the outlook. Rank explanations when useful and identify the observations "
-        "each explains. Preserve material counterevidence and useful forecasts with their assumptions. "
-        "Correct factual errors, contradictions and incoherent reasoning. Check that each conclusion follows from "
-        "its supporting observations, beyond whether the individual facts appear in a source. Preserve the useful "
-        "probable business explanation when an ancillary comparison does not help. Check company and product identity, "
-        "an amount versus a change, units, denominator, comparison and period. Preserve qualifiers such as "
-        "adjusted or segment-level. Distinguish reported facts, attributed expectations and your own inference "
-        "at their appropriate strength. Read decisive original passages when the business detail or comparison "
-        "is missing or ambiguous. Ordinary business reasoning does not need a source-provided causal ranking. "
-        "Use actual event, report and observation dates and respect the information cutoff. Current numerical "
-        "observations retain their measurement time; an unfinished bar is not a final close. A later announcement "
-        "can change the outlook without explaining an earlier price move. Compare price changes and benchmarks "
-        "over matching sessions or periods. A recent report can describe an older observation. "
-        "When evidence is incomplete, retain the useful interpretation and identify consequential follow-up in "
-        "research_requests. Do not replace substantive analysis with missing-evidence paragraphs, generic caveats "
-        "or an account of the researcher's limitations. Do not request proof for every reasonable inference. "
-        "WRITE FOR A CASUAL READER WITH NO FINANCIAL TRAINING. Replace unfamiliar financial jargon with "
-        "its meaning in everyday words. Preserve familiar, precise "
-        "financial terms without laborious definitions. Give the necessary company or product context, then explain "
-        "the business change. Select figures that establish scale, a baseline or a consequential change; summarize "
-        "secondary detail. Lead with the development and its meaning, and keep each sentence informative. "
-        "Remove repetition, unnecessary figures, rejected-premise narration and rhetorical 'not X, but Y' framing. "
-        "Express material uncertainty in the specific claim. Keep private reasoning, verdicts, editing instructions "
-        "and execution diagnostics internal. NO DISCLAIMERS. "
-        "The answer explains the subject; research_requests contains any work still worth doing. "
-        "Missing inputs belong there rather than in the explanation. Select details for their explanatory value. "
-        "Apply corrections directly to the complete final answer and its answer_points. Preserve strong draft "
-        "wording when it serves that explanation. Assign the verdict after editing, describing that exact final answer. "
-        "Use insufficient only when a substantive answer cannot be formed, and retain the best useful analysis. "
-        "For a complete retained-knowledge rewrite, preserve every unique useful observation, qualifier and date. "
-        "Correct an erroneous claim explicitly in the knowledge itself so later research can reuse the corrected "
-        "finding. A short public answer may select the main ideas without replacing the complete research."
+        "You are the Zopedia research editor and an expert communicator. Deliver the finished explanation for the "
+        "requested audience and purpose.\n\n"
+        "First form a short outline of the main ideas the reader needs. Explain what changed, rank the likely "
+        "drivers and show the wider significance. Give the big picture before the supporting pieces. Use "
+        "established knowledge to explain who is doing what and how that affects people, sales, costs, profits or "
+        "prices. Check the logic of each connection, including material alternative explanations and "
+        "counterevidence. Treat the question, earlier findings and draft as fallible analysis.\n\n"
+        "Check consequential facts and comparisons against the original observations. Read original passages for "
+        "important ambiguity. Carry corrections into the complete answer and its answer_points. Preserve useful "
+        "indirect connections, hypotheses and forecasts at their actual strength.\n\n"
+        "Edit for understanding and selection. Give enough context to understand the business or product, use "
+        "familiar precise terms, and choose the figures that explain the central idea. Each sentence should add "
+        "useful information. Put further research work in research_requests.\n\n"
+        "Return the complete edited answer and a short reader-focused outline. Assign the verdict to that final "
+        "version. For a complete retained-knowledge rewrite, preserve distinct useful observations, qualifiers, "
+        "dates and uncertain leads; correct errors in the stored knowledge. For a briefing, select and connect the "
+        "consequential ideas."
 
     ),
 )
@@ -316,7 +283,7 @@ _JUDGE_SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
     "properties": {
         "answer_points": {"type": "array", "items": {"type": "string"},
-                          "description": "The final explanatory argument and important findings after review."},
+                          "description": "A short outline of the main ideas the reader needs, organized around the explanation. Each point carries a distinct useful idea."},
         "verdict": {"type": "string", "enum": ["accept", "revise", "insufficient"],
                     "description": "Assessment of the complete final answer after editing."},
         "critique_summary": {"type": "string"},
@@ -1231,6 +1198,16 @@ def _run_evidence_model_step(
     The trace retains every result. The model owns which results stay in its
     working context and can reopen any original through the existing reader.
     """
+    def execution_prompt(content: str) -> str:
+        # Refresh after reads and continuations; every phase needs the same
+        # live allowance, including completion after interrupted planning.
+        with WorkScope(deadline_monotonic).activate():
+            spending = research_spending_context()
+        return content + "\n\nPrivate execution controls (not subject evidence or public copy):\n" + serialize_llm_context({
+            "phase_seconds_remaining": round(max(0, deadline_monotonic - time.monotonic()), 1),
+            "spending": spending,
+        })
+
     def completed_result(step: dict[str, Any]) -> bool:
         public = {key: value for key, value in step.items() if not key.startswith("__")}
         artifact = public if not list(Draft202012Validator(schema).iter_errors(public)) else public.get("decision")
@@ -1246,7 +1223,7 @@ def _run_evidence_model_step(
     if not isinstance(service, QueryService):
         return generate_json_via_aql_zopedia_gateway(
             llm_client=llm_client, surface=surface, purpose=purpose, call_type=call_type,
-            system_prompt=system_prompt, user_prompt=prompt(tool_calls), schema_name=schema_name,
+            system_prompt=system_prompt, user_prompt=execution_prompt(prompt(tool_calls)), schema_name=schema_name,
             schema=schema, deadline_monotonic=min(deadline_monotonic, time.monotonic() + model_timeout_seconds)
             if model_timeout_seconds is not None else deadline_monotonic, metadata=metadata,
             completed_result_callback=completed_result if completed_result_callback is not None else None,
@@ -1329,7 +1306,7 @@ def _run_evidence_model_step(
                         if answer_only else
                         '\nReturn the artifact inside decision. To read, use action=read with tool_name and tool_arguments inside decision. select_context manages working context; originals remain readable.'
                     ),
-                    user_prompt=user_prompt, schema_name=schema_name + "_evidence_step", schema=active_schema,
+                    user_prompt=execution_prompt(user_prompt), schema_name=schema_name + "_evidence_step", schema=active_schema,
                     deadline_monotonic=min(deadline_monotonic, time.monotonic() + model_timeout_seconds)
                     if model_timeout_seconds is not None else deadline_monotonic, metadata=metadata,
                     completed_result_callback=completed_result if completed_result_callback is not None else None,
@@ -3624,7 +3601,6 @@ def _execute_zopedia_agent_loop(
                     "research_state": research_state,
                     "source_policy": source_policy,
                     "seconds_remaining": round(budget.remaining(), 1),
-                    "spending": research_spending_context(),
                     "pending_action": pending_action,
                 },
                 ensure_ascii=False,
