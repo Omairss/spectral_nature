@@ -1,5 +1,5 @@
 {
-  "status": "artifact_purpose_editorial_change_pending_full_feed_qualification",
+  "status": "public_context_projection_qualification_pending; narrative_acceptance_unmet",
   "source_checkpoint": "4cbc475b",
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
   "offline_verification": {
@@ -49,7 +49,7 @@
     {
       "id": 6,
       "task": "Probabilistic explanations and concise expert public review",
-      "status": "upstream_review_exercised_public_quality_pending",
+      "status": "actual_shared_roles_exercised_quality_still_unaccepted",
       "evidence": "Actual current planner/research/review exercised; context contamination removed. No fresh public feed accepted yet."
     },
     {
@@ -102,7 +102,7 @@
     {
       "id": 1,
       "task": "Verify restored shared synthesis/review and substantive public handoff on the smallest actual case, then widen. Complete material late-correction continuity through existing research/wiki paths.",
-      "state": "8fc/cedda small continuation outputs rejected. Full saved feed will assess public selection; research/acquisition/whole-run scope remains explicit."
+      "state": "886e purpose-only full saved feed and held-outEPAM completed/rejected; compact dated catalog/current-sector overview candidate pending actual full-feed check."
     },
     {
       "id": 2,
@@ -171,9 +171,9 @@
     "no_release_acceptance_granted": true
   },
   "current_writing_iteration": {
-    "source": "cedda90f",
-    "result": "Rejected; useful business/product explanation but invalid comparator reasoning and secondary-detail accumulation.",
-    "next": "Shared writer/reviewer explicitly select for public purpose; exploratory/knowledge fidelity remain. Complete saved feed before another small-case iteration.",
+    "source": "886e6e4b",
+    "result": "Full public and held-out research completed without budget blocks; both rejected for actual remaining reasoning/writing defects.",
+    "next": "Simplify initial context in existing producer, preserve all catalog headlines/findings and existing full source/group readers.",
     "production_deployed": false
   },
   "repair_in_progress": {

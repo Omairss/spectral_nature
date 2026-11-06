@@ -1989,9 +1989,14 @@ def _review_home_public_surface(
     )
     initial_evidence = [{
         "numerical_overview": {key: value for key, value in (payload.get("market_context") or {}).items()
-                               if key not in {"observations", "columns", "previous_groups"}},
+                               if key not in {"observations", "columns", "groups", "previous_groups"}},
         "completed_research_findings": findings,
-        "source_index": [{"source_id": source_id, "title": record["title"], "metadata": record["metadata"],
+        "source_index": [{"source_id": source_id, "title": record["title"],
+                          "metadata": {key: value for key, value in record["metadata"].items()
+                                       if key in {"kind", "symbols", "source_kind", "asof_time_utc",
+                                                  "created_at_utc", "research_asof_time_utc",
+                                                  "research_completed_at_utc", "current_assessment_asof_time_utc",
+                                                  "published_at", "published_date", "source_capture"}},
                           "read_pointer": record.get("read_pointer", "")}
                          for source_id, record in records.items()],
         "publication_capacity": limits,

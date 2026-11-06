@@ -1747,3 +1747,5 @@ Restoring the accepted8c core and strengthening existing time guidance improved 
 ### November5,2026 — Home completion reserve
 
 A child model deadline needs room inside the original producer clock for completion SQL, chart preparation and canonical persistence. Carry one absolute cutoff through the existing Home research calls, preserve completed partial results, and leave the owner/lease fence active. Bound narration and materialization to that schedule; a core-funding reservation does not reserve wall-clock time.
+
+Current sector context and grouped-subset performance are different summaries. Keep broad current observations prominent; let the public editor read full group detail through the existing source. A compact dated catalog can preserve every discovery headline while keeping transport/provenance metadata out of the initial narrative context. Context changes still need complete-output review.

@@ -177,7 +177,7 @@
     "change": "Explain existing daily-bar field semantics in common numerical context and carry existing instrument_context.market_observation into public findings. Preserve raw values and full market coverage. Universe identity is not projected as a current price observation.",
     "prompt_change": "Restore accepted reviewer connection checking and precise familiar terminology; choose explanatory figures and explain unfamiliar business/product context."
   },
-  "latest_status": "Artifact-purpose editorial change pending full saved-feed model qualification; not deployed.",
+  "latest_status": "Purpose-only full-feed and held-out upstream checks rejected. Existing public context projection simplified; actual output qualification pending. No deployment.",
   "fresh_df7_chain": {
     "source": "df7bdfb8",
     "scope": "Fresh synthesis/shared review from original ADMA evidence, then unchanged native event adapter and public writer/shared review. No planner or new acquisition.",
@@ -226,9 +226,10 @@
     "pending_workers": 0
   },
   "next_source_change": {
-    "editorial_objective": "Scope public selection versus exploratory research and full retained-knowledge preservation by artifact purpose. Keep the substantive explanation when correcting a faulty argument; adding a caveat does not fix reasoning.",
-    "verification": "Use complete saved9-investigation feed at native900second public limit. Private request observations remain; remove verification-only5-call denial. Shared cumulative/daily/owner guards remain. No new acquisition or production writes.",
-    "architecture": "Same shared writer/reviewer, schemas, source readers and model; no additional stage/filter/gate."
+    "scope": "Existing Home public initial context only; no new stage, model, source filtering or publication gate.",
+    "change": "Show current sector/benchmark/coverage/method overview; keep full return groups in the existing readable source. Keep every catalog title/ID, meaningful dates, kind and symbols; move transport/provenance metadata behind existing readers. All9substantive findings/current observations remain.",
+    "reason": "Initial455925-character packet includes88775characters of224groups before sectors and266143characters of catalog metadata. Public reader selection has not improved with prompt changes alone.",
+    "limits": "This preserves visible discovery headlines, unlike removing the entire catalog. Does not establish a correction for upstreamEPAM or guarantee a quality improvement."
   },
   "cedda_full_case": {
     "source": "cedda90f",
@@ -241,5 +242,22 @@
     "fixture_limit": "One ADMA public story cannot qualify market-wide Brief; focused research omits full production shared readers.",
     "pending_workers": 0,
     "production_writes": 0
+  },
+  "full_886e_case": {
+    "source": "886e6e4b",
+    "requests": 2,
+    "new_estimated_usd": 0.330796,
+    "elapsed_seconds": 534.984,
+    "pending_workers": 0,
+    "result": "Rejected: negative proof/absence narration and process follow-ups remain; narrow positive groups distort the broad sector picture. Some company coverage/metric descriptions improved.",
+    "baseline": "Actual saved18:50 production96 publication,8stories; candidate12. No new research/acquisition/wiki/production writes."
+  },
+  "held_out_886e_epam": {
+    "requests": 2,
+    "new_estimated_usd": 0.04038,
+    "elapsed_seconds": 180.167,
+    "pending_workers": 0,
+    "result": "Working research remains useful but not a clean precision pass: ambiguous1.7%period used as prior full-year guidance, intraday observation called a close, attribution caveat retained. No public/wiki stage.",
+    "receipts": "Known and settled; local Blob credential limitation remains separate from actual DEV identity qualification."
   }
 }
