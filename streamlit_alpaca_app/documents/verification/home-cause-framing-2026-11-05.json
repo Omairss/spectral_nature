@@ -1,7 +1,7 @@
 {
   "status": "full_candidate_rejected_after_personal_review",
   "live_source": "96d0a52f",
-  "candidate_source": "646588e3",
+  "candidate_source": "1e8475f7 last tested; two-file objective correction pending verification",
   "production_research_instruction": {
     "path": "services/aql/events.py",
     "text": "retain unresolved observations without substituting an unsupported common cause. Different companies in a numerical group can have different causes."
@@ -66,7 +66,7 @@
     "Recorded EPAM acquisition opened the entire original report; no saved narrow passage selection exists.",
     "Reported-fact role is free-form and can itself contain stale wording or proof commentary; a two-role whitelist would also hide useful accepted research."
   ],
-  "next_work": "Qualify the positive reader-focused shared prompt replacement on one saved research/public case first. Widen only after personal acceptance; include upstream shared-role outputs and native complete public flow before release. No phrase filter, new planner or extra publication gate.",
+  "next_work": "Test the unchanged model-selected binary question from originals through the corrected native researcher/reviewer. If useful, test fresh public composition; widen only after personal acceptance. No new acquisition, planner, schema, prose filter or publication gate.",
   "production_writes": 0,
   "regression_history": [
     {
@@ -177,7 +177,7 @@
     "change": "Explain existing daily-bar field semantics in common numerical context and carry existing instrument_context.market_observation into public findings. Preserve raw values and full market coverage. Universe identity is not projected as a current price observation.",
     "prompt_change": "Restore accepted reviewer connection checking and precise familiar terminology; choose explanatory figures and explain unfamiliar business/product context."
   },
-  "latest_status": "The second same-card review also failed. Stop editing the inherited draft; qualify fresh common planning and one selected original-report investigation before publication. Restore the dropped current assessment in the existing public handoff.",
+  "latest_status": "Actual fresh native research/review and public writer/reviewer completed at1e; both rejected after personal reading. Reviewer corrected QCOM timing and removed process prose but retained unsupported causal exclusions and excessive numerical detail.",
   "fresh_df7_chain": {
     "source": "df7bdfb8",
     "scope": "Fresh synthesis/shared review from original ADMA evidence, then unchanged native event adapter and public writer/shared review. No planner or new acquisition.",
@@ -320,5 +320,21 @@
     "change": "Preserve exact supplied reader references when news ID/URL matching finds no document; retain real missing-reference diagnostics.",
     "preservation": "Document selection already filters by_id, so retained references do not become news documents. First AI query unchanged.",
     "verification": "Unpaid native dispatch replay pending; no new nomination inference required."
+  },
+  "native_first_ai_1e": {
+    "scope": "HistoricalNov5 component from actual newly generated data-first agenda. Not a complete production replay or matched latest-production comparison.",
+    "research_cost_usd": 0.160524,
+    "public_cost_usd": 0.070854,
+    "research_record": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/fresh-native-ai-research-1e8475f7-native/readable-research.private.json",
+    "public_record": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/fresh-native-ai-public-1e8475f7/literal-public-output.private.json",
+    "pending_workers": 0,
+    "production_writes": 0,
+    "root_decision": "Reject: relative returns cannot by themselves exclude an adverse driver; the public paragraph also repeats group figures and uses unexplained financial shorthand. Useful permitting/delayed-sales mechanism remains worth keeping."
+  },
+  "mechanism_objective_correction": {
+    "status": "prepared_unverified",
+    "diagnosis": "The current model-selected question forces policy versus company news. Focused task Investigate selected question plus Rank explanations preserved this premise; investigation review added group averages. The prior accepted planner explicitly kept questions open. No active instruction mandating a missing-catalyst sentence was found.",
+    "source_change": "Restore open questions to common agenda; let focused research revise planner premises and explain interacting business mechanisms; apply selective explanatory review to investigations as well as public work, preserving full memory fidelity. Price co-movement/relative rank alone cannot identify a causal share or rule out a driver.",
+    "boundaries": "Do not override legitimate owner comparisons, demand causal proof, suppress useful hypotheses or change schemas/providers/budgets/architecture."
   }
 }

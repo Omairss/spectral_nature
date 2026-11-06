@@ -96,7 +96,8 @@ _NOMINATION_PROMPT = register_narrative_prompt(
         "tools instead of carrying forward an earlier preview. A scheduled date alone does not prove publication. "
         "Choose useful focused questions within the shared allowance and deadline, accounting for research, review, "
         "wiki completion and publication. Limits are ceilings, not quotas. Ask what changed, the likely explanations "
-        "and business consequences. Several mechanisms may act together; compare their support and contrary evidence "
+        "and business consequences. Ask open questions; do not force a choice between a news explanation and a "
+        "broader market explanation before investigating. Several mechanisms may act together; compare their support and contrary evidence "
         "and explain how members differ. Use qualitative likelihood and retain useful hypotheses. "
         "Read relevant dated wiki knowledge and originals. Choose investigate, update or reuse; for update/reuse identify "
         "the exact prior_artifact_id and explain what changed or still holds. Earlier model analysis is fallible. "
@@ -106,7 +107,8 @@ _NOMINATION_PROMPT = register_narrative_prompt(
         "Select related symbols, numerical group IDs and economic series for focused context. Complete originals and "
         "broader observations remain readable through the supplied evidence tools. Headlines and provider ticker tags "
         "are discovery hints, including private-company and policy events. Return events in priority order, an agenda "
-        "and substantive current market findings with useful connections and source references."
+        "and substantive current market findings that explain the important connections, rather than a list of figures. "
+        "Include useful source references."
 
     ),
 )
@@ -572,10 +574,13 @@ def research_source_events(
         event_id = "question-" + hashlib.sha256(
             (asof.isoformat() + "|" + str(index) + "|" + plan["question"]).encode()).hexdigest()[:20]
         instructions = (
-            "Investigate the selected question against current observations. Explain the likely business mechanisms, "
-            "their relative support, contrary evidence and wider consequences. Multiple causes can act together. "
-            "Rank plausible explanations by supporting and conflicting evidence. Express "
-            "qualitative likelihood at the evidence's strength and update it as new information arrives. "
+            "Explain the current observations through the most likely business mechanisms and their consequences. "
+            "The planner's selected question is a starting point: revise its assumptions when needed. Explain how "
+            "material developments can act together to change demand, revenue, profitability, financing or investor "
+            "expectations, and how companies' different businesses affect their response. Choose observations that "
+            "distinguish or materially change that explanation; complete observations remain in their source records. "
+            "Compare plausible interpretations and contrary evidence, expressing qualitative likelihood at the "
+            "evidence's strength and updating it as new information arrives. "
             "Read relevant dated findings and original passages using the evidence tools; extend sound research "
             "instead of restarting it. Broad market context remains available. Preserve useful unexpected connections. "
             "Compare the reporting clock with event dates. For material releases already due, acquire the current "

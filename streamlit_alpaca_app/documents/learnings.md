@@ -1755,3 +1755,9 @@ The compact c415 context reduced this sample’s public cost and input size but 
 The common planner’s current assessment must travel with its assessment date into both public model views. Older findings and originals remain available; a date without the assessment loses the planner’s updated interpretation. This preservation fix is distinct from qualitative acceptance: the captured older AI assessments also contained defensive framing.
 
 Planner source IDs can name invocation-owned retained research or numerical readers as well as news documents. Normalize document IDs and URLs to their captures; preserve other exact IDs present in the supplied service. Document selection and readable evidence are distinct contracts.
+
+### November 6, 2026 — investigate mechanisms rather than force a winner
+
+Fresh research inherited a model-selected policy-versus-company question and used relative returns to exclude adverse news. Its public writer repeated the same argument. Treat planner questions as revisable leads, explain mechanisms that can act together, and select observations that change that account. Relative performance can guide an interpretation; alone it cannot identify a cause's contribution or rule it out. Apply explanatory review to investigations as well as public reporting; keep complete memory-article fidelity separate. Restore lost open-question guidance rather than add a second pipeline or phrase filters. These instruction changes still require actual output acceptance.
+
+Precise useful terms can stay. Explain unfamiliar ones briefly instead of replacing their meaning; the owner accepts gross margin and immune globulin with a short explanation when needed. Do not turn plain writing into verbose definitions of familiar measures.

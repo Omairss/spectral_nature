@@ -1,19 +1,21 @@
 {
-  "status": "Fresh common planning and one selected investigation pending; writing remains unaccepted.",
-  "source_checkpoint": "4cbc475b",
+  "status": "Fresh planner, selected native research/review and native public writer/reviewer exercised. Quality still rejected; joint-mechanism objective correction awaiting focused verification. No deployment.",
+  "source_checkpoint": "1e8475f7 (last actually exercised candidate, unaccepted)",
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
   "offline_verification": {
     "provider": "DeepSeek production Pro",
-    "approved_cap_usd": 15,
     "approval": "Owner explicit new exception in this turn",
     "scope": "Isolated local/development; all requests and unknown charges count; no production writes.",
     "total_window_seconds": 7200,
     "approval_amendment": "Owner: Approve up to$3 more and30 minutes. All previous charges and bounds remain counted.",
     "owner_continuation": "November5owner: Yes, stop asking me for today. It is all approved. Finish the job. Preserve cumulativecharges; no moreprovider/window questions today.",
-    "latest_counted_exposure_usd": 15.436706,
-    "counted_cumulative_exposure_usd": 20.271883,
+    "latest_counted_exposure_usd": 20.56934,
+    "counted_cumulative_exposure_usd": 20.56934,
     "operational_guard_usd": 45,
-    "operational_guard_note": "Owner broad November5 completion authorization; this is a conservative operational guard, not a new dollar approval or spending target. All previous charges and unknown maxima remain counted."
+    "operational_guard_note": "Owner broad November5 completion authorization; this is a conservative operational guard, not a new dollar approval or spending target. All previous charges and unknown maxima remain counted.",
+    "counted_pacific_day_2026_11_06_usd": 2.327984,
+    "initial_api_exception_cap_usd": 15,
+    "continuation_scope": "Owner subsequently authorized finishing this same repair without repeated provider/window questions and has now instructed Continue. The $45 operational guard is not a new owner dollar grant. Keep all old costs and unknown maxima."
   },
   "requirements": [
     {
@@ -49,8 +51,8 @@
     {
       "id": 6,
       "task": "Probabilistic explanations and concise expert public review",
-      "status": "actual_shared_roles_exercised_quality_still_unaccepted",
-      "evidence": "Actual current planner/research/review exercised; context contamination removed. No fresh public feed accepted yet."
+      "status": "fresh_native_research_and_public_review_exercised_but_quality_rejected",
+      "evidence": "At1e8475f7, actual investigation/review$0.160524 and public writer/reviewer$0.070854 completed with0pending workers; unsupported causal exclusion and numerical inventory persisted. Correct the shared objective and retest unchanged model-selected question."
     },
     {
       "id": 7,
@@ -89,20 +91,20 @@
       "chart": "Original study clock clipped synthesis; no fresh chart selection accepted."
     },
     "latest_operational_checks": 46,
-    "latest_public_continuation": "Retained reads work in economical completion; full composition timed out. No release acceptance."
+    "latest_public_continuation": "Actual first fresh investigation→native public writer/shared-review chain completed at1e but failed root qualitative review."
   },
   "schedule_decision": {
     "status": "source_proposal_not_live",
     "evidence": "documents/verification/home-closing-schedule-2026-11-05.json",
     "summary": "Preserve 20:35 equities and add a 21:35 numerical refresh; keep two news runs at 14:05/21:05 UTC, four Home runs with final 21:50, and every Trading schedule and authority. Opening news timing stays unchanged. Raw headlines at 21:05 exclude later earnings; integrated-source qualification must verify fresh acquisition through the existing due-calendar/live Zopedia path."
   },
-  "current_source_revision": "9f6d846b plus pending shared-editorial-purpose change",
+  "current_source_revision": "1e8475f7 plus pending two-file mechanism/objective correction",
   "current_verification_record": "documents/verification/home-cause-framing-2026-11-05.json",
   "remaining": [
     {
       "id": 1,
       "task": "Verify restored shared synthesis/review and substantive public handoff on the smallest actual case, then widen. Complete material late-correction continuity through existing research/wiki paths.",
-      "state": "Same-card review failed at4c77; source communication objective revised, new check pending. No deployment."
+      "state": "Fresh common planner selected5 broad questions. Actual first research and public chain failed personal review; restore open questions and joint-mechanism editorial objective, then retest the unchanged binary question before widening."
     },
     {
       "id": 2,
@@ -171,19 +173,20 @@
     "no_release_acceptance_granted": true
   },
   "current_writing_iteration": {
-    "source": "2b21980d",
-    "result": "Fresh native common planner selected five broad updates but still generated confirmation framing.",
-    "next": "Verify first actual selected AI investigation from saved originals, then fresh public writing. Fix valid supplied-reader references marked missing by news-only normalization.",
-    "production_deployed": false
+    "last_tested_source": "1e8475f7",
+    "accepted": false,
+    "native_research_cost_usd": 0.160524,
+    "native_public_cost_usd": 0.070854,
+    "result": "Useful permitting-to-sales/profit mechanism, but relative-return rank used to exclude causes. Public review corrected QCOM timing and removed process prose but kept the invalid inference and specialist shorthand.",
+    "next": "Reframe at common planning, investigation and shared review. No reader phrase filter or new architecture."
   },
   "repair_in_progress": {
-    "scope": "Shared prompts and model evidence views; preserve current data-first architecture.",
-    "latest_rejected_case": "c539f63b native ADMA writer/shared reviewer",
-    "source_fix": [
-      "Retained findings reader excludes old critiques/execution from factual context, originals remain exact and readable.",
-      "Existing raw market capture and daily bar meaning reach public and focused research.",
-      "Reviewer checks connections and preserves financial measures while explaining unfamiliar products."
+    "status": "source correction prepared; actual new-source model verification pending",
+    "scope": "Restore lost open-question objective; explain joint business mechanisms and review causal logic across investigations/public work. Preserve complete memory-article fidelity and owner-specified comparisons.",
+    "source_files": [
+      "services/aql/events.py",
+      "services/zopedia_agent.py"
     ],
-    "next": "Fresh smallest native research/shared-review/public/shared-review case, then widen to affected planner and saved examples before release."
+    "production_writes": 0
   }
 }

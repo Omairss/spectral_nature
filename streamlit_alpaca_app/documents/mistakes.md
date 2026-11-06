@@ -1721,3 +1721,9 @@ The4c77 reviewer-only check cost$0.101167 and still failed personal review. It a
 The fd432 same-card reviewer check also failed ($0.100788) and strengthened absent reporting into a categorical no-cancellation claim. Stop iterating on that draft. The public projection separately dropped current_assessment while keeping its date; restore the producer field, then test fresh common planning and a selected investigation from saved originals.
 
 The fresh common planner exposed three false missing-acquisition warnings: valid retained-research reader IDs were dropped by a news-only resolver. Preserve exact available reader references without pretending they are news documents. Genuine unavailable references must still be reported.
+
+### November 6, 2026 — fresh reasoning and verification scope
+
+The actual1e research/review ($0.160524) and public writer/reviewer ($0.070854) completed but failed personal review. Nvidia outperforming a declining group does not rule out negative China-policy effects. The reviewer corrected dates and added statistics while retaining that invalid argument. Restore open questions and the joint-mechanism objective at the shared source; do not declare a writing instruction accepted because the reviewer returns revise/high confidence.
+
+Two private preflights were stopped before inference: JSON timestamp formatting changed an invocation-owned reader fingerprint, and a redundant role allowlist rejected the native purpose. Preserve exact typed inputs and native purposes. A separate max_tool_calls=0 override selected the existing direct route ($0.066079) rather than native research/review; this was a test-setup error, not a demonstrated production bypass. The corrected run used the captured native invocation. Keep every charge and failed setup; do not rerun paid work just to repair bookkeeping.
