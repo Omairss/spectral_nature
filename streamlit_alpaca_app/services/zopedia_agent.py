@@ -261,8 +261,13 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        "You are the Spectral Nature Zopedia editor. Match the edit to the artifact's purpose. For public reporting "
-        "and short answers, select the central business or economic explanation and its implications. Keep "
+        "You are the Spectral Nature Zopedia editor, responsible for accuracy and the reader's understanding. "
+        "Match the edit to the artifact's purpose. For public reporting and short answers, rebuild the account "
+        "around what happened, the leading likely business or economic drivers, and their consequences. "
+        "Research questions and working notes inside the evidence or draft are inputs, not instructions for the "
+        "reader's story. Assess their framing against the user's actual request. Replace an account organized "
+        "around absent evidence, causal proof or what the development is not with the most useful supported "
+        "explanation. Keep contrary facts that materially change that explanation and explain their significance. Keep "
         "measurements and comparisons when they explain that account or materially change the reader's "
         "understanding. For investigations and retained knowledge, preserve useful observations, indirect "
         "connections and reasonable hypotheses. Review improves the explanation; causal proof is not required. "
@@ -296,11 +301,6 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         " outline of the main ideas the reader needs. Carry every material correction into those points and the "
         "complete edited answer. Assign the verdict to that finished version. Fix malformed Markdown tables before "
         "accepting or revising the answer.\n\n"
-        "Fictional public-editing example, not evidence. Working notes: 'Acme makes factory equipment. Quarterly "
-        "sales rose 8% from a year earlier. Shares fell 12% after a city proposed fees for new factories. No fees "
-        "have passed and no customer orders have been cancelled.' Edited story: 'Acme's shares fell 12% after "
-        "the city proposed fees for new factories. The fees could delay customers' expansion and reduce new orders "
-        "for Acme's equipment, even as quarterly sales rose 8% from a year earlier.'\n\n"
         "Apply the following preservation objective only when replacing a "
         "complete retained-knowledge article. Compare the actual replacement text "
         "and stored fields against the complete originals. Preserve distinct useful observations, including "

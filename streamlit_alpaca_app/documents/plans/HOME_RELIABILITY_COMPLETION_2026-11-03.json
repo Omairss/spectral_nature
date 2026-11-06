@@ -1,5 +1,5 @@
 {
-  "status": "smallest_worked_editor_example_pending; narrative_acceptance_unmet",
+  "status": "Public communication objective revised; same-card verification pending. Narrative acceptance remains unmet.",
   "source_checkpoint": "4cbc475b",
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
   "offline_verification": {
@@ -11,7 +11,7 @@
     "approval_amendment": "Owner: Approve up to$3 more and30 minutes. All previous charges and bounds remain counted.",
     "owner_continuation": "November5owner: Yes, stop asking me for today. It is all approved. Finish the job. Preserve cumulativecharges; no moreprovider/window questions today.",
     "latest_counted_exposure_usd": 15.436706,
-    "counted_cumulative_exposure_usd": 18.191813,
+    "counted_cumulative_exposure_usd": 19.411194,
     "operational_guard_usd": 45,
     "operational_guard_note": "Owner broad November5 completion authorization; this is a conservative operational guard, not a new dollar approval or spending target. All previous charges and unknown maxima remain counted."
   },
@@ -102,7 +102,7 @@
     {
       "id": 1,
       "task": "Verify restored shared synthesis/review and substantive public handoff on the smallest actual case, then widen. Complete material late-correction continuity through existing research/wiki paths.",
-      "state": "c415fullfeedcompleted/rejected; next existingreviewer-only oneAIstory check. No deployment."
+      "state": "Same-card review failed at4c77; source communication objective revised, new check pending. No deployment."
     },
     {
       "id": 2,
@@ -171,9 +171,9 @@
     "no_release_acceptance_granted": true
   },
   "current_writing_iteration": {
-    "source": "c415f040",
-    "result": "Smallerinput/cost, but actualfinishedoutput fails. Financialsimplificationintroducedincorrectcash-earningslabel.",
-    "next": "Workedpubliceditingexample and exactmeasure-name preservation; single savedcard throughnativesharedreviewer.",
+    "source": "4c77a8ee",
+    "result": "Single-card native review completed but failed personal assessment. One extra example did not change the organizing frame.",
+    "next": "Replace the public reporting objective in the shared style and reviewer, then repeat the exact saved card before expanding.",
     "production_deployed": false
   },
   "repair_in_progress": {
