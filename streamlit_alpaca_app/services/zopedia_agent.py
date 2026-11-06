@@ -3760,7 +3760,7 @@ def _execute_zopedia_agent_loop(
                             research_state["next_actions"] = requests
                             pending_action = {"information_requests": requests}
                             checkpoint()
-                            if budget.remaining() > 0:
+                            if quality_review.get("verdict") == "insufficient" and budget.remaining() > 0:
                                 continue
                 final_answer = best_draft
                 final_confidence = decision.get("confidence") or final_confidence
