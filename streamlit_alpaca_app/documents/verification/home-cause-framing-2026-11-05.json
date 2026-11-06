@@ -1,7 +1,7 @@
 {
   "status": "full_candidate_rejected_after_personal_review",
   "live_source": "96d0a52f",
-  "candidate_source": "1e8475f7 last tested; two-file objective correction pending verification",
+  "candidate_source": "e3edbc41 last tested; concrete-facts/editor-purpose refinement pending",
   "production_research_instruction": {
     "path": "services/aql/events.py",
     "text": "retain unresolved observations without substituting an unsupported common cause. Different companies in a numerical group can have different causes."
@@ -66,7 +66,7 @@
     "Recorded EPAM acquisition opened the entire original report; no saved narrow passage selection exists.",
     "Reported-fact role is free-form and can itself contain stale wording or proof commentary; a two-role whitelist would also hide useful accepted research."
   ],
-  "next_work": "Test the unchanged model-selected binary question from originals through the corrected native researcher/reviewer. If useful, test fresh public composition; widen only after personal acceptance. No new acquisition, planner, schema, prose filter or publication gate.",
+  "next_work": "Qualify only the shared reviewer against saved fresh e3 story and original evidence after concrete-facts/editor-purpose correction. Widen only after personal reader acceptance; current production full inputs are being recovered separately.",
   "production_writes": 0,
   "regression_history": [
     {
@@ -177,7 +177,7 @@
     "change": "Explain existing daily-bar field semantics in common numerical context and carry existing instrument_context.market_observation into public findings. Preserve raw values and full market coverage. Universe identity is not projected as a current price observation.",
     "prompt_change": "Restore accepted reviewer connection checking and precise familiar terminology; choose explanatory figures and explain unfamiliar business/product context."
   },
-  "latest_status": "Actual fresh native research/review and public writer/reviewer completed at1e; both rejected after personal reading. Reviewer corrected QCOM timing and removed process prose but retained unsupported causal exclusions and excessive numerical detail.",
+  "latest_status": "e3 actual research repaired joint-driver reasoning and removed invalid relative-return exclusions. Fresh public pair completed but copied proof/confirmation commentary; reviewer accepted it unchanged. Public quality remains unaccepted.",
   "fresh_df7_chain": {
     "source": "df7bdfb8",
     "scope": "Fresh synthesis/shared review from original ADMA evidence, then unchanged native event adapter and public writer/shared review. No planner or new acquisition.",
@@ -336,5 +336,15 @@
     "diagnosis": "The current model-selected question forces policy versus company news. Focused task Investigate selected question plus Rank explanations preserved this premise; investigation review added group averages. The prior accepted planner explicitly kept questions open. No active instruction mandating a missing-catalyst sentence was found.",
     "source_change": "Restore open questions to common agenda; let focused research revise planner premises and explain interacting business mechanisms; apply selective explanatory review to investigations as well as public work, preserving full memory fidelity. Price co-movement/relative rank alone cannot identify a causal share or rule out a driver.",
     "boundaries": "Do not override legitimate owner comparisons, demand causal proof, suppress useful hypotheses or change schemas/providers/budgets/architecture."
+  },
+  "e3_joint_mechanism_result": {
+    "research_settled_usd": 0.200349,
+    "research_unknown_maximum_usd": 0.651607,
+    "public_cost_usd": 0.048894,
+    "research_accepted_as": "Improved private input, not public copy: company/policy drivers plus Lam/memory demand signals; no relative-return causal exclusion.",
+    "public_decision": "Reject: still proof/confirmation research diary; no new causal exclusion.",
+    "completed_artifact_retained_on_optional_followup_timeout": true,
+    "record": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/fresh-native-ai-public-e3edbc41/literal-public-output.private.json",
+    "next": "Only shared reviewer on this saved fresh story after refining concrete-facts/explanatory-purpose objective. No new research or acquisition."
   }
 }

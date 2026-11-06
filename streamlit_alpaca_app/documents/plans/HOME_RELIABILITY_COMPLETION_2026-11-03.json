@@ -1,6 +1,6 @@
 {
-  "status": "Fresh planner, selected native research/review and native public writer/reviewer exercised. Quality still rejected; joint-mechanism objective correction awaiting focused verification. No deployment.",
-  "source_checkpoint": "1e8475f7 (last actually exercised candidate, unaccepted)",
+  "status": "Joint-driver reasoning improved in actual research; public reviewer still accepts internal confirmation commentary. Refining shared editorial objective; no deployment.",
+  "source_checkpoint": "e3edbc41 (last actually exercised candidate, public unaccepted)",
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
   "offline_verification": {
     "provider": "DeepSeek production Pro",
@@ -9,13 +9,14 @@
     "total_window_seconds": 7200,
     "approval_amendment": "Owner: Approve up to$3 more and30 minutes. All previous charges and bounds remain counted.",
     "owner_continuation": "November5owner: Yes, stop asking me for today. It is all approved. Finish the job. Preserve cumulativecharges; no moreprovider/window questions today.",
-    "latest_counted_exposure_usd": 20.56934,
-    "counted_cumulative_exposure_usd": 20.56934,
+    "latest_counted_exposure_usd": 21.47019,
+    "counted_cumulative_exposure_usd": 21.47019,
     "operational_guard_usd": 45,
     "operational_guard_note": "Owner broad November5 completion authorization; this is a conservative operational guard, not a new dollar approval or spending target. All previous charges and unknown maxima remain counted.",
     "counted_pacific_day_2026_11_06_usd": 2.327984,
     "initial_api_exception_cap_usd": 15,
-    "continuation_scope": "Owner subsequently authorized finishing this same repair without repeated provider/window questions and has now instructed Continue. The $45 operational guard is not a new owner dollar grant. Keep all old costs and unknown maxima."
+    "continuation_scope": "Owner subsequently authorized finishing this same repair without repeated provider/window questions and has now instructed Continue. The $45 operational guard is not a new owner dollar grant. Keep all old costs and unknown maxima.",
+    "internal_working_window_ends_at_utc": "2026-11-06T13:30:00+00:00"
   },
   "requirements": [
     {
@@ -98,13 +99,13 @@
     "evidence": "documents/verification/home-closing-schedule-2026-11-05.json",
     "summary": "Preserve 20:35 equities and add a 21:35 numerical refresh; keep two news runs at 14:05/21:05 UTC, four Home runs with final 21:50, and every Trading schedule and authority. Opening news timing stays unchanged. Raw headlines at 21:05 exclude later earnings; integrated-source qualification must verify fresh acquisition through the existing due-calendar/live Zopedia path."
   },
-  "current_source_revision": "1e8475f7 plus pending two-file mechanism/objective correction",
+  "current_source_revision": "e3edbc41 plus pending concrete-facts/editor-purpose correction",
   "current_verification_record": "documents/verification/home-cause-framing-2026-11-05.json",
   "remaining": [
     {
       "id": 1,
       "task": "Verify restored shared synthesis/review and substantive public handoff on the smallest actual case, then widen. Complete material late-correction continuity through existing research/wiki paths.",
-      "state": "Fresh common planner selected5 broad questions. Actual first research and public chain failed personal review; restore open questions and joint-mechanism editorial objective, then retest the unchanged binary question before widening."
+      "state": "Actual e3 research improved causal reasoning; fresh public copy still fails. Test only its shared reviewer with the concrete-facts/editor-purpose correction, then widen; no full research rerun."
     },
     {
       "id": 2,
@@ -173,12 +174,11 @@
     "no_release_acceptance_granted": true
   },
   "current_writing_iteration": {
-    "last_tested_source": "1e8475f7",
+    "last_tested_source": "e3edbc41",
     "accepted": false,
-    "native_research_cost_usd": 0.160524,
-    "native_public_cost_usd": 0.070854,
-    "result": "Useful permitting-to-sales/profit mechanism, but relative-return rank used to exclude causes. Public review corrected QCOM timing and removed process prose but kept the invalid inference and specialist shorthand.",
-    "next": "Reframe at common planning, investigation and shared review. No reader phrase filter or new architecture."
+    "reasoning_improvement": "Company and policy drivers retained together; Lam/memory demand signals preserved; invalid relative-return exclusion removed.",
+    "public_failure": "Reviewer accepts proof/confirmation diary and omits useful consequence chain.",
+    "next": "Shared reviewer-only check using exact saved fresh public draft and originals; no new planning/acquisition."
   },
   "repair_in_progress": {
     "status": "source correction prepared; actual new-source model verification pending",
