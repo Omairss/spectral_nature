@@ -1,5 +1,5 @@
 {
-  "status": "Public communication objective revised; same-card verification pending. Narrative acceptance remains unmet.",
+  "status": "Fresh common planning and one selected investigation pending; writing remains unaccepted.",
   "source_checkpoint": "4cbc475b",
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
   "offline_verification": {
@@ -11,7 +11,7 @@
     "approval_amendment": "Owner: Approve up to$3 more and30 minutes. All previous charges and bounds remain counted.",
     "owner_continuation": "November5owner: Yes, stop asking me for today. It is all approved. Finish the job. Preserve cumulativecharges; no moreprovider/window questions today.",
     "latest_counted_exposure_usd": 15.436706,
-    "counted_cumulative_exposure_usd": 19.411194,
+    "counted_cumulative_exposure_usd": 19.511982,
     "operational_guard_usd": 45,
     "operational_guard_note": "Owner broad November5 completion authorization; this is a conservative operational guard, not a new dollar approval or spending target. All previous charges and unknown maxima remain counted."
   },
@@ -171,9 +171,9 @@
     "no_release_acceptance_granted": true
   },
   "current_writing_iteration": {
-    "source": "4c77a8ee",
-    "result": "Single-card native review completed but failed personal assessment. One extra example did not change the organizing frame.",
-    "next": "Replace the public reporting objective in the shared style and reviewer, then repeat the exact saved card before expanding.",
+    "source": "fd432b03",
+    "result": "Second same-card reviewer check rejected. Editing inherited draft remains ineffective; no further edit retries.",
+    "next": "Fresh native common planner from captured broad data; one selected original-report investigation, then native public writer/reviewer. Restore current-assessment text dropped from the public handoff.",
     "production_deployed": false
   },
   "repair_in_progress": {

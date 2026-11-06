@@ -177,7 +177,7 @@
     "change": "Explain existing daily-bar field semantics in common numerical context and carry existing instrument_context.market_observation into public findings. Preserve raw values and full market coverage. Universe identity is not projected as a current price observation.",
     "prompt_change": "Restore accepted reviewer connection checking and precise familiar terminology; choose explanatory figures and explain unfamiliar business/product context."
   },
-  "latest_status": "The worked editing example failed the actual single-card review. Replace the public communication objective at source; the next same-card check is pending. No deployment.",
+  "latest_status": "The second same-card review also failed. Stop editing the inherited draft; qualify fresh common planning and one selected original-report investigation before publication. Restore the dropped current assessment in the existing public handoff.",
   "fresh_df7_chain": {
     "source": "df7bdfb8",
     "scope": "Fresh synthesis/shared review from original ADMA evidence, then unchanged native event adapter and public writer/shared review. No planner or new acquisition.",
@@ -281,5 +281,20 @@
     "pending_workers": 0,
     "result": "Rejected after personal reading. AMD earnings context was added, but negative openings, no-order commentary and the numerical inventory remained.",
     "anchoring_limit": "The binary confirmed-demand-loss question first appears in the c415 generated public draft, not its positive writer query. Earlier retained findings contain the same framing; this does not establish each input’s causal contribution."
+  },
+  "reviewer_fd432_case": {
+    "source": "fd432b03",
+    "request_id": "d0973bd2f2324126a5ae73658e6b077e",
+    "new_estimated_usd": 0.100788,
+    "elapsed_seconds": 136.856,
+    "pending_workers": 0,
+    "result": "Rejected. More concrete Texas/Meta business context, but negative cancellation framing remains and absence of a named report became the unsupported categorical claim that no major customer canceled orders. Actual changed instructions were present.",
+    "next": "No more retries editing this saved draft. Prepare fresh native common-planner completion, then one actual selected investigation and public writing from saved originals."
+  },
+  "current_assessment_handoff": {
+    "producer": "services/aql/events.py: bundle.current_assessment = plan.rationale",
+    "consumer_gap": "Public inline findings and supplied bundle content carried the assessment date but dropped its text.",
+    "repair": "Carry current_assessment beside its existing date in both existing model views; retain older findings and originals unchanged.",
+    "scope_limit": "Captured AI assessments themselves repeat missing-order/confirmation framing. The field repair preserves a contract but does not establish narrative improvement. New planning must be evaluated."
   }
 }

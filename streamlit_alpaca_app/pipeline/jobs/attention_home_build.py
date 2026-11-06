@@ -1896,7 +1896,8 @@ def _review_home_public_surface(
             # independent public explanation. The stored bundle stays intact.
             "content": to_jsonable({**{key: bundle.get(key) for key in (
                 "event_title", "supporting_symbols", "claims", "asof_time_utc",
-                "research_asof_time_utc", "research_completed_at_utc", "current_assessment_asof_time_utc",
+                "research_asof_time_utc", "research_completed_at_utc",
+                "current_assessment", "current_assessment_asof_time_utc",
             )}, "findings_markdown": bundle.get("findings_markdown") or bundle.get("research_result"),
                 "market_observations": [item["market_observation"] for item in bundle.get("instrument_context") or []
                                         if item.get("market_observation")]}),
@@ -1905,7 +1906,7 @@ def _review_home_public_surface(
             "source_id": source_id,
             "asof_time_utc": bundle.get("asof_time_utc"),
             **{key: bundle.get(key) for key in (
-                "research_action", "research_asof_time_utc", "current_assessment_asof_time_utc",
+                "research_action", "research_asof_time_utc", "current_assessment", "current_assessment_asof_time_utc",
             )},
             "findings": bundle.get("findings_markdown") or bundle.get("research_result"),
             "market_observations": [item["market_observation"] for item in bundle.get("instrument_context") or []
