@@ -1,26 +1,10 @@
 {
   "status": "full_candidate_rejected_after_personal_review",
   "live_source": "96d0a52f",
-  "candidate_source": "e03d52e7 public projection plus pending dated benchmark data contract",
+  "candidate_source": "92beb6ab application, unaccepted; documentation-only checkpoint follows",
   "production_research_instruction": {
     "path": "services/aql/events.py",
     "text": "retain unresolved observations without substituting an unsupported common cause. Different companies in a numerical group can have different causes."
-  },
-  "actual_case": {
-    "original_bundle": "event::question-f132452dc23b69fe7fd4",
-    "claim_index": 6,
-    "claim_ending": "but the available evidence does not separately prove which item caused the gain.",
-    "input_path": "initial_evidence[0].completed_research_claims[3].recorded_claims[6].claim_text",
-    "f9_first_writer_request": "ee8da13",
-    "observed_writer_behavior": "Returned complete draft without opening any original company report. Recast claim as cannot isolate which item drove the gain.",
-    "final_reviewer_request": "2c231",
-    "observed_review_behavior": "Preserved missing-proof framing despite shared instructions to remove it."
-  },
-  "candidate_change": {
-    "research_instructions": "Rank plausible explanations and business mechanisms with qualitative likelihood; several mechanisms may act together.",
-    "public_initial_context": "Original source catalog and numerical observations. Prior generated claims/findings remain readable through existing evidence tools, without automatic inline injection.",
-    "focused_observation": "Focused query explicitly identified EPAM and its primary report. It opened that report; this does not isolate the input-removal effect, and the full case did not generalize.",
-    "full_feed_verification": "Completed, personally rejected; no backend deployment."
   },
   "causal_claim_limit": "Exact copied/inherited framing and observed tool behavior confirmed. Other disclaimers are model-added continuations; this trace alone does not quantify each instruction contribution.",
   "generated_at_utc": "2026-11-05T21:29:19.826200+00:00",
@@ -177,7 +161,7 @@
     "change": "Explain existing daily-bar field semantics in common numerical context and carry existing instrument_context.market_observation into public findings. Preserve raw values and full market coverage. Universe identity is not projected as a current price observation.",
     "prompt_change": "Restore accepted reviewer connection checking and precise familiar terminology; choose explanatory figures and explain unfamiliar business/product context."
   },
-  "latest_status": "Public quality still unaccepted; smallest shared-review test of corrected analysis purpose pending. No deployment.",
+  "latest_status": "NOT accepted for release. Source execution/alias repairs verified; actual92saved-card review still fails. Fresh upstream schema/planner qualification unrun. No deployment.",
   "fresh_df7_chain": {
     "source": "df7bdfb8",
     "scope": "Fresh synthesis/shared review from original ADMA evidence, then unchanged native event adapter and public writer/shared review. No planner or new acquisition.",
@@ -468,10 +452,53 @@
     "pending_workers": 0
   },
   "shared_market_objective_clarification": {
-    "status": "source_changed_smallest_actual_review_pending",
+    "status": "experimental_actual_saved_card_review_failed_fresh_upstream_unrun",
     "analysis": "Explain most likely effect on expected profits, financing or risk; prices react to expectations before operating results/orders/policy change. Applies through existing shared suffix to planner/research/synthesis/review, scoped to market explanations.",
     "field_semantics": "Existing event_title/claims describe substantive world findings and interpretations, including actual negative developments. Reading inventory and acquisition/tasks stay in existing private research_state. Schema shape/required/types/source-reference capability unchanged.",
     "reason": "Actual reviewer treats absence of announced customer cuts as evidence excluding expected demand change. Texas original describes expectation of lifting an existing stop; private proof question loses that mechanism.",
-    "second_order": "No compulsory new fundamental catalyst; financing/risk permit liquidity/positioning/discount-rate mechanisms. Keep factual uncertainty, opposing observations and complete memory fidelity."
-  }
+    "second_order": "No compulsory new fundamental catalyst; financing/risk permit liquidity/positioning/discount-rate mechanisms. Keep factual uncertainty, opposing observations and complete memory fidelity.",
+    "delivery": "Actual gateway/provider request construction proved analysis/timeline/style once across10 substantive role boundaries, no utility/schema-repair additions; memory fidelity and schema shape unchanged."
+  },
+  "saved_card_92_result": {
+    "source": "92beb6ab",
+    "cost_usd": 0.079044,
+    "requests": 2,
+    "actual_reads": [
+      "bundle:event::question-cfd9c9b09916eaca4341"
+    ],
+    "root_read": "Complete returned card and review personally read. Reviewer corrected supply-side Micron detail but retained no-order headline/absence-based demand exclusion and strengthened missing reporting into no customer cut a committed order. Rejected.",
+    "record": "operations/home-reliability-completion-20261103/saved-memory-card-review-92beb6ab/literal-before-after.private.json",
+    "model_delivery": "Full Pro/high, new shared analysis actually supplied;236original readers/current context unchanged, previous critic/answer_points omitted.",
+    "scope_limit": "No new upstream planner/research writer, Brief, recall or EVENT_SCHEMA descriptor qualification. Do not infer that unseen fresh upstream output failed.",
+    "setup_issue": "First private launch used wrong run-ID prefix; stopped before provider request/ledger attempt. Corrected only fixture ID; no charge.",
+    "pending_workers": 0
+  },
+  "funding_observation": {
+    "wallet_usd": 4.47,
+    "at_utc": "2026-11-06T14:50:00+00:00",
+    "actual_production_headroom": "Unknown: both exact read-only SQL probes timed out; isolated accountbook is not production evidence. Optional verification held, not a claim that a production run failed.",
+    "writes": 0
+  },
+  "initial_case": {
+    "original_bundle": "event::question-f132452dc23b69fe7fd4",
+    "claim_index": 6,
+    "claim_ending": "but the available evidence does not separately prove which item caused the gain.",
+    "input_path": "initial_evidence[0].completed_research_claims[3].recorded_claims[6].claim_text",
+    "f9_first_writer_request": "ee8da13",
+    "observed_writer_behavior": "Returned complete draft without opening any original company report. Recast claim as cannot isolate which item drove the gain.",
+    "final_reviewer_request": "2c231",
+    "observed_review_behavior": "Preserved missing-proof framing despite shared instructions to remove it."
+  },
+  "initial_candidate_change": {
+    "research_instructions": "Rank plausible explanations and business mechanisms with qualitative likelihood; several mechanisms may act together.",
+    "public_initial_context": "Original source catalog and numerical observations. Prior generated claims/findings remain readable through existing evidence tools, without automatic inline injection.",
+    "focused_observation": "Focused query explicitly identified EPAM and its primary report. It opened that report; this does not isolate the input-removal effect, and the full case did not generalize.",
+    "full_feed_verification": "Completed, personally rejected; no backend deployment."
+  },
+  "candidate_change": {
+    "source_fixes": "Answer-version review ownership; terminal accept/revise continuation; generic dated daily benchmark; remove planner-rationale-as-research alias.",
+    "experimental": "Shared market expectation objective and substantive claim/title semantics; actual saved-card review failed, fresh upstream roles not rerun.",
+    "release": "No build, DEV or production deployment; existing96production unchanged."
+  },
+  "updated_at_utc": "2026-11-06T15:00:34.030491+00:00"
 }

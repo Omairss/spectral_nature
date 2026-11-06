@@ -1,8 +1,8 @@
 {
-  "status": "Planner-note alias correction preserves reuse; full public output still rejected. Shared market-mechanism objective and research-field semantics clarified; smallest native reviewer qualification pending. Deployment held.",
+  "status": "Not ready for release: saved-card shared review still makes an invalid absence-based demand inference. Concrete execution/input fixes committed; current analytical/schema clarification remains experimental. No deployment.",
   "objective": "Reliable current data-first research with predictable adaptive costs, useful probable explanations and concise public reporting. The90% savings target is retired.",
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
-  "current_source_revision": "3725a3df plus shared market-analysis/claim semantics, pending commit",
+  "current_source_revision": "92beb6ab (application); documentation checkpoints add no runtime changes",
   "production": {
     "source": "96d0a52f",
     "writes_during_verification": 0,
@@ -61,7 +61,8 @@
   "role_qualification": {
     "common_planner": {
       "last_actual_source": "2b21980d",
-      "result": "Broader data-first agenda exercised; source-reader reference defect fixed. Current later shared editor/open-question changes still require current-planner qualification."
+      "result": "Broader data-first agenda exercised; source-reader reference defect fixed. Current later shared editor/open-question changes still require current-planner qualification.",
+      "current_unpaid_preparation": "operations/home-reliability-completion-20261103/native-planner-fresh-92beb6ab-20261106/preparation.json; exact prior broad fixture with declared cutoff-valid1-session benchmark, no new inference/investigations"
     },
     "investigation": {
       "last_actual_source": "f342c6a6",
@@ -107,17 +108,21 @@
       "evidence": "operations/home-reliability-completion-20261103/alias-projection-source-3725a3df-20261106/alias-preservation-report.json"
     },
     "market_analysis_objective": {
-      "status": "source_clarified_actual_qualification_pending",
+      "status": "experimental_saved_card_review_failed_fresh_upstream_unrun",
       "change": "Shared analysis guidance connects likely drivers to expected profits, financing or risk; prices can react before operating results/orders/policy change. Research schema identifies substantive outside-world findings/inferences, keeping acquisition inventory/tasks in existing private research state.",
       "scope": "No new stage, field, filter, authority, model or publication gate. Real negative facts, uncertainty, counterevidence, dates and exact measures remain.",
-      "first_case": "Smallest unchanged SanDisk-card shared reviewer, before wider current-role qualification."
+      "first_case": "Smallest unchanged SanDisk-card shared reviewer, before wider current-role qualification.",
+      "actual_result": "Native shared reviewer read the AI bundle and retained absence-of-announced-orders as evidence against changed demand; strengthened it into no customer cut a committed order. Rejected after complete root read.",
+      "cost_usd": 0.079044,
+      "evidence": "operations/home-reliability-completion-20261103/saved-memory-card-review-92beb6ab/literal-before-after.private.json",
+      "limit": "This exercised the shared analysis suffix, not the EVENT_SCHEMA descriptors. A failed old-draft review neither qualifies nor disproves fresh upstream synthesis under the clarified schema."
     }
   },
   "remaining": [
     {
       "id": 1,
       "task": "Qualify current planner, focused research, complete public reporting and material late-correction continuity.",
-      "state": "Execution and alias/reuse boundary verified. New shared analytical objective/claim semantics require actual narrow review then wider current planner/research/public qualification; no writing acceptance yet."
+      "state": "Quality unaccepted. Next discriminating qualification is fresh native research/planning from retained originals under the corrected contract, rather than more editing of the same contaminated summary. Prepared but not run; further optional inference held to protect production credit."
     },
     {
       "id": 2,
@@ -146,7 +151,7 @@
     "summary": "Preserve 20:35 equities and add a 21:35 numerical refresh; keep two news runs at 14:05/21:05 UTC, four Home runs with final 21:50, and every Trading schedule and authority. Opening news timing stays unchanged. Raw headlines at 21:05 exclude later earnings; integrated-source qualification must verify fresh acquisition through the existing due-calendar/live Zopedia path."
   },
   "source_integration": {
-    "status": "integrated_awaiting_root_review_and_qualification",
+    "status": "integrated; release acceptance held on qualitative failure",
     "candidate_parent": "03ce83e3345c5ad909502f24cedcdefa4e315ceb",
     "accepted_live_parent": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
     "branch": "fix/home-reliability-release-20261105",
@@ -156,14 +161,28 @@
   "offline_verification": {
     "provider": "Existing full production DeepSeekV4Pro/thinking/high, under owner Home-repair exception and Continue",
     "scope": "Same isolated repair, saved inputs, no production writes; no new unrelated study",
-    "counted_cumulative_exposure_usd": 22.225549,
-    "counted_pacific_day_2026_11_06_usd": 3.984193,
+    "counted_cumulative_exposure_usd": 22.304593,
+    "counted_pacific_day_2026_11_06_usd": 4.063237,
     "daily_allowance_usd": 25,
     "operational_guard_usd": 45,
     "operational_guard_note": "Internal guard under broad continuation authority, not a new owner dollar grant; every prior metered estimate and unknown maximum remains counted.",
     "internal_working_window_ends_at_utc": "2026-11-06T15:30:00+00:00",
     "pending_requests": 0,
-    "authoritative_private_record": "operations/home-reliability-completion-20261103/ledger.json"
+    "authoritative_private_record": "operations/home-reliability-completion-20261103/ledger.json",
+    "three_latest_checks_cost_usd": 0.371649,
+    "paid_work_status": "held; all provider workers finished",
+    "provider_wallet": {
+      "observed_at_utc": "2026-11-06T14:50:00+00:00",
+      "available_usd": 4.47,
+      "note": "Observation before last reviewer completion; not a current core-headroom guarantee. Two exact-binding read-only SQL probes timed out; production protection/reservations unverified. No account/production writes."
+    },
+    "owned_resource_cleanup": {
+      "status": "complete",
+      "qualification_workers": 0,
+      "pending_provider_requests": 0,
+      "owned_postgresql": "Stopped and verified;7databases archived136908416bytes, SHA256/TOC/full restore-stream validated, permissions600; original data retained. No unrelated resources touched.",
+      "manifest": "operations/home-reliability-completion-20261103/owned-pg-final-20261106/manifest.private.json"
+    }
   },
   "evidence": {
     "current_quality_history": "documents/verification/home-cause-framing-2026-11-05.json",
@@ -171,6 +190,12 @@
     "owner_liked_example_scope": "documents/verification/home-writing-originals-verification-2026-11-04.json",
     "source_integration": "documents/verification/home-reliability-source-integration-2026-11-05.json",
     "completed_settings_retirement": "documents/verification/home-settings-retirement-2026-11-04.json",
-    "private_current_memory_review": "operations/home-reliability-completion-20261103/complete-memory-review-e03d52e7/output.private.json"
+    "private_current_memory_review": "operations/home-reliability-completion-20261103/complete-memory-review-e03d52e7/output.private.json",
+    "shared_guidance_delivery": "operations/home-reliability-completion-20261103/gateway-analysis-guidance-92beb6ab-proof.json"
+  },
+  "checkpoints": {
+    "accepted_rollback_tag": "pre-home-reliability-20261105 (96d0a52f)",
+    "experimental_tag": "home-reliability-unaccepted-20261106",
+    "meaning": "Experimental checkpoint is not source acceptance or authority to build/promote."
   }
 }
