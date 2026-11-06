@@ -1740,3 +1740,6 @@ A daily-bar timestamp labels its interval; capture and publication clocks have d
 ### November5,2026 — shared editorial objective and recovered budget context
 
 A prompt can contain a clear style rule and still produce dense figures or spontaneous jargon. Restore the positive objective: main development, business action, likely mechanisms and wider significance, with a short reader-focused outline. Read the actual complete output. Preserve full retained knowledge while selecting explanatory detail for briefings. A recovered planning stage also needs the current dollar budget: time remaining alone does not establish affordable agenda selection.
+
+
+The shortened positive proposal did not remove dense figures, unexplained products or the old benchmark comparison. Its real reviewer timed out without a body. Restore the actual accepted independent-editor and audience/selection instructions as the next control, while preserving current observation, edited-answer and knowledge contracts. A returned writer draft is not completed review.

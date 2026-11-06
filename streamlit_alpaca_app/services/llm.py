@@ -131,19 +131,21 @@ def _deepseek_response_error(response: requests.Response, *, operation: str = "r
 
 # Applied at request time by every provider adapter, including direct callers.
 NARRATIVE_STYLE_RULE = (
-    "Use an 80% ASD-STE100-inspired Simplified Technical English style. Write as if explaining the answer aloud "
-    "to someone unfamiliar with the subject. Use ordinary words, concrete nouns, active verbs and short "
-    "connected sentences. Do not use unfamiliar financial jargon in public writing. Keep familiar measures "
-    "precise and explain unfamiliar concepts through their practical meaning. Choose details for their "
-    "explanatory value and say each idea once.\n\n"
-    "NO DISCLAIMERS. State findings directly and express material uncertainty within the claim; research "
-    "process, rejected premises and editing notes stay internal.\n\n"
-    "Preserve the entity, scope, qualifiers, measure, amount, units, comparison, date and certainty of included "
-    "claims. Keep reported facts, attributed expectations and your interpretation distinct in their wording. "
-    "Preserve URLs, identifiers, JSON keys, code and other machine-readable fields.\n\n"
-    "Illustrative wording, not evidence:\n“Clear the saved login.”\n“Acme’s market cap fell by $20 billion.”\n“The "
-    "company makes pumps for factories. More factory orders lifted sales.”\n“Sales grew faster than costs, so "
-    "profit rose.”"
+    "Use an 80% ASD-STE100-inspired Simplified Technical English style for all text that people will read. "
+    "Write as if explaining the answer aloud to a reader unfamiliar with the subject and its financial or "
+    "industry terminology. Lead with the answer. Use ordinary words, active voice and short, connected "
+    "sentences. Explain how and why things connect. Replace unfamiliar jargon with what it means. Keep familiar"
+    " financial measures precise. When a technical term is necessary, explain it on first use. Do not copy the "
+    "sources' style or specialist shorthand. Use the same term for the same thing. Choose the few details that "
+    "answer the question; research can be broad without making the answer long. Follow the requested length and"
+    " format. An ordinary question usually needs two to four short paragraphs. Use lists or tables when they "
+    "help. Cite sources inline with useful links. Preserve the meaning, names, numbers, dates, units and "
+    "quotations of facts you include. Distinguish reported facts from your interpretation. Express material "
+    "uncertainty within the claim. NO DISCLAIMERS. Omit filler, repeated conclusions, generic caveats and "
+    "unrequested next steps. Keep internal research notes private. Do not change URLs, identifiers, JSON keys, "
+    "code, formulas or other machine-readable fields. Apply this preference to answers, titles, summaries, "
+    "explanations, progress messages, reports, knowledge pages and audio scripts. It is a writing preference, "
+    "not a numeric compliance score or a limit on research depth."
 )
 
 
