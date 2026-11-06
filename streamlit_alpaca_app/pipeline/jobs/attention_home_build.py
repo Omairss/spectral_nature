@@ -1908,7 +1908,8 @@ def _review_home_public_surface(
             **{key: bundle.get(key) for key in (
                 "research_action", "research_asof_time_utc", "current_assessment", "current_assessment_asof_time_utc",
             )},
-            "findings": bundle.get("findings_markdown") or bundle.get("research_result"),
+            # Compose from claims, current reassessments and observations;
+            # complete findings remain in the same readable bundle above.
             "market_observations": [item["market_observation"] for item in bundle.get("instrument_context") or []
                                     if item.get("market_observation")],
             "claims": [{key: claim.get(key) for key in (
@@ -1981,6 +1982,7 @@ def _review_home_public_surface(
         "Lead with the explanation and its importance; keep research-status commentary internal. "
         "Read the dated calendar to check material releases already due before assigning future follow-ups. "
         "Use the substantive shared findings, current observations and established business knowledge together. "
+        "The inline claims and dated reassessments are research interpretations; complete findings are in their bundle readers. "
         "Research questions, earlier conclusions and claim-role labels are fallible; assess their meaning. "
         "Explain the leading likely mechanisms and useful forecasts, including facts that change the interpretation. "
         "Read the named originals when a consequential detail is missing, ambiguous or contradictory. "

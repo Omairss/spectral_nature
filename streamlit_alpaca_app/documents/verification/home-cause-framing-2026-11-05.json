@@ -1,7 +1,7 @@
 {
   "status": "full_candidate_rejected_after_personal_review",
   "live_source": "96d0a52f",
-  "candidate_source": "0c45c22d last tested; coherent concise editor replacement pending",
+  "candidate_source": "8771a44f plus experimental claims-first projection",
   "production_research_instruction": {
     "path": "services/aql/events.py",
     "text": "retain unresolved observations without substituting an unsupported common cause. Different companies in a numerical group can have different causes."
@@ -177,7 +177,7 @@
     "change": "Explain existing daily-bar field semantics in common numerical context and carry existing instrument_context.market_observation into public findings. Preserve raw values and full market coverage. Universe identity is not projected as a current price observation.",
     "prompt_change": "Restore accepted reviewer connection checking and precise familiar terminology; choose explanatory figures and explain unfamiliar business/product context."
   },
-  "latest_status": "0c reviewer-only changed benchmark precision but retained confirmation diary despite receiving both new instructions. Stop appending corrective bans. Replace competing editorial objectives with one positive brief and simplify duplicate analysis suffix; quality remains unaccepted.",
+  "latest_status": "Fresh8771 writer and shared reviewer failed personal review. Prompt delivery confirmed; periods correctly labeled upstream. Minimal claims-first public input projection is prepared, not accepted.",
   "fresh_df7_chain": {
     "source": "df7bdfb8",
     "scope": "Fresh synthesis/shared review from original ADMA evidence, then unchanged native event adapter and public writer/shared review. No planner or new acquisition.",
@@ -229,7 +229,7 @@
     "scope": "Shared reporting and reviewer communication objective; no new stage or filter.",
     "change": "Explain the leading likely mechanisms and consequences directly. Treat embedded research questions and working notes as inputs rather than the public assignment. Preserve material contrary facts and exact financial measures. Remove the unsuccessful extra editing example.",
     "verification": "Repeat only the same saved card through the native reviewer, then widen if personally accepted.",
-    "limits": "No wording change constitutes acceptance. No claim that the old common planner literally assigned the draft’s binary question."
+    "limits": "No wording change constitutes acceptance. No claim that the old common planner literally assigned the draft\u2019s binary question."
   },
   "cedda_full_case": {
     "source": "cedda90f",
@@ -280,7 +280,7 @@
     "elapsed_seconds": 154.067,
     "pending_workers": 0,
     "result": "Rejected after personal reading. AMD earnings context was added, but negative openings, no-order commentary and the numerical inventory remained.",
-    "anchoring_limit": "The binary confirmed-demand-loss question first appears in the c415 generated public draft, not its positive writer query. Earlier retained findings contain the same framing; this does not establish each input’s causal contribution."
+    "anchoring_limit": "The binary confirmed-demand-loss question first appears in the c415 generated public draft, not its positive writer query. Earlier retained findings contain the same framing; this does not establish each input\u2019s causal contribution."
   },
   "reviewer_fd432_case": {
     "source": "fd432b03",
@@ -355,9 +355,25 @@
     "record": "/Users/omairs/Library/Application Support/SpectralNature/operations/home-reliability-completion-20261103/fresh-public-review-only-0c45c22d/literal-public-output.private.json"
   },
   "coherent_editor_reset": {
-    "status": "prepared_unverified",
+    "status": "actual_reviewer_and_fresh_writer_reviewer_exercised_rejected",
     "change": "Replace617-word first review block with225-word positive editorial brief. Preserve complete memory-only fidelity block byte-for-byte, schema, readers and execution controls. Replace duplicate analysis suffix with concise mechanism/meaning/measure guidance; remove explicit share-price-versus-orders storyline.",
     "reason": "Actual editor followed audit/competing-view preservation incentives and repeated their framing. More instructions did not repair the conflict. This is a new objective arrangement, not demonstrated acceptance.",
-    "next": "One actual shared reviewer on unchanged fresh e3 draft and originals. No new research or acquisition."
+    "next": "One actual shared reviewer on unchanged fresh e3 draft and originals. No new research or acquisition.",
+    "actual_results": {
+      "reviewer_only_cost_usd": 0.037224,
+      "fresh_pair_cost_usd": 0.074602,
+      "fresh_pair_record": "operations/home-reliability-completion-20261103/fresh-native-ai-public-8771a44f/literal-public-output.private.json",
+      "root_decision": "Reject proof/absence framing and daily-versus-weekly comparison; reviewer accepts/high is not acceptance.",
+      "pending_requests": 0
+    }
+  },
+  "claims_first_projection": {
+    "status": "prepared_unverified",
+    "originals_example_audit": "Owner-liked Nov4 example used shared writer/reviewer but a focused harness, removed all prior narration and allowed a different story. It is not a controlled full-flow pass and retained precision errors.",
+    "distinct_from_646": "646 removed inline claims and focused observations too. This candidate preserves every claim/current assessment without editing or role-based filtering; only long findings prose becomes reader-only.",
+    "hypothesis": "Reduce inherited narration anchoring without replacing completed research with a catalog alone.",
+    "continuity": "Current assessment and its date remain inline: reuse may keep older claims while only the planner assessment changes. Complete reader unchanged. Removing this field was rejected before inference after independent continuity review.",
+    "period_audit": "SPY week_pct is explicitly weekly, focused stock change_pct explicitly daily. Invalid comparison is a model/editor error, not an upstream period label defect.",
+    "verification": "Same native public writer/reviewer over unchanged e3 research/current observations/originals; no new acquisition or old public draft."
   }
 }
