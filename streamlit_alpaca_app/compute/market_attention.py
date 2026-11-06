@@ -98,28 +98,31 @@ def build_market_attention_context(
 
     groups, membership = group(correlations[0])
     old_groups, old_membership = group(correlations[1])
-    performance_through = max((series.index[-1] for symbol, series in current_prices.items()
-                               if not series.empty and adjustment.get(symbol) == "all"), default=None)
+    performance_sessions = sorted({session for symbol, series in current_prices.items()
+                                   if adjustment.get(symbol) == "all" for session in series.index})
 
     def performance(symbol: str) -> dict[str, Any]:
         result: dict[str, Any] = {}
         series = current_prices.get(symbol, pd.Series(dtype=float))
         if not series.empty and adjustment.get(symbol) == "all":
+            result["price_adjustment"] = adjustment[symbol]
             result["history_through"] = str(series.index[-1])
             result["includes_current_snapshot"] = bool(series.index[-1] == today)
-            expected = list(panel.index) + ([today] if performance_through == today else [])
+            expected = performance_sessions
             if not expected or series.index[-1] != expected[-1]:
                 return result
-            for horizon in (5, 20):
+            for horizon in (1, 5, 20):
                 if len(series) >= horizon + 1:
                     # Use a shared session index so missing bars do not turn a
                     # five-session measure into a longer, misleading horizon.
                     if len(expected) >= horizon + 1 and expected[-horizon - 1] in series.index:
                         result[f"return_{horizon}d_pct"] = (series.iloc[-1] / series.loc[expected[-horizon - 1]] - 1) * 100
+                        result[f"return_{horizon}d_period"] = [str(expected[-horizon - 1]), str(series.index[-1])]
             week_start = pd.Timestamp(today) - pd.Timedelta(days=pd.Timestamp(today).weekday())
             anchor_dates = panel.index[panel.index < week_start.date()]
             if len(anchor_dates) and anchor_dates[-1] in series.index:
                 result["week_pct"] = (series.iloc[-1] / series.loc[anchor_dates[-1]] - 1) * 100
+                result["week_period"] = [str(anchor_dates[-1]), str(series.index[-1])]
             history = returns[symbol].dropna().tail(window) if symbol in returns else pd.Series(dtype=float)
             if series.index[-1] == today and len(history) >= min_observations and history.std() > 0:
                 last_closed = panel[symbol].iloc[-1]
@@ -149,7 +152,7 @@ def build_market_attention_context(
         records.append(row)
     benchmark = {"symbol": benchmark_symbol, **performance(benchmark_symbol)}
     for row in records:
-        for column in ("week_pct", "return_5d_pct", "return_20d_pct"):
+        for column in ("return_1d_pct", "week_pct", "return_5d_pct", "return_20d_pct"):
             if column in row and column in benchmark:
                 row[column.removesuffix("_pct") + "_excess_pp"] = row[column] - benchmark[column]
     frame = pd.DataFrame(records, columns=list(dict.fromkeys(key for row in records for key in row)) or ["symbol", "sector"])
@@ -193,6 +196,7 @@ def build_market_attention_context(
             "current_window": [str(recent.index.min()), str(recent.index.max())],
             "previous_window": [str(previous.index.min()), str(previous.index.max())],
             "basis": "all-adjusted daily returns through prior completed session; multi-day performance uses the latest adjusted snapshot bar when present",
+            "performance_periods": "Each return period names its starting and ending New York sessions. An ending session matching the as-of date can contain an unfinished bar; session dates do not imply synchronized capture times.",
             "window_comparison": "Both windows use the same eligible instruments. Group IDs identify exact member sets; coverage fields record new or missing history separately from relationship changes.",
             "interpretation": "Historical return co-movement over the stated windows. Fund flows and regime significance require their own measurements. Sector labels provide independent classification."},
         "benchmark": benchmark, "groups": group_rows, "previous_groups": old_groups, "sectors": sectors,

@@ -1,22 +1,12 @@
 {
-  "status": "Fresh8771 public composition/review rejected; minimal claims-first input projection prepared. No release or deployment.",
-  "source_checkpoint": "8771a44f (latest actual model result, public unaccepted)",
+  "status": "Implementation advanced; public narrative improved, precision and release qualification remain open. No deployment.",
+  "objective": "Reliable current data-first research with predictable adaptive costs, useful probable explanations and concise public reporting. The90% savings target is retired.",
   "authorization": "Owner: Implement deploy and test end to end; production promotion authorized after local and development acceptance.",
-  "offline_verification": {
-    "provider": "DeepSeek production Pro",
-    "approval": "Owner explicit new exception in this turn",
-    "scope": "Isolated local/development; all requests and unknown charges count; no production writes.",
-    "total_window_seconds": 7200,
-    "approval_amendment": "Owner: Approve up to$3 more and30 minutes. All previous charges and bounds remain counted.",
-    "owner_continuation": "November5owner: Yes, stop asking me for today. It is all approved. Finish the job. Preserve cumulativecharges; no moreprovider/window questions today.",
-    "latest_counted_exposure_usd": 21.612899,
-    "counted_cumulative_exposure_usd": 21.612899,
-    "operational_guard_usd": 45,
-    "operational_guard_note": "Owner broad November5 completion authorization; this is a conservative operational guard, not a new dollar approval or spending target. All previous charges and unknown maxima remain counted.",
-    "counted_pacific_day_2026_11_06_usd": 2.327984,
-    "initial_api_exception_cap_usd": 15,
-    "continuation_scope": "Owner subsequently authorized finishing this same repair without repeated provider/window questions and has now instructed Continue. The $45 operational guard is not a new owner dollar grant. Keep all old costs and unknown maxima.",
-    "internal_working_window_ends_at_utc": "2026-11-06T14:00:00+00:00"
+  "current_source_revision": "b670050d plus verified generic dated daily benchmark source; pending commit",
+  "production": {
+    "source": "96d0a52f",
+    "writes_during_verification": 0,
+    "deployment": "unchanged; no candidate build or promotion"
   },
   "requirements": [
     {
@@ -53,7 +43,7 @@
       "id": 6,
       "task": "Probabilistic explanations and concise expert public review",
       "status": "fresh_native_research_and_public_review_exercised_but_quality_rejected",
-      "evidence": "e3 research improved joint mechanisms. Fresh8771 public writer/reviewer completed with0pending workers, but retained proof commentary and an invalid daily/weekly comparison. Funded review accepted the errors; root rejected."
+      "evidence": "e3 research improved joint explanations. e03 public input projection removed the proof diary in actual full-Pro output, but the reviewer accepted a daily/weekly comparison error. Shared memory-review fidelity separately passed on e03."
     },
     {
       "id": 7,
@@ -68,102 +58,63 @@
       "evidence": "documents/verification/home-settings-retirement-2026-11-04.json"
     }
   ],
-  "verification": {
-    "operational": "Cancellation, receipt replay/settlement, context retention, wiki revision safety and chart contracts.",
-    "qualitative": "Personally compare full model outputs using retained inputs, then complete isolated flow before development and production.",
-    "release": "Current accepted Git source only; preserve current consumers and rollback; verify live user readback.",
-    "targeted_operational_checks": 65,
-    "baseline_comparison": "Broad legacy suite has 29 unchanged failures against committed source, mostly removed helpers and old prompt expectations. The new memory default-policy regression was corrected and its contract passes.",
-    "source_pinned_failure": {
-      "source": "6f68bcb7",
-      "result": "Planner produced a prose draft, repeated synthesis, then malformed output; full-context JSON recovery reached its deadline. Stopped further inference before acceptance.",
-      "counted_usd": 5.055128,
-      "unknown_maximum_usd": 1.643643,
-      "fix": "Expose structured artifact contract during planning; saved-response-only syntax repair; actual review clock; configurable common planner1800s and focused question1200s within owning run."
+  "role_qualification": {
+    "common_planner": {
+      "last_actual_source": "2b21980d",
+      "result": "Broader data-first agenda exercised; source-reader reference defect fixed. Current later shared editor/open-question changes still require current-planner qualification."
     },
-    "20bc503e": {
-      "stories": 7,
-      "fresh_reviewed_investigations": 3,
-      "assessed_reuses": 2,
-      "completed_wiki_checks": 5,
-      "committed_mutations": 4,
-      "verification_guard_failures": 2,
-      "quality": "Not accepted: gross-profit meaning, supplier/buyer interpretation, proof commentary and overdue-event follow-up.",
-      "chart": "Original study clock clipped synthesis; no fresh chart selection accepted."
+    "investigation": {
+      "last_actual_source": "e3edbc41",
+      "result": "Joint mechanisms and demand counterevidence improved. Accepted as private research input only; public proof commentary remained in findings."
     },
-    "latest_operational_checks": 46,
-    "latest_public_continuation": "Actual first fresh investigation\u2192native public writer/shared-review chain completed at1e but failed root qualitative review."
+    "public_writer_and_reviewer": {
+      "last_actual_source": "e03d52e7",
+      "result": "Actual native pair now explains developments instead of repeating the proof diary. Still rejects: daily technology versus weekly benchmark used as relative-scale evidence; unclear snapshot labeling. No complete-feed acceptance.",
+      "cost_usd": 0.077706
+    },
+    "complete_memory_reviewer": {
+      "last_actual_source": "e03d52e7",
+      "result": "Root read original, draft and complete replacement. Full useful information/dates/measures/conditions retained; narrow fidelity accepted. Original absence wording remains, so this is not public-style acceptance.",
+      "cost_usd": 0.021231
+    },
+    "daily_benchmark": {
+      "status": "unpaid_actual_data_arithmetic_and_gap_behavior_verified",
+      "change": "Existing adjusted history now supplies generic1-session return and explicit session endpoints; weekly/5/20-session metrics keep their original meaning. No new provider or ticker-specific path.",
+      "historical_limit": "Separate pre-cutoff immutable18:35and20:35histories recovered. Existing benchmark weekly/5d/20d match their respective captures exactly; additive newfields are native-derived. Original loader version pin remains unproven; additional-input scope declared.",
+      "evidence": "operations/home-reliability-completion-20261103/one-session-benchmark-unpaid-20261106/result.json"
+    }
   },
+  "remaining": [
+    {
+      "id": 1,
+      "task": "Qualify current planner, focused research, complete public reporting and material late-correction continuity.",
+      "state": "Small-case narration improved. Generic1-session benchmark source passed actual-data arithmetic/gap checks; complete current-production public comparison and held-out investigation next."
+    },
+    {
+      "id": 2,
+      "task": "Qualify fresh Brief/chart continuation and complete integrated release source.",
+      "state": "Chart structural checks passed; fresh integrated continuation pending."
+    },
+    {
+      "id": 3,
+      "task": "Build accepted Git source and qualify exact DEV images and managed-identity SQL/Blob recovery.",
+      "state": "Not started; source acceptance remains held."
+    },
+    {
+      "id": 4,
+      "task": "Promote exact DEV-qualified images, reviewed closing schedule, recover5original receipts, regenerate and read back live feed.",
+      "state": "Owner authorized after local/DEV acceptance; production unchanged."
+    },
+    {
+      "id": 5,
+      "task": "Finish native23 render/device delivery with web content parity.",
+      "state": "All50native source hashes match reviewedff3ddd1b after integrationb670050d. ExistingSimulator23proof retained; lowerHealth visual/device delivery remain separate holds, not backend API incompatibility."
+    }
+  ],
   "schedule_decision": {
     "status": "source_proposal_not_live",
     "evidence": "documents/verification/home-closing-schedule-2026-11-05.json",
     "summary": "Preserve 20:35 equities and add a 21:35 numerical refresh; keep two news runs at 14:05/21:05 UTC, four Home runs with final 21:50, and every Trading schedule and authority. Opening news timing stays unchanged. Raw headlines at 21:05 exclude later earnings; integrated-source qualification must verify fresh acquisition through the existing due-calendar/live Zopedia path."
-  },
-  "current_source_revision": "8771a44f plus experimental public input projection",
-  "current_verification_record": "documents/verification/home-cause-framing-2026-11-05.json",
-  "remaining": [
-    {
-      "id": 1,
-      "task": "Verify restored shared synthesis/review and substantive public handoff on the smallest actual case, then widen. Complete material late-correction continuity through existing research/wiki paths.",
-      "state": "Small public quality still open. Claims, latest dated assessment and current observations stay inline; only long findings prose moves to the unchanged existing bundle reader. No full cohort expansion until personally accepted."
-    },
-    {
-      "id": 2,
-      "task": "Qualify Brief/chart continuation and integrated source acceptance after actual narrative acceptance.",
-      "state": "pending"
-    },
-    {
-      "id": 3,
-      "task": "Build accepted Git source, qualify exact DEV images and managed-identity SQL/Blob recovery.",
-      "state": "not_started; backend release held"
-    },
-    {
-      "id": 4,
-      "task": "Promote exact qualified images, reviewed closing schedule, recover five original receipts and regenerate/read back live feed.",
-      "state": "owner_authorized; contingent on local and DEV acceptance"
-    },
-    {
-      "id": 5,
-      "task": "Finish separately gated native23 rendering and device delivery with current web content parity.",
-      "state": "native-only partial qualification recorded separately; device delivery held for lower Health chart observation"
-    }
-  ],
-  "writing_follow_up": {
-    "owner_feedback": "Live prose replaces likely drivers with common-cause caveats and rhetorical contrasts; writing regressed after compression.",
-    "status": "owner_accepted_original_report_example_integrated_public_case_pending",
-    "evidence": "documents/verification/home-writing-verification-2026-11-04.json",
-    "next": "Use the replayed native reviewed bundle for the fresh public writer/reviewer; retain originals and numerical context without prior audit judgments.",
-    "latest_evidence": "documents/verification/home-writing-originals-verification-2026-11-04.json",
-    "owner_response": "Owner liked the original-report writing example on November 4. This accepts that example; it does not establish that the experimental input change is integrated or that current upstream prompts are verified."
-  },
-  "upstream_prompt_verification": {
-    "status": "fresh_upstream_tested_phase_failure_repaired_execution_verified",
-    "current_source_runtime": "44650d92 plus completed-response handoff",
-    "previous_actual_upstream_run": "20bc503e",
-    "gap": "The shared final-synthesis, reviewer and narrative prompts changed after the last actual upstream research run. Later paid comparisons covered only final public writing.",
-    "scope": "The native common planner receives the saved original numerical context and headlines and may select one investigation; retain original native tools, full Pro, existing retained findings and shared review. No full Home rerun, wiki writes, public recomposition or deployment.",
-    "interpretation": "A reuse-only or cached result leaves fresh research synthesis/review unverified. Execution checks are not qualitative acceptance.",
-    "spending": {
-      "cap_usd": 13,
-      "known_usage_estimate_usd": 9.290583,
-      "unresolved_maximum_usd": 3.309932,
-      "counted_exposure_usd": 12.600515,
-      "remaining_usd": 0.399485,
-      "pending_requests": 0,
-      "all_prior_charges_retained": true,
-      "gpu_instances_rented": 0
-    },
-    "requested_window_minutes": 30,
-    "private_preflight": "operations/home-reliability-completion-20261103/upstream-preflight.json",
-    "tested_revision": "46fe155b",
-    "actual_result": "Current native upstream prompts were genuinely exercised. Native continuation completed shared review; timed-out automatic adoption was then repaired and verified with unchanged provider-response replay. Fresh public output is still not accepted.",
-    "source_correction": [
-      "Keep prior research as a dated readable catalog, with findings and originals available through the existing readers. Exclude previous top-level review judgments from supplied event/company research records and inline context. Stored audit records remain unchanged.",
-      "The shared reviewer must distinguish observation, event and publication times, and may not change an observation date to make an explanation fit."
-    ],
-    "live_source_revision": "96d0a52f6e46845f2689e6787cdf2c97ac3a9ef3",
-    "release_integration": "Production advanced to the namespace-aware X/calendar release; reconcile that accepted source before any candidate release. No production deployment from the older branch.",
-    "latest_evidence": "documents/verification/home-upstream-verification-2026-11-05.json"
   },
   "source_integration": {
     "status": "integrated_awaiting_root_review_and_qualification",
@@ -173,18 +124,24 @@
     "evidence": "documents/verification/home-reliability-source-integration-2026-11-05.json",
     "no_release_acceptance_granted": true
   },
-  "current_writing_iteration": {
-    "last_tested_source": "8771a44f",
-    "accepted": false,
-    "result": "Reviewer-only and fresh native writer/reviewer both retained proof/absence framing. Fresh pair cost$0.074602, no pending requests. Daily/weekly inputs were correctly labeled; model/reviewer made the invalid comparison.",
-    "next": "One fresh native public composition using claims-first inline evidence. No new acquisition, research, old draft, or production writes."
+  "offline_verification": {
+    "provider": "Existing full production DeepSeekV4Pro/thinking/high, under owner Home-repair exception and Continue",
+    "scope": "Same isolated repair, saved inputs, no production writes; no new unrelated study",
+    "counted_cumulative_exposure_usd": 21.711836,
+    "counted_pacific_day_2026_11_06_usd": 3.47048,
+    "daily_allowance_usd": 25,
+    "operational_guard_usd": 45,
+    "operational_guard_note": "Internal guard under broad continuation authority, not a new owner dollar grant; every prior metered estimate and unknown maximum remains counted.",
+    "internal_working_window_ends_at_utc": "2026-11-06T14:45:00+00:00",
+    "pending_requests": 0,
+    "authoritative_private_record": "operations/home-reliability-completion-20261103/ledger.json"
   },
-  "repair_in_progress": {
-    "status": "Minimal evidence projection prepared; actual quality verification pending",
-    "scope": "Keep exact reviewed claims, roles, references, dates, current assessment and focused numerical observations inline. Complete findings stay in the existing readable bundle. No new stage, helper, filter or claim rewriting.",
-    "source_files": [
-      "pipeline/jobs/attention_home_build.py"
-    ],
-    "production_writes": 0
+  "evidence": {
+    "current_quality_history": "documents/verification/home-cause-framing-2026-11-05.json",
+    "earlier_upstream": "documents/verification/home-upstream-verification-2026-11-05.json",
+    "owner_liked_example_scope": "documents/verification/home-writing-originals-verification-2026-11-04.json",
+    "source_integration": "documents/verification/home-reliability-source-integration-2026-11-05.json",
+    "completed_settings_retirement": "documents/verification/home-settings-retirement-2026-11-04.json",
+    "private_current_memory_review": "operations/home-reliability-completion-20261103/complete-memory-review-e03d52e7/output.private.json"
   }
 }
